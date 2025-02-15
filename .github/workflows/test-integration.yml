@@ -1,0 +1,301 @@
+name: Integration Tests
+on:
+  pull_request:
+    branches:
+      - main
+  merge_group: null
+
+
+# Integration tests interact with GitHub resources in the integration test infrastructure and therefore
+# cannot run concurrently with other integration tests.
+concurrency:
+  group: cf-scripts-integration-tests
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+env:
+  # Test Instrumentation
+  # Note: This passes secrets to steps that don't need them.
+  # We would not do this in a production setting.
+  BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+  # Bot
+  CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
+  CF_TICK_GRAPH_DATA_BACKENDS: file
+  CF_FEEDSTOCK_OPS_CONTAINER_NAME: conda-forge-tick
+  CF_FEEDSTOCK_OPS_CONTAINER_TAG: test
+  # Deploy to GitHub step
+  CF_TICK_GRAPH_GITHUB_BACKEND_REPO: regro-staging/cf-graph-countyfair # also used in the "Install Bot Code" step
+  RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+
+jobs:
+  setup-repositories:
+    name: Set up Integration Tests
+    # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
+    # Nevertheless, this check is always run in the merge queue.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      scenario_ids: ${{ steps.setup_repositories.outputs.scenario_ids }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: cf-scripts
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
+        with:
+          context: cf-scripts
+          push: false
+          load: true
+          tags: conda-forge-tick:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/image.tar
+
+      - name: Upload Docker Image
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: conda-forge-tick
+          path: /tmp/image.tar
+
+      - name: setup-micromamba
+        uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: Run pip install
+        working-directory: cf-scripts
+        run: |
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Set up Integration Test Repositories
+        id: setup_repositories
+        working-directory: cf-scripts
+        # note: this writes `scenario_ids` to GITHUB_OUTPUT
+        run: python -m tests_integration.setup_repositories
+        env:
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
+  run-test-scenario:
+    name: Run Scenarios
+    # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
+    # Nevertheless, this check is always run in the merge queue.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: setup-repositories
+    strategy:
+      matrix:
+        scenario_id: ${{ fromJson(needs.setup-repositories.outputs.scenario_ids) }}
+      max-parallel: 1
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: cf-scripts
+          submodules: 'true'
+
+      - name: Download Docker Image
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: conda-forge-tick
+          path: /tmp
+
+      - name: setup-micromamba
+        uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: Install Bot Code (no graph clone)
+        # this is the first time, so we clean disk space, but don't clone the graph
+        run: source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph
+
+      - name: Load Docker Image
+        run: |
+          docker load --input /tmp/image.tar
+          docker image ls -a
+
+      - name: Prepare Scenario
+        working-directory: cf-scripts
+        run: python -m tests_integration.step_prepare  # this creates the cf-graph repository
+        env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clean-disk-space
+
+      - name: Start HTTP Proxy
+        working-directory: cf-scripts
+        run: |
+          ./tests_integration/mock_proxy_start.sh &
+          sleep 10
+          # Install CA Certificate
+          sudo wget -e use_proxy=yes -e http_proxy=127.0.0.1:8080 -O /usr/local/share/ca-certificates/mitmproxy.crt \
+            http://mitm.it/cert/pem
+          sudo update-ca-certificates
+        env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
+          PYTHONPATH: ${{ github.workspace }}/cf-scripts
+
+      - name: "[Test] Gather all Feedstocks"
+        working-directory: cf-graph
+        run: |
+          # don't use proxy for git CLI operations (applies to all further steps)
+          git config --global http."https://github.com".proxy ""
+          conda-forge-tick --debug gather-all-feedstocks
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] Make Graph (Nodes and Edges)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-graph --update-nodes-and-edges
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] Make Graph (Node Attributes)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-graph
+        env:
+          CF_TICK_FRAC_MAKE_GRAPH: "1.0"
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] update-upstream-versions"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug update-upstream-versions
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] make-migrators (1/2)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-migrators
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] auto-tick (1/2)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug auto-tick
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] make-migrators (2/2)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-migrators
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
+      - name: "[Test] auto-tick (2/2)"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug auto-tick
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
+
+      - name: Validate Scenario
+        working-directory: cf-scripts
+        run: python -m tests_integration.step_validate
+        env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
+      - name: Print Proxy Logs
+        if: always()
+        run: cat /tmp/mitmproxy.log

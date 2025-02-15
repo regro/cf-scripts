@@ -1,8 +1,10 @@
 import collections.abc
 import hashlib
+import json
 import logging
 import os
 import re
+import sys
 import tempfile
 import typing
 import zipfile
@@ -18,6 +20,8 @@ from conda_forge_feedstock_ops.container_utils import (
     should_use_container,
 )
 from requests.models import Response
+
+from conda_forge_tick.settings import CONDA_FORGE_ORG, ENV_OVERRIDE_CONDA_FORGE_ORG
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
@@ -192,7 +196,7 @@ def _fetch_static_repo(name, dest):
     for branch in ["main", "master"]:
         try:
             r = requests.get(
-                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+                f"https://github.com/{CONDA_FORGE_ORG}/{name}-feedstock/archive/{branch}.zip",
             )
             r.raise_for_status()
             found_branch = branch
@@ -658,6 +662,10 @@ def load_feedstock_containerized(
         args,
         json_loads=loads,
         input=json_blob,
+        extra_container_args=[
+            "-e",
+            f"{ENV_OVERRIDE_CONDA_FORGE_ORG}={CONDA_FORGE_ORG}",
+        ],
     )
 
     return data
@@ -722,10 +730,6 @@ def load_feedstock(
 
 
 if __name__ == "__main__":
-    import json
-    import os
-    import sys
-
     # Do not use docker when debugging
     os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
 
