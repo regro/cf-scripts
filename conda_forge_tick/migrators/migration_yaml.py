@@ -121,6 +121,7 @@ class MigrationYaml(GraphMigrator):
 
     migrator_version = 0
     rerender = True
+    allowed_schema_versions = [0, 1]
 
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
