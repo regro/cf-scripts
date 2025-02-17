@@ -12578,15 +12578,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: f130e7362bc3ab2cca1aa8cc43880521
-      sha256: ac0309ec3045dcddfa038a1ebe053d821f31a0dd2bfdc98340645e6a6dd3ecbe
+      md5: df904770f3fdb6c0265a09cdc22acf54
+      sha256: bc3e873e85c55deaaad446c410d9001d12a133c1b48fa2cb0050b4f46f926aa3
     manager: conda
     name: scipy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.1-py311h809cfb5_0.conda
-    version: 1.15.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.2-py311h0675101_0.conda
+    version: 1.15.2
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
