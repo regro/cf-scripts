@@ -71,7 +71,7 @@ The creation of GitHub repositories in the test environment is done automaticall
 
 Importantly, the integration test workflow does not execute the test cases directly.
 Instead, it groups them into test scenarios and executes those at once.
-A test scenario is a mapping from feedstocks to a specific test case for that feedstock.
+A test scenario assigns one test case to every feedstock and runs them in parallel.
 
 Thus, test cases of different feedstocks can run simultaneously, but the different test cases for the same feedstock
 are always run sequentially.
