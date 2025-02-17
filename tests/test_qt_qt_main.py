@@ -64,8 +64,9 @@ def test_qt_main(old_meta, new_meta, new_ver, tmpdir):
             failed.append(False)
             excepts.append(None)
 
-    for e in excepts:
-        if e is not None:
-            raise e
+    if all(failed):
+        for e in excepts:
+            if e is not None:
+                raise e
 
     assert not all(failed)
