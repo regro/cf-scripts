@@ -2111,39 +2111,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: bbff61e3a9e10098bd9e92a79c71b4b8
-      sha256: ec42e299458f1ee7464e285839573192b220c9c59b7f8e409ef7ac5223189697
+      md5: 9062ec7787432d93ce5b4ba16439893a
+      sha256: 882c2ee823f88723956c02edb8a1f786ef7824a66f5e6de08727ccde33139a84
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.20.37-hd8ed1ab_0.conda
-    version: 2025.02.17.08.20.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.22.26-hd8ed1ab_0.conda
+    version: 2025.02.17.08.22.26
   - category: main
     dependencies: {}
     hash:
-      md5: bbff61e3a9e10098bd9e92a79c71b4b8
-      sha256: ec42e299458f1ee7464e285839573192b220c9c59b7f8e409ef7ac5223189697
+      md5: 9062ec7787432d93ce5b4ba16439893a
+      sha256: 882c2ee823f88723956c02edb8a1f786ef7824a66f5e6de08727ccde33139a84
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.20.37-hd8ed1ab_0.conda
-    version: 2025.02.17.08.20.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.22.26-hd8ed1ab_0.conda
+    version: 2025.02.17.08.22.26
   - category: main
     dependencies: {}
     hash:
-      md5: bbff61e3a9e10098bd9e92a79c71b4b8
-      sha256: ec42e299458f1ee7464e285839573192b220c9c59b7f8e409ef7ac5223189697
+      md5: 9062ec7787432d93ce5b4ba16439893a
+      sha256: 882c2ee823f88723956c02edb8a1f786ef7824a66f5e6de08727ccde33139a84
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.20.37-hd8ed1ab_0.conda
-    version: 2025.02.17.08.20.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.17.08.22.26-hd8ed1ab_0.conda
+    version: 2025.02.17.08.22.26
   - category: main
     dependencies:
       click: '>=8'
@@ -12964,40 +12964,40 @@ package:
     version: 1.17.0
   - category: main
     dependencies:
-      python: '>=3.5'
+      python: '>=3.9'
     hash:
-      md5: 62f26a3d1387acee31322208f0cfa3e0
-      sha256: 23011cb3e064525bdb8787c75126a2e78d2344a72cd6773922006d1da1f2af16
+      md5: 87f47a78808baf2fa1ea9c315a1e48f1
+      sha256: eb92d0ad94b65af16c73071cc00cc0e10f2532be807beb52758aab2b06eb21e2
     manager: conda
     name: smmap
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.0-pyhd8ed1ab_0.tar.bz2
-    version: 5.0.0
+    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    version: 5.0.2
   - category: main
     dependencies:
-      python: '>=3.5'
+      python: '>=3.9'
     hash:
-      md5: 62f26a3d1387acee31322208f0cfa3e0
-      sha256: 23011cb3e064525bdb8787c75126a2e78d2344a72cd6773922006d1da1f2af16
+      md5: 87f47a78808baf2fa1ea9c315a1e48f1
+      sha256: eb92d0ad94b65af16c73071cc00cc0e10f2532be807beb52758aab2b06eb21e2
     manager: conda
     name: smmap
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.0-pyhd8ed1ab_0.tar.bz2
-    version: 5.0.0
+    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    version: 5.0.2
   - category: main
     dependencies:
-      python: '>=3.5'
+      python: '>=3.9'
     hash:
-      md5: 62f26a3d1387acee31322208f0cfa3e0
-      sha256: 23011cb3e064525bdb8787c75126a2e78d2344a72cd6773922006d1da1f2af16
+      md5: 87f47a78808baf2fa1ea9c315a1e48f1
+      sha256: eb92d0ad94b65af16c73071cc00cc0e10f2532be807beb52758aab2b06eb21e2
     manager: conda
     name: smmap
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.0-pyhd8ed1ab_0.tar.bz2
-    version: 5.0.0
+    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    version: 5.0.2
   - category: main
     dependencies:
       python: '>=3.9'
