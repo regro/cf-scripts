@@ -25,7 +25,7 @@ jobs:
         run: |
           python autotick-bot/stop_me_if_needed.py
 
-      - uses: conda-incubator/relock-conda@4704897260d9a832681c8b94f14206e9f9adf1ba # v21
+      - uses: conda-incubator/relock-conda@4a70352cec16f4b5976b9776deb83956a228c607 # v23
         if: ${{ ! env.CI_SKIP }}
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
