@@ -2111,39 +2111,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f839908de89d467b68e754b9a5125e61
-      sha256: 81c7496749ff1adefe06d0daa3bce1689ede69ec38b7e1771f93ad677370a646
+      md5: c56c77699db0780360783af714230276
+      sha256: 43acdd2efbb628de07f8c32a2efb810cd7c89b31190e56e928c9352877f4b8e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.15.11.31-hd8ed1ab_0.conda
-    version: 2025.02.19.15.11.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.18.36.33-hd8ed1ab_0.conda
+    version: 2025.02.19.18.36.33
   - category: main
     dependencies: {}
     hash:
-      md5: f839908de89d467b68e754b9a5125e61
-      sha256: 81c7496749ff1adefe06d0daa3bce1689ede69ec38b7e1771f93ad677370a646
+      md5: c56c77699db0780360783af714230276
+      sha256: 43acdd2efbb628de07f8c32a2efb810cd7c89b31190e56e928c9352877f4b8e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.15.11.31-hd8ed1ab_0.conda
-    version: 2025.02.19.15.11.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.18.36.33-hd8ed1ab_0.conda
+    version: 2025.02.19.18.36.33
   - category: main
     dependencies: {}
     hash:
-      md5: f839908de89d467b68e754b9a5125e61
-      sha256: 81c7496749ff1adefe06d0daa3bce1689ede69ec38b7e1771f93ad677370a646
+      md5: c56c77699db0780360783af714230276
+      sha256: 43acdd2efbb628de07f8c32a2efb810cd7c89b31190e56e928c9352877f4b8e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.15.11.31-hd8ed1ab_0.conda
-    version: 2025.02.19.15.11.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.19.18.36.33-hd8ed1ab_0.conda
+    version: 2025.02.19.18.36.33
   - category: main
     dependencies:
       click: '>=8'
@@ -9921,41 +9921,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 335ee9807eb7170a8a75e3b26e807891
-      sha256: 44b5b8d376aca2f2cba74ea0d4fb264936913484fed0ee9535741c431e5bd320
+      md5: dc702b2fae7ebe770aff3c83adb16b63
+      sha256: 353fd5a2c3ce31811a6272cd328874eb0d327b1eafd32a1e19001c4ad137ad3a
     manager: conda
     name: pkginfo
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.1-pyhd8ed1ab_0.conda
-    version: 1.12.1.1
+      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.2-pyhd8ed1ab_0.conda
+    version: 1.12.1.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 335ee9807eb7170a8a75e3b26e807891
-      sha256: 44b5b8d376aca2f2cba74ea0d4fb264936913484fed0ee9535741c431e5bd320
+      md5: dc702b2fae7ebe770aff3c83adb16b63
+      sha256: 353fd5a2c3ce31811a6272cd328874eb0d327b1eafd32a1e19001c4ad137ad3a
     manager: conda
     name: pkginfo
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.1-pyhd8ed1ab_0.conda
-    version: 1.12.1.1
+      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.2-pyhd8ed1ab_0.conda
+    version: 1.12.1.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 335ee9807eb7170a8a75e3b26e807891
-      sha256: 44b5b8d376aca2f2cba74ea0d4fb264936913484fed0ee9535741c431e5bd320
+      md5: dc702b2fae7ebe770aff3c83adb16b63
+      sha256: 353fd5a2c3ce31811a6272cd328874eb0d327b1eafd32a1e19001c4ad137ad3a
     manager: conda
     name: pkginfo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.1-pyhd8ed1ab_0.conda
-    version: 1.12.1.1
+      https://conda.anaconda.org/conda-forge/noarch/pkginfo-1.12.1.2-pyhd8ed1ab_0.conda
+    version: 1.12.1.2
   - category: main
     dependencies:
       python: '>=3.9'
