@@ -156,4 +156,5 @@ cat mitmproxy_cert.pem >> mitmproxy_cert_bundle.pem
 
 TODO:
 
+- usa CA cert setup
 - SSL Cert Setup MacOS

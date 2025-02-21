@@ -83,7 +83,9 @@ def mitmproxy(scenario: tuple[int, dict[str, TestCase]]):
     scenario_id, _ = scenario
     print(f"Starting mitmproxy for scenario {scenario_id}...")
 
-    proxy_process = subprocess.Popen(["./mock_proxy_start.sh"])
+    proxy_process = subprocess.Popen(
+        ["./mock_proxy_start.sh"], env=os.environ | {"SCENARIO_ID": str(scenario_id)}
+    )
     yield
     proxy_process.kill()
 
@@ -188,8 +190,13 @@ def invoke_bot_command(args: list[str]):
     cli.main(args, standalone_mode=False)
 
 
+# TODO: parameterize to include no containers test
+
+
 @pytest.mark.integration
-def test_scenario(scenario: tuple[int, dict[str, TestCase]], repositories_setup):
+def test_scenario(
+    scenario: tuple[int, dict[str, TestCase]], repositories_setup, mitmproxy
+):
     _, scenario = scenario
 
     # import needs to happen dynamically because we set the environment variables first
