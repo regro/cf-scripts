@@ -1,57 +1,24 @@
-import collections
 import os
 import random
 
-from tests_integration.lib.shared import DEFINITIONS_DIR, ENV_GITHUB_RUN_ID
-
-SKIP_TEST_CASES = {"__init__"}
-
-
-def collect_integration_test_cases() -> dict[str, list[str]]:
-    """
-    For each feedstock, return a list of all test cases that should be run for it.
-    The test cases do not include the feedstock name or the .py extension.
-
-    Example return value:
-    {
-        "feedstock1": ["aarch_migration", "version_update"],
-        "feedstock2": ["version_update"],
-    }
-
-    The return value of this function is sorted by feedstock name and test case name.
-    """
-    test_cases = collections.defaultdict(list)
-
-    for test_case in DEFINITIONS_DIR.glob("*/*.py"):
-        test_case_name = test_case.stem
-        if test_case_name in SKIP_TEST_CASES:
-            continue
-        feedstock = test_case.parent.name
-        test_cases[feedstock].append(test_case_name)
-
-    return dict(
-        sorted(
-            (feedstock, sorted(test_cases))
-            for feedstock, test_cases in test_cases.items()
-        )
-    )
+from tests_integration.definitions import TEST_CASE_MAPPING
+from tests_integration.lib.shared import ENV_GITHUB_RUN_ID
+from tests_integration.lib.test_case import TestCase
 
 
-def get_number_of_test_scenarios(integration_test_cases: dict[str, list[str]]) -> int:
-    return max(len(test_cases) for test_cases in integration_test_cases.values())
+def get_number_of_test_scenarios() -> int:
+    return max(len(test_cases) for test_cases in TEST_CASE_MAPPING.values())
 
 
-def get_all_test_scenario_ids(
-    integration_test_cases: dict[str, list[str]],
-) -> list[int]:
-    return list(range(get_number_of_test_scenarios(integration_test_cases)))
+def get_all_test_scenario_ids() -> list[int]:
+    return list(range(get_number_of_test_scenarios()))
 
 
 def init_random():
-    random.seed(int(os.environ[ENV_GITHUB_RUN_ID]))
+    random.seed(int(os.environ.get(ENV_GITHUB_RUN_ID, 0)))
 
 
-def get_test_scenario(scenario_id: int) -> dict[str, str]:
+def get_test_scenario(scenario_id: int) -> dict[str, TestCase]:
     """
     Get the test scenario for the given ID.
     The scenario is a dictionary with the feedstock name as key and the test case name as value.
@@ -59,9 +26,8 @@ def get_test_scenario(scenario_id: int) -> dict[str, str]:
     Test scenarios are pseudo-randomly generated with the GitHub run ID as seed.
     """
     init_random()
-    integration_test_cases = collect_integration_test_cases()
 
-    n_scenarios = get_number_of_test_scenarios(integration_test_cases)
+    n_scenarios = get_number_of_test_scenarios()
 
     if n_scenarios < 0 or scenario_id >= n_scenarios:
         raise ValueError(
@@ -75,7 +41,7 @@ def get_test_scenario(scenario_id: int) -> dict[str, str]:
             test_cases
             * (n_scenarios // len(test_cases) + (n_scenarios % len(test_cases) > 0))
         )[:n_scenarios]
-        for feedstock, test_cases in integration_test_cases.items()
+        for feedstock, test_cases in TEST_CASE_MAPPING.items()
     }
 
     for test_cases in test_cases_extended.values():
@@ -83,7 +49,7 @@ def get_test_scenario(scenario_id: int) -> dict[str, str]:
         random.shuffle(test_cases)
 
     def pop_test_scenario():
-        scenario: dict[str, str] = {}
+        scenario: dict[str, TestCase] = {}
         for feedstock in test_cases_extended:
             scenario[feedstock] = test_cases_extended[feedstock].pop()
         return scenario

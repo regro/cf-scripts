@@ -16,20 +16,6 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
-env:
-  # Test Instrumentation
-  # Note: This passes secrets to steps that don't need them.
-  # We would not do this in a production setting.
-  BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
-  # Bot
-  CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
-  CF_TICK_GRAPH_DATA_BACKENDS: file
-  CF_FEEDSTOCK_OPS_CONTAINER_NAME: conda-forge-tick
-  CF_FEEDSTOCK_OPS_CONTAINER_TAG: test
-  # Deploy to GitHub step
-  CF_TICK_GRAPH_GITHUB_BACKEND_REPO: regro-staging/cf-graph-countyfair # also used in the "Install Bot Code" step
-  RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
-
 jobs:
   setup-repositories:
     name: Set up Integration Tests

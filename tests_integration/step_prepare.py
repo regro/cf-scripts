@@ -6,22 +6,18 @@ Expects the scenario ID to be present in the environment variable named SCENARIO
 """
 
 import logging
-import os
 from pathlib import Path
 
 from github import Github
 
 from conda_forge_tick.settings import GRAPH_REPO_DEFAULT_BRANCH
-from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.integration_test_helper import IntegrationTestHelper
 from tests_integration.lib.shared import (
-    ENV_TEST_SCENARIO_ID,
     FEEDSTOCK_SUFFIX,
     GitHubAccount,
     get_github_token,
-    get_test_case_modules,
-    setup_logging,
 )
+from tests_integration.lib.test_case import TestCase
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,32 +45,8 @@ def reset_cf_graph():
     )
 
 
-def run_all_prepare_functions(scenario: dict[str, str]):
+def run_all_prepare_functions(scenario: dict[str, TestCase]):
     test_helper = IntegrationTestHelper()
-    for test_module in get_test_case_modules(scenario):
-        LOGGER.info("Preparing %s...", test_module.__name__)
-        try:
-            prepare_function = test_module.prepare
-        except AttributeError as e:
-            raise AttributeError(
-                "The test case must define a prepare() function."
-            ) from e
-
-        prepare_function(test_helper)
-
-
-def main(scenario_id: int):
-    close_all_open_pull_requests()
-    reset_cf_graph()
-
-    scenario = get_test_scenario(scenario_id)
-
-    LOGGER.info("Preparing test scenario %d...", scenario_id)
-    LOGGER.info("Scenario: %s", scenario)
-
-    run_all_prepare_functions(scenario)
-
-
-if __name__ == "__main__":
-    setup_logging(logging.INFO)
-    main(int(os.environ[ENV_TEST_SCENARIO_ID]))
+    for feedstock_name, test_case in scenario.items():
+        LOGGER.info("Preparing %s...", feedstock_name)
+        test_case.prepare(test_helper)

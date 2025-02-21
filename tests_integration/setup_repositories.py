@@ -18,20 +18,13 @@ from typing import Protocol
 from github import Github
 from github.Repository import Repository
 
-from tests_integration.collect_test_scenarios import (
-    collect_integration_test_cases,
-    get_all_test_scenario_ids,
-)
+from tests_integration.definitions import TEST_CASE_MAPPING
 from tests_integration.lib.shared import (
-    DEFINITIONS_DIR,
     FEEDSTOCK_SUFFIX,
-    GITHUB_OUTPUT_KEY_SCENARIO_IDS,
     REGRO_ACCOUNT_REPOS,
     GitHubAccount,
     get_github_token,
     is_user_account,
-    setup_logging,
-    write_github_output,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -85,10 +78,7 @@ def get_test_feedstock_names() -> set[str]:
     Returns the list of feedstock names that are needed for the integration tests.
     The names do not include the "-feedstock" suffix.
     """
-    # note: the trailing "/" is needed to only get the directories,
-    # because of a Python bug this only works in Python 3.11 or later (which is fine)
-    # https://bugs.python.org/issue22276
-    return {path.name for path in DEFINITIONS_DIR.glob("*/")} - IGNORE_FEEDSTOCK_NAMES
+    return set(TEST_CASE_MAPPING.keys())
 
 
 def _or_empty_set(value: set[str]) -> set[str] | str:
@@ -201,22 +191,3 @@ def prepare_all_accounts():
     ]
 
     prepare_accounts(setup_infos)
-
-
-def _format_scenario_ids(scenario_ids: list[int]) -> str:
-    return "[" + ", ".join(str(s_id) for s_id in scenario_ids) + "]"
-
-
-def write_scenario_ids():
-    ids = get_all_test_scenario_ids(collect_integration_test_cases())
-    write_github_output(GITHUB_OUTPUT_KEY_SCENARIO_IDS, _format_scenario_ids(ids))
-
-
-def main():
-    prepare_all_accounts()
-    write_scenario_ids()
-
-
-if __name__ == "__main__":
-    setup_logging(logging.INFO)
-    main()

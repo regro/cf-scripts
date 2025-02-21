@@ -132,3 +132,28 @@ Furthermore, `BOT_TOKEN` is hidden by the sensitive env logic of `conda_forge_ti
 
 ### GitHub Token Permissions
 The token should have the following scopes: `repo`, `workflow`, `delete_repo`.
+
+## Running the Integration Tests Locally
+
+### Generate TLS Certificates
+
+```bash
+openssl genrsa -out mitmproxy_cert.key 4096
+openssl req -new -x509 -subj "/C=US/ST=cf-scripts/L=cf-scripts/O=cf-scripts/OU=cf-scripts/CN=cf-scripts" -key mitmproxy_cert.key -out mitmproxy_cert.crt
+cat mitmproxy_cert.key mitmproxy_cert.crt > mitmproxy_cert.pem
+```
+
+- Trust the certificate in your system's keychain.
+- Set the `MITMPROXY_PEM` environment variable to the path of the `pem` file.
+
+
+To build the certificate bundle:
+
+```bash
+cp $(python -m certifi) mitmproxy_cert_bundle.pem
+cat mitmproxy_cert.pem >> mitmproxy_cert_bundle.pem
+```
+
+TODO:
+
+- SSL Cert Setup MacOS

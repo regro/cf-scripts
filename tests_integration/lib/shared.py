@@ -1,8 +1,5 @@
-import importlib
 import logging
 import os
-import types
-from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
@@ -85,23 +82,6 @@ def get_github_token(account: GitHubAccount) -> str:
 
 def is_user_account(account: GitHubAccount) -> bool:
     return IS_USER_ACCOUNT[account]
-
-
-def write_github_output(key: str, value: str):
-    with open(os.environ[ENV_GITHUB_OUTPUT], "a") as f:
-        f.write(f"{key}={value}\n")
-
-
-def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType]:
-    """
-    Yields all test case modules of the given scenario.
-    """
-    return (
-        importlib.import_module(
-            f"{TESTS_INTEGRATION_DIR_NAME}.{DEFINITIONS_DIR_NAME}.{feedstock}.{test_case}"
-        )
-        for feedstock, test_case in scenario.items()
-    )
 
 
 def get_global_router():

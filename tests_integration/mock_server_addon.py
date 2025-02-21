@@ -23,7 +23,6 @@ from tests_integration.lib.shared import (
     VIRTUAL_PROXY_HOSTNAME,
     VIRTUAL_PROXY_PORT,
     get_global_router,
-    get_test_case_modules,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -46,13 +45,9 @@ def _setup_fastapi():
 
     app.include_router(get_global_router())
 
-    for test_module in get_test_case_modules(scenario):
-        LOGGER.info("Setting up mocks for %s...", test_module.__name__)
-        try:
-            router = test_module.router
-        except AttributeError as e:
-            raise AttributeError("The test case must define a FastAPI router.") from e
-        app.include_router(router)
+    for feedstock_name, test_case in scenario.items():
+        LOGGER.info("Setting up mocks for %s...", feedstock_name)
+        app.include_router(test_case.get_router())
 
     return app
 
