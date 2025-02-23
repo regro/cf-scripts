@@ -1818,7 +1818,7 @@ package:
       patchelf: <0.18
       pkginfo: ''
       psutil: ''
-      py-lief: <0.16.0a0
+      py-lief: <0.15.0a0
       python: '>=3.11,<3.12.0a0'
       python-libarchive-c: ''
       python_abi: 3.11.*
@@ -1854,7 +1854,7 @@ package:
       patch: '>=2.6'
       pkginfo: ''
       psutil: ''
-      py-lief: <0.16.0a0
+      py-lief: <0.15.0a0
       python: '>=3.11,<3.12.0a0'
       python-libarchive-c: ''
       python_abi: 3.11.*
@@ -1890,7 +1890,7 @@ package:
       patch: '>=2.6'
       pkginfo: ''
       psutil: ''
-      py-lief: <0.16.0a0
+      py-lief: <0.15.0a0
       python: '>=3.11,<3.12.0a0'
       python-libarchive-c: ''
       python_abi: 3.11.*
@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 5ac3bbc794a93935be15e267781922ec
-      sha256: 947601a277861f52a134cc99709c775b30d25c65b2e01e90ee64aac8b36c52c9
+      md5: aa2c4ef2f81f1ad1cc83d5d3c5584c28
+      sha256: e9278ed0540fd387a309bee87e48cf666cd067c52f91db0e1fdec209bbc182a9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.12.16.18-hd8ed1ab_0.conda
-    version: 2025.02.23.12.16.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.20.48.42-hd8ed1ab_0.conda
+    version: 2025.02.23.20.48.42
   - category: main
     dependencies: {}
     hash:
-      md5: 5ac3bbc794a93935be15e267781922ec
-      sha256: 947601a277861f52a134cc99709c775b30d25c65b2e01e90ee64aac8b36c52c9
+      md5: aa2c4ef2f81f1ad1cc83d5d3c5584c28
+      sha256: e9278ed0540fd387a309bee87e48cf666cd067c52f91db0e1fdec209bbc182a9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.12.16.18-hd8ed1ab_0.conda
-    version: 2025.02.23.12.16.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.20.48.42-hd8ed1ab_0.conda
+    version: 2025.02.23.20.48.42
   - category: main
     dependencies: {}
     hash:
-      md5: 5ac3bbc794a93935be15e267781922ec
-      sha256: 947601a277861f52a134cc99709c775b30d25c65b2e01e90ee64aac8b36c52c9
+      md5: aa2c4ef2f81f1ad1cc83d5d3c5584c28
+      sha256: e9278ed0540fd387a309bee87e48cf666cd067c52f91db0e1fdec209bbc182a9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.12.16.18-hd8ed1ab_0.conda
-    version: 2025.02.23.12.16.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.23.20.48.42-hd8ed1ab_0.conda
+    version: 2025.02.23.20.48.42
   - category: main
     dependencies:
       click: '>=8'
@@ -7494,40 +7494,40 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: 227795592701189cf1af5bccdb37b2a4
-      sha256: 5fe4f85a9097ea730738f1d2eef35c3d2b9c29ad27bcb07653cea6137a02ccb7
+      md5: 956ddbc5d3b221e8fbd5cb170dd86356
+      sha256: a5fba46e8e1439fdcbeb4431f15b22c1001b1882031367afc78601e4a5fe35af
     manager: conda
     name: liblief
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.15.1-h5888daf_0.conda
-    version: 0.15.1
+    url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.14.1-h5888daf_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libcxx: '>=18'
+      libcxx: '>=17'
     hash:
-      md5: f2d8d4cfccfb6410dbeff3f90ba1f588
-      sha256: 4d690e90dc6b67b67fef9dce83e6d557e09d5a5a2e9d8e9a7c5502a7e0ce1790
+      md5: fea38f7bd278c21851f208358dd8e5b4
+      sha256: a91a753d4a589e4c920c1a1281b33d668ab03cf964408866acc174a45c184288
     manager: conda
     name: liblief
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/liblief-0.15.1-h240833e_0.conda
-    version: 0.15.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/liblief-0.14.1-hac325c4_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       __osx: '>=11.0'
-      libcxx: '>=18'
+      libcxx: '>=17'
     hash:
-      md5: 6a67e7e90d2e759cb0fb92d6dc49a6c7
-      sha256: 0e4c004d5453ac7aaa74248d16880f0cfef500f9d7cfd2f2b6a30437dc3babb4
+      md5: 9cd24e3468e4c510836f68f453a31df8
+      sha256: 0da590030191ce2f52ce315165b88898bd2df5b51374bb33a57722a84521a7f5
     manager: conda
     name: liblief
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.15.1-h286801f_0.conda
-    version: 0.15.1
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.14.1-hf9b8971_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       libcxx: '>=16'
@@ -10192,54 +10192,54 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=13'
-      liblief: 0.15.1
+      liblief: 0.14.1
       libstdcxx: '>=13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 2393248b840b94296da9fdf4b4080115
-      sha256: 01d32e7ed16777ed0d4453f4f2cd95711cf01a7d72fb4345560b627fe4026d26
+      md5: d526a5f49e1aba9c0be609532f59a3f9
+      sha256: 6c443b60b70255a61c35680863de23fc141e07516fb87cc684c63cbdb7a920ce
     manager: conda
     name: py-lief
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.15.1-py311hfdbb021_0.conda
-    version: 0.15.1
+      https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.14.1-py311hfdbb021_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libcxx: '>=18'
-      liblief: 0.15.1
+      libcxx: '>=17'
+      liblief: 0.14.1
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 30be4bf0369a133019ec2b44b41d33df
-      sha256: b61caf801e3f8876c9e5793f26cbf2cb8e2b20afea74dcf355b5ef80170c8d5f
+      md5: 3ae70c55fef0bf23940c95bf5170fe75
+      sha256: bd95024dd3668a78eb131c9bcb6a24983573b2756f0cb4fb614cd31c5ebfa537
     manager: conda
     name: py-lief
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/py-lief-0.15.1-py311hc356e98_0.conda
-    version: 0.15.1
+      https://conda.anaconda.org/conda-forge/osx-64/py-lief-0.14.1-py311hd89902b_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       __osx: '>=11.0'
-      libcxx: '>=18'
-      liblief: 0.15.1
+      libcxx: '>=17'
+      liblief: 0.14.1
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: e036d37ec97aec7cbc2e70a96cdc4b78
-      sha256: b1f3ba4270226321c70e893be945834ad8c0d16293c1e6048521b763f0ea973c
+      md5: 49783632a9410a8f1bfa69b0d8d2f7cb
+      sha256: f3553cdfc03f772f4b6cc0f364c5b61ed85ec688920fdba22fa7a73e1c52af0b
     manager: conda
     name: py-lief
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.15.1-py311h155a34a_0.conda
-    version: 0.15.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.14.1-py311h3f08180_2.conda
+    version: 0.14.1
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
