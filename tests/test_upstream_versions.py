@@ -1733,8 +1733,8 @@ def test_github_releases(tmpdir, url, feedstock_version):
     [
         (
             "https://github.com/minio/minio/archive/RELEASE.2025-01-20T14-49-07Z.tar.gz",
-            "RELEASE.2025-01-20T14-49-07Z",
-            r"RELEASE\.\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
+            "2025-01-20T14-49-07Z",
+            r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
         )
     ],
 )
