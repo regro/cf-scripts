@@ -1,7 +1,9 @@
 import logging
 import os
 import random
+import re
 from concurrent.futures import Future
+from pathlib import Path
 from typing import Dict, Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
@@ -1724,6 +1726,41 @@ def test_github_releases(tmpdir, url, feedstock_version):
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
     assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version, regex",
+    [
+        (
+            "https://github.com/minio/minio/archive/RELEASE.2025-01-20T14-49-07Z.tar.gz",
+            "2025-01-20T14-49-07Z",
+            r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
+        )
+    ],
+)
+@flaky
+def test_github_releases_unusual_version(
+    tmp_path: Path, url: str, feedstock_version: str, regex: str
+):
+    """
+    Tests that the GitHubReleases source can handle unusual version strings such as timestamps.
+    """
+    meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+
+    version = ghr.get_version(url)
+
+    assert isinstance(version, str)
+    assert re.match(regex, version)
 
 
 def test_latest_version_cratesio(tmpdir):
