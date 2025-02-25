@@ -364,6 +364,7 @@ def test_staticlib_migrator_llvmlite(tmpdir):
                 ms,
             )
     static_libs_uid = ";".join(sorted(dists))
+    print("recipe after migration\n%s\n" % recipe_after)
 
     # make the graph
     pmy = populate_feedstock_attributes(
