@@ -76,12 +76,19 @@ def _match_spec_to_dist(ms: MatchSpec) -> Dist:
         raise ValueError("MatchSpec is not exact: %s" % ms.conda_build_form())
 
 
-@lru_cache(maxsize=128)
-def get_latest_static_lib(host_req: str, platform_arch: str) -> Dist:
+@lru_cache(maxsize=1)
+def _read_repodata(platform_arch: str) -> Any:
     platform_arch = platform_arch.replace("_", "-")
     rd_fn = fetch_repodata([platform_arch])[0]
     with open(rd_fn) as fp:
         rd = rapidjson.load(fp)
+    return rd
+
+
+@lru_cache(maxsize=128)
+def get_latest_static_lib(host_req: str, platform_arch: str) -> Dist:
+    platform_arch = platform_arch.replace("_", "-")
+    rd = _read_repodata(platform_arch)
     ms = _cached_match_spec(host_req)
 
     max_dist = None
@@ -106,10 +113,7 @@ def get_latest_static_lib(host_req: str, platform_arch: str) -> Dist:
 @lru_cache(maxsize=128)
 def platform_has_dist(platform_arch: str, dist: Dist) -> bool:
     platform_arch = platform_arch.replace("_", "-")
-    rd_fn = fetch_repodata([platform_arch])[0]
-    with open(rd_fn) as fp:
-        rd = rapidjson.load(fp)
-
+    rd = _read_repodata(platform_arch)
     fn_dist = "-".join(dist.quad[:3])
 
     for key in ["packages", "packages.conda"]:
@@ -164,6 +168,7 @@ def any_static_libs_out_of_date(
     # also require that all latest static libs
     # have the same version and build number
     host_sections = extract_section_from_yaml_text(raw_meta_yaml, "host")
+    logger.debug("found %d host sections for parsing static libs", len(host_sections))
 
     static_lib_replacements = {}
     for platform_arch in platform_arches:
@@ -174,6 +179,12 @@ def any_static_libs_out_of_date(
         curr_ver_build = (None, None)
         for platform_arch in platform_arches:
             ld = get_latest_static_lib(slhr, platform_arch)
+            logger.debug(
+                "latest static lib for spec '%s' on platform '%s': %s",
+                slhr,
+                platform_arch,
+                ld.to_matchspec(),
+            )
 
             # if we find different versions, we bail since there
             # could be a race condition or something else going on
@@ -192,9 +203,17 @@ def any_static_libs_out_of_date(
                 slhr,
                 platform_arch,
             )
+            logger.debug(
+                "found old static libs: %s", {od.to_matchspec() for od in _old_dists}
+            )
             for _old_dist in _old_dists:
                 # add to set of replacements if needs update
                 if _left_gt_right_dist(ld, _old_dist):
+                    logger.debug(
+                        "static lib '%s' is out of date: %s",
+                        _old_dist.to_matchspec(),
+                        ld.to_matchspec(),
+                    )
                     out_of_date = True
                     odstr = _old_dist.to_match_spec().conda_build_form()
                     static_lib_replacements[platform_arch][odstr] = ldstr
@@ -237,7 +256,6 @@ class StaticLibMigrator(GraphMigrator):
     migrator_version = 0
     rerender = True
     allowed_schema_versions = [0, 1]
-    name = "static-lib-migrator"
 
     def __init__(
         self,
@@ -276,6 +294,7 @@ class StaticLibMigrator(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             check_solvable=check_solvable,
             effective_graph=effective_graph,
+            name="static_lib_migrator",
         )
         self.top_level = set()
         self.cycles = set()
@@ -328,22 +347,29 @@ class StaticLibMigrator(GraphMigrator):
             list(),
         )
         has_static_libs = len(sl_host_req) > 0
-        logger.debug(
-            "filter %s: no static libs: %s",
-            attrs.get("name", ""),
-            sl_host_req,
-        )
         if not has_static_libs:
+            logger.debug(
+                "filter %s: no static libs: %s",
+                attrs.get("name", ""),
+                sl_host_req,
+            )
             return True
 
         platform_arches = tuple(attrs.get("platforms", []) or [])
-        static_libs_out_of_date = any_static_libs_out_of_date(
+        static_libs_out_of_date, slrep = any_static_libs_out_of_date(
             static_linking_host_requirements=tuple(sl_host_req),
             platform_arches=platform_arches,
             raw_meta_yaml=attrs.get("raw_meta_yaml", "") or "",
-        )[0]
+        )
+        if not static_libs_out_of_date:
+            logger.debug(
+                "filter %s: static libs out of date: %s\nmapping: %s",
+                attrs.get("name", ""),
+                static_libs_out_of_date,
+                slrep,
+            )
 
-        return (
+        retval = (
             (not has_static_libs)
             or (not static_libs_out_of_date)
             or super().filter(
@@ -351,6 +377,8 @@ class StaticLibMigrator(GraphMigrator):
                 not_bad_str_start=not_bad_str_start,
             )
         )
+        _read_repodata.cache_clear()
+        return retval
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -406,6 +434,7 @@ class StaticLibMigrator(GraphMigrator):
         if not needs_update:
             muid["already_done"] = True
 
+        _read_repodata.cache_clear()
         return muid
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
