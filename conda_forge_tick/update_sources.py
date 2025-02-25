@@ -9,9 +9,10 @@ import subprocess
 import typing
 import urllib.parse
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Literal, Optional
 
 import feedparser
+import packaging.version
 import requests
 import yaml
 from conda.models.version import VersionOrder
@@ -598,7 +599,7 @@ class GithubReleases(AbstractSource):
         owner, repo = meta_yaml["url"].split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str) -> Optional[str | Literal[False]]:
         r = requests.get(url)
         if not r.ok:
             return False
@@ -606,8 +607,16 @@ class GithubReleases(AbstractSource):
         url_components = r.url.split("/")
         latest = "/".join(url_components[url_components.index("releases") + 2 :])
         # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or latest == "latest" or parse_version(latest).is_prerelease:
-            return False
+        try:
+            if (
+                not len(latest)
+                or latest == "latest"
+                or parse_version(latest).is_prerelease
+            ):
+                return False
+        except packaging.version.InvalidVersion:
+            # version strings violating the Python spec are supported
+            pass
         for prefix in ("v", "release-", "releases/"):
             if latest.startswith(prefix):
                 latest = latest[len(prefix) :]
