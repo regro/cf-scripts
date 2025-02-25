@@ -609,7 +609,7 @@ class GithubReleases(AbstractSource):
         # If it is a pre-release don't give back the pre-release version
         try:
             if (
-                not len(latest)
+                len(latest) == 0
                 or latest == "latest"
                 or parse_version(latest).is_prerelease
             ):
