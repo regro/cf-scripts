@@ -9,6 +9,7 @@ from conda_forge_tick.migrators.staticlib import (
     _match_spec_is_exact,
     _match_spec_to_dist,
     any_static_libs_out_of_date,
+    attempt_update_static_libs,
     extract_static_libs_from_meta_yaml_text,
     get_latest_static_lib,
 )
@@ -273,3 +274,60 @@ def test_any_static_libs_out_of_date(recipe, slhr, expected_ood, expected_slrep)
     )
     assert ood == expected_ood
     assert slrep == expected_slrep
+
+
+@pytest.mark.parametrize(
+    "input_meta_yaml,static_lib_replacements,final_meta_yaml",
+    [
+        (
+            """
+        requirements:
+            host:
+            - libfoo 10 h67_5
+            - libfoo 10.*
+            - libfoo 10 h2t_5
+        """,
+            {
+                "osx-64": {"libfoo 10 h67_5": "libfoo 10 h66_6"},
+                "osx-arm64": {"libfoo 10 h2t_5": "libfoo 10 ha6_6"},
+            },
+            """
+        requirements:
+            host:
+            - libfoo 10 h66_6
+            - libfoo 10.*
+            - libfoo 10 ha6_6
+        """,
+        ),
+        (
+            """
+        requirements:
+            host:
+            - libfoo 10 h67_5
+            - libfoo 10.*
+            - libfoo 10 h2t_5
+        """,
+            {
+                "osx-64": {"libfoo 10 h67_3": "libfoo 10 h66_6"},
+                "osx-arm64": {"libfoo 10 h2t_3": "libfoo 10 ha6_6"},
+            },
+            """
+        requirements:
+            host:
+            - libfoo 10 h67_5
+            - libfoo 10.*
+            - libfoo 10 h2t_5
+        """,
+        ),
+    ],
+)
+def test_attempt_update_static_libs(
+    input_meta_yaml, static_lib_replacements, final_meta_yaml
+):
+    expected_updated = input_meta_yaml != final_meta_yaml
+
+    updated, output_meta_yaml = attempt_update_static_libs(
+        input_meta_yaml, static_lib_replacements
+    )
+    assert output_meta_yaml == final_meta_yaml
+    assert updated is expected_updated
