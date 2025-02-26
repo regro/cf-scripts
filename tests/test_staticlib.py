@@ -11,11 +11,25 @@ from conda_forge_tick.migrators.staticlib import (
     _munge_hash_matchspec,
     any_static_libs_out_of_date,
     attempt_update_static_libs,
-    # extract_static_lib_specs_from_raw_meta_yaml,
     get_latest_static_lib,
+    is_abstract_static_lib_spec,
 )
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+
+
+@pytest.mark.parametrize(
+    "spec,res",
+    [
+        ("llvm 15.0.*", True),
+        ("llvm 15.0.* blah_*", True),
+        ("llvm 15.0.7 blah_*_5", True),
+        ("llvm 15.0.7 blah_*_5", False),
+        ("llvm 15.0.7 blah_h4541_5", False),
+    ],
+)
+def test_is_abstract_static_lib_spec(spec, res):
+    assert is_abstract_static_lib_spec(spec) is res
 
 
 def test_staticlib_get_latest_static_lib():
