@@ -29,7 +29,7 @@ requirements:
   host:
     - python
     - setuptools
-    - llvmdev 15.* h*
+    - llvmdev 15.*
     - llvm 15.*
     - llvmdev 15.0.7 h2621b3d_4  # [osx and arm64]
     - llvm 15.0.7 *_4     # [osx and arm64]
@@ -57,9 +57,6 @@ about:
   dev_url: https://github.com/numba/llvmlite
 
 extra:
-  static_linking_host_requirements:
-    - llvmdev 15.*
-    - llvm 15.*
   recipe-maintainers:
     - jakirkham
     - souravsingh

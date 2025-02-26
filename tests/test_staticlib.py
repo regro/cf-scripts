@@ -8,31 +8,14 @@ from test_migrators import run_test_migration
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators.staticlib import (
     StaticLibMigrator,
-    _cached_match_spec,
-    _match_spec_is_exact,
     _munge_hash_matchspec,
     any_static_libs_out_of_date,
     attempt_update_static_libs,
-    extract_static_libs_from_meta_yaml_text,
+    # extract_static_lib_specs_from_raw_meta_yaml,
     get_latest_static_lib,
 )
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
-
-
-@pytest.mark.parametrize(
-    "mstr,res",
-    [
-        ("libfoo * *", False),
-        ("libfoo >=10", False),
-        ("libfoo", False),
-        ("libfoo ==10 *_6", False),
-        ("libfoo 10 h67_5", True),
-        ("libfoo 10.* h67_5", False),
-    ],
-)
-def test_staticlib_match_spec_is_exact(mstr, res):
-    assert _match_spec_is_exact(_cached_match_spec(mstr)) is res
 
 
 def test_staticlib_get_latest_static_lib():
@@ -47,145 +30,21 @@ def test_staticlib_get_latest_static_lib():
     assert rec15b4.build_number == 4
     assert rec15b5.build_number == 5
 
-    with pytest.raises(ValueError):
-        get_latest_static_lib("llvmdev 15.* *_100000", "osx-64")
+    assert get_latest_static_lib("llvmdev 15.* *_100000", "osx-64") is None
 
 
 @pytest.mark.parametrize(
-    "meta_yaml_text,slhr,expected",
-    [
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10 h67_5
-                      - libfoo 10.*
-                      # libfood 10 h2t_4
-                      {% random jinja %}
-
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "libfoo 10.*",
-            {"libfoo 10 h67_5"},
-        ),
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10 h67_5
-                      - libfoo 10.*
-                      - libfoo 10 h2t_4
-                    """
-                )[1:-1],
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "libfoo 10.*",
-            {"libfoo 10 h67_5", "libfoo 10 h2t_4"},
-        ),
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10 h67_5
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "libfoo 10.*",
-            {"libfoo 10 h67_5"},
-        ),
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - llvmdev 15.0.7 *_5
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "llvmdev 15.*",
-            {"llvmdev 15.0.7 h4429f82_5"},
-        ),
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10 h67_5
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "libf 10.*",
-            set(),
-        ),
-        (
-            (
-                textwrap.dedent(
-                    """
-                    host:
-                      - libfoo 10 h67_5
-                      - libfoo 10.*
-                      - libbar 10 h2t_4
-                    """
-                )[1:-1],
-            ),
-            "libf 10.*",
-            set(),
-        ),
-    ],
-)
-def test_staticlib_extract_static_libs_from_meta_yaml_text(
-    meta_yaml_text, slhr, expected
-):
-    static_libs = extract_static_libs_from_meta_yaml_text(
-        meta_yaml_text, slhr, platform_arch="osx-arm64" if "llvm" in slhr else None
-    )
-    static_libs = {sl[1].to_match_spec().conda_build_form() for sl in static_libs}
-    assert static_libs == expected
-
-
-@pytest.mark.parametrize(
-    "recipe,slhr,expected_ood,expected_slrep",
+    "recipe,expected_ood,expected_slrep",
     [
         (
             textwrap.dedent(
                 """
                 requirements:
                   host:
+                    - llvm 15.*
                     - blah
                 """
             )[1:-1],
-            ("llvm 15.*",),
             False,
             {"osx-64": {}, "osx-arm64": {}},
         ),
@@ -202,7 +61,6 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                     .conda_build_form()
                 )
             )[1:-1],
-            ("llvm 15.*",),
             False,
             {"osx-64": {}, "osx-arm64": {}},
         ),
@@ -213,6 +71,8 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                   host:
                     - {}
                     - {}
+                    - llvmdev 14.*
+                    - llvm 14.*
                 """.format(
                     get_latest_static_lib("llvmdev 13.*", "osx-64")
                     .to_match_spec()
@@ -224,7 +84,6 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                     ),
                 )
             )[1:-1],
-            ("llvm 14.*", "llvmdev 14.*"),
             True,
             {
                 "osx-64": {
@@ -258,11 +117,8 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
         ),
     ],
 )
-def test_staticlib_any_static_libs_out_of_date(
-    recipe, slhr, expected_ood, expected_slrep
-):
+def test_staticlib_any_static_libs_out_of_date(recipe, expected_ood, expected_slrep):
     ood, slrep = any_static_libs_out_of_date(
-        static_linking_host_requirements=slhr,
         platform_arches=("osx-64", "osx-arm64"),
         raw_meta_yaml=recipe,
     )
@@ -359,6 +215,9 @@ def test_staticlib_migrator_llvmlite(tmpdir):
             )
     static_libs_uid = ";".join(sorted(dists))
     print("recipe after migration\n%s\n" % recipe_after)
+
+    with open(os.path.join(tmpdir, "conda-forge.yml"), "w") as fp:
+        fp.write("bot: {update_static_libs: true}\n")
 
     # make the graph
     pmy = populate_feedstock_attributes(

@@ -803,19 +803,14 @@ def add_static_lib_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph
                 skip_schema = skip_migrator_due_to_schema(
                     attrs, StaticLibMigrator.allowed_schema_versions
                 )
-                sl_host_req = get_keys_default(
+                update_static_libs = get_keys_default(
                     attrs,
-                    ["meta_yaml", "extra", "static_linking_host_requirements"],
-                    dict(),
-                    list(),
+                    ["conda-forge.yml", "bot", "update_static_libs"],
+                    {},
+                    False,
                 )
 
-                if len(sl_host_req) > 0:
-                    has_static_lib = True
-                else:
-                    has_static_lib = False
-
-            if (not has_static_lib) or skip_schema:
+            if (not update_static_libs) or skip_schema:
                 pluck(gx2, node)
 
         gx2.clear_edges()
