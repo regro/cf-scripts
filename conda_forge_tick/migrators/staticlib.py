@@ -7,8 +7,8 @@ from typing import Any, Optional, Sequence
 
 import networkx as nx
 import rapidjson
-from conda.models.dist import Dist
 from conda.models.match_spec import MatchSpec
+from conda.models.records import PackageRecord
 from conda.models.version import VersionOrder
 from conda_forge_metadata.repodata import fetch_repodata
 
@@ -28,27 +28,21 @@ from conda_forge_tick.utils import (
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
-BUILD_STRING_END_RE = re.compile(r".*\*_\d+$")
+BUILD_STRING_END_RE = re.compile(r".*_\d+$")
 
 logger = logging.getLogger(__name__)
 
 
-def _left_gt_right_dist(ld, rd):
-    lver = VersionOrder(ld.version)
-    lbuild = ld.build_number
-
-    rver = VersionOrder(rd.version)
-    rbuild = rd.build_number
+def _left_gt_right_rec(lrec, rrec):
+    lver = VersionOrder(lrec.version)
+    lbuild = lrec.build_number
+    rver = VersionOrder(rrec.version)
+    rbuild = rrec.build_number
 
     if (lver > rver) or (lver == rver and lbuild > rbuild):
         return True
     else:
         return False
-
-
-@lru_cache(maxsize=128)
-def _cached_dist_from_str(req: str) -> Dist:
-    return Dist.from_string(req, channel_override="conda-forge")
 
 
 @lru_cache(maxsize=128)
@@ -68,15 +62,6 @@ def _match_spec_is_exact(ms: MatchSpec) -> bool:
         return False
 
 
-@lru_cache(maxsize=128)
-def _match_spec_to_dist(ms: MatchSpec) -> Dist:
-    if _match_spec_is_exact(ms):
-        mstr = ms.conda_build_form().replace(" ", "-")
-        return _cached_dist_from_str(mstr)
-    else:
-        raise ValueError("MatchSpec is not exact: %s" % ms.conda_build_form())
-
-
 @lru_cache(maxsize=1)
 def _read_repodata(platform_arch: str) -> Any:
     platform_arch = platform_arch.replace("_", "-")
@@ -87,35 +72,35 @@ def _read_repodata(platform_arch: str) -> Any:
 
 
 @lru_cache(maxsize=128)
-def get_latest_static_lib(host_req: str, platform_arch: str) -> Dist:
+def get_latest_static_lib(host_req: str, platform_arch: str) -> PackageRecord:
     platform_arch = platform_arch.replace("_", "-")
     rd = _read_repodata(platform_arch)
     ms = _cached_match_spec(host_req)
 
-    max_dist = None
+    max_rec = None
     for key in ["packages", "packages.conda"]:
-        for fn in rd[key]:
-            if fn.rsplit("-", 2)[0] == ms.name:
-                dist = _cached_dist_from_str(fn)
-                if ms.match(dist):
-                    if max_dist is None:
-                        max_dist = dist
+        for fn, rec in rd[key].items():
+            if rec["name"] == ms.name:
+                rec = PackageRecord(**rec)
+                if ms.match(rec):
+                    if max_rec is None:
+                        max_rec = rec
                     else:
-                        if _left_gt_right_dist(dist, max_dist):
-                            max_dist = dist
+                        if _left_gt_right_rec(rec, max_rec):
+                            max_rec = rec
 
-    if max_dist is None:
+    if max_rec is None:
         raise ValueError(
             f"Could not find a static lib for `{host_req}` on `{platform_arch}`!"
         )
-    return max_dist
+    return max_rec
 
 
 @lru_cache(maxsize=128)
-def platform_has_dist(platform_arch: str, dist: Dist) -> bool:
+def platform_has_rec(platform_arch: str, rec: PackageRecord) -> bool:
     platform_arch = platform_arch.replace("_", "-")
     rd = _read_repodata(platform_arch)
-    fn_dist = "-".join(dist.quad[:3])
+    fn_dist = "-".join([rec.name, rec.version, rec.build])
 
     for key in ["packages", "packages.conda"]:
         for fn in rd[key]:
@@ -128,10 +113,16 @@ def extract_static_libs_from_meta_yaml_text(
     meta_yaml_texts: tuple[str],
     static_linking_host_requirement: str,
     platform_arch: str | None = None,
-) -> set[tuple[str, Dist]]:
+) -> set[tuple[str, PackageRecord]]:
     ms = _cached_match_spec(static_linking_host_requirement)
 
-    dists = set()
+    logger.debug(
+        "computed ms '%s' for req '%s'",
+        ms.conda_build_form(),
+        static_linking_host_requirement,
+    )
+
+    recs = set()
     for my in meta_yaml_texts:
         for line in my.splitlines():
             line = line.strip()
@@ -149,49 +140,70 @@ def extract_static_libs_from_meta_yaml_text(
 
                 orig_dist_str = line
 
+                logger.debug(
+                    "computed match spec '%s' for line '%s'",
+                    rms.conda_build_form(),
+                    line,
+                )
+
                 if rms.get_exact_value("name") != ms.get_exact_value("name"):
+                    logger.debug(
+                        "skipping due to name mismatch: '%s' != '%s'",
+                        rms.get_exact_value("name"),
+                        ms.get_exact_value("name"),
+                    )
                     continue
 
-                if not _match_spec_is_exact(rms):
-                    # if the build is not specified, we assume it is not
-                    # meant to be a static lib pin and move on
-                    if rms.get_raw_value("build") is None:
-                        continue
-                    else:
-                        # if the build string has a value but it is not
-                        # exact, then only assume it is a static lib pin
-                        # if it ends with `_[number]`
-                        bs = rms.get_raw_value("build")
-                        if BUILD_STRING_END_RE.match(bs):
-                            pass
-                        else:
-                            continue
-
-                if (not _match_spec_is_exact(rms)) and rms.get_raw_value(
-                    "version"
-                ) is None:
-                    # if the version is not specified, we assume it is not
-                    # meant to be a static lib pin and move on
+                # to be a static lib pin, we have to have the build number at
+                # the end of the build string
+                if rms.get_raw_value("build") is None or (
+                    not BUILD_STRING_END_RE.match(rms.get_raw_value("build"))
+                ):
+                    logger.debug(
+                        "skipping due to build number issue: build='%s'",
+                        rms.get_raw_value("build"),
+                    )
                     continue
+
+                # we have to have a version number of some form as well
+                if rms.get_raw_value("version") is None:
+                    continue
+
+                # at this point, we have limited things to specs with build numbers
+                # at the end of the build string
+                build_number = int(
+                    rms.get_raw_value("build").rsplit("_", maxsplit=1)[-1]
+                )
 
                 if not _match_spec_is_exact(rms):
                     if platform_arch is not None:
-                        dist = get_latest_static_lib(
+                        rec = get_latest_static_lib(
                             rms.conda_build_form(), platform_arch
                         )
-                        rms = dist.to_match_spec()
+                        rms = rec.to_match_spec()
                     else:
                         continue
                 else:
-                    dist = _match_spec_to_dist(rms)
+                    rec = PackageRecord(
+                        name=rms.get_exact_value("name"),
+                        version=rms.get_exact_value("version"),
+                        build=rms.get_exact_value("build"),
+                        build_number=build_number,
+                    )
 
-                if platform_arch is None or platform_has_dist(platform_arch, dist):
-                    dists.add((orig_dist_str, dist))
+                logger.debug(
+                    "computed static lib: %s for spec '%s'",
+                    rec.to_match_spec().conda_build_form(),
+                    line,
+                )
 
-    return dists
+                if platform_arch is None or platform_has_rec(platform_arch, rec):
+                    recs.add((orig_dist_str, rec))
+
+    return recs
 
 
-def _munge_hash_matchspec(ms):
+def _munge_hash_matchspec(ms: str) -> str:
     parts = ms.split(" ")
     bparts = parts[2].split("_")
     new_bparts = []
@@ -226,45 +238,52 @@ def any_static_libs_out_of_date(
     for slhr in static_linking_host_requirements:
         curr_ver_build = (None, None)
         for platform_arch in platform_arches:
-            ld = get_latest_static_lib(slhr, platform_arch)
+            lrec = get_latest_static_lib(slhr, platform_arch)
             logger.debug(
                 "latest static lib for spec '%s' on platform '%s': %s",
                 slhr,
                 platform_arch,
-                ld.to_matchspec(),
+                lrec.to_match_spec().conda_build_form(),
             )
 
             # if we find different versions, we bail since there
             # could be a race condition or something else going on
             if curr_ver_build == (None, None):
-                curr_ver_build = (ld.version, ld.build_number)
-            elif curr_ver_build != (ld.version, ld.build_number):
+                curr_ver_build = (lrec.version, lrec.build_number)
+            elif curr_ver_build != (lrec.version, lrec.build_number):
                 return False, static_lib_replacements
 
-            ldstr = ld.to_match_spec().conda_build_form()
+            ldstr = lrec.to_match_spec().conda_build_form()
 
             # test if version in meta_yaml is less than version we found
             # if so, set out_of_date = True
             # always add static lib from recipe to old_static_libs
-            _old_dists = extract_static_libs_from_meta_yaml_text(
+            _old_recs = extract_static_libs_from_meta_yaml_text(
                 host_sections,
                 slhr,
                 platform_arch,
             )
             logger.debug(
-                "found old static libs: %s", {od[1].to_matchspec() for od in _old_dists}
+                "found old static libs: %s",
+                {orec[1].to_match_spec().conda_build_form() for orec in _old_recs},
             )
-            for _old_name, _old_dist in _old_dists:
+            for _old_name, _old_rec in _old_recs:
                 # add to set of replacements if needs update
-                if _left_gt_right_dist(ld, _old_dist):
+                if _left_gt_right_rec(lrec, _old_rec):
                     logger.debug(
                         "static lib '%s' is out of date: %s",
-                        _old_dist.to_matchspec(),
-                        ld.to_matchspec(),
+                        _old_rec.to_match_spec().conda_build_form(),
+                        lrec.to_match_spec().conda_build_form(),
                     )
                     out_of_date = True
                     # only use a wildcard on build hash if
                     # recipe has one to start with
+                    # only host entries that look like
+                    #   <name> <version> *_<build number>
+                    # or
+                    #   <name> <version> <build string>
+                    # get returned from extract_static_libs_from_meta_yaml_text
+                    # so we can safely munge the hash using *_ in logic
                     if "*_" in _old_name.split(" ")[-1]:
                         final_ldstr = _munge_hash_matchspec(ldstr)
                     else:

@@ -8,11 +8,8 @@ from test_migrators import run_test_migration
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators.staticlib import (
     StaticLibMigrator,
-    _cached_dist_from_str,
     _cached_match_spec,
-    _left_gt_right_dist,
     _match_spec_is_exact,
-    _match_spec_to_dist,
     _munge_hash_matchspec,
     any_static_libs_out_of_date,
     attempt_update_static_libs,
@@ -21,47 +18,6 @@ from conda_forge_tick.migrators.staticlib import (
 )
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
-
-
-@pytest.mark.parametrize(
-    "ld,rd,res",
-    [
-        (
-            _cached_dist_from_str("libfoo-0.9.0-h1234_0"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            False,
-        ),
-        (
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            False,
-        ),
-        (
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_1"),
-            False,
-        ),
-        (
-            _cached_dist_from_str("libfoo-1.0.0-h1234_1"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            True,
-        ),
-        (
-            _cached_dist_from_str("libfoo-1.0.1-h1234_0"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_0"),
-            True,
-        ),
-        (
-            _cached_dist_from_str("libfoo-1.0.1-h1234_0"),
-            _cached_dist_from_str("libfoo-1.0.0-h1234_1"),
-            True,
-        ),
-    ],
-)
-def test_left_gt_right_dist(ld, rd, res):
-    assert _left_gt_right_dist(ld, rd) is res
-    if ld != rd:
-        assert _left_gt_right_dist(rd, ld) is (not res)
 
 
 @pytest.mark.parametrize(
@@ -79,30 +35,17 @@ def test_staticlib_match_spec_is_exact(mstr, res):
     assert _match_spec_is_exact(_cached_match_spec(mstr)) is res
 
 
-def test_staticlib_match_spec_to_dist_works():
-    mstr = _cached_match_spec("libfoo 10 h67_5")
-    dist = _match_spec_to_dist(mstr)
-    assert dist.name == mstr.get_exact_value("name")
-    assert dist.version == mstr.get_exact_value("version")
-    assert dist.build == mstr.get_exact_value("build")
-
-
-def test_staticlib_match_spec_to_dist_raises():
-    with pytest.raises(ValueError):
-        _match_spec_to_dist(_cached_match_spec("libfoo >=10"))
-
-
 def test_staticlib_get_latest_static_lib():
-    ld = get_latest_static_lib("llvmdev", "osx-64")
-    ld15 = get_latest_static_lib("llvmdev 15.*", "osx-64")
-    assert ld.version.split(".")[0] > ld15.version.split(".")[0]
+    rec = get_latest_static_lib("llvmdev", "osx-64")
+    rec15 = get_latest_static_lib("llvmdev 15.*", "osx-64")
+    assert rec.version.split(".")[0] > rec15.version.split(".")[0]
 
-    ld15b4 = get_latest_static_lib("llvmdev 15.* *_4", "osx-64")
-    ld15b5 = get_latest_static_lib("llvmdev 15.* *_5", "osx-64")
-    assert ld15b4.version.split(".")[0] == ld15b5.version.split(".")[0]
-    assert ld15b4.build_number < ld15b5.build_number
-    assert ld15b4.build_number == 4
-    assert ld15b5.build_number == 5
+    rec15b4 = get_latest_static_lib("llvmdev 15.* *_4", "osx-64")
+    rec15b5 = get_latest_static_lib("llvmdev 15.* *_5", "osx-64")
+    assert rec15b4.version.split(".")[0] == rec15b5.version.split(".")[0]
+    assert rec15b4.build_number < rec15b5.build_number
+    assert rec15b4.build_number == 4
+    assert rec15b5.build_number == 5
 
     with pytest.raises(ValueError):
         get_latest_static_lib("llvmdev 15.* *_100000", "osx-64")
@@ -227,7 +170,7 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
     static_libs = extract_static_libs_from_meta_yaml_text(
         meta_yaml_text, slhr, platform_arch="osx-arm64" if "llvm" in slhr else None
     )
-    static_libs = {sl[1].to_matchspec() for sl in static_libs}
+    static_libs = {sl[1].to_match_spec().conda_build_form() for sl in static_libs}
     assert static_libs == expected
 
 
@@ -253,7 +196,11 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                   host:
                     - {}
                     - llvm 15.*
-                """.format(get_latest_static_lib("llvm 15.*", "osx-64").to_matchspec())
+                """.format(
+                    get_latest_static_lib("llvm 15.*", "osx-64")
+                    .to_match_spec()
+                    .conda_build_form()
+                )
             )[1:-1],
             ("llvm 15.*",),
             False,
@@ -267,9 +214,13 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                     - {}
                     - {}
                 """.format(
-                    get_latest_static_lib("llvmdev 13.*", "osx-64").to_matchspec(),
+                    get_latest_static_lib("llvmdev 13.*", "osx-64")
+                    .to_match_spec()
+                    .conda_build_form(),
                     _munge_hash_matchspec(
-                        get_latest_static_lib("llvm 13.*", "osx-arm64").to_matchspec()
+                        get_latest_static_lib("llvm 13.*", "osx-arm64")
+                        .to_match_spec()
+                        .conda_build_form()
                     ),
                 )
             )[1:-1],
@@ -277,22 +228,30 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
             True,
             {
                 "osx-64": {
-                    get_latest_static_lib(
-                        "llvmdev 13.*", "osx-64"
-                    ).to_matchspec(): get_latest_static_lib(
-                        "llvmdev 14.*", "osx-64"
-                    ).to_matchspec(),
+                    get_latest_static_lib("llvmdev 13.*", "osx-64")
+                    .to_match_spec()
+                    .conda_build_form(): get_latest_static_lib("llvmdev 14.*", "osx-64")
+                    .to_match_spec()
+                    .conda_build_form(),
                     _munge_hash_matchspec(
-                        get_latest_static_lib("llvm 13.*", "osx-64").to_matchspec()
+                        get_latest_static_lib("llvm 13.*", "osx-64")
+                        .to_match_spec()
+                        .conda_build_form()
                     ): _munge_hash_matchspec(
-                        get_latest_static_lib("llvm 14.*", "osx-64").to_matchspec()
+                        get_latest_static_lib("llvm 14.*", "osx-64")
+                        .to_match_spec()
+                        .conda_build_form()
                     ),
                 },
                 "osx-arm64": {
                     _munge_hash_matchspec(
-                        get_latest_static_lib("llvm 13.*", "osx-arm64").to_matchspec()
+                        get_latest_static_lib("llvm 13.*", "osx-arm64")
+                        .to_match_spec()
+                        .conda_build_form()
                     ): _munge_hash_matchspec(
-                        get_latest_static_lib("llvm 14.*", "osx-arm64").to_matchspec()
+                        get_latest_static_lib("llvm 14.*", "osx-arm64")
+                        .to_match_spec()
+                        .conda_build_form()
                     )
                 },
             },
@@ -307,8 +266,8 @@ def test_staticlib_any_static_libs_out_of_date(
         platform_arches=("osx-64", "osx-arm64"),
         raw_meta_yaml=recipe,
     )
-    assert ood == expected_ood
     assert slrep == expected_slrep
+    assert ood == expected_ood
 
 
 @pytest.mark.parametrize(
@@ -380,7 +339,11 @@ def test_staticlib_migrator_llvmlite(tmpdir):
     dists = set()
     for platform in kwargs["platforms"]:
         for pkg in ["llvm", "llvmdev"]:
-            ms = get_latest_static_lib(pkg + " 15.*", platform).to_matchspec()
+            ms = (
+                get_latest_static_lib(pkg + " 15.*", platform)
+                .to_match_spec()
+                .conda_build_form()
+            )
             dists.add(platform.replace("_", "-") + "::" + ms)
 
             if pkg == "llvmdev" and platform == "osx_arm64":
