@@ -34,11 +34,15 @@ YAML_PATHS = [
 def test_version_cfyaml_cleanup(cases, recipe_version, tmpdir):
     yaml = YAML()
 
-    with open(os.path.join(YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple.yaml")) as fp:
+    with open(
+        os.path.join(YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple.yaml")
+    ) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple_correct.yaml"),
+        os.path.join(
+            YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple_correct.yaml"
+        ),
     ) as fp:
         out_yaml = fp.read()
 
