@@ -21,6 +21,7 @@ TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "spec,res",
     [
+        ("llvm-*", True),
         ("llvm 15.0.*", True),
         ("llvm 15.0", True),
         ("llvm 15.0.* blah_*", True),
