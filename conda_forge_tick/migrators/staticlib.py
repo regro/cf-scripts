@@ -23,6 +23,7 @@ from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
     get_migrator_name,
+    split_yaml_list_value_and_comment,
 )
 
 if typing.TYPE_CHECKING:
@@ -129,7 +130,7 @@ def extract_static_lib_specs_from_raw_meta_yaml(
             line = line.strip()
             if line.startswith("-"):
                 line = line[1:].strip()
-                line = line.split("#", maxsplit=1)[0].strip()
+                line = split_yaml_list_value_and_comment(line)[0].strip()
                 try:
                     rms = _cached_match_spec(line)
                 except Exception:

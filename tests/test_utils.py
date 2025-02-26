@@ -15,6 +15,7 @@ from conda_forge_tick.utils import (
     load_graph,
     parse_munged_run_export,
     run_command_hiding_token,
+    split_yaml_list_value_and_comment,
 )
 
 EMPTY_JSON = "{}"
@@ -408,3 +409,34 @@ def test_extract_section_from_yaml_text(
         meta_yaml, section_name, exclude_requirements=exclude_requirements
     )
     assert extracted_sections == result
+
+
+@pytest.mark.parametrize(
+    "line,val,comment",
+    [
+        (
+            "- python 3.8",
+            "python 3.8",
+            None,
+        ),
+        (
+            "- python 3.8 # comment",
+            "python 3.8",
+            "# comment",
+        ),
+        (
+            "- 'python# 3.8' # comment",
+            "python 3.8",
+            "# comment",
+        ),
+        (
+            '- "python 3.8#" # comment',
+            "python 3.8",
+            "# comment",
+        ),
+    ],
+)
+def test_split_yaml_list_value_and_comment(line, val, comment):
+    val, comment = split_yaml_list_value_and_comment(line)
+    assert val == val
+    assert comment == comment

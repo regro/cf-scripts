@@ -1409,3 +1409,19 @@ def extract_section_from_yaml_text(
             found_sections.append("\n".join(lines[section_start:]))
 
     return found_sections
+
+
+YAML_LIST_NO_QUOTE_RE = re.compile(r"-\s?(?P<val>[^'\"\s]*)(?P<comment>\s+#[^'\"]*)?")
+YAML_LIST_DOUBLE_QUOTE_RE = re.compile(r"-\s?(?P<val>['][^']*['])(?P<comment>\s*#.*)?")
+YAML_LIST_SINGLE_QUOTE_RE = re.compile(
+    r"-\s?(?P<val>[\"][^\"]*[\"])(?P<comment>\s*#.*)?"
+)
+
+
+def split_yaml_list_value_and_comment(line):
+    if match := re.match(YAML_LIST_NO_QUOTE_RE, line):
+        return match["val"], match["comment"]
+    elif match := re.match(YAML_LIST_DOUBLE_QUOTE_RE, line):
+        return match["val"][1:-1], match["comment"]
+    elif match := re.match(YAML_LIST_SINGLE_QUOTE_RE, line):
+        return match["val"][1:-1], match["comment"]
