@@ -29,10 +29,10 @@ requirements:
   host:
     - python
     - setuptools
-    - @@LLVMDEV_OSX_ARM64@@  # [osx and arm64]
-    - @@LLVM_OSX_ARM64@@     # [osx and arm64]
-    - @@LLVMDEV_OSX_64@@  # [osx and x86]
-    - @@LLVM_OSX_64@@     # [osx and x86]
+    - SUB@@LLVMDEV_OSX_ARM64@@  # [osx and arm64]
+    - SUB@@LLVM_OSX_ARM64@@     # [osx and arm64]
+    - SUB@@LLVMDEV_OSX_64@@  # [osx and x86]
+    - SUB@@LLVM_OSX_64@@     # [osx and x86]
     - zlib
     - vs2015_runtime  # [win]
   run:

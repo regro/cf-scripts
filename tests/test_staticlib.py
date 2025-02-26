@@ -360,7 +360,7 @@ def test_staticlib_migrator_llvmlite(tmpdir):
             dists.add(platform.replace("_", "-") + "::" + ms)
 
             recipe_after = recipe_after.replace(
-                f"@@{pkg.upper()}_{platform.upper()}@@",
+                f"SUB@@{pkg.upper()}_{platform.upper()}@@",
                 ms,
             )
     static_libs_uid = ";".join(sorted(dists))
