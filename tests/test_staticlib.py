@@ -23,8 +23,9 @@ TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
     [
         ("llvm 15.0.*", True),
         ("llvm 15.0.* blah_*", True),
-        ("llvm 15.0.7 blah_*_5", True),
+        ("llvm 15.0.7.* blah_*_5", True),
         ("llvm 15.0.7 blah_*_5", False),
+        ("llvm 15.0.7 *_5", False),
         ("llvm 15.0.7 blah_h4541_5", False),
     ],
 )

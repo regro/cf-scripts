@@ -417,7 +417,7 @@ def test_extract_section_from_yaml_text(
         (
             "- python 3.8",
             "python 3.8",
-            None,
+            "",
         ),
         (
             "- python 3.8 # comment",

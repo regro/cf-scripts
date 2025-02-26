@@ -1438,8 +1438,16 @@ def split_yaml_list_value_and_comment(line):
         A tuple of the value and comment.
     """
     if match := re.match(YAML_LIST_NO_QUOTE_RE, line):
-        return match["val"], match["comment"]
+        val = match["val"]
+        comment = match["comment"]
     elif match := re.match(YAML_LIST_DOUBLE_QUOTE_RE, line):
-        return match["val"][1:-1], match["comment"]
+        val = match["val"]
+        comment = match["comment"]
     elif match := re.match(YAML_LIST_SINGLE_QUOTE_RE, line):
-        return match["val"][1:-1], match["comment"]
+        val = match["val"]
+        comment = match["comment"]
+    else:
+        val = line
+        comment = ""
+
+    return val or "", comment or ""
