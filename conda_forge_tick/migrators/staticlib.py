@@ -368,10 +368,10 @@ class StaticLibMigrator(GraphMigrator):
             if not update_static_libs:
                 continue
 
-            platform_arches = tuple(payload.get("platforms", []) or [])
+            platform_arches = tuple(payload.get("platforms") or [])
             if any_static_libs_out_of_date(
                 platform_arches=platform_arches,
-                raw_meta_yaml=payload.get("raw_meta_yaml", "") or "",
+                raw_meta_yaml=payload.get("raw_meta_yaml") or "",
             )[0]:
                 logger.debug("not yet built for new static libs: %s" % node)
                 return True
@@ -394,22 +394,22 @@ class StaticLibMigrator(GraphMigrator):
         if not update_static_libs:
             logger.debug(
                 "filter %s: no static lib updates",
-                attrs.get("name", ""),
+                attrs.get("name") or "",
             )
             return super().filter(
                 attrs=attrs,
                 not_bad_str_start=not_bad_str_start,
             )
 
-        platform_arches = tuple(attrs.get("platforms", []) or [])
+        platform_arches = tuple(attrs.get("platforms") or [])
         static_libs_out_of_date, slrep = any_static_libs_out_of_date(
             platform_arches=platform_arches,
-            raw_meta_yaml=attrs.get("raw_meta_yaml", "") or "",
+            raw_meta_yaml=attrs.get("raw_meta_yaml") or "",
         )
         if not static_libs_out_of_date:
             logger.debug(
                 "filter %s: static libs out of date: %s\nmapping: %s",
-                attrs.get("name", ""),
+                attrs.get("name") or "",
                 static_libs_out_of_date,
                 slrep,
             )
@@ -430,7 +430,7 @@ class StaticLibMigrator(GraphMigrator):
     ) -> "MigrationUidTypedDict":
         # for each plat-arch combo, find latest static lib version
         # and update the meta.yaml if needed
-        platform_arches = tuple(attrs.get("platforms", []) or [])
+        platform_arches = tuple(attrs.get("platforms") or [])
 
         with pushd(recipe_dir):
             if os.path.exists("recipe.yaml"):
@@ -465,7 +465,7 @@ class StaticLibMigrator(GraphMigrator):
                 needs_update = False
                 logger.debug(
                     "static libs not updated for feedstock '%s' for static libs '%s'",
-                    attrs.get("feedstock_name", "!!NONAME!!"),
+                    attrs.get("feedstock_name") or "!!NONAME!!",
                     {k.split(" ")[0] for k in static_lib_replacements.keys()},
                 )
         muid = super().migrate(recipe_dir, attrs)
@@ -518,7 +518,7 @@ class StaticLibMigrator(GraphMigrator):
         # prevents duplicate PRs or missed PRs
         # _get_latest_static_lib caches the results so the return value
         # is stable for a given execution of the bot
-        platform_arches = tuple(attrs.get("platforms", []) or [])
+        platform_arches = tuple(attrs.get("platforms") or [])
         all_specs_by_name = extract_static_lib_specs_from_raw_meta_yaml(
             attrs.get("raw_meta_yaml") or "",
         )
