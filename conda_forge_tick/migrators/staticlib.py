@@ -23,7 +23,6 @@ from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
     get_migrator_name,
-    split_yaml_list_value_and_comment,
 )
 
 if typing.TYPE_CHECKING:
@@ -153,7 +152,7 @@ def extract_static_lib_specs_from_raw_meta_yaml(
             line = line.strip()
             if line.startswith("-"):
                 line = line[1:].strip()
-                line = split_yaml_list_value_and_comment(line)[0].strip()
+                line = line.split("#", maxsplit=1)[0].strip()
                 try:
                     rms = _cached_match_spec(line)
                 except Exception:
@@ -242,6 +241,10 @@ def any_static_libs_out_of_date(
     # have the same version and build number
     all_specs_by_name = extract_static_lib_specs_from_raw_meta_yaml(
         raw_meta_yaml,
+    )
+    logger.debug(
+        "static lib specs found in meta.yaml: %s",
+        all_specs_by_name,
     )
 
     static_lib_replacements = {}
@@ -455,13 +458,10 @@ class StaticLibMigrator(GraphMigrator):
 
         if not update_static_libs:
             logger.debug(
-                "filter %s: no static lib updates",
+                "filter %s: static lib updates not enabled",
                 attrs.get("name") or "",
             )
-            return super().filter(
-                attrs=attrs,
-                not_bad_str_start=not_bad_str_start,
-            )
+            return True
 
         platform_arches = tuple(attrs.get("platforms") or [])
         static_libs_out_of_date, slrep = any_static_libs_out_of_date(
@@ -470,7 +470,7 @@ class StaticLibMigrator(GraphMigrator):
         )
         if not static_libs_out_of_date:
             logger.debug(
-                "filter %s: static libs out of date: %s\nmapping: %s",
+                "filter %s: no static libs out of date\nmapping: %s",
                 attrs.get("name") or "",
                 static_libs_out_of_date,
                 slrep,

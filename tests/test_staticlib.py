@@ -236,7 +236,10 @@ def test_staticlib_migrator_llvmlite(tmpdir):
 
     # make the graph
     pmy = populate_feedstock_attributes(
-        name, sub_graph={}, meta_yaml=recipe_before, conda_forge_yaml="{}"
+        name,
+        sub_graph={},
+        meta_yaml=recipe_before,
+        conda_forge_yaml="bot: {update_static_libs: true}\n",
     )
 
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -247,6 +250,9 @@ def test_staticlib_migrator_llvmlite(tmpdir):
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = recipe_before
     pmy.update(kwargs)
+
+    recipe_dir = os.path.join(tmpdir, "recipe")
+    os.makedirs(recipe_dir, exist_ok=True)
 
     graph = nx.DiGraph()
     graph.add_node(name, payload=pmy)
@@ -265,5 +271,5 @@ def test_staticlib_migrator_llvmlite(tmpdir):
             "name": "static_lib_migrator",
             "static_libs": static_libs_uid,
         },
-        tmpdir=tmpdir,
+        tmpdir=recipe_dir,
     )
