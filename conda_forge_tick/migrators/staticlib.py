@@ -148,7 +148,14 @@ def extract_static_libs_from_meta_yaml_text(
 
                 orig_dist_str = line
 
-                if not rms.get_exact_value("name") == ms.get_exact_value("name"):
+                if rms.get_exact_value("name") != ms.get_exact_value("name"):
+                    continue
+
+                if (not _match_spec_is_exact(rms)) and rms.get_raw_value(
+                    "build"
+                ) is None:
+                    # if the build is not specified, we assume it is not
+                    # meant to be a static lib pin and move on
                     continue
 
                 if not _match_spec_is_exact(rms):
