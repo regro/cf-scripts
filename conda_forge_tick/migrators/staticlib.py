@@ -127,7 +127,7 @@ def extract_static_libs_from_meta_yaml_text(
     meta_yaml_texts: tuple[str],
     static_linking_host_requirement: str,
     platform_arch: str | None = None,
-) -> set[Dist]:
+) -> set[tuple[str, Dist]]:
     ms = _cached_match_spec(static_linking_host_requirement)
 
     dists = set()
@@ -145,14 +145,39 @@ def extract_static_libs_from_meta_yaml_text(
                         line,
                     )
                     continue
-                if _match_spec_is_exact(rms) and rms.get_exact_value(
-                    "name"
-                ) == ms.get_exact_value("name"):
+
+                orig_dist_str = line
+
+                if not rms.get_exact_value("name") == ms.get_exact_value("name"):
+                    continue
+
+                if not _match_spec_is_exact(rms):
+                    if platform_arch is not None:
+                        dist = get_latest_static_lib(
+                            rms.conda_build_form(), platform_arch
+                        )
+                        rms = dist.to_match_spec()
+                    else:
+                        continue
+                else:
                     dist = _match_spec_to_dist(rms)
-                    if platform_arch is None or platform_has_dist(platform_arch, dist):
-                        dists.add(dist)
+
+                if platform_arch is None or platform_has_dist(platform_arch, dist):
+                    dists.add((orig_dist_str, dist))
 
     return dists
+
+
+def _munge_hash_matchspec(ms):
+    parts = ms.split(" ")
+    bparts = parts[2].split("_")
+    new_bparts = []
+    for bpart in bparts:
+        if bpart.startswith("h") and len(bpart) == 8:
+            bpart = "*"
+        new_bparts.append(bpart)
+    parts[2] = "_".join(new_bparts)
+    return " ".join(parts)
 
 
 @lru_cache(maxsize=128)
@@ -204,9 +229,9 @@ def any_static_libs_out_of_date(
                 platform_arch,
             )
             logger.debug(
-                "found old static libs: %s", {od.to_matchspec() for od in _old_dists}
+                "found old static libs: %s", {od[1].to_matchspec() for od in _old_dists}
             )
-            for _old_dist in _old_dists:
+            for _old_name, _old_dist in _old_dists:
                 # add to set of replacements if needs update
                 if _left_gt_right_dist(ld, _old_dist):
                     logger.debug(
@@ -215,8 +240,13 @@ def any_static_libs_out_of_date(
                         ld.to_matchspec(),
                     )
                     out_of_date = True
-                    odstr = _old_dist.to_match_spec().conda_build_form()
-                    static_lib_replacements[platform_arch][odstr] = ldstr
+                    # only use a wildcard on build hash if
+                    # recipe has one to start with
+                    if "*_" in _old_name.split(" ")[-1]:
+                        final_ldstr = _munge_hash_matchspec(ldstr)
+                    else:
+                        final_ldstr = ldstr
+                    static_lib_replacements[platform_arch][_old_name] = final_ldstr
 
     return out_of_date, static_lib_replacements
 
@@ -232,20 +262,30 @@ def attempt_update_static_libs(
     """
     updated = False
 
-    for plat_arch in static_lib_replacements:
-        for old_spec, new_spec in static_lib_replacements[plat_arch].items():
-            new_raw_meta_yaml = raw_meta_yaml.replace(
-                old_spec,
-                new_spec,
-            )
-            if new_raw_meta_yaml != raw_meta_yaml:
-                updated = True
-                raw_meta_yaml = new_raw_meta_yaml
-                logger.debug(
-                    "static lib '%s' updated to '%s'",
+    logger.debug(
+        "attempting to update static libs in meta.yaml: %s",
+        static_lib_replacements,
+    )
+
+    for do_globs in [False, True]:
+        for plat_arch in static_lib_replacements:
+            # ensure exact specs come before ones with globs
+            for old_spec, new_spec in static_lib_replacements[plat_arch].items():
+                if not do_globs and "*" in old_spec:
+                    continue
+
+                new_raw_meta_yaml = raw_meta_yaml.replace(
                     old_spec,
                     new_spec,
                 )
+                if new_raw_meta_yaml != raw_meta_yaml:
+                    updated = True
+                    raw_meta_yaml = new_raw_meta_yaml
+                    logger.debug(
+                        "static lib '%s' updated to '%s'",
+                        old_spec,
+                        new_spec,
+                    )
 
     return updated, raw_meta_yaml
 

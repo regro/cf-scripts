@@ -13,6 +13,7 @@ from conda_forge_tick.migrators.staticlib import (
     _left_gt_right_dist,
     _match_spec_is_exact,
     _match_spec_to_dist,
+    _munge_hash_matchspec,
     any_static_libs_out_of_date,
     attempt_update_static_libs,
     extract_static_libs_from_meta_yaml_text,
@@ -174,6 +175,20 @@ def test_staticlib_get_latest_static_lib():
                 textwrap.dedent(
                     """
                     host:
+                      - llvmdev 15.0.7 *_5
+                      - libfoo 10.*
+                      - libbar 10 h2t_4
+                    """
+                )[1:-1],
+            ),
+            "llvmdev 15.*",
+            {"llvmdev 15.0.7 h4429f82_5"},
+        ),
+        (
+            (
+                textwrap.dedent(
+                    """
+                    host:
                       - libfoo 10 h67_5
                       - libfoo 10.*
                       - libbar 10 h2t_4
@@ -209,8 +224,10 @@ def test_staticlib_get_latest_static_lib():
 def test_staticlib_extract_static_libs_from_meta_yaml_text(
     meta_yaml_text, slhr, expected
 ):
-    static_libs = extract_static_libs_from_meta_yaml_text(meta_yaml_text, slhr)
-    static_libs = {sl.to_matchspec() for sl in static_libs}
+    static_libs = extract_static_libs_from_meta_yaml_text(
+        meta_yaml_text, slhr, platform_arch="osx-arm64" if "llvm" in slhr else None
+    )
+    static_libs = {sl[1].to_matchspec() for sl in static_libs}
     assert static_libs == expected
 
 
@@ -250,26 +267,33 @@ def test_staticlib_extract_static_libs_from_meta_yaml_text(
                     - {}
                     - {}
                 """.format(
-                    get_latest_static_lib("llvm 13.*", "osx-64").to_matchspec(),
-                    get_latest_static_lib("llvm 13.*", "osx-arm64").to_matchspec(),
+                    get_latest_static_lib("llvmdev 13.*", "osx-64").to_matchspec(),
+                    _munge_hash_matchspec(
+                        get_latest_static_lib("llvm 13.*", "osx-arm64").to_matchspec()
+                    ),
                 )
             )[1:-1],
-            ("llvm 14.*",),
+            ("llvm 14.*", "llvmdev 14.*"),
             True,
             {
                 "osx-64": {
                     get_latest_static_lib(
-                        "llvm 13.*", "osx-64"
+                        "llvmdev 13.*", "osx-64"
                     ).to_matchspec(): get_latest_static_lib(
-                        "llvm 14.*", "osx-64"
-                    ).to_matchspec()
+                        "llvmdev 14.*", "osx-64"
+                    ).to_matchspec(),
+                    _munge_hash_matchspec(
+                        get_latest_static_lib("llvm 13.*", "osx-64").to_matchspec()
+                    ): _munge_hash_matchspec(
+                        get_latest_static_lib("llvm 14.*", "osx-64").to_matchspec()
+                    ),
                 },
                 "osx-arm64": {
-                    get_latest_static_lib(
-                        "llvm 13.*", "osx-arm64"
-                    ).to_matchspec(): get_latest_static_lib(
-                        "llvm 14.*", "osx-arm64"
-                    ).to_matchspec()
+                    _munge_hash_matchspec(
+                        get_latest_static_lib("llvm 13.*", "osx-arm64").to_matchspec()
+                    ): _munge_hash_matchspec(
+                        get_latest_static_lib("llvm 14.*", "osx-arm64").to_matchspec()
+                    )
                 },
             },
         ),
@@ -358,6 +382,13 @@ def test_staticlib_migrator_llvmlite(tmpdir):
         for pkg in ["llvm", "llvmdev"]:
             ms = get_latest_static_lib(pkg + " 15.*", platform).to_matchspec()
             dists.add(platform.replace("_", "-") + "::" + ms)
+
+            if pkg == "llvmdev" and platform == "osx_arm64":
+                pass
+            elif pkg == "llvm" and platform == "osx_64":
+                pass
+            else:
+                ms = _munge_hash_matchspec(ms)
 
             recipe_after = recipe_after.replace(
                 f"SUB@@{pkg.upper()}_{platform.upper()}@@",
