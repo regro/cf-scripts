@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 
 def _left_gt_right_rec(lrec, rrec):
+    """Compare two records, declaring the left one bigger if
+    the version and/or build number is bigger."""
     lver = VersionOrder(lrec.version)
     lbuild = lrec.build_number
     rver = VersionOrder(rrec.version)
@@ -61,7 +63,23 @@ def _read_repodata(platform_arch: str) -> Any:
 
 
 @lru_cache(maxsize=128)
-def get_latest_static_lib(host_req: str, platform_arch: str) -> PackageRecord:
+def get_latest_static_lib(host_req: str, platform_arch: str) -> PackageRecord | None:
+    """Get the latest PackageRecord for a given abstract requirement.
+
+    Returns None if no matching record is found.
+
+    Parameters
+    ----------
+    host_req: str
+        The abstract requirement to match.
+    platform_arch: str
+        The platform architecture to match (e.g., 'osx-arm64').
+
+    Returns
+    -------
+    PackageRecord | None
+        The latest PackageRecord that matches the requirement.
+    """
     platform_arch = platform_arch.replace("_", "-")
     rd = _read_repodata(platform_arch)
     ms = _cached_match_spec(host_req)
@@ -88,7 +106,7 @@ def is_abstract_static_lib_spec(ms: str | MatchSpec) -> bool:
     To be concrete, it has to have a name, version, and build string
     pinned down to the build number (which must come last).
 
-    Anything not concrete is abstract
+    Anything not concrete is abstract.
     """
     ms = _cached_match_spec(ms)
 
@@ -121,6 +139,11 @@ def extract_static_lib_specs_from_raw_meta_yaml(
     The second of these is an "abstract" spec and the first is a "concrete" spec.
     The highest version + build number package that matches the abstract spec is the
     concrete spec.
+
+    The return value is a dictionary that maps the package name to a dictionary of sets
+    of concrete and abstract specs:
+
+        {"foo": {"abstract": {"foo 1.0.*"}, "concrete": {"foo 1.0.0 h4541_5"}}}
     """
     all_specs_by_name = {}
 
@@ -170,6 +193,12 @@ def extract_static_lib_specs_from_raw_meta_yaml(
 
 
 def _munge_hash_matchspec(ms: str) -> str:
+    """Replace any hash part of a build string with a wildcard.
+
+    This function assumes the hash part always starts with `h`
+    and is 8 characters long, and is separated by underscores
+    from the rest of the build string.
+    """
     parts = ms.split(" ")
     bparts = parts[2].split("_")
     new_bparts = []
@@ -186,6 +215,25 @@ def any_static_libs_out_of_date(
     platform_arches: tuple[str],
     raw_meta_yaml: str,
 ) -> (bool, dict[str, dict[str, str]]):
+    """check if any static libs are out of date for a given recipe and set of platforms.
+
+    Parameters
+    ----------
+    platform_arches: tuple[str]
+        The platform architectures to check (e.g., 'osx-arm64').
+    raw_meta_yaml: str
+        The raw meta.yaml file to check.
+
+    Returns
+    -------
+    out_of_date : bool
+        If True, the static lib is out of date.
+    static_lib_replacements : dict[str, dict[str, str]]
+        A dictionary mapping platform architectures to dictionaries
+        of concrete specs and their updated replacements:
+
+        {"osx-arm64": {"llvm 13 *_5": "llvm 13 *_6"}}
+    """
     # for each plat-arch combo, find latest static lib version
     # and compare to meta.yaml
     # if any of them are out of date, return True
@@ -263,8 +311,22 @@ def attempt_update_static_libs(
 ) -> (bool, str):
     """Attempt to update static lib versions in meta.yaml.
 
-    Returns True if the recipe was updated, False otherwise.
-    Also returns the new recipe.
+    Parameters
+    ----------
+    raw_meta_yaml: str
+        The raw meta.yaml file to update.
+    static_lib_replacements: dict[str, dict[str, str]]
+        A dictionary mapping platform architectures to dictionaries
+        of concrete specs and their updated replacements:
+
+        {"osx-arm64": {"llvm 13 *_5": "llvm 13 *_6"}}
+
+    Returns
+    -------
+    updated : bool
+        If True, the recipe was updated.
+    new_raw_meta_yaml : str
+        The updated raw meta.yaml file.
     """
     updated = False
 

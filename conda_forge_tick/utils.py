@@ -1419,6 +1419,24 @@ YAML_LIST_SINGLE_QUOTE_RE = re.compile(
 
 
 def split_yaml_list_value_and_comment(line):
+    """Split a YAML list line into a value plus comment.
+
+    This function handles single lines with or without quotes:
+
+        "value # comment" -> ("value", "# comment")
+        "'value' # comment" -> ("value", "# comment")
+        '"value#" # comment' -> ("value#", "# comment")
+
+    Parameters
+    ----------
+    line: str
+        The line to split.
+
+    Returns
+    -------
+    2-tuple of str
+        A tuple of the value and comment.
+    """
     if match := re.match(YAML_LIST_NO_QUOTE_RE, line):
         return match["val"], match["comment"]
     elif match := re.match(YAML_LIST_DOUBLE_QUOTE_RE, line):
