@@ -1,6 +1,6 @@
 import logging
 import os
-import secrets
+import re
 import typing
 from functools import lru_cache
 from typing import Any, Optional, Sequence
@@ -28,7 +28,8 @@ from conda_forge_tick.utils import (
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
-RNG = secrets.SystemRandom()
+BUILD_STRING_END_RE = re.compile(r".*\*_\d+$")
+
 logger = logging.getLogger(__name__)
 
 
@@ -151,10 +152,25 @@ def extract_static_libs_from_meta_yaml_text(
                 if rms.get_exact_value("name") != ms.get_exact_value("name"):
                     continue
 
-                if (not _match_spec_is_exact(rms)) and rms.get_raw_value(
-                    "build"
-                ) is None:
+                if not _match_spec_is_exact(rms):
                     # if the build is not specified, we assume it is not
+                    # meant to be a static lib pin and move on
+                    if rms.get_raw_value("build") is None:
+                        continue
+                    else:
+                        # if the build string has a value but it is not
+                        # exact, then only assume it is a static lib pin
+                        # if it ends with `_[number]`
+                        bs = rms.get_raw_value("build")
+                        if BUILD_STRING_END_RE.match(bs):
+                            pass
+                        else:
+                            continue
+
+                if (not _match_spec_is_exact(rms)) and rms.get_raw_value(
+                    "version"
+                ) is None:
+                    # if the version is not specified, we assume it is not
                     # meant to be a static lib pin and move on
                     continue
 

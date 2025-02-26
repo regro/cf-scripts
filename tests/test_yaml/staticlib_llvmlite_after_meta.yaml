@@ -29,7 +29,7 @@ requirements:
   host:
     - python
     - setuptools
-    - llvmdev 15.*
+    - llvmdev 15.* h*
     - llvm 15.*
     - SUB@@LLVMDEV_OSX_ARM64@@  # [osx and arm64]
     - SUB@@LLVM_OSX_ARM64@@     # [osx and arm64]
