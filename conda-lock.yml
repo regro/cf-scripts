@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 04d16349a265a921184cb4fb65814c699935466d2127192a9e141eb002601207
-    osx-64: bc36aa7ee6d1d1ff2069c50cce4aef7162325ee856e37d32f6f0ec0375c06136
-    osx-arm64: 4a5f23af936480d1fe67a61253de0878631060bd49c01ed3f2477c020a320a87
+    linux-64: ff283645f52dd9c9e38e5cbb4b537d3ef106fad9cf8d94b2ecc06430464e68bc
+    osx-64: 6da95e3ea89c72f89808cd2ca493288bcc136ac2d85d3aedd5dd16bffe9095ce
+    osx-arm64: 5f42c852df8f370d4414e32c47af32a3e3119c4c70b4bc131c8e112196e8b8e1
   platforms:
     - osx-arm64
     - linux-64
@@ -11004,6 +11004,52 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
+  - category: main
+    dependencies:
+      libgcc-ng: '>=12'
+      libstdcxx-ng: '>=12'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: de81cf9a8838408a43ec548a54c9270f
+      sha256: e433ebefcdd2f669826e217a1651d4a2de616a5d388998e5f1fe3aa28d93b9bf
+    manager: conda
+    name: pysimdjson
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/pysimdjson-6.0.2-py311hb755f60_1.conda
+    version: 6.0.2
+  - category: main
+    dependencies:
+      libcxx: '>=16'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 511359edfba9a9a71752acd2b51d5c68
+      sha256: eb640cce09993c8c886fa845ab0980f1fbc69b17d82b3b6a6d648ef3d10b42f9
+    manager: conda
+    name: pysimdjson
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pysimdjson-6.0.2-py311hdd0406b_1.conda
+    version: 6.0.2
+  - category: main
+    dependencies:
+      libcxx: '>=16'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 727fa00ab4c368ee896f68285b180523
+      sha256: 101cd158e7d79a18deb8988fc6bb5b6092c661daffde2b315397c37c7e89a084
+    manager: conda
+    name: pysimdjson
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/pysimdjson-6.0.2-py311h92babd0_1.conda
+    version: 6.0.2
   - category: main
     dependencies:
       __unix: ''
