@@ -200,7 +200,7 @@ def test_staticlib_attempt_update_static_libs(
     assert updated is expected_updated
 
 
-def test_staticlib_migrator_llvmlite(tmpdir):
+def test_staticlib_migrator_llvmlite(tmp_path):
     name = "llvmlite"
     with open(os.path.join(TEST_YAML_PATH, f"staticlib_{name}_before_meta.yaml")) as f:
         recipe_before = f.read()
@@ -233,7 +233,7 @@ def test_staticlib_migrator_llvmlite(tmpdir):
     static_libs_uid = ";".join(sorted(dists))
     print("recipe after migration\n%s\n" % recipe_after)
 
-    with open(os.path.join(tmpdir, "conda-forge.yml"), "w") as fp:
+    with open(tmp_path / "conda-forge.yml", "w") as fp:
         fp.write("bot: {update_static_libs: true}\n")
 
     # make the graph
@@ -253,8 +253,6 @@ def test_staticlib_migrator_llvmlite(tmpdir):
     pmy["raw_meta_yaml"] = recipe_before
     pmy.update(kwargs)
 
-    recipe_dir = os.path.join(tmpdir, "recipe")
-    os.makedirs(recipe_dir, exist_ok=True)
 
     graph = nx.DiGraph()
     graph.add_node(name, payload=pmy)
@@ -273,5 +271,5 @@ def test_staticlib_migrator_llvmlite(tmpdir):
             "name": "static_lib_migrator",
             "static_libs": static_libs_uid,
         },
-        tmpdir=recipe_dir,
+        tmp_path=tmp_path,
     )
