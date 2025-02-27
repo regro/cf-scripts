@@ -275,7 +275,7 @@ extra:
 """  # noqa
 
 
-def test_version_license_correct(tmpdir):
+def test_version_license_correct(tmp_path):
     run_test_migration(
         m=VER_LM,
         inp=version_license,
@@ -287,7 +287,7 @@ def test_version_license_correct(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
@@ -303,7 +303,7 @@ def test_munge_licenses():
 
 
 @flaky
-def test_version_license_correct_r(tmpdir):
+def test_version_license_correct_r(tmp_path):
     run_test_migration(
         m=VER_LM,
         inp=r_recipe,
@@ -315,5 +315,5 @@ def test_version_license_correct_r(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9.2",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

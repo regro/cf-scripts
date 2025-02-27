@@ -26,7 +26,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ),
     ],
 )
-def test_jpeg_turbo(old_meta, new_meta, new_ver, tmpdir):
+def test_jpeg_turbo(old_meta, new_meta, new_ver, tmp_path):
     with open(os.path.join(YAML_PATH, old_meta)) as fp:
         in_yaml = fp.read()
 
@@ -44,6 +44,6 @@ def test_jpeg_turbo(old_meta, new_meta, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_JPEGTURBO.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
         should_filter=False,
     )

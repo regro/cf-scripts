@@ -1,5 +1,3 @@
-import os
-
 from flaky import flaky
 from test_migrators import run_test_migration
 
@@ -1044,8 +1042,9 @@ extra:
 
 
 @flaky
-def test_correct_config_sub(tmpdir):
-    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+def test_correct_config_sub(tmp_path):
+    tmp_path.joinpath("recipe").mkdir()
+    with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\n./configure")
     run_test_migration(
         m=version_migrator_autoconf,
@@ -1058,15 +1057,16 @@ def test_correct_config_sub(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
-    with open(os.path.join(tmpdir, "build.sh")) as f:
+    with open(tmp_path / "recipe/build.sh") as f:
         assert len(f.readlines()) == 4
 
 
 @flaky
-def test_make_check(tmpdir):
-    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+def test_make_check(tmp_path):
+    tmp_path.joinpath("recipe").mkdir()
+    with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\nmake check")
     run_test_migration(
         m=version_migrator_autoconf,
@@ -1079,7 +1079,7 @@ def test_make_check(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1089,14 +1089,15 @@ def test_make_check(tmpdir):
         "make check\n",
         "fi\n",
     ]
-    with open(os.path.join(tmpdir, "build.sh")) as f:
+    with open(tmp_path / "recipe/build.sh") as f:
         lines = f.readlines()
         assert lines == expected
 
 
 @flaky
-def test_cmake(tmpdir):
-    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+def test_cmake(tmp_path):
+    tmp_path.joinpath("recipe").mkdir()
+    with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\ncmake ..\nctest")
     run_test_migration(
         m=version_migrator_cmake,
@@ -1109,7 +1110,7 @@ def test_cmake(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1118,13 +1119,13 @@ def test_cmake(tmpdir):
         "ctest\n",
         "fi\n",
     ]
-    with open(os.path.join(tmpdir, "build.sh")) as f:
+    with open(tmp_path / "recipe/build.sh") as f:
         lines = f.readlines()
         assert lines == expected
 
 
 @flaky
-def test_cross_rbase(tmpdir):
+def test_cross_rbase(tmp_path):
     run_test_migration(
         m=version_migrator_rbase,
         inp=rbase_recipe,
@@ -1136,13 +1137,14 @@ def test_cross_rbase(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_cross_rbase_build_sh(tmpdir):
-    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+def test_cross_rbase_build_sh(tmp_path):
+    tmp_path.joinpath("recipe").mkdir()
+    with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\nR CMD INSTALL --build .")
     run_test_migration(
         m=version_migrator_rbase,
@@ -1155,7 +1157,7 @@ def test_cross_rbase_build_sh(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1165,13 +1167,13 @@ def test_cross_rbase_build_sh(tmpdir):
         "# shellcheck disable=SC2086\n",
         "${R} CMD INSTALL --build . ${R_ARGS}\n",
     ]
-    with open(os.path.join(tmpdir, "build.sh")) as f:
+    with open(tmp_path / "recipe/build.sh") as f:
         lines = f.readlines()
         assert lines == expected
 
 
 @flaky
-def test_cross_python(tmpdir):
+def test_cross_python(tmp_path):
     run_test_migration(
         m=version_migrator_python,
         inp=python_recipe,
@@ -1183,12 +1185,12 @@ def test_cross_python(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_cross_python_no_build(tmpdir):
+def test_cross_python_no_build(tmp_path):
     run_test_migration(
         m=version_migrator_python,
         inp=python_no_build_recipe,
@@ -1200,12 +1202,12 @@ def test_cross_python_no_build(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "2020.6.20",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_build2host(tmpdir):
+def test_build2host(tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
         inp=python_recipe_b2h,
@@ -1217,12 +1219,12 @@ def test_build2host(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_build2host_buildok(tmpdir):
+def test_build2host_buildok(tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
         inp=python_recipe_b2h_buildok,
@@ -1234,12 +1236,12 @@ def test_build2host_buildok(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_build2host_bhskip(tmpdir):
+def test_build2host_bhskip(tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
         inp=python_recipe_b2h_bhskip,
@@ -1251,12 +1253,12 @@ def test_build2host_bhskip(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
 @flaky
-def test_nocondainspect(tmpdir):
+def test_nocondainspect(tmp_path):
     run_test_migration(
         m=version_migrator_nci,
         inp=python_recipe_nci,
@@ -1268,5 +1270,5 @@ def test_nocondainspect(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
