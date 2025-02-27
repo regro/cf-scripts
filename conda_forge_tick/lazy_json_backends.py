@@ -26,8 +26,8 @@ from typing import (
 
 import github
 import networkx as nx
-import rapidjson as json
 import requests
+import simdjson as json
 
 from .cli_context import CliContext
 from .executors import lock_git_operation

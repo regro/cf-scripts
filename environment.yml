@@ -42,10 +42,10 @@ dependencies:
   - pygithub
   - pymongo
   - pynamodb
+  - pysimdjson
   - python=3.11
   - python-dateutil
   - python-graphviz
-  - python-rapidjson
   - rattler-build >=0.35.4
   - rattler-build-conda-compat >=1.3.0,<2
   - requests

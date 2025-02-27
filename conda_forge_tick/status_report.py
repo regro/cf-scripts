@@ -10,8 +10,8 @@ from typing import Any, Dict, Set, Tuple, cast
 
 import dateutil.parser
 import networkx as nx
-import rapidjson as json
 import requests
+import simdjson as json
 import tqdm
 import yaml
 from conda.models.version import VersionOrder
