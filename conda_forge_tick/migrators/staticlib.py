@@ -150,8 +150,15 @@ def extract_static_lib_specs_from_raw_meta_yaml(
     for host_section in extract_section_from_yaml_text(raw_meta_yaml, "host"):
         for line in host_section.splitlines():
             line = line.strip()
-            if line.startswith("-"):
-                line = line[1:].strip()
+            if (
+                line.startswith("-")
+                or line.startswith("then:")
+                or line.startswith("else:")
+            ):
+                if line.startswith("-"):
+                    line = line[1:].strip()
+                elif line.startswith("then:") or line.startswith("else:"):
+                    line = line[5:].strip()
                 line = line.split("#", maxsplit=1)[0].strip()
                 try:
                     rms = _cached_match_spec(line)
