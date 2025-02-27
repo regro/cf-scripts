@@ -62,14 +62,15 @@ def requirements_from_yaml(reqs: list) -> set[str]:
 
 
 def run_test_yaml_migration(
-    m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False, is_v1=False
+    m, *, inp, output, kwargs, prb, mr_out, tmp_path, should_filter=False, is_v1=False
 ):
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
+    recipe_dir_p = tmp_path / "recipe"
+    recipe_dir_p.mkdir(exist_ok=True)
 
-    with open(os.path.join(tmpdir, "recipe", "recipe.yaml"), "w") as f:
+    with open(recipe_dir_p / "recipe.yaml", "w") as f:
         f.write(inp)
 
-    with pushd(tmpdir):
+    with pushd(tmp_path):
         subprocess.run(["git", "init"])
     # Load the recipe.yaml (this is done in the graph)
     try:
@@ -93,15 +94,15 @@ def run_test_yaml_migration(
     if should_filter:
         return
 
-    mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
+    mr = m.migrate(str(recipe_dir_p), pmy)
     assert mr_out == mr
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe/recipe.yaml")) as f:
+    with open(recipe_dir_p / "recipe.yaml") as f:
         actual_output = f.read()
     assert actual_output == output
-    assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
-    with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
+    assert tmp_path.joinpath(".ci_support/migrations/hi.yaml").exists()
+    with open(tmp_path / ".ci_support/migrations/hi.yaml") as f:
         saved_migration = f.read()
     assert saved_migration == m.yaml_contents
 
@@ -112,7 +113,7 @@ def sample_yaml_rebuild() -> str:
     return sample_yaml_rebuild
 
 
-def test_yaml_migration_rebuild(tmpdir):
+def test_yaml_migration_rebuild(tmp_path):
     """Test that the build number is bumped"""
     sample = sample_yaml_rebuild()
     updated_yaml_rebuild = sample.replace("number: 0", "number: 1")
@@ -129,12 +130,12 @@ def test_yaml_migration_rebuild(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
         is_v1=True,
     )
 
 
-def test_yaml_migration_rebuild_no_buildno(tmpdir):
+def test_yaml_migration_rebuild_no_buildno(tmp_path):
     sample = sample_yaml_rebuild()
 
     run_test_yaml_migration(
@@ -149,7 +150,7 @@ def test_yaml_migration_rebuild_no_buildno(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
@@ -190,17 +191,20 @@ def run_test_migration(
     kwargs: dict,
     prb: str,
     mr_out: dict,
-    tmpdir: str,
+    tmp_path: Path,
     should_filter: bool = False,
     make_body: bool = False,
 ):
+    # TODO: temporary hack
+    assert isinstance(tmp_path, Path)
+
     if mr_out:
         mr_out.update(bot_rerun=False)
 
-    Path(tmpdir).joinpath("recipe.yaml").write_text(inp)
+    Path(tmp_path).joinpath("recipe.yaml").write_text(inp)
 
     # read the conda-forge.yml
-    cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
+    cf_yml_path = Path(tmp_path).parent / "conda-forge.yml"
     cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
 
     # Load the recipe.yaml (this is done in the graph)
@@ -232,13 +236,13 @@ def run_test_migration(
         return pmy
 
     m.run_pre_piggyback_migrations(
-        tmpdir,
+        tmp_path,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    mr = m.migrate(tmp_path, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir,
+        tmp_path,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
@@ -247,7 +251,7 @@ def run_test_migration(
         fctx = ClonedFeedstockContext(
             feedstock_name=name,
             attrs=pmy,
-            local_clone_dir=Path(tmpdir),
+            local_clone_dir=Path(tmp_path),
         )
         m.effective_graph.add_node(name)
         m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
@@ -259,7 +263,7 @@ def run_test_migration(
 
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe.yaml")) as f:
+    with open(tmp_path / "recipe.yaml") as f:
         actual_output = f.read()
 
     # strip jinja comments
@@ -287,17 +291,22 @@ def run_minimigrator(
     inp: str,
     output: str,
     mr_out: dict,
-    tmpdir: str,
+    tmp_path: Path,
     should_filter: bool = False,
 ):
+    # TODO: temporary hack
+    assert isinstance(tmp_path, Path)
+
     if mr_out:
         mr_out.update(bot_rerun=False)
-    with open(os.path.join(tmpdir, "recipe.yaml"), "w") as f:
+    recipe_dir_p = tmp_path / "recipe"
+    recipe_dir_p.mkdir()
+    with open(recipe_dir_p / "recipe.yaml", "w") as f:
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
+    if tmp_path.joinpath("conda-forge.yml").exists():
+        with open(tmp_path / "conda-forge.yml") as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
@@ -314,7 +323,7 @@ def run_minimigrator(
         return migrator
     assert filtered == should_filter
 
-    with open(os.path.join(tmpdir, "recipe.yaml")) as f:
+    with open(recipe_dir_p / "recipe.yaml") as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
@@ -323,7 +332,7 @@ def run_minimigrator(
     assert actual_output == output
 
 
-def test_generic_replacement(tmpdir):
+def test_generic_replacement(tmp_path):
     sample_matplotlib = TEST_RECIPE_YAML_PATH / "sample_matplotlib.yaml"
     sample_matplotlib = sample_matplotlib.read_text()
     sample_matplotlib_correct = sample_matplotlib.replace(
@@ -342,5 +351,5 @@ def test_generic_replacement(tmpdir):
                 "migrator_version": matplotlib.migrator_version,
                 "name": "matplotlib-to-matplotlib-base",
             },
-            tmpdir=tmpdir,
+            tmp_path=tmp_path,
         )

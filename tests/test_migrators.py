@@ -272,13 +272,17 @@ yaml_rebuild_no_build_number.cycles = []
 
 
 def run_test_yaml_migration(
-    m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False
+    m, *, inp, output, kwargs, prb, mr_out, tmp_path, should_filter=False
 ):
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-    with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
+    # TODO: temporary hack
+    assert isinstance(tmp_path, Path)
+
+    recipe_dir_p = tmp_path / "recipe"
+    recipe_dir_p.mkdir(exist_ok=True)
+    with open(recipe_dir_p / "meta.yaml", "w") as f:
         f.write(inp)
 
-    with pushd(tmpdir):
+    with pushd(tmp_path):
         subprocess.run(["git", "init"])
     # Load the meta.yaml (this is done in the graph)
     try:
@@ -301,20 +305,20 @@ def run_test_yaml_migration(
     if should_filter:
         return
 
-    mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
+    mr = m.migrate(str(recipe_dir_p), pmy)
     assert mr_out == mr
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe/meta.yaml")) as f:
+    with open(recipe_dir_p / "meta.yaml") as f:
         actual_output = f.read()
     assert actual_output == output
-    assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
-    with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
+    assert tmp_path.joinpath(".ci_support/migrations/hi.yaml").exists()
+    with open(tmp_path / ".ci_support/migrations/hi.yaml") as f:
         saved_migration = f.read()
     assert saved_migration == m.yaml_contents
 
 
-def test_yaml_migration_rebuild(tmpdir):
+def test_yaml_migration_rebuild(tmp_path):
     run_test_yaml_migration(
         m=yaml_rebuild,
         inp=sample_yaml_rebuild,
@@ -327,11 +331,11 @@ def test_yaml_migration_rebuild(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
-def test_yaml_migration_rebuild_no_buildno(tmpdir):
+def test_yaml_migration_rebuild_no_buildno(tmp_path):
     run_test_yaml_migration(
         m=yaml_rebuild_no_build_number,
         inp=sample_yaml_rebuild,
@@ -344,7 +348,7 @@ def test_yaml_migration_rebuild_no_buildno(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
