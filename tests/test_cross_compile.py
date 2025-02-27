@@ -1,5 +1,3 @@
-import os
-
 from flaky import flaky
 from test_migrators import run_test_migration
 
