@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 class CondaForgeYAMLCleanup(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     keys_to_remove = [
         "min_r_ver",
         "max_r_ver",
