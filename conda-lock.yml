@@ -10097,44 +10097,44 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: c78bfbe5ad64c25c2f55d57a805ba2d2
-      sha256: b7fd2241a9214f7ed92aa1dcb57f70a363af3325b051c926cc360b55cdaadc13
+      md5: 1a390a54b2752169f5ba4ada5a8108e4
+      sha256: 50d0944b59a9c6dfa6b99cc2632bf8bc9bef9c7c93710390ded6eac953f0182d
     manager: conda
     name: psutil
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/psutil-6.1.1-py311h9ecbd09_0.conda
-    version: 6.1.1
+      https://conda.anaconda.org/conda-forge/linux-64/psutil-7.0.0-py311h9ecbd09_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 7e28b7a45aa8dac17df29b3bbad3a9d9
-      sha256: e4d3a18f6417292bbea80e103ad186067caa88ba5d0c91de1e7e2cc773c89cc4
+      md5: 7b5cdf63ced6576ead40a82ea0616322
+      sha256: e290563f61f810f745b32d4c1ebe4ec87827323134f6bee2e8cc894391cbc548
     manager: conda
     name: psutil
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/psutil-6.1.1-py311h4d7f069_0.conda
-    version: 6.1.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.0.0-py311h4d7f069_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 1b2bd5d7e196f8da36bb0995bccac349
-      sha256: 81241df060160946324889e8089d9185a1328d7f834525ef90422796b09dfa2c
+      md5: 12f8d65fb5a6bd03aedd5ac74391f1ea
+      sha256: 3ea107f769b3ac99411f6bd6d86f946566ba3983894cbeb0e43439934a90c2f5
     manager: conda
     name: psutil
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/psutil-6.1.1-py311h917b07b_0.conda
-    version: 6.1.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.0.0-py311h917b07b_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
