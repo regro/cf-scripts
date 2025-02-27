@@ -536,7 +536,7 @@ def _parse_recipes(
             "home": about.get("homepage"),
             "license": about.get("license"),
             "license_family": about.get("license"),
-            "license_file": about.get("license_file")[0],
+            "license_file": about.get("license_file", [None])[0],
             "summary": about.get("summary"),
         }
     )

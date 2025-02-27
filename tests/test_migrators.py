@@ -488,7 +488,7 @@ def run_test_migration(
         recipe_dir_p = tmpdir_p
     elif recipe_version == 1:
         tmpdir_p.joinpath(".ci_support").mkdir()
-        tmpdir_p.joinpath("recipe").mkdir()
+        tmpdir_p.joinpath("recipe").mkdir(exist_ok=True)
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
 
         build_variants = (
@@ -527,7 +527,7 @@ def run_test_migration(
     recipe_dir = str(recipe_dir_p)
 
     # read the conda-forge.yml
-    cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
+    cf_yml_path = recipe_dir_p.parent / "conda-forge.yml"
     cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
 
     # Load the meta.yaml (this is done in the graph)

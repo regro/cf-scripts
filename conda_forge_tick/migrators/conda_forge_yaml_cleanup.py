@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 class CondaForgeYAMLCleanup(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     keys_to_remove = [
         "min_r_ver",
         "max_r_ver",
@@ -26,6 +27,9 @@ class CondaForgeYAMLCleanup(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """remove recipes without a conda-forge.yml file that has the keys to remove or change"""
+        if super().filter(attrs):
+            return True
+
         cfy = attrs.get("conda-forge.yml", {})
         if any(key in cfy for key in (self.keys_to_remove + self.keys_to_change)):
             return False
