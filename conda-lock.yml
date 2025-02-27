@@ -701,15 +701,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 8c3c37279f889ee8507d43ab70558b6a
-      sha256: cfb900b68f4b298e7041b622abec950e0661524bcf0b9652d7e9a0044e2fb936
+      md5: 64681b59765c5f1fb6a4a08e1a36f02d
+      sha256: cde01796ea2c14f489ae1a7235851d8b622b22f67aaf5960a0ca6b4930c4b9a9
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.1-pyge310_1234567_0.conda
-    version: 1.37.1
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.2-pyge310_1234567_0.conda
+    version: 1.37.2
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -717,15 +717,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 8c3c37279f889ee8507d43ab70558b6a
-      sha256: cfb900b68f4b298e7041b622abec950e0661524bcf0b9652d7e9a0044e2fb936
+      md5: 64681b59765c5f1fb6a4a08e1a36f02d
+      sha256: cde01796ea2c14f489ae1a7235851d8b622b22f67aaf5960a0ca6b4930c4b9a9
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.1-pyge310_1234567_0.conda
-    version: 1.37.1
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.2-pyge310_1234567_0.conda
+    version: 1.37.2
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -733,15 +733,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 8c3c37279f889ee8507d43ab70558b6a
-      sha256: cfb900b68f4b298e7041b622abec950e0661524bcf0b9652d7e9a0044e2fb936
+      md5: 64681b59765c5f1fb6a4a08e1a36f02d
+      sha256: cde01796ea2c14f489ae1a7235851d8b622b22f67aaf5960a0ca6b4930c4b9a9
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.1-pyge310_1234567_0.conda
-    version: 1.37.1
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.37.2-pyge310_1234567_0.conda
+    version: 1.37.2
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -12633,41 +12633,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8f28e299c11afdd79e0ec1e279dcdc52
-      sha256: e0778e4f276e9a81b51c56f51ec22a27b4d8fc955abc0be77ad09ca9bea06bb9
+      md5: 9bddfdbf4e061821a1a443f93223be61
+      sha256: 91d664ace7c22e787775069418daa9f232ee8bafdd0a6a080a5ed2395a6fa6b2
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.0-pyhff2d567_0.conda
-    version: 75.8.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.2-pyhff2d567_0.conda
+    version: 75.8.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8f28e299c11afdd79e0ec1e279dcdc52
-      sha256: e0778e4f276e9a81b51c56f51ec22a27b4d8fc955abc0be77ad09ca9bea06bb9
+      md5: 9bddfdbf4e061821a1a443f93223be61
+      sha256: 91d664ace7c22e787775069418daa9f232ee8bafdd0a6a080a5ed2395a6fa6b2
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.0-pyhff2d567_0.conda
-    version: 75.8.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.2-pyhff2d567_0.conda
+    version: 75.8.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8f28e299c11afdd79e0ec1e279dcdc52
-      sha256: e0778e4f276e9a81b51c56f51ec22a27b4d8fc955abc0be77ad09ca9bea06bb9
+      md5: 9bddfdbf4e061821a1a443f93223be61
+      sha256: 91d664ace7c22e787775069418daa9f232ee8bafdd0a6a080a5ed2395a6fa6b2
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.0-pyhff2d567_0.conda
-    version: 75.8.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.8.2-pyhff2d567_0.conda
+    version: 75.8.2
   - category: main
     dependencies:
       packaging: '>=20.0'
