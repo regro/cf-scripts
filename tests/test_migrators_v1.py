@@ -195,9 +195,6 @@ def run_test_migration(
     should_filter: bool = False,
     make_body: bool = False,
 ):
-    # TODO: temporary hack
-    assert isinstance(tmp_path, Path)
-
     if mr_out:
         mr_out.update(bot_rerun=False)
 
@@ -294,9 +291,6 @@ def run_minimigrator(
     tmp_path: Path,
     should_filter: bool = False,
 ):
-    # TODO: temporary hack
-    assert isinstance(tmp_path, Path)
-
     if mr_out:
         mr_out.update(bot_rerun=False)
     recipe_path = tmp_path / "recipe"

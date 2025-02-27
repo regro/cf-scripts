@@ -274,9 +274,6 @@ yaml_rebuild_no_build_number.cycles = []
 def run_test_yaml_migration(
     m, *, inp, output, kwargs, prb, mr_out, tmp_path, should_filter=False
 ):
-    # TODO: temporary hack
-    assert isinstance(tmp_path, Path)
-
     recipe_path = tmp_path / "recipe"
     recipe_path.mkdir(exist_ok=True)
     with open(recipe_path / "meta.yaml", "w") as f:
@@ -479,8 +476,6 @@ def run_test_migration(
     recipe_version: int = 0,
     conda_build_config: str | None = None,
 ):
-    # TODO: temporary hack
-    assert isinstance(tmp_path, Path)
     recipe_path = tmp_path / "recipe"
 
     if mr_out:
@@ -644,9 +639,6 @@ def run_minimigrator(
     tmp_path: Path,
     should_filter: bool = False,
 ):
-    # TODO: temporary hack
-    assert isinstance(tmp_path, Path)
-
     if mr_out:
         mr_out.update(bot_rerun=False)
     tmp_path.joinpath("recipe").mkdir()
