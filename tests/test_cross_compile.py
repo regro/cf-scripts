@@ -1059,7 +1059,7 @@ def test_correct_config_sub(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     with open(tmp_path / "recipe/build.sh") as f:
         assert len(f.readlines()) == 4
@@ -1081,7 +1081,7 @@ def test_make_check(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1112,7 +1112,7 @@ def test_cmake(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1139,7 +1139,7 @@ def test_cross_rbase(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1159,7 +1159,7 @@ def test_cross_rbase_build_sh(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
@@ -1187,7 +1187,7 @@ def test_cross_python(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1204,7 +1204,7 @@ def test_cross_python_no_build(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "2020.6.20",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1221,7 +1221,7 @@ def test_build2host(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1238,7 +1238,7 @@ def test_build2host_buildok(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1255,7 +1255,7 @@ def test_build2host_bhskip(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -1272,5 +1272,5 @@ def test_nocondainspect(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

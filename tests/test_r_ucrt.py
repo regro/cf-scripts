@@ -147,5 +147,5 @@ def test_r_ucrt(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

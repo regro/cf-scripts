@@ -41,6 +41,6 @@ def test_pypi_org(feedstock, new_ver, tmp_path):
             "migrator_version": VERSION_WITH_PYPI_ORG.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
         should_filter=False,
     )

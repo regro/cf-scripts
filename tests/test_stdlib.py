@@ -74,7 +74,7 @@ def test_stdlib(feedstock, new_ver, expect_cbc, tmp_path):
             "migrator_version": VERSION_WITH_STDLIB.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
         should_filter=False,
     )
 

@@ -573,5 +573,5 @@ def test_noarch_python_min_migrator(tmp_path, name):
             "migrator_version": m.migrator_version,
             "name": "noarch_python_min",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

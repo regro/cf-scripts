@@ -56,7 +56,7 @@ def test_version_mpi_pin_run_as_build_cleanup(vals, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
     if len(vals) == 0 or "blah" not in cbc["pin_run_as_build"]:

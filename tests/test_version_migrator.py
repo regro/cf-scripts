@@ -113,7 +113,7 @@ def test_version_up(case, new_ver, tmp_path, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -164,7 +164,7 @@ def test_version_up_v1(case, new_ver, tmp_path, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
         recipe_version=1,
         conda_build_config=conda_build_config,
     )
@@ -200,7 +200,7 @@ def test_version_noup(case, new_ver, tmp_path, caplog):
             kwargs={"new_version": new_ver},
             prb="Dependencies have been updated if changed",
             mr_out={},
-            tmpdir=tmp_path,
+            tmp_path=tmp_path,
         )
 
     assert "The recipe did not change in the version migration," in str(e.value), (
@@ -232,7 +232,7 @@ def test_version_cupy(tmp_path, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -269,6 +269,6 @@ def test_version_rand_frac(tmp_path, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     assert "random_fraction_to_keep: 0.1" in caplog.text

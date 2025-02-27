@@ -287,7 +287,7 @@ def test_version_license_correct(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -315,5 +315,5 @@ def test_version_license_correct_r(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9.2",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

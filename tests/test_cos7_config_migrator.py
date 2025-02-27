@@ -48,7 +48,7 @@ def test_version_cos7_config(case, remove_quay, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()
@@ -87,7 +87,7 @@ def test_version_cos7_config_skip(case, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()

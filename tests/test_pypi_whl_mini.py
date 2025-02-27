@@ -108,7 +108,7 @@ def test_migrate_opentelemetry(tmp_dir_with_conf):
             "migrator_version": Version.migrator_version,
             "version": "0.23b2",
         },
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -127,7 +127,7 @@ def test_migrate_non_python(tmp_dir_with_conf, package):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -146,7 +146,7 @@ def test_migrate_thrift(tmp_dir_with_conf):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -165,7 +165,7 @@ def test_migrate_psutil(tmp_dir_with_conf):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -185,7 +185,7 @@ def test_migrate_black(tmp_dir_with_conf):
         output=in_yaml,
         mr_out=None,
         should_filter=False,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -205,5 +205,5 @@ def test_migrate_black_no_conf(tmp_path):
         output=in_yaml,
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

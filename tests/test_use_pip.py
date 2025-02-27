@@ -32,5 +32,5 @@ def test_version_pipcheck(case, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

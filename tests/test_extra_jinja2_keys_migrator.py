@@ -34,5 +34,5 @@ def test_version_extra_jinja2_keys_cleanup(tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.20.0",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

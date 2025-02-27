@@ -42,7 +42,7 @@ def test_version_duplicate_lines_cleanup(slug, clean_slug, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )
 
 
@@ -77,5 +77,5 @@ def test_version_duplicate_lines_cleanup_skip(slug, clean_slug, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
     )

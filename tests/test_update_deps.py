@@ -458,7 +458,7 @@ def test_update_deps_version(caplog, tmp_path, update_kind, out_yml):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
         make_body=True,
     )
 

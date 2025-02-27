@@ -54,7 +54,7 @@ def test_qt_main(old_meta, new_meta, new_ver, tmp_path):
                     "migrator_version": VERSION_WITH_QTQTMAIN.migrator_version,
                     "version": new_ver,
                 },
-                tmpdir=tmp_path,
+                tmp_path=tmp_path,
                 should_filter=False,
             )
         except Exception as e:

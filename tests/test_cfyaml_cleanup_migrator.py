@@ -66,7 +66,7 @@ def test_version_cfyaml_cleanup(cases, recipe_version, tmp_path):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmp_path,
+        tmp_path=tmp_path,
         recipe_version=recipe_version,
     )
 
