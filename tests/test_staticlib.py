@@ -253,7 +253,6 @@ def test_staticlib_migrator_llvmlite(tmp_path):
     pmy["raw_meta_yaml"] = recipe_before
     pmy.update(kwargs)
 
-
     graph = nx.DiGraph()
     graph.add_node(name, payload=pmy)
     m = StaticLibMigrator(
