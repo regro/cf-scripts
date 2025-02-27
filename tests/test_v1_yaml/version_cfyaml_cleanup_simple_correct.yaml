@@ -1,0 +1,45 @@
+schema_version: 1
+
+context:
+  version: "0.9"
+
+package:
+  name: viscm
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-${{ version }}.tar.gz
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
+
+build:
+  number: 0
+  skip: win
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+
+tests:
+  - python:
+      imports:
+        - viscm
+      pip_check: false
+
+about:
+  license: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+  homepage: https://github.com/bids/viscm
+
+extra:
+  recipe-maintainers:
+    - kthyng
