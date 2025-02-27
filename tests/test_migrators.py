@@ -637,17 +637,21 @@ def run_minimigrator(
     inp: str,
     output: str,
     mr_out: dict,
-    tmpdir: str,
+    tmpdir: Path,
     should_filter: bool = False,
 ):
+    # TODO: temporary hack
+    assert isinstance(tmpdir, Path)
+
     if mr_out:
         mr_out.update(bot_rerun=False)
-    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
+    tmpdir.joinpath("recipe").mkdir()
+    with open(tmpdir / "recipe/meta.yaml", "w") as f:
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
+    if tmpdir.joinpath("conda-forge.yml").exists():
+        with open(tmpdir / "conda-forge.yml") as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
@@ -664,7 +668,7 @@ def run_minimigrator(
         return migrator
     assert filtered == should_filter
 
-    with open(os.path.join(tmpdir, "meta.yaml")) as f:
+    with open(tmpdir / "recipe/meta.yaml") as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")

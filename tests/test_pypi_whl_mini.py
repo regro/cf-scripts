@@ -92,9 +92,7 @@ bot:
     run_deps_from_wheel: true
 """,
     )
-    recipe_path = tmp_path / "recipe"
-    recipe_path.mkdir()
-    return str(recipe_path)
+    return tmp_path
 
 
 @flaky
@@ -192,7 +190,7 @@ def test_migrate_black(tmp_dir_with_conf):
 
 
 @flaky
-def test_migrate_black_no_conf(tmpdir):
+def test_migrate_black_no_conf(tmp_path):
     """Without enabling the feature, don't run for black"""
     url = (
         "https://raw.githubusercontent.com/conda-forge/black-feedstock/"
@@ -207,5 +205,5 @@ def test_migrate_black_no_conf(tmpdir):
         output=in_yaml,
         mr_out=None,
         should_filter=True,
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
