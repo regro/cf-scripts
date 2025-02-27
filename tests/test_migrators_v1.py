@@ -64,10 +64,10 @@ def requirements_from_yaml(reqs: list) -> set[str]:
 def run_test_yaml_migration(
     m, *, inp, output, kwargs, prb, mr_out, tmp_path, should_filter=False, is_v1=False
 ):
-    recipe_dir_p = tmp_path / "recipe"
-    recipe_dir_p.mkdir(exist_ok=True)
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir(exist_ok=True)
 
-    with open(recipe_dir_p / "recipe.yaml", "w") as f:
+    with open(recipe_path / "recipe.yaml", "w") as f:
         f.write(inp)
 
     with pushd(tmp_path):
@@ -94,11 +94,11 @@ def run_test_yaml_migration(
     if should_filter:
         return
 
-    mr = m.migrate(str(recipe_dir_p), pmy)
+    mr = m.migrate(str(recipe_path), pmy)
     assert mr_out == mr
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(recipe_dir_p / "recipe.yaml") as f:
+    with open(recipe_path / "recipe.yaml") as f:
         actual_output = f.read()
     assert actual_output == output
     assert tmp_path.joinpath(".ci_support/migrations/hi.yaml").exists()
@@ -299,9 +299,9 @@ def run_minimigrator(
 
     if mr_out:
         mr_out.update(bot_rerun=False)
-    recipe_dir_p = tmp_path / "recipe"
-    recipe_dir_p.mkdir()
-    with open(recipe_dir_p / "recipe.yaml", "w") as f:
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir()
+    with open(recipe_path / "recipe.yaml", "w") as f:
         f.write(inp)
 
     # read the conda-forge.yml
@@ -323,7 +323,7 @@ def run_minimigrator(
         return migrator
     assert filtered == should_filter
 
-    with open(recipe_dir_p / "recipe.yaml") as f:
+    with open(recipe_path / "recipe.yaml") as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")

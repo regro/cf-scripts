@@ -185,9 +185,9 @@ def run_test_migration(
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
-    recipe_dir_p = tmp_path / "recipe"
-    recipe_dir_p.mkdir(exist_ok=True)
-    with open(recipe_dir_p / "meta.yaml", "w") as f:
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir(exist_ok=True)
+    with open(recipe_path / "meta.yaml", "w") as f:
         f.write(inp)
 
     # read the conda-forge.yml
@@ -219,7 +219,7 @@ def run_test_migration(
     if should_filter:
         return
 
-    recipe_dir = str(recipe_dir_p)
+    recipe_dir = str(recipe_path)
     m.run_pre_piggyback_migrations(
         recipe_dir,
         pmy,
@@ -238,7 +238,7 @@ def run_test_migration(
 
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(recipe_dir_p / "meta.yaml") as f:
+    with open(recipe_path / "meta.yaml") as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")

@@ -277,9 +277,9 @@ def run_test_yaml_migration(
     # TODO: temporary hack
     assert isinstance(tmp_path, Path)
 
-    recipe_dir_p = tmp_path / "recipe"
-    recipe_dir_p.mkdir(exist_ok=True)
-    with open(recipe_dir_p / "meta.yaml", "w") as f:
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir(exist_ok=True)
+    with open(recipe_path / "meta.yaml", "w") as f:
         f.write(inp)
 
     with pushd(tmp_path):
@@ -305,11 +305,11 @@ def run_test_yaml_migration(
     if should_filter:
         return
 
-    mr = m.migrate(str(recipe_dir_p), pmy)
+    mr = m.migrate(str(recipe_path), pmy)
     assert mr_out == mr
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(recipe_dir_p / "meta.yaml") as f:
+    with open(recipe_path / "meta.yaml") as f:
         actual_output = f.read()
     assert actual_output == output
     assert tmp_path.joinpath(".ci_support/migrations/hi.yaml").exists()
@@ -481,21 +481,21 @@ def run_test_migration(
 ):
     # TODO: temporary hack
     assert isinstance(tmp_path, Path)
-    recipe_dir_p = tmp_path / "recipe"
+    recipe_path = tmp_path / "recipe"
 
     if mr_out:
         mr_out.update(bot_rerun=False)
 
-    recipe_dir_p.mkdir(exist_ok=True)
+    recipe_path.mkdir(exist_ok=True)
     if recipe_version == 0:
         if conda_build_config:
             raise ValueError(
                 "conda_build_config is only supported for recipe version 1 in this test function"
             )
-        recipe_dir_p.joinpath("meta.yaml").write_text(inp)
+        recipe_path.joinpath("meta.yaml").write_text(inp)
     elif recipe_version == 1:
         tmp_path.joinpath(".ci_support").mkdir()
-        recipe_dir_p.joinpath("recipe.yaml").write_text(inp)
+        recipe_path.joinpath("recipe.yaml").write_text(inp)
 
         build_variants = (
             yaml.safe_load(conda_build_config) if conda_build_config else {}
@@ -523,7 +523,7 @@ def run_test_migration(
         raise ValueError(f"Unsupported recipe version: {recipe_version}")
 
     if conda_build_config:
-        conda_build_config_file = recipe_dir_p / "conda_build_config.yaml"
+        conda_build_config_file = recipe_path / "conda_build_config.yaml"
         conda_build_config_file.write_text(conda_build_config)
     else:
         conda_build_config_file = None
@@ -582,7 +582,7 @@ def run_test_migration(
     if should_filter:
         return pmy
 
-    recipe_dir = str(recipe_dir_p)
+    recipe_dir = str(recipe_path)
     m.run_pre_piggyback_migrations(
         recipe_dir,
         pmy,
@@ -612,9 +612,9 @@ def run_test_migration(
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
     if recipe_version == 0:
-        actual_output = recipe_dir_p.joinpath("meta.yaml").read_text()
+        actual_output = recipe_path.joinpath("meta.yaml").read_text()
     else:
-        actual_output = recipe_dir_p.joinpath("recipe.yaml").read_text()
+        actual_output = recipe_path.joinpath("recipe.yaml").read_text()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
     actual_output = pat.sub("", actual_output)
