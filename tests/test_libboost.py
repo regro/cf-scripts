@@ -38,7 +38,7 @@ VERSION_WITH_LIBBOOST = Version(
         ("cctx", "1.10.0"),
     ],
 )
-def test_boost(feedstock, new_ver, tmpdir):
+def test_boost(feedstock, new_ver, tmp_path):
     before = f"libboost_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -58,7 +58,7 @@ def test_boost(feedstock, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_LIBBOOST.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
         should_filter=False,
     )
 

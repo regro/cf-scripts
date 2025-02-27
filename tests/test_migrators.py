@@ -482,7 +482,7 @@ def run_test_migration(
     if mr_out:
         mr_out.update(bot_rerun=False)
 
-    recipe_dir_p.mkdir()
+    recipe_dir_p.mkdir(exist_ok=True)
     if recipe_version == 0:
         if conda_build_config:
             raise ValueError(
@@ -673,7 +673,7 @@ def run_minimigrator(
     assert actual_output == output
 
 
-def test_generic_replacement(tmpdir):
+def test_generic_replacement(tmp_path):
     run_test_migration(
         m=matplotlib,
         inp=sample_matplotlib,
@@ -685,7 +685,7 @@ def test_generic_replacement(tmpdir):
             "migrator_version": matplotlib.migrator_version,
             "name": "matplotlib-to-matplotlib-base",
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
 
 

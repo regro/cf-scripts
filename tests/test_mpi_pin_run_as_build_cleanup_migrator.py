@@ -28,7 +28,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         {"openmpi": "x.x", "mpich": "x.x", "blah": "x"},
     ],
 )
-def test_version_mpi_pin_run_as_build_cleanup(vals, tmpdir):
+def test_version_mpi_pin_run_as_build_cleanup(vals, tmp_path):
     yaml = YAML()
 
     with open(os.path.join(YAML_PATH, "version_mprab_cleanup_simple.yaml")) as fp:
@@ -39,8 +39,8 @@ def test_version_mpi_pin_run_as_build_cleanup(vals, tmpdir):
     ) as fp:
         out_yaml = fp.read()
 
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-    cbc_pth = os.path.join(tmpdir, "recipe", "conda_build_config.yaml")
+    tmp_path.joinpath("recipe").mkdir()
+    cbc_pth = tmp_path / "recipe/conda_build_config.yaml"
     cbc = {"pin_run_as_build": vals}
     with open(cbc_pth, "w") as fp:
         yaml.dump(cbc, fp)
@@ -56,7 +56,7 @@ def test_version_mpi_pin_run_as_build_cleanup(vals, tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmpdir=tmp_path,
     )
 
     if len(vals) == 0 or "blah" not in cbc["pin_run_as_build"]:

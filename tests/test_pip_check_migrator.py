@@ -12,7 +12,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
 @pytest.mark.parametrize("case", ["simple", "selector", "selector_partial"])
-def test_version_pipcheck(case, tmpdir):
+def test_version_pipcheck(case, tmp_path):
     with open(os.path.join(YAML_PATH, "version_pipcheck_%s.yaml" % case)) as fp:
         in_yaml = fp.read()
 
@@ -32,11 +32,11 @@ def test_version_pipcheck(case, tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
 
 
-def test_version_pipcheck_outputs(tmpdir):
+def test_version_pipcheck_outputs(tmp_path):
     with open(os.path.join(YAML_PATH, "version_pipcheck_outputs.yaml")) as fp:
         in_yaml = fp.read()
 
@@ -56,5 +56,5 @@ def test_version_pipcheck_outputs(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "1.1.0",
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )

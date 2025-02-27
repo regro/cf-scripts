@@ -89,7 +89,7 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
     ],
 )
 @flaky
-def test_version_up(case, new_ver, tmpdir, caplog):
+def test_version_up(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -113,7 +113,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
 
 
@@ -133,7 +133,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
     ],
 )
 @flaky
-def test_version_up_v1(case, new_ver, tmpdir, caplog):
+def test_version_up_v1(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -164,7 +164,7 @@ def test_version_up_v1(case, new_ver, tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
         recipe_version=1,
         conda_build_config=conda_build_config,
     )
@@ -180,7 +180,7 @@ def test_version_up_v1(case, new_ver, tmpdir, caplog):
         ("giturl", "7.0"),
     ],
 )
-def test_version_noup(case, new_ver, tmpdir, caplog):
+def test_version_noup(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -200,7 +200,7 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
             kwargs={"new_version": new_ver},
             prb="Dependencies have been updated if changed",
             mr_out={},
-            tmpdir=tmpdir,
+            tmpdir=tmp_path,
         )
 
     assert "The recipe did not change in the version migration," in str(e.value), (
@@ -208,7 +208,7 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     )
 
 
-def test_version_cupy(tmpdir, caplog):
+def test_version_cupy(tmp_path, caplog):
     case = "cupy"
     new_ver = "8.5.0"
     caplog.set_level(
@@ -232,11 +232,11 @@ def test_version_cupy(tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
 
 
-def test_version_rand_frac(tmpdir, caplog):
+def test_version_rand_frac(tmp_path, caplog):
     case = "aws_sdk_cpp"
     new_ver = "1.11.132"
     caplog.set_level(
@@ -269,6 +269,6 @@ def test_version_rand_frac(tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
     )
     assert "random_fraction_to_keep: 0.1" in caplog.text

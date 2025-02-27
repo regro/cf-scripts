@@ -16,7 +16,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 @pytest.mark.parametrize("remove_quay", [False, True])
 @pytest.mark.parametrize("case", list(range(len(REQUIRED_RE_LINES))))
-def test_version_cos7_config(case, remove_quay, tmpdir):
+def test_version_cos7_config(case, remove_quay, tmp_path):
     with open(os.path.join(YAML_PATH, "version_cos7_config_simple.yaml")) as fp:
         in_yaml = fp.read()
 
@@ -25,8 +25,8 @@ def test_version_cos7_config(case, remove_quay, tmpdir):
     ) as fp:
         out_yaml = fp.read()
 
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-    cfg = os.path.join(tmpdir, "recipe", "conda_build_config.yaml")
+    tmp_path.joinpath("recipe").mkdir()
+    cfg = tmp_path / "recipe/conda_build_config.yaml"
 
     with open(cfg, "w") as fp:
         for i, (_, _, first, second) in enumerate(REQUIRED_RE_LINES):
@@ -48,7 +48,7 @@ def test_version_cos7_config(case, remove_quay, tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmpdir=tmp_path,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()
@@ -58,7 +58,7 @@ def test_version_cos7_config(case, remove_quay, tmpdir):
 
 
 @pytest.mark.parametrize("case", list(range(len(REQUIRED_RE_LINES))))
-def test_version_cos7_config_skip(case, tmpdir):
+def test_version_cos7_config_skip(case, tmp_path):
     with open(os.path.join(YAML_PATH, "version_cos7_config_simple.yaml")) as fp:
         in_yaml = fp.read()
 
@@ -67,8 +67,8 @@ def test_version_cos7_config_skip(case, tmpdir):
     ) as fp:
         out_yaml = fp.read()
 
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-    cfg = os.path.join(tmpdir, "recipe", "conda_build_config.yaml")
+    tmp_path.joinpath("recipe").mkdir()
+    cfg = tmp_path / "recipe/conda_build_config.yaml"
 
     with open(cfg, "w") as fp:
         for i, (_, _, first, second) in enumerate(REQUIRED_RE_LINES):
@@ -87,7 +87,7 @@ def test_version_cos7_config_skip(case, tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmpdir=tmp_path,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()

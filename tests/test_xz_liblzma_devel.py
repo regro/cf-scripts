@@ -24,7 +24,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ),
     ],
 )
-def test_liblzma_devel(old_meta, new_meta, new_ver, tmpdir):
+def test_liblzma_devel(old_meta, new_meta, new_ver, tmp_path):
     with open(os.path.join(YAML_PATH, old_meta)) as fp:
         in_yaml = fp.read()
 
@@ -42,6 +42,6 @@ def test_liblzma_devel(old_meta, new_meta, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_XZLIBLZMADEVEL.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_path,
         should_filter=False,
     )

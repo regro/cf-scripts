@@ -25,7 +25,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("qtqtmain_qgis_before_meta.yaml", "qtqtmain_qgis_after_meta.yaml", "3.18.3"),
     ],
 )
-def test_qt_main(old_meta, new_meta, new_ver, tmpdir):
+def test_qt_main(old_meta, new_meta, new_ver, tmp_path):
     with open(os.path.join(YAML_PATH, old_meta)) as fp:
         in_yaml = fp.read()
 
@@ -54,7 +54,7 @@ def test_qt_main(old_meta, new_meta, new_ver, tmpdir):
                     "migrator_version": VERSION_WITH_QTQTMAIN.migrator_version,
                     "version": new_ver,
                 },
-                tmpdir=tmpdir,
+                tmpdir=tmp_path,
                 should_filter=False,
             )
         except Exception as e:
