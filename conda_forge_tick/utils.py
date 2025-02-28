@@ -480,7 +480,7 @@ def _render_recipe_yaml(
         input=prepared_text,
         check=True,
     )
-    return [output["recipe"] for output in orjson.loads(res.stdout).decode("utf-8")]
+    return [output["recipe"] for output in orjson.loads(res.stdout)]
 
 
 def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:

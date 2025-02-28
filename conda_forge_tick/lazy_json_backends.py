@@ -611,7 +611,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             {
                 "$set": {
                     "node": key,
-                    "value": orjson.loads(value).decode("utf-8"),
+                    "value": orjson.loads(value),
                     "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                 },
             },
@@ -631,7 +631,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
                     {
                         "$set": {
                             "node": key,
-                            "value": orjson.loads(value).decode("utf-8"),
+                            "value": orjson.loads(value),
                             "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                         },
                     },

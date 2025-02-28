@@ -398,7 +398,7 @@ def main() -> None:
             old_closed_status = {}
 
         with open("status/total_status.json", "rb") as fp:
-            old_total_status = orjson.load(fp.read())
+            old_total_status = orjson.loads(fp.read())
 
         smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
         pinning_version: str = cast(
