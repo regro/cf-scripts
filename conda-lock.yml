@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: fbcc4a2a822659042189f814fbfed6fd
-      sha256: 121267b4c52f442d165396b8434716eab5ba339e18817990f3e0074322f08a4a
+      md5: 3298e5c2be0d8a4531e7df248772f039
+      sha256: 8ad97f76545705a6a59a09b1b992c13ba4e38c66174fb2bd5ae2ed0ea9003e1e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.27.15.37.26-hd8ed1ab_0.conda
-    version: 2025.02.27.15.37.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.28.11.18.30-hd8ed1ab_0.conda
+    version: 2025.02.28.11.18.30
   - category: main
     dependencies: {}
     hash:
-      md5: fbcc4a2a822659042189f814fbfed6fd
-      sha256: 121267b4c52f442d165396b8434716eab5ba339e18817990f3e0074322f08a4a
+      md5: 3298e5c2be0d8a4531e7df248772f039
+      sha256: 8ad97f76545705a6a59a09b1b992c13ba4e38c66174fb2bd5ae2ed0ea9003e1e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.27.15.37.26-hd8ed1ab_0.conda
-    version: 2025.02.27.15.37.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.28.11.18.30-hd8ed1ab_0.conda
+    version: 2025.02.28.11.18.30
   - category: main
     dependencies: {}
     hash:
-      md5: fbcc4a2a822659042189f814fbfed6fd
-      sha256: 121267b4c52f442d165396b8434716eab5ba339e18817990f3e0074322f08a4a
+      md5: 3298e5c2be0d8a4531e7df248772f039
+      sha256: 8ad97f76545705a6a59a09b1b992c13ba4e38c66174fb2bd5ae2ed0ea9003e1e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.27.15.37.26-hd8ed1ab_0.conda
-    version: 2025.02.27.15.37.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.28.11.18.30-hd8ed1ab_0.conda
+    version: 2025.02.28.11.18.30
   - category: main
     dependencies:
       click: '>=8'
