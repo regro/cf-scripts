@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 04d16349a265a921184cb4fb65814c699935466d2127192a9e141eb002601207
-    osx-64: bc36aa7ee6d1d1ff2069c50cce4aef7162325ee856e37d32f6f0ec0375c06136
-    osx-arm64: 4a5f23af936480d1fe67a61253de0878631060bd49c01ed3f2477c020a320a87
+    linux-64: ea0be66fad42c0be775b6964370d3e0630c3edfb46574a41e2fc7c21377be6dc
+    osx-64: 72950d92f109f4e2d6564afa451fe7c844d672d1bc57572fa706d45f85958c5d
+    osx-arm64: 85ed712bf6cefe23ec9a3973cc2b4bca64aaa23adcf0a6b0e3df5edda95b6198
   platforms:
     - osx-arm64
     - linux-64
@@ -9374,6 +9374,52 @@ package:
     platform: osx-arm64
     url: https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
     version: 0.1.14
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 19615e39755eac6975671b8a679f7088
+      sha256: 2626f5c211749d1e5632c81d92313677e0c537f1376f397432976379db2dabc4
+    manager: conda
+    name: orjson
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.15-py311h9e33e62_0.conda
+    version: 3.10.15
+  - category: main
+    dependencies:
+      __osx: '>=10.13'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: a1b4c1e9c26279ae4dcbd4319dffb541
+      sha256: 0015c2a458bea689eb5af205bc30770ca3c51e68a23aa9ee0ae2f84282ac11b5
+    manager: conda
+    name: orjson
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.15-py311h3b9c2be_0.conda
+    version: 3.10.15
+  - category: main
+    dependencies:
+      __osx: '>=11.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 1c10494123be62099e1afaa0ea746786
+      sha256: 5f34f758aa88da54af624e5bd8e8f19f0cc36acf3f1792efbd4c59748ffa9b7a
+    manager: conda
+    name: orjson
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.15-py311h3ff9189_0.conda
+    version: 3.10.15
   - category: main
     dependencies:
       python: '>=3.8'
