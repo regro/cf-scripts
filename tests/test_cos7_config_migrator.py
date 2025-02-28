@@ -11,17 +11,25 @@ VERSION_COS7 = Version(
     piggy_back_migrations=[Cos7Config()],
 )
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATHS = [
+    os.path.join(os.path.dirname(__file__), "test_yaml"),
+    os.path.join(os.path.dirname(__file__), "test_v1_yaml"),
+]
 
 
 @pytest.mark.parametrize("remove_quay", [False, True])
 @pytest.mark.parametrize("case", list(range(len(REQUIRED_RE_LINES))))
-def test_version_cos7_config(case, remove_quay, tmp_path):
-    with open(os.path.join(YAML_PATH, "version_cos7_config_simple.yaml")) as fp:
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_version_cos7_config(case, remove_quay, recipe_version, tmp_path):
+    with open(
+        os.path.join(YAML_PATHS[recipe_version], "version_cos7_config_simple.yaml")
+    ) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_cos7_config_simple_correct.yaml"),
+        os.path.join(
+            YAML_PATHS[recipe_version], "version_cos7_config_simple_correct.yaml"
+        ),
     ) as fp:
         out_yaml = fp.read()
 
@@ -49,6 +57,7 @@ def test_version_cos7_config(case, remove_quay, tmp_path):
             "version": "0.9",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()
@@ -58,12 +67,17 @@ def test_version_cos7_config(case, remove_quay, tmp_path):
 
 
 @pytest.mark.parametrize("case", list(range(len(REQUIRED_RE_LINES))))
-def test_version_cos7_config_skip(case, tmp_path):
-    with open(os.path.join(YAML_PATH, "version_cos7_config_simple.yaml")) as fp:
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_version_cos7_config_skip(case, recipe_version, tmp_path):
+    with open(
+        os.path.join(YAML_PATHS[recipe_version], "version_cos7_config_simple.yaml")
+    ) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_cos7_config_simple_correct.yaml"),
+        os.path.join(
+            YAML_PATHS[recipe_version], "version_cos7_config_simple_correct.yaml"
+        ),
     ) as fp:
         out_yaml = fp.read()
 
@@ -88,6 +102,7 @@ def test_version_cos7_config_skip(case, tmp_path):
             "version": "0.9",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     with open(cfg) as fp:
         cfg_lines = fp.readlines()
