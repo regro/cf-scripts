@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import itertools
-import json
 import logging
 import os
 import pprint
@@ -31,6 +30,7 @@ from typing import (
 import jinja2
 import jinja2.sandbox
 import networkx as nx
+import orjson
 import ruamel.yaml
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
@@ -480,7 +480,7 @@ def _render_recipe_yaml(
         input=prepared_text,
         check=True,
     )
-    return [output["recipe"] for output in json.loads(res.stdout)]
+    return [output["recipe"] for output in orjson.loads(res.stdout)]
 
 
 def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:

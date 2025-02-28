@@ -14,7 +14,6 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 
 import copy
 import glob
-import json
 import logging
 import os
 import subprocess
@@ -24,6 +23,7 @@ import traceback
 from contextlib import contextmanager, redirect_stdout
 
 import click
+import orjson
 
 existing_feedstock_node_attrs_option = click.option(
     "--existing-feedstock-node-attrs",
@@ -209,8 +209,8 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
             "/cf_feedstock_ops_dir",
             f"permissions-{os.path.basename(input_fs_dir)}.json",
         )
-        with open(input_permissions) as f:
-            input_permissions = json.load(f)
+        with open(input_permissions, "rb") as f:
+            input_permissions = orjson.loads(f.read())
 
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
@@ -263,8 +263,8 @@ def _update_version(*, version, hash_type):
             "/cf_feedstock_ops_dir",
             f"permissions-{os.path.basename(input_fs_dir)}.json",
         )
-        with open(input_permissions) as f:
-            input_permissions = json.load(f)
+        with open(input_permissions, "rb") as f:
+            input_permissions = orjson.loads(f.read())
 
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
@@ -394,7 +394,7 @@ def _check_solvable(
         additional_channels=(
             additional_channels.split(",") if additional_channels else None
         ),
-        build_platform=json.loads(build_platform) if build_platform else None,
+        build_platform=orjson.loads(build_platform) if build_platform else None,
     )
     return data
 

@@ -382,19 +382,19 @@ def test_lazy_json_backends_dump_load(tmpdir):
             dumps(blob)
             == """\
 {
- "a": {
-  "__set__": true,
-  "elements": [
-   1,
-   2,
-   3
-  ]
- },
- "b": 56,
- "c": "3333",
- "d": {
-  "__lazy_json__": "blah.json"
- }
+  "a": {
+    "__set__": true,
+    "elements": [
+      1,
+      2,
+      3
+    ]
+  },
+  "b": 56,
+  "c": "3333",
+  "d": {
+    "__lazy_json__": "blah.json"
+  }
 }"""
         )
 

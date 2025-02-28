@@ -1,10 +1,10 @@
-import json
 import logging
 import os
 import shutil
 import tempfile
 from pathlib import Path
 
+import orjson
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -132,9 +132,9 @@ def run_migration_containerized(
         perms = get_user_execute_permissions(feedstock_dir)
         with open(
             os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
-            "w",
+            "wb",
         ) as f:
-            json.dump(perms, f)
+            f.write(orjson.dumps(perms))
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
