@@ -1,6 +1,5 @@
 import gc
 import glob
-import json
 import logging
 import os
 import textwrap
@@ -16,6 +15,7 @@ import github
 import github3
 import github3.repos
 import networkx as nx
+import orjson
 import tqdm
 from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import ContainerRuntimeError
@@ -1296,9 +1296,9 @@ def main(ctx: CliContext) -> None:
         smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
         pinning_version: str = cast(
             str,
-            json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
-                "version"
-            ],
+            orjson.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[
+                0
+            ]["version"],
         )
         mctx = MigratorSessionContext(
             graph=gx,

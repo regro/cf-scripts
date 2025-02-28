@@ -2,7 +2,6 @@ import abc
 import collections.abc
 import copy
 import functools
-import json
 import logging
 import re
 import subprocess
@@ -12,6 +11,7 @@ from pathlib import Path
 from typing import Iterator, List, Literal, Optional
 
 import feedparser
+import orjson
 import packaging.version
 import requests
 import yaml
@@ -745,7 +745,7 @@ class CratesIO(AbstractSource):
 
         # the response body is a newline-delimited JSON stream, with the latest version
         # being the last line
-        latest = json.loads(r.text.splitlines()[-1])
+        latest = orjson.loads(r.text.splitlines()[-1])
 
         return latest.get("vers")
 
