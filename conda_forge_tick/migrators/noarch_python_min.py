@@ -117,7 +117,7 @@ def _extract_bounds(req):
         upper_ver = None
     else:
         raise RuntimeError(
-            "Encountered a python requirement `{req}` that cannot easily be "
+            f"Encountered a python requirement `{req}` that cannot easily be "
             "handled by the bot for setting the runtime python "
             "version range. The bot will not be able to issue the "
             "`noarch: python` min migration PR!"
@@ -140,7 +140,7 @@ def _extract_bounds(req):
         lower_ver = None
     else:
         raise RuntimeError(
-            "Encountered a python requirement `{req}` that cannot easily be "
+            f"Encountered a python requirement `{req}` that cannot easily be "
             "handled by the bot for setting the runtime python "
             "version range. The bot will not be able to issue the "
             "`noarch: python` min migration PR!"
