@@ -26,7 +26,7 @@ from typing import (
 
 import github
 import networkx as nx
-import rapidjson as json
+import orjson
 import requests
 
 from .cli_context import CliContext
@@ -611,7 +611,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             {
                 "$set": {
                     "node": key,
-                    "value": json.loads(value),
+                    "value": orjson.loads(value),
                     "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                 },
             },
@@ -631,7 +631,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
                     {
                         "$set": {
                             "node": key,
-                            "value": json.loads(value),
+                            "value": orjson.loads(value),
                             "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                         },
                     },
@@ -1110,56 +1110,54 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 def dumps(
     obj: Any,
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
     default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
 ) -> str:
     """Returns a JSON string from a Python object."""
-    return json.dumps(
+    return orjson.dumps(
         obj,
-        sort_keys=sort_keys,
-        # separators=separators,
+        option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
         default=default,
-        indent=1,
-        **kwargs,
-    )
+    ).decode("utf-8")
 
 
 def dump(
     obj: Any,
     fp: IO[str],
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
     default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
 ) -> None:
     """Returns a JSON string from a Python object."""
-    return json.dump(
-        obj,
-        fp,
-        sort_keys=sort_keys,
-        # separators=separators,
-        default=default,
-        indent=1,
-        **kwargs,
-    )
+    return fp.write(dumps(obj, default=default))
 
 
-def loads(
-    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
-) -> dict:
+def _call_object_hook(
+    data: Any,
+    object_hook: "Callable[[dict], Any]",
+) -> Any:
+    """Recursively calls object_hook depth-first."""
+    if isinstance(data, list):
+        return [_call_object_hook(d, object_hook) for d in data]
+    elif isinstance(data, dict):
+        for k in data:
+            data[k] = _call_object_hook(data[k], object_hook)
+        return object_hook(data)
+    else:
+        return data
+
+
+def loads(s: str, object_hook: "Callable[[dict], Any]" = object_hook) -> dict:
     """Loads a string as JSON, with appropriate object hooks"""
-    return json.loads(s, object_hook=object_hook, **kwargs)
+    data = orjson.loads(s)
+    if object_hook is not None:
+        data = _call_object_hook(data, object_hook)
+    return data
 
 
 def load(
     fp: IO[str],
     object_hook: "Callable[[dict], Any]" = object_hook,
-    **kwargs: Any,
 ) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
-    return json.load(fp, object_hook=object_hook, **kwargs)
+    return loads(fp.read())
 
 
 def main_sync(ctx: CliContext):

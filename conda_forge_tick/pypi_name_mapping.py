@@ -6,7 +6,6 @@ Builds and maintains mapping of pypi-names to conda-forge names
 """
 
 import functools
-import json
 import math
 import os
 import pathlib
@@ -15,6 +14,7 @@ from collections import Counter, defaultdict
 from os.path import commonprefix
 from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
 
+import orjson
 import requests
 import yaml
 from packaging.utils import NormalizedName as PypiName
@@ -434,8 +434,16 @@ def main() -> None:
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+
+    def json_dump(obj, fp):
+        fp.write(
+            orjson.dumps(obj, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2).decode(
+                "utf-8"
+            )
+        )
+
     # import pdb; pdb.set_trace()
-    for dumper, suffix in ((yaml_dump, "yaml"), (json.dump, "json")):
+    for dumper, suffix in ((yaml_dump, "yaml"), (json_dump, "json")):
         with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
             dumper(grayskull_style, fp)
 
