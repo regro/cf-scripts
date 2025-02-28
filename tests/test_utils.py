@@ -1,4 +1,5 @@
 import contextlib
+import textwrap
 from io import StringIO
 from unittest import mock
 from unittest.mock import MagicMock, mock_open
@@ -8,6 +9,7 @@ import pytest
 from conda_forge_tick.utils import (
     DEFAULT_GRAPH_FILENAME,
     _munge_dict_repr,
+    extract_section_from_yaml_text,
     get_keys_default,
     load_existing_graph,
     load_graph,
@@ -177,3 +179,232 @@ def test_run_command_hiding_token_stderr():
 
     assert stdout.getvalue() == ""
     assert stderr.getvalue() == "std*****.err"
+
+
+@pytest.mark.parametrize(
+    "meta_yaml,section_name,result,exclude_requirements",
+    [
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+                host:
+                  - python 3.8
+                  - numpy
+                """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+              - python 3.8
+              - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              build:
+                - blah
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            True,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              build:
+                - blah
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          - blah
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+    ],
+)
+def test_extract_section_from_yaml_text(
+    meta_yaml, section_name, result, exclude_requirements
+):
+    extracted_sections = extract_section_from_yaml_text(
+        meta_yaml, section_name, exclude_requirements=exclude_requirements
+    )
+    assert extracted_sections == result

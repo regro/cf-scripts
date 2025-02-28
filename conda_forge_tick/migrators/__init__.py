@@ -44,3 +44,4 @@ from .version import Version
 from .xz_to_liblzma_devel import XzLibLzmaDevelMigrator
 from .noarch_python_min import NoarchPythonMinMigrator
 from .round_trip import YAMLRoundTrip
+from .staticlib import StaticLibMigrator
