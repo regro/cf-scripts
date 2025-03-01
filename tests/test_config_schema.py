@@ -12,7 +12,7 @@ def test_config_schema_up_to_date():
         "Run `python -m conda_forge_tick.config_schema` to generate it."
     )
     json_blob_from_code = CF_TICK_SCHEMA_FILE.read_text(encoding="utf-8")
-    assert json_blob_from_model == json_blob_from_code, (
+    assert json.loads(json_blob_from_model) == json.loads(json_blob_from_code), (
         "The config schema file is out of date. "
         "Run `python -m conda_forge_tick.config_schema` to regenerate it."
     )
