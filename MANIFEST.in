@@ -1,3 +1,4 @@
 include conda_forge_tick/_version.py
 include environment.yml
 include License
+include conda_forge_tick/cf_tick_schema.json
