@@ -1,4 +1,5 @@
 import os
+import shutil
 import textwrap
 
 import networkx as nx
@@ -230,6 +231,10 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
             else:
                 ms = _munge_hash_matchspec(ms)
 
+            if yaml_path == TEST_YAML_PATH_V1:
+                parts = ms.split(" ")
+                ms = " ".join([parts[0], "==" + parts[1], parts[2]])
+
             recipe_after = recipe_after.replace(
                 f"SUB@@{pkg.upper()}_{platform.upper()}@@",
                 ms,
@@ -242,9 +247,23 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
 
     # make the graph
     if yaml_path == TEST_YAML_PATH_V1:
+        recipe_path = tmp_path / "recipe"
+        recipe_path.mkdir(exist_ok=True)
+        recipe_path.joinpath("recipe.yaml").write_text(recipe_before)
         pkwargs = {
             "recipe_yaml": recipe_before,
         }
+        for tp in ["osx-arm64", "osx-64"]:
+            ci_support_file = tmp_path / ".ci_support" / f"{tp.replace('-', '_')}_.yaml"
+            ci_support_file.parent.mkdir(exist_ok=True)
+            with open(
+                ci_support_file,
+                "w",
+            ) as fp:
+                fp.write(f"""\
+    target_platform:
+    - {tp}
+    """)
     else:
         pkwargs = {
             "meta_yaml": recipe_before,
@@ -256,6 +275,9 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
         **pkwargs,
         feedstock_dir=tmp_path,
     )
+    if yaml_path == TEST_YAML_PATH_V1:
+        shutil.rmtree(tmp_path / "recipe", ignore_errors=True)
+        shutil.rmtree(tmp_path / ".ci_support", ignore_errors=True)
 
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
     pmy["req"] = set()
