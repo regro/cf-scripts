@@ -412,6 +412,9 @@ def parse_recipe_yaml_local(
     rendered_recipes = _render_recipe_yaml(
         text, cbc_path=cbc_path, platform_arch=platform_arch
     )
+    if not rendered_recipes:
+        raise RuntimeError("Failed to render recipe YAML! No output recipes found!")
+
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     else:
@@ -468,7 +471,9 @@ def _render_recipe_yaml(
         [] if cbc_path is None else ["--variant-config", str(cbc_path)]
     )
     target_platform_flags = (
-        [] if platform_arch is None else ["--target-platform", platform_arch]
+        []
+        if platform_arch is None or variant_config_flags
+        else ["--target-platform", platform_arch]
     )
 
     prepared_text = replace_compiler_with_stub(text)
