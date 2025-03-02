@@ -220,6 +220,7 @@ def _munge_hash_matchspec(ms: str) -> str:
 def any_static_libs_out_of_date(
     platform_arches: tuple[str],
     raw_meta_yaml: str,
+    schema_version: int = 0,
 ) -> (bool, dict[str, dict[str, str]]):
     """check if any static libs are out of date for a given recipe and set of platforms.
 
@@ -308,6 +309,14 @@ def any_static_libs_out_of_date(
                             final_latest_str = _munge_hash_matchspec(latest_str)
                         else:
                             final_latest_str = latest_str
+
+                        # for v1 recipes we use exact versions
+                        if schema_version == 1:
+                            parts = final_latest_str.split(" ")
+                            final_latest_str = " ".join(
+                                [parts[0], "==" + parts[1], parts[2]]
+                            )
+
                         static_lib_replacements[platform_arch][conc_spec] = (
                             final_latest_str
                         )
@@ -509,9 +518,17 @@ class StaticLibMigrator(GraphMigrator):
                 with open("meta.yaml") as f:
                     raw_meta_yaml = f.read()
 
+        schema_version = get_keys_default(
+            attrs,
+            ["meta_yaml", "schema_version"],
+            {},
+            0,
+        )
+
         needs_update, static_lib_replacements = any_static_libs_out_of_date(
             platform_arches=platform_arches,
             raw_meta_yaml=raw_meta_yaml,
+            schema_version=schema_version,
         )
 
         if needs_update:

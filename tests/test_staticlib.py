@@ -16,6 +16,7 @@ from conda_forge_tick.migrators.staticlib import (
 )
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+TEST_YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
 
 
 @pytest.mark.parametrize(
@@ -200,11 +201,14 @@ def test_staticlib_attempt_update_static_libs(
     assert updated is expected_updated
 
 
-def test_staticlib_migrator_llvmlite(tmp_path):
+@pytest.mark.parametrize(
+    "yaml_path", [TEST_YAML_PATH, TEST_YAML_PATH_V1], ids=["v0", "v1"]
+)
+def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
     name = "llvmlite"
-    with open(os.path.join(TEST_YAML_PATH, f"staticlib_{name}_before_meta.yaml")) as f:
+    with open(os.path.join(yaml_path, f"staticlib_{name}_before_meta.yaml")) as f:
         recipe_before = f.read()
-    with open(os.path.join(TEST_YAML_PATH, f"staticlib_{name}_after_meta.yaml")) as f:
+    with open(os.path.join(yaml_path, f"staticlib_{name}_after_meta.yaml")) as f:
         recipe_after = f.read()
 
     kwargs = {"platforms": ["osx_64", "osx_arm64"]}
@@ -237,11 +241,20 @@ def test_staticlib_migrator_llvmlite(tmp_path):
         fp.write("bot: {update_static_libs: true}\n")
 
     # make the graph
+    if yaml_path == TEST_YAML_PATH_V1:
+        pkwargs = {
+            "recipe_yaml": recipe_before,
+        }
+    else:
+        pkwargs = {
+            "meta_yaml": recipe_before,
+        }
     pmy = populate_feedstock_attributes(
         name,
         sub_graph={},
-        meta_yaml=recipe_before,
         conda_forge_yaml="bot: {update_static_libs: true}\n",
+        **pkwargs,
+        feedstock_dir=tmp_path,
     )
 
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -271,4 +284,5 @@ def test_staticlib_migrator_llvmlite(tmp_path):
             "static_libs": static_libs_uid,
         },
         tmp_path=tmp_path,
+        recipe_version=1 if yaml_path == TEST_YAML_PATH_V1 else 0,
     )
