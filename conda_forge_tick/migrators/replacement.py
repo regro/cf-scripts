@@ -37,6 +37,7 @@ class Replacement(Migrator):
 
     migrator_version = 0
     rerender = True
+    allowed_schema_versions = (0, 1)
 
     def __init__(
         self,
@@ -91,8 +92,16 @@ class Replacement(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
+        if os.path.exists(os.path.join(recipe_dir, "meta.yaml")):
+            recipe_file = os.path.join(recipe_dir, "meta.yaml")
+        elif os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
+            recipe_file = os.path.join(recipe_dir, "recipe.yaml")
+        else:
+            raise RuntimeError(f"Could not find recipe file in {recipe_dir}!")
+
+        with open(recipe_file) as f:
             raw = f.read()
+
         lines = raw.splitlines()
         n = False
         for i, line in enumerate(lines):
@@ -103,9 +112,12 @@ class Replacement(Migrator):
         if not n:
             return False
         upd = "\n".join(lines) + "\n"
-        with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
+
+        with open(recipe_file, "w") as f:
             f.write(upd)
-        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+
+        self.set_build_number(recipe_file)
+
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
