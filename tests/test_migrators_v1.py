@@ -55,7 +55,6 @@ def test_yaml_migration_rebuild(tmp_path):
             "bot_rerun": False,
         },
         tmp_path=tmp_path,
-        is_v1=True,
         recipe_version=1,
     )
 
