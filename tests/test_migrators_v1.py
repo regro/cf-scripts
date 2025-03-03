@@ -116,6 +116,9 @@ def test_generic_replacement(tmp_path):
     sample_matplotlib_correct = sample_matplotlib.replace(
         "    - matplotlib", "    - matplotlib-base"
     )
+    sample_matplotlib_correct = sample_matplotlib_correct.replace(
+        "number: 0", "number: 1"
+    )
     run_test_migration(
         m=matplotlib,
         inp=sample_matplotlib,
