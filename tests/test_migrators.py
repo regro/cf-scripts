@@ -272,7 +272,16 @@ yaml_rebuild_no_build_number.cycles = []
 
 
 def run_test_yaml_migration(
-    m, *, inp, output, kwargs, prb, mr_out, tmp_path, should_filter=False
+    m,
+    *,
+    inp,
+    output,
+    kwargs,
+    prb,
+    mr_out,
+    tmp_path,
+    should_filter=False,
+    recipe_version: int = 0,
 ):
     recipe_path = tmp_path / "recipe"
     recipe_path.mkdir(exist_ok=True)
@@ -283,7 +292,10 @@ def run_test_yaml_migration(
         subprocess.run(["git", "init"])
     # Load the meta.yaml (this is done in the graph)
     try:
-        pmy = parse_meta_yaml(inp)
+        if recipe_version == 0:
+            pmy = parse_meta_yaml(inp)
+        else:
+            pmy = parse_recipe_yaml(inp)
     except Exception:
         pmy = {}
     if pmy:
