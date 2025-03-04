@@ -6,3 +6,5 @@
 ## tests/test_yaml/stdlib_libhdbpp-timescale_after_meta.yaml::74 recipe has spelling error
 ## tests/test_yaml/stdlib_libhdbpp-timescale_after_meta.yaml::74 recipe has spelling error
     libhdbpp-timescale is the HDB++ backend library for the TimescaleDb extenstion to Postgresql.
+## conda_forge_tick/recipe_parser/_parser.py::57 typ is the correct variable
+    parser = YAML(typ=typ)
