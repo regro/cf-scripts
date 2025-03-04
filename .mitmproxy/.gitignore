@@ -3,3 +3,4 @@ mitmproxy-ca.key
 mitmproxy-ca.crt
 mitmproxy-ca.pem
 mitmproxy-cert-bundle.pem
+mitmproxy-dhparam.pem
