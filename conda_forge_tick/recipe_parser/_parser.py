@@ -54,7 +54,7 @@ def _get_yaml_parser(typ="jinja2"):
     def represent_none(self, data):
         return self.represent_scalar("tag:yaml.org,2002:null", "")
 
-    parser = YAML(typ=typ)
+    parser = YAML(typ=typ)  # spellchecker:disable-line
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
     parser.preserve_quotes = True
