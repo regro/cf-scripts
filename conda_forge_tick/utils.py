@@ -411,6 +411,9 @@ def parse_recipe_yaml_local(
     rendered_recipes = _render_recipe_yaml(
         text, cbc_path=cbc_path, platform_arch=platform_arch
     )
+    if not rendered_recipes:
+        raise RuntimeError("Failed to render recipe YAML! No output recipes found!")
+
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     else:
@@ -463,9 +466,13 @@ def _render_recipe_yaml(
     dict[str, Any]
         The rendered recipe as a dictionary.
     """
-    variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
-    build_platform_flags = (
-        [] if platform_arch is None else ["--build-platform", platform_arch]
+    variant_config_flags = (
+        [] if cbc_path is None else ["--variant-config", str(cbc_path)]
+    )
+    target_platform_flags = (
+        []
+        if platform_arch is None or variant_config_flags
+        else ["--target-platform", platform_arch]
     )
 
     prepared_text = replace_compiler_with_stub(text)
@@ -473,7 +480,7 @@ def _render_recipe_yaml(
     res = subprocess.run(
         ["rattler-build", "build", "--render-only"]
         + variant_config_flags
-        + build_platform_flags,
+        + target_platform_flags,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
