@@ -24,12 +24,12 @@ repos:
           - --py36-plus
 
   - repo: https://github.com/crate-ci/typos
-    rev: typos-dict-v0.12.4
+    rev: v1.30.0
     hooks:
       - id: typos
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.4
+    rev: v0.9.9
     hooks:
       - id: ruff
         args: [ --fix ]
