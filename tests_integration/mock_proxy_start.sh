@@ -12,14 +12,14 @@ else
   flow_detail=0
 fi
 
-if [[ -z "$MITMPROXY_PEM" ]]; then
-  echo "Set MITMPROXY_PEM to the path of a certificate that mitmproxy uses to intercept TLS traffic."
+if [[ -z "$MITMPROXY_CONFDIR" ]]; then
+  echo "Set $MITMPROXY_CONFDIR to a directory containing a mitmproxy-ca.pem CA certificate to intercept HTTPS traffic."
   exit 1
 fi
 
 # You might need to set PYTHONPATH to the root of cf-scripts
 mitmdump -s ./mock_server_addon.py \
   --flow-detail "$flow_detail" \
-  --certs '*'="$MITMPROXY_PEM" \
+  --set confdir="$MITMPROXY_CONFDIR" \
   --set connection_strategy=lazy \
   --set upstream_cert=false 2>&1 | tee /tmp/mitmproxy.log

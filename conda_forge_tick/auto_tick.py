@@ -76,6 +76,7 @@ from .settings import CONDA_FORGE_ORG
 
 logger = logging.getLogger(__name__)
 
+# TODO: make this better
 BOT_HOME_DIR: str = os.getcwd()
 START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))

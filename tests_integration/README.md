@@ -117,12 +117,11 @@ For example, scenario 1 uses `test_case_3.py` from Feedstock A and `test_case_2.
 ![Description available in light mode.](../docs/assets/integration-tests/scenarios-shuffle-3-dark.svg#gh-dark-mode-only)
 
 ## Environment Variables
-The tests require the following environment variables to be set:
+The tests expect the following environment variables:
 
 | Variable           | Description                                                                                                                      |
 |--------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `TEST_SETUP_TOKEN` | Classic PAT for `cf-regro-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`. |
-| `GITHUB_OUTPUT`    | Set by GitHub. Name of an output file for script outputs.                                                                        |
 | `GITHUB_RUN_ID`    | Set by GitHub. ID of the current run. Used as random seed.                                                                       |
 
 
@@ -135,26 +134,29 @@ The token should have the following scopes: `repo`, `workflow`, `delete_repo`.
 
 ## Running the Integration Tests Locally
 
-### Generate TLS Certificates
+To run the integration tests locally, you currently need to have a valid token for the `cf-regro-autotick-bot-staging` account.
+Besides that, the further setup is described below.
+
+### Generate CA Certificates
+
+For mitmproxy to properly intercept HTTPS traffic, you need to generate a CA certificate:
 
 ```bash
-openssl genrsa -out mitmproxy_cert.key 4096
-openssl req -new -x509 -subj "/C=US/ST=cf-scripts/L=cf-scripts/O=cf-scripts/OU=cf-scripts/CN=cf-scripts" -key mitmproxy_cert.key -out mitmproxy_cert.crt
-cat mitmproxy_cert.key mitmproxy_cert.crt > mitmproxy_cert.pem
+cd .mitmproxy
+openssl genrsa -out mitmproxy-ca.key 4096
+openssl req -x509 -new -nodes -key mitmproxy-ca.key -sha256 -out mitmproxy-ca.crt -addext keyUsage=critical,keyCertSign -subj "/C=US/ST=cf-scripts/L=cf-scripts/O=cf-scripts/OU=cf-scripts/CN=cf-scripts"
+cat mitmproxy-ca.key mitmproxy-ca.crt > mitmproxy-ca.pem
 ```
 
-- Trust the certificate in your system's keychain.
-- Set the `MITMPROXY_PEM` environment variable to the path of the `pem` file.
+After running the commands above, trust the CA certificate in your system's keychain.
 
+On macOS, you do this by dragging the `mitmproxy-ca.pem` file into the "Keychain Access" app while having the
+"Login" keychain selected. Then, double-click the certificate in the keychain and set "Always Trust" in the "Trust" section.
 
-To build the certificate bundle:
+Then, build the certificate bundle to pass to Python:
 
 ```bash
-cp $(python -m certifi) mitmproxy_cert_bundle.pem
-cat mitmproxy_cert.pem >> mitmproxy_cert_bundle.pem
+cd .mitmproxy # if not already there
+cp $(python -m certifi) mitmproxy-cert-bundle.pem
+cat mitmproxy-ca.pem >> mitmproxy-cert-bundle.pem
 ```
-
-TODO:
-
-- usa CA cert setup
-- SSL Cert Setup MacOS

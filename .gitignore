@@ -59,9 +59,3 @@ versions/*
 pixi.lock
 pixi.toml
 .ruff_cache/
-
-# mitmproxy certificate files (for integration tests)
-mitmproxy_cert.key
-mitmproxy_cert.crt
-mitmproxy_cert.pem
-mitmproxy_cert_bundle.pem

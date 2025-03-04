@@ -28,7 +28,7 @@ def global_environment_setup():
     If we once migrate to pydantic-settings, this should be more fine-grained for each bot step.
     """
     # assert os.environ.get("BOT_TOKEN"), "BOT_TOKEN must be set."
-    assert os.environ.get("MITMPROXY_PEM"), "MITMPROXY_PEM must be set."
+    assert os.environ.get("MITMPROXY_CONFDIR"), "MITMPROXY_CONFDIR must be set."
     assert os.environ.get("SSL_CERT_FILE"), "SSL_CERT_FILE must be set."
     assert os.environ.get("REQUESTS_CA_BUNDLE"), "REQUESTS_CA_BUNDLE must be set."
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
