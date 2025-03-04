@@ -187,7 +187,7 @@ class MiniMigrator:
         bool :
             True if node is to be skipped
         """
-        return True
+        return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         """Perform the migration, updating the ``meta.yaml``

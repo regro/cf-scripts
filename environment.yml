@@ -37,6 +37,7 @@ dependencies:
   - msgpack-python
   - networkx !=2.8.1
   - numpy
+  - orjson
   - packaging
   - psutil
   - pydantic
@@ -47,7 +48,6 @@ dependencies:
   - python=3.11
   - python-dateutil
   - python-graphviz
-  - python-rapidjson
   - rattler-build >=0.35.4
   - rattler-build-conda-compat >=1.3.0,<2
   - requests

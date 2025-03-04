@@ -1,7 +1,6 @@
 import bz2
 import hashlib
 import io
-import json
 import logging
 import os
 from collections import defaultdict
@@ -10,6 +9,7 @@ from functools import lru_cache
 from itertools import chain, groupby
 from typing import List
 
+import orjson
 import requests
 import requests.exceptions
 from conda_forge_metadata.artifact_info import get_artifact_info_as_json
@@ -202,7 +202,7 @@ def _fetch_arch(arch):
             f"https://conda.anaconda.org/conda-forge/{arch}/repodata.json.bz2"
         )
         r.raise_for_status()
-        repodata = json.load(bz2.BZ2File(io.BytesIO(r.content)))
+        repodata = orjson.loads(bz2.BZ2File(io.BytesIO(r.content)).read())
     except Exception as e:
         logger.error(f"Failed to fetch {arch}: {e}")
         return

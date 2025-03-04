@@ -10,12 +10,16 @@ if typing.TYPE_CHECKING:
 
 
 class DuplicateLinesCleanup(MiniMigrator):
+    # duplicate keys are an error in v1 recipes
+    allowed_schema_versions = {0}
     regex_to_check = {
         "noarch: generic": re.compile(r"^\s*noarch:\s*generic\s*$"),
         "noarch: python": re.compile(r"^\s*noarch:\s*python\s*$"),
     }
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
         # we are not handling outputs here since they can make things confusing
         if "outputs" in attrs.get("meta_yaml", ""):
             return True

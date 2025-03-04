@@ -1,10 +1,8 @@
 import collections.abc
 import hashlib
-import json
 import logging
 import os
 import re
-import sys
 import tempfile
 import typing
 import zipfile
@@ -727,27 +725,3 @@ def load_feedstock(
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
-
-
-if __name__ == "__main__":
-    # Do not use docker when debugging
-    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
-
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} feedstock_name")
-        sys.exit(1)
-    feedstock_name = sys.argv[1]
-
-    graph = {}
-    load_feedstock_local(
-        "carma",
-        graph,
-    )
-
-    class SetEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, set):
-                return list(obj)
-            return json.JSONEncoder.default(self, obj)
-
-    print(json.dumps(graph, indent=4, cls=SetEncoder))

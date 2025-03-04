@@ -552,7 +552,7 @@ def test_apply_noarch_python_min(
 
 
 @pytest.mark.parametrize("name", ["seaborn", "extra_new_line", "zospy"])
-def test_noarch_python_min_migrator(tmpdir, name):
+def test_noarch_python_min_migrator(tmp_path, name):
     with open(
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
     ) as f:
@@ -573,5 +573,5 @@ def test_noarch_python_min_migrator(tmpdir, name):
             "migrator_version": m.migrator_version,
             "name": "noarch_python_min",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

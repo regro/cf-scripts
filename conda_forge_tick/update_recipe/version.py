@@ -1,7 +1,6 @@
 import collections.abc
 import hashlib
 import io
-import json
 import logging
 import os
 import pprint
@@ -14,6 +13,7 @@ from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
+import orjson
 import requests
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
@@ -636,9 +636,9 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
         perms = get_user_execute_permissions(feedstock_dir)
         with open(
             os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
-            "w",
+            "wb",
         ) as f:
-            json.dump(perms, f)
+            f.write(orjson.dumps(perms))
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
