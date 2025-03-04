@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from xprocess import ProcessStarter, XProcess
 
 from tests_integration import setup_repositories
 from tests_integration.collect_test_scenarios import get_test_scenario
@@ -79,15 +80,20 @@ def scenario(request) -> tuple[int, dict[str, TestCase]]:
 
 
 @pytest.fixture
-def mitmproxy(scenario: tuple[int, dict[str, TestCase]]):
+def mitmproxy(xprocess: XProcess, scenario: tuple[int, dict[str, TestCase]]):
     scenario_id, _ = scenario
-    print(f"Starting mitmproxy for scenario {scenario_id}...")
 
-    proxy_process = subprocess.Popen(
-        ["./mock_proxy_start.sh"], env=os.environ | {"SCENARIO_ID": str(scenario_id)}
-    )
+    class MitmproxyStarter(ProcessStarter):
+        pattern = r".* HTTP\(S\) proxy listening at \*:8080\."
+        args = ["./mock_proxy_start.sh"]
+        popen_kwargs = {"cwd": TESTS_INTEGRATION_DIR}
+        env = os.environ | {"SCENARIO_ID": str(scenario_id)}
+
+    _ = xprocess.ensure("mitmproxy", MitmproxyStarter)
+
     yield
-    proxy_process.kill()
+
+    xprocess.getinfo("mitmproxy").terminate()
 
 
 @contextlib.contextmanager

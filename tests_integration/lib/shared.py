@@ -56,7 +56,7 @@ TRANSPARENT_URLS = {
     "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
 }
 """
-Those URLs are redirected to the actual upstream URLs in the tests.
+Requests to those are forwarded to the actual upstream URLs in the tests.
 Use Unix filename patterns (provided by fnmatch) to specify wildcards:
 
 https://docs.python.org/3/library/fnmatch.html

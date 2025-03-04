@@ -65,6 +65,7 @@ dependencies:
   - yaml
   - pip
   - pytest <8.1.0
+  - pytest-xprocess
   - codecov
   - requests-mock
   - pre-commit

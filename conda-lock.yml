@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 1e64e43cff4a6538dcb5a213136ef7f5b05df4e72fc379a542889ccc83ffc1af
-    osx-64: db5b3e1db686a00889060925ea13dd38cbc74e781917efcacaedaf133d1bc098
-    osx-arm64: 5be798c0bcddca5c62e5204b2f653110a71a1e1bc7dfbcabfa00fbc7a5f15c11
+    linux-64: 88d8063029429a281c0df555aae71557ad7ed125892466f37a43194a04a745d2
+    osx-64: c8b9c11803448dfa08149299dce2cb334aac4b1e4527c476997883abb3a4b8b2
+    osx-arm64: 8c0f749253b664c34e10167895ea54057e7b8352ff0ae21bf9510fe2127efdd6
   platforms:
     - osx-arm64
     - linux-64
@@ -12573,6 +12573,51 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_1.conda
     version: 3.6.1
+  - category: main
+    dependencies:
+      psutil: ''
+      pytest: '>=2.8'
+      python: '>=3.9'
+    hash:
+      md5: 8c469458938c01ef5c9cd1357bbc62ac
+      sha256: 8bc8e82da035fe5dc1966c9d5f5d9d290f5c77075e2b3b6873e0b270e8c61853
+    manager: conda
+    name: pytest-xprocess
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xprocess-1.0.2-pyhd8ed1ab_1.conda
+    version: 1.0.2
+  - category: main
+    dependencies:
+      psutil: ''
+      pytest: '>=2.8'
+      python: '>=3.9'
+    hash:
+      md5: 8c469458938c01ef5c9cd1357bbc62ac
+      sha256: 8bc8e82da035fe5dc1966c9d5f5d9d290f5c77075e2b3b6873e0b270e8c61853
+    manager: conda
+    name: pytest-xprocess
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xprocess-1.0.2-pyhd8ed1ab_1.conda
+    version: 1.0.2
+  - category: main
+    dependencies:
+      psutil: ''
+      pytest: '>=2.8'
+      python: '>=3.9'
+    hash:
+      md5: 8c469458938c01ef5c9cd1357bbc62ac
+      sha256: 8bc8e82da035fe5dc1966c9d5f5d9d290f5c77075e2b3b6873e0b270e8c61853
+    manager: conda
+    name: pytest-xprocess
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xprocess-1.0.2-pyhd8ed1ab_1.conda
+    version: 1.0.2
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
