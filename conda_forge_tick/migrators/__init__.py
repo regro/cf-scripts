@@ -43,4 +43,5 @@ from .use_pip import PipMigrator
 from .version import Version
 from .xz_to_liblzma_devel import XzLibLzmaDevelMigrator
 from .noarch_python_min import NoarchPythonMinMigrator
+from .nvtools import AddNVIDIATools
 from .round_trip import YAMLRoundTrip
