@@ -225,8 +225,8 @@ def test_cross_python_no_build(tmp_path):
     )
 
 
-@flaky
 @pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
 def test_build2host(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
@@ -246,8 +246,8 @@ def test_build2host(recipe_version, tmp_path):
     )
 
 
-@flaky
 @pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
 def test_build2host_buildok(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
@@ -269,8 +269,8 @@ def test_build2host_buildok(recipe_version, tmp_path):
     )
 
 
-@flaky
 @pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
 def test_build2host_bhskip(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,

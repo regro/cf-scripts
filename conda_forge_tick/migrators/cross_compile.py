@@ -270,12 +270,8 @@ class Build2HostMigrator(MiniMigrator):
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        recipe_file = (
-            "recipe.yaml"
-            if attrs["meta_yaml"].get("schema_version", 0) == 1
-            else "meta.yaml"
-        )
         with pushd(recipe_dir):
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
             with open(recipe_file) as fp:
                 meta_yaml = fp.readlines()
 
