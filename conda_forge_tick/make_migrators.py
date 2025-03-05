@@ -40,7 +40,6 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.migrators import (
     ArchRebuild,
-    Build2HostMigrator,
     CondaForgeYAMLCleanup,
     CrossCompilationForARMAndPower,
     CrossPythonMigrator,
@@ -111,7 +110,6 @@ DEFAULT_MINI_MIGRATORS = [
     LicenseMigrator,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
-    Build2HostMigrator,
     NoCondaInspectMigrator,
     MPIPinRunAsBuildCleanup,
     PyPIOrgMigrator,
@@ -284,7 +282,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 pr_limit=PR_LIMIT,
                 name="arm osx addition",
                 piggy_back_migrations=[
-                    Build2HostMigrator(),
                     UpdateConfigSubGuessMigrator(),
                     CondaForgeYAMLCleanup(),
                     UpdateCMakeArgsMigrator(),

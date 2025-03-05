@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
 
@@ -14,7 +15,11 @@ from conda_forge_tick.migrators import (
     Version,
 )
 
-YAML_PATH = Path(__file__).parent / "test_yaml/cross_compile"
+YAML_PATHS = [
+    Path(__file__).parent / "test_yaml/cross_compile",
+    Path(__file__).parent / "test_v1_yaml/cross_compile",
+]
+YAML_PATH = YAML_PATHS[0]
 
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
@@ -220,12 +225,15 @@ def test_cross_python_no_build(tmp_path):
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host(tmp_path):
+def test_build2host(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("python_recipe_b2h.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -234,15 +242,21 @@ def test_build2host(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host_buildok(tmp_path):
+def test_build2host_buildok(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h_buildok.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_buildok_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -251,15 +265,21 @@ def test_build2host_buildok(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host_bhskip(tmp_path):
+def test_build2host_bhskip(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h_bhskip.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_bhskip_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_bhskip.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_bhskip_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -268,6 +288,7 @@ def test_build2host_bhskip(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
