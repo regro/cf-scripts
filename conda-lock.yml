@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 399c8bb5cd7f394e03215fca3b79fbb7
-      sha256: 432d542c219ec62334630041259dfbed21d046e2e39a6d75184a1248c97e16a2
+      md5: 6b23352b130e9b33737a70d9e8ac28e5
+      sha256: 94824b4972016d0bf3dfff93e7c8ace8fa6d3a30dcf5c3a57a7361e8d45fe47a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.07.21.39-hd8ed1ab_0.conda
-    version: 2025.03.05.07.21.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.12.02.46-hd8ed1ab_0.conda
+    version: 2025.03.05.12.02.46
   - category: main
     dependencies: {}
     hash:
-      md5: 399c8bb5cd7f394e03215fca3b79fbb7
-      sha256: 432d542c219ec62334630041259dfbed21d046e2e39a6d75184a1248c97e16a2
+      md5: 6b23352b130e9b33737a70d9e8ac28e5
+      sha256: 94824b4972016d0bf3dfff93e7c8ace8fa6d3a30dcf5c3a57a7361e8d45fe47a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.07.21.39-hd8ed1ab_0.conda
-    version: 2025.03.05.07.21.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.12.02.46-hd8ed1ab_0.conda
+    version: 2025.03.05.12.02.46
   - category: main
     dependencies: {}
     hash:
-      md5: 399c8bb5cd7f394e03215fca3b79fbb7
-      sha256: 432d542c219ec62334630041259dfbed21d046e2e39a6d75184a1248c97e16a2
+      md5: 6b23352b130e9b33737a70d9e8ac28e5
+      sha256: 94824b4972016d0bf3dfff93e7c8ace8fa6d3a30dcf5c3a57a7361e8d45fe47a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.07.21.39-hd8ed1ab_0.conda
-    version: 2025.03.05.07.21.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.05.12.02.46-hd8ed1ab_0.conda
+    version: 2025.03.05.12.02.46
   - category: main
     dependencies:
       click: '>=8'
@@ -2367,58 +2367,58 @@ package:
       click: ''
       conda-package-handling: ''
       oras-py: 0.1.14.*
+      packaging: ''
       python: '>=3.9'
       requests: ''
-      setuptools: '>=68.2.2'
       zstandard: ''
     hash:
-      md5: e8bc2f0226e4191cf295723296b0662a
-      sha256: 2f99029276117da8fef8f488af555e3a50f223dd3e7b252430026c067ffc48a2
+      md5: 63b4145496b4e71345ee569c4fa6c450
+      sha256: 64e9684a38d97cc8eb7779c14d857452efe99b47e0fcc61b7b6924fa771489a2
     manager: conda
     name: conda-oci-mirror
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.1-pyhd8ed1ab_1.conda
-    version: 0.2.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_0.conda
+    version: 0.2.3
   - category: main
     dependencies:
       click: ''
       conda-package-handling: ''
       oras-py: 0.1.14.*
+      packaging: ''
       python: '>=3.9'
       requests: ''
-      setuptools: '>=68.2.2'
       zstandard: ''
     hash:
-      md5: e8bc2f0226e4191cf295723296b0662a
-      sha256: 2f99029276117da8fef8f488af555e3a50f223dd3e7b252430026c067ffc48a2
+      md5: 63b4145496b4e71345ee569c4fa6c450
+      sha256: 64e9684a38d97cc8eb7779c14d857452efe99b47e0fcc61b7b6924fa771489a2
     manager: conda
     name: conda-oci-mirror
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.1-pyhd8ed1ab_1.conda
-    version: 0.2.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_0.conda
+    version: 0.2.3
   - category: main
     dependencies:
       click: ''
       conda-package-handling: ''
       oras-py: 0.1.14.*
+      packaging: ''
       python: '>=3.9'
       requests: ''
-      setuptools: '>=68.2.2'
       zstandard: ''
     hash:
-      md5: e8bc2f0226e4191cf295723296b0662a
-      sha256: 2f99029276117da8fef8f488af555e3a50f223dd3e7b252430026c067ffc48a2
+      md5: 63b4145496b4e71345ee569c4fa6c450
+      sha256: 64e9684a38d97cc8eb7779c14d857452efe99b47e0fcc61b7b6924fa771489a2
     manager: conda
     name: conda-oci-mirror
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.1-pyhd8ed1ab_1.conda
-    version: 0.2.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_0.conda
+    version: 0.2.3
   - category: main
     dependencies:
       conda-package-streaming: '>=0.9.0'
