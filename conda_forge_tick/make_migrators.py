@@ -110,7 +110,6 @@ DEFAULT_MINI_MIGRATORS = [
     LicenseMigrator,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
-    Build2HostMigrator,
     NoCondaInspectMigrator,
     MPIPinRunAsBuildCleanup,
     PyPIOrgMigrator,
