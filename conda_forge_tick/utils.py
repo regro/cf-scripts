@@ -40,6 +40,7 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
+from .recipe_parser import CondaMetaYAML
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
@@ -1339,3 +1340,79 @@ def run_command_hiding_token(args: list[str], token: str) -> int:
         out_dev.flush()
 
     return p.returncode
+
+
+def _is_comment_or_empty(line):
+    return line.strip() == "" or line.strip().startswith("#")
+
+
+def extract_section_from_yaml_text(
+    yaml_text: str,
+    section_name: str,
+    exclude_requirements: bool = False,
+) -> list[str]:
+    """Extract a section from YAML as text
+
+    Parameters
+    ----------
+    yaml_text : str
+        The raw YAML text.
+    section_name : str
+        The section name to extract.
+    exclude_requirements : bool, optional
+        If True, exclude any sections in a `requirements` block. Set to
+        True if you want to extract the `build` section but not the `requirements.build`
+        section. Default is False.
+
+    Returns
+    -------
+    list[str]
+        A list of strings for the extracted sections.
+    """
+    # normalize the indents etc.
+    yaml_text = CondaMetaYAML(yaml_text).dumps()
+    lines = yaml_text.splitlines()
+
+    in_requirements = False
+    requirements_indent = None
+    section_indent = None
+    section_start = None
+    found_sections = []
+
+    for loc, line in enumerate(lines):
+        if (
+            section_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= section_indent
+        ):
+            if (not exclude_requirements) or (
+                exclude_requirements and not in_requirements
+            ):
+                found_sections.append("\n".join(lines[section_start:loc]))
+            section_indent = None
+            section_start = None
+
+        if line.lstrip().startswith(f"{section_name}:"):
+            section_indent = len(line) - len(line.lstrip())
+            section_start = loc
+
+        # blocks for detecting if we are in requirements
+        # these blocks have to come after the blocks above since a section can end
+        # with the 'requirements:' line and that is OK.
+        if (
+            requirements_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= requirements_indent
+        ):
+            in_requirements = False
+            requirements_indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            requirements_indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+    if section_start is not None:
+        if (not exclude_requirements) or (exclude_requirements and not in_requirements):
+            found_sections.append("\n".join(lines[section_start:]))
+
+    return found_sections
