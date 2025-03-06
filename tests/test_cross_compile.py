@@ -6,6 +6,7 @@ from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
     Build2HostMigrator,
+    CrossCompilationForARMAndPower,
     CrossPythonMigrator,
     CrossRBaseMigrator,
     GuardTestingMigrator,
@@ -28,6 +29,7 @@ cross_python_migrator = CrossPythonMigrator()
 cross_rbase_migrator = CrossRBaseMigrator()
 b2h_migrator = Build2HostMigrator()
 nci_migrator = NoCondaInspectMigrator()
+arm_and_power_migrator = CrossCompilationForARMAndPower()
 
 version_migrator_autoconf = Version(
     set(),
@@ -57,6 +59,10 @@ version_migrator_b2h = Version(
 version_migrator_nci = Version(
     set(),
     piggy_back_migrations=[nci_migrator],
+)
+version_migrator_arm_and_power = Version(
+    set(),
+    piggy_back_migrations=[arm_and_power_migrator],
 )
 
 
@@ -307,3 +313,67 @@ def test_nocondainspect(tmp_path):
         },
         tmp_path=tmp_path,
     )
+
+
+@pytest.mark.parametrize("build_sh", [False, True])
+@flaky
+def test_cross_compilation_for_arm_and_power(tmp_path, build_sh: bool):
+    tmp_path.joinpath("conda-forge.yml").write_text(
+        """\
+build_platform:
+  linux_64: linux_64
+provider:
+  linux_aarch64: default
+  linux_ppc64le: default
+"""
+    )
+    if build_sh:
+        tmp_path.joinpath("recipe").mkdir()
+        tmp_path.joinpath("recipe/build.sh").write_text(
+            """\
+#!/bin/bash
+
+if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "0" ]]; then
+    make check
+fi
+"""
+        )
+
+    run_test_migration(
+        m=version_migrator_arm_and_power,
+        # this migrator does not change the recipe file, so any unchanged recipe is fine
+        inp=YAML_PATH.joinpath("python_recipe_b2h_buildok.yaml").read_text(),
+        output=YAML_PATH.joinpath("python_recipe_b2h_buildok_correct.yaml").read_text(),
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "1.19.1"},
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": "1.19.1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    assert (
+        tmp_path.joinpath("conda-forge.yml").read_text()
+        == """\
+build_platform:
+  linux_64: linux_64
+  linux_aarch64: linux_64
+  linux_ppc64le: linux_64
+provider:
+  linux_aarch64: default
+  linux_ppc64le: default
+"""
+    )
+    if build_sh:
+        assert (
+            tmp_path.joinpath("recipe/build.sh").read_text()
+            == """\
+#!/bin/bash
+
+if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then
+    make check
+fi
+"""
+        )
