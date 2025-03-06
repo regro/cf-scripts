@@ -5912,40 +5912,40 @@ package:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 2752a6ed44105bfb18c9bef1177d9dcd
-      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
+      md5: 446bd6c8cb26050d528881df495ce646
+      sha256: f1ac18b11637ddadc05642e8185a851c7fab5998c6f5470d716812fae943b2af
     manager: conda
     name: jinja2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
-    version: 3.1.5
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    version: 3.1.6
   - category: main
     dependencies:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 2752a6ed44105bfb18c9bef1177d9dcd
-      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
+      md5: 446bd6c8cb26050d528881df495ce646
+      sha256: f1ac18b11637ddadc05642e8185a851c7fab5998c6f5470d716812fae943b2af
     manager: conda
     name: jinja2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
-    version: 3.1.5
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    version: 3.1.6
   - category: main
     dependencies:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 2752a6ed44105bfb18c9bef1177d9dcd
-      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
+      md5: 446bd6c8cb26050d528881df495ce646
+      sha256: f1ac18b11637ddadc05642e8185a851c7fab5998c6f5470d716812fae943b2af
     manager: conda
     name: jinja2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
-    version: 3.1.5
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    version: 3.1.6
   - category: main
     dependencies:
       python: '>=3.9'
