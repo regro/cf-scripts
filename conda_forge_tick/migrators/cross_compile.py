@@ -385,10 +385,11 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
 
 
 class CrossCompilationForARMAndPower(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
+        return super().filter(attrs, not_bad_str_start)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):

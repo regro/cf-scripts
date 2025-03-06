@@ -316,8 +316,11 @@ def test_nocondainspect(tmp_path):
 
 
 @pytest.mark.parametrize("build_sh", [False, True])
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_cross_compilation_for_arm_and_power(tmp_path, build_sh: bool):
+def test_cross_compilation_for_arm_and_power(
+    tmp_path, build_sh: bool, recipe_version: int
+):
     tmp_path.joinpath("conda-forge.yml").write_text(
         """\
 build_platform:
@@ -342,8 +345,12 @@ fi
     run_test_migration(
         m=version_migrator_arm_and_power,
         # this migrator does not change the recipe file, so any unchanged recipe is fine
-        inp=YAML_PATH.joinpath("python_recipe_b2h_buildok.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_buildok_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -352,6 +359,7 @@ fi
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
     assert (
