@@ -149,8 +149,8 @@ def test_cmake(tmp_path):
         assert lines == expected
 
 
-@flaky
 @pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
 def test_cross_rbase(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_rbase,
@@ -170,8 +170,8 @@ def test_cross_rbase(tmp_path, recipe_version: int):
     )
 
 
-@flaky
 @pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
 def test_cross_rbase_build_sh(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
