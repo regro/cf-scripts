@@ -148,8 +148,13 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 f.write("".join(lines))
 
 
-class CrossPythonMigrator(CrossCompilationMigratorBase):
+class CrossPythonMigrator(MiniMigrator):
+    post_migration = True
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, not_bad_str_start):
+            return True
+
         host_reqs = attrs.get("requirements", {}).get("host", set())
         build_reqs = attrs.get("requirements", {}).get("build", set())
         return (
