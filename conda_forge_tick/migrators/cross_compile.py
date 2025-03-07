@@ -211,10 +211,7 @@ class CrossPythonMigrator(MiniMigrator):
                                     + "- if: build_platform != target_platform\n"
                                 )
                                 lines.insert(i + 1, new_line)
-                                new_line = (
-                                    " " * spaces
-                                    + f"  then: {pkg}\n"
-                                )
+                                new_line = " " * spaces + f"  then: {pkg}\n"
                                 lines.insert(i + 2, new_line)
                             else:
                                 new_line = (
