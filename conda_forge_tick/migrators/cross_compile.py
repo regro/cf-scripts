@@ -325,13 +325,15 @@ ${R} CMD INSTALL --build . ${R_ARGS}
 """
 
 
-class CrossRBaseMigrator(CrossCompilationMigratorBase):
+class CrossRBaseMigrator(MiniMigrator):
+    post_migration = True
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, not_bad_str_start):
+            return True
+
         host_reqs = attrs.get("requirements", {}).get("host", set())
-        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
-        if (
-            "r-base" in host_reqs or attrs.get("name", "").startswith("r-")
-        ) and not skip_schema:
+        if "r-base" in host_reqs or attrs.get("name", "").startswith("r-"):
             return False
         else:
             return True
