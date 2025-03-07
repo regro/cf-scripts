@@ -149,6 +149,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
 
 
 class CrossPythonMigrator(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
@@ -166,7 +167,9 @@ class CrossPythonMigrator(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         host_reqs = attrs.get("requirements", {}).get("host", set())
         with pushd(recipe_dir):
-            with open("meta.yaml") as f:
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            var_prefix = "$" if recipe_file == "recipe.yaml" else ""
+            with open(recipe_file) as f:
                 lines = f.readlines()
             in_reqs = False
             for i, line in enumerate(lines):
@@ -194,7 +197,7 @@ class CrossPythonMigrator(MiniMigrator):
                     for pkg in reversed(
                         [
                             "python",
-                            "cross-python_{{ target_platform }}",
+                            f"cross-python_{var_prefix}{{{{ target_platform }}}}",
                             "cython",
                             "numpy",
                             "cffi",
@@ -202,16 +205,28 @@ class CrossPythonMigrator(MiniMigrator):
                         ],
                     ):
                         if pkg in host_reqs or pkg.startswith("cross-python"):
-                            new_line = (
-                                " " * spaces
-                                + "- "
-                                + pkg.ljust(37)
-                                + "  # [build_platform != target_platform]\n"
-                            )
-                            lines.insert(i + 1, new_line)
+                            if recipe_file == "recipe.yaml":
+                                new_line = (
+                                    " " * spaces
+                                    + "- if: build_platform != target_platform\n"
+                                )
+                                lines.insert(i + 1, new_line)
+                                new_line = (
+                                    " " * spaces
+                                    + f"  then: {pkg}\n"
+                                )
+                                lines.insert(i + 2, new_line)
+                            else:
+                                new_line = (
+                                    " " * spaces
+                                    + "- "
+                                    + pkg.ljust(37)
+                                    + "  # [build_platform != target_platform]\n"
+                                )
+                                lines.insert(i + 1, new_line)
                     break
 
-            with open("meta.yaml", "w") as f:
+            with open(recipe_file, "w") as f:
                 f.write("".join(lines))
 
 
