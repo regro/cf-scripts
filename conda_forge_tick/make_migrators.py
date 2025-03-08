@@ -77,7 +77,7 @@ from conda_forge_tick.migrators import (
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
 )
-from conda_forge_tick.migrators.arch import OSXArm
+from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
     create_rebuild_graph,
@@ -293,6 +293,15 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                     NoCondaInspectMigrator(),
                     MPIPinRunAsBuildCleanup(),
                 ],
+            ),
+        )
+
+    with fold_log_lines("making win-arm64 migrator"):
+        migrators.append(
+            WinArm64(
+                graph=total_graph,
+                pr_limit=PR_LIMIT,
+                name="arm64 win addition",
             ),
         )
 
