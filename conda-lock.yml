@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: ad67c24f6bf6f040383b1fac5185d9ce
-      sha256: a9ad921ebe064f7dba8dd5712a9437b76137f28dabe151bc9223cd6dea237425
+      md5: 3b6d674eab3da4369c1b3e25d64c5352
+      sha256: 435192eec673e89ea9599051e523d9b9b391ca0557775970a387314477f6bb0d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.08.23.19.55-hd8ed1ab_0.conda
-    version: 2025.03.08.23.19.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.09.19.15.19-hd8ed1ab_0.conda
+    version: 2025.03.09.19.15.19
   - category: main
     dependencies: {}
     hash:
-      md5: ad67c24f6bf6f040383b1fac5185d9ce
-      sha256: a9ad921ebe064f7dba8dd5712a9437b76137f28dabe151bc9223cd6dea237425
+      md5: 3b6d674eab3da4369c1b3e25d64c5352
+      sha256: 435192eec673e89ea9599051e523d9b9b391ca0557775970a387314477f6bb0d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.08.23.19.55-hd8ed1ab_0.conda
-    version: 2025.03.08.23.19.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.09.19.15.19-hd8ed1ab_0.conda
+    version: 2025.03.09.19.15.19
   - category: main
     dependencies: {}
     hash:
-      md5: ad67c24f6bf6f040383b1fac5185d9ce
-      sha256: a9ad921ebe064f7dba8dd5712a9437b76137f28dabe151bc9223cd6dea237425
+      md5: 3b6d674eab3da4369c1b3e25d64c5352
+      sha256: 435192eec673e89ea9599051e523d9b9b391ca0557775970a387314477f6bb0d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.08.23.19.55-hd8ed1ab_0.conda
-    version: 2025.03.08.23.19.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.09.19.15.19-hd8ed1ab_0.conda
+    version: 2025.03.09.19.15.19
   - category: main
     dependencies:
       click: '>=8'
@@ -4198,111 +4198,6 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      gettext-tools: 0.23.1
-      libasprintf: 0.23.1
-      libasprintf-devel: 0.23.1
-      libgcc: '>=13'
-      libgettextpo: 0.23.1
-      libgettextpo-devel: 0.23.1
-      libstdcxx: '>=13'
-    hash:
-      md5: 0754038c806eae440582da1c3af85577
-      sha256: 9d93e75a63a8ca8f86d1be09f68f1211754e6f1e9ee4fa6d90b9d46ee0f1dabb
-    manager: conda
-    name: gettext
-    optional: false
-    platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/gettext-0.23.1-h5888daf_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=10.13'
-      gettext-tools: 0.23.1
-      libasprintf: 0.23.1
-      libasprintf-devel: 0.23.1
-      libcxx: '>=18'
-      libgettextpo: 0.23.1
-      libgettextpo-devel: 0.23.1
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-      libintl-devel: 0.23.1
-    hash:
-      md5: 22d89ca70e22979c38bd0146abf21c2a
-      sha256: b0a259a09b23892fb93b93badb1b0badee183ba1fb1dbf8c443c3564641800fd
-    manager: conda
-    name: gettext
-    optional: false
-    platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/gettext-0.23.1-hd385c8e_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      gettext-tools: 0.23.1
-      libasprintf: 0.23.1
-      libasprintf-devel: 0.23.1
-      libcxx: '>=18'
-      libgettextpo: 0.23.1
-      libgettextpo-devel: 0.23.1
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-      libintl-devel: 0.23.1
-    hash:
-      md5: 123c4d62e1bcba6274511af8c7cf40d5
-      sha256: 9311cd9e64f0ae3bccae58b5b68a4804abd8b3c49f4f327b9573b50b026b317e
-    manager: conda
-    name: gettext
-    optional: false
-    platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/gettext-0.23.1-h3dcc1bd_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
-    hash:
-      md5: 2f659535feef3cfb782f7053c8775a32
-      sha256: dd2b54a823ea994c2a7908fcce40e1e612ca00cb9944f2382624ff2d3aa8db03
-    manager: conda
-    name: gettext-tools
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/linux-64/gettext-tools-0.23.1-h5888daf_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=10.13'
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: a6bc310a08cf42286627c818da4c0ba1
-      sha256: e9e9afb674b0ec5af38ca42b5518d8ee52b0aada90151b76199764bb956ebb3a
-    manager: conda
-    name: gettext-tools
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/gettext-tools-0.23.1-h27064b9_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: 4086817e75778198f96c9b2ed4bc5a6e
-      sha256: c26b38bcff84b3af52f061f55de27a45fb2e9a0544c32b3cbddf8be97c80c296
-    manager: conda
-    name: gettext-tools
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/gettext-tools-0.23.1-h493aca8_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __glibc: '>=2.17,<3.0.a0'
       libcurl: '>=8.12.1,<9.0a0'
       libexpat: '>=2.6.4,<3.0a0'
       libgcc: '>=13'
@@ -5543,40 +5438,40 @@ package:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 153a6ad50ad9db7bb4e042ee52a56f87
-      sha256: 26347a71ff3bf9d3d775b6764a85782d4b9238a8e3a5c16a548325724dccbdea
+      md5: 542f45bf054c6b9cf8d00a3b1976f945
+      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
     manager: conda
     name: identify
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.8-pyhd8ed1ab_0.conda
-    version: 2.6.8
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
+    version: 2.6.9
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 153a6ad50ad9db7bb4e042ee52a56f87
-      sha256: 26347a71ff3bf9d3d775b6764a85782d4b9238a8e3a5c16a548325724dccbdea
+      md5: 542f45bf054c6b9cf8d00a3b1976f945
+      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
     manager: conda
     name: identify
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.8-pyhd8ed1ab_0.conda
-    version: 2.6.8
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
+    version: 2.6.9
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 153a6ad50ad9db7bb4e042ee52a56f87
-      sha256: 26347a71ff3bf9d3d775b6764a85782d4b9238a8e3a5c16a548325724dccbdea
+      md5: 542f45bf054c6b9cf8d00a3b1976f945
+      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
     manager: conda
     name: identify
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.8-pyhd8ed1ab_0.conda
-    version: 2.6.8
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
+    version: 2.6.9
   - category: main
     dependencies:
       python: '>=3.9'
@@ -6496,49 +6391,6 @@ package:
     version: 0.23.1
   - category: main
     dependencies:
-      __glibc: '>=2.17,<3.0.a0'
-      libasprintf: 0.23.1
-      libgcc: '>=13'
-    hash:
-      md5: 2827e722a963b779ce878ef9b5474534
-      sha256: b05a859fe5a2b43574f3a5d93552061232b92d17017b27ecab1eccca1dbb2fe4
-    manager: conda
-    name: libasprintf-devel
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/linux-64/libasprintf-devel-0.23.1-h8e693c7_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=10.13'
-      libasprintf: 0.23.1
-    hash:
-      md5: 85b6f23aab6898c44f477f354c675721
-      sha256: 7962374bc3052db086277fd7e83fd3b05b01a66aa0d7e75c96248b35bee9277e
-    manager: conda
-    name: libasprintf-devel
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/libasprintf-devel-0.23.1-h27064b9_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      libasprintf: 0.23.1
-    hash:
-      md5: 13d4d79418eb3137fc94fe61e9e572e7
-      sha256: 25999d3c78270440e7e9e06c2e6f4a2e1ac11d2df84ac7b24280c6f530eed06f
-    manager: conda
-    name: libasprintf-devel
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libasprintf-devel-0.23.1-h493aca8_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
       libopenblas: '>=0.3.29,<1.0a0'
     hash:
       md5: 728dbebd0f7a20337218beacffd37916
@@ -7038,53 +6890,6 @@ package:
     version: 0.23.1
   - category: main
     dependencies:
-      __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
-      libgettextpo: 0.23.1
-    hash:
-      md5: 7a5d5c245a6807deab87558e9efd3ef0
-      sha256: 90f29ec7a7e2d758cb61459e643dcb54933dcf92194be6c29b0a1591fcbb163e
-    manager: conda
-    name: libgettextpo-devel
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/linux-64/libgettextpo-devel-0.23.1-h5888daf_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=10.13'
-      libgettextpo: 0.23.1
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: fea8af9c8a5d38b3b1b7f72dc3d7080a
-      sha256: b027dcc98ef20813c73e8aba8de7028ee0641cb0f7eec5f3b153fce4271669e0
-    manager: conda
-    name: libgettextpo-devel
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/libgettextpo-devel-0.23.1-h27064b9_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      libgettextpo: 0.23.1
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: e6f75805f4b533d449a5a6d60cbc9a71
-      sha256: 6031e57ba3c03ca34422b847b98fb70e697a5c10556c8d7b30410a96754c25d8
-    manager: conda
-    name: libgettextpo-devel
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libgettextpo-devel-0.23.1-h493aca8_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
       libgfortran5: 14.2.0
     hash:
       md5: fb54c4ea68b460c278d26eea89cfbcc3
@@ -7318,44 +7123,52 @@ package:
     version: '1.18'
   - category: main
     dependencies:
-      gettext: '>=0.21.1,<1.0a0'
-      libgcc-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libasprintf: '>=0.23.1,<1.0a0'
+      libgcc: '>=13'
+      libgettextpo: '>=0.23.1,<1.0a0'
       libunistring: '>=0,<1.0a0'
     hash:
-      md5: 2b7b0d827c6447cc1d85dc06d5b5de46
-      sha256: 253f9be445c58bf07b39d8f67ac08bccc5010c75a8c2070cddfb6c20e1ca4f4f
+      md5: e155d7130e134619e41dc21276ed6ab5
+      sha256: b009d936a67b0cc595cc7b11cde103069a9f334bf39553989705aeaedf2ac6f3
     manager: conda
     name: libidn2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libidn2-2.3.7-hd590300_0.conda
-    version: 2.3.7
+    url: https://conda.anaconda.org/conda-forge/linux-64/libidn2-2.3.8-ha4ef2c3_0.conda
+    version: 2.3.8
   - category: main
     dependencies:
-      gettext: '>=0.21.1,<1.0a0'
+      __osx: '>=10.13'
+      libasprintf: '>=0.23.1,<1.0a0'
+      libgettextpo: '>=0.23.1,<1.0a0'
+      libintl: '>=0.23.1,<1.0a0'
       libunistring: '>=0,<1.0a0'
     hash:
-      md5: a985867eae03167666bba45c2a297da1
-      sha256: 54430e45dffa8cbe3cbf12a3f4376947e7e2d50c67db90a90e91c3350510823e
+      md5: a91a277ca9b18f9d788c9d63e6aee379
+      sha256: a83ab8a264ac176dcb946eb0e5d3ef91d09a2b0e065b14e268536baf1f371dab
     manager: conda
     name: libidn2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libidn2-2.3.7-h10d778d_0.conda
-    version: 2.3.7
+    url: https://conda.anaconda.org/conda-forge/osx-64/libidn2-2.3.8-he8ff88c_0.conda
+    version: 2.3.8
   - category: main
     dependencies:
-      gettext: '>=0.21.1,<1.0a0'
+      __osx: '>=11.0'
+      libasprintf: '>=0.23.1,<1.0a0'
+      libgettextpo: '>=0.23.1,<1.0a0'
+      libintl: '>=0.23.1,<1.0a0'
       libunistring: '>=0,<1.0a0'
     hash:
-      md5: 6e4a21ef7a8e4c0cc65381854848e232
-      sha256: ae6be1c42fa18cb76fb1d17093f5b467b7a9bcf402da91081a9126c8843c004d
+      md5: 0ec9790e180a73524a591f642579a4f0
+      sha256: 6ca9944adcbf8f0dba21f631bcd43c4fcf9ebb240258880dff486465cd34c7fe
     manager: conda
     name: libidn2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libidn2-2.3.7-h93a5062_0.conda
-    version: 2.3.7
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libidn2-2.3.8-h38aa460_0.conda
+    version: 2.3.8
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -7381,36 +7194,6 @@ package:
     optional: false
     platform: osx-arm64
     url: https://conda.anaconda.org/conda-forge/osx-arm64/libintl-0.23.1-h493aca8_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=10.13'
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: 6d4a30603b01f15bb643e14a9807e46c
-      sha256: 2a2cfacee2c345f79866487921d222b17e93a826ac9a80b80901a41c0b094633
-    manager: conda
-    name: libintl-devel
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/libintl-devel-0.23.1-h27064b9_0.conda
-    version: 0.23.1
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      libiconv: '>=1.17,<2.0a0'
-      libintl: 0.23.1
-    hash:
-      md5: f9c6d5edc5951ef4010be8cbde9f12d4
-      sha256: 5db07fa57b8cb916784353aa035fbf32aa7ee2905e38a8e70b168160372833f0
-    manager: conda
-    name: libintl-devel
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libintl-devel-0.23.1-h493aca8_0.conda
     version: 0.23.1
   - category: main
     dependencies:
