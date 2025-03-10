@@ -388,7 +388,9 @@ def add_rebuild_migration_yaml(
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
     if migration_name.startswith("xz_to_liblzma_devel"):
-        piggy_back_migrations.append(XzLibLzmaDevelMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
+        )
     piggy_back_migrations = _make_mini_migrators_with_defaults(
         extra_mini_migrators=piggy_back_migrations
     )

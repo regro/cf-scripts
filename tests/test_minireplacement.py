@@ -1,17 +1,20 @@
-import os
+from pathlib import Path
 
 import pytest
 from test_migrators import run_test_migration
 
-from conda_forge_tick.migrators import Version, XzLibLzmaDevelMigrator
+from conda_forge_tick.migrators import Version, MiniReplacement
 
-XZLIBLZMADEVEL = XzLibLzmaDevelMigrator()
+XZLIBLZMADEVEL = MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
 VERSION_WITH_XZLIBLZMADEVEL = Version(
     set(),
     piggy_back_migrations=[XZLIBLZMADEVEL],
 )
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATHS = [
+    Path(__file__).parent / "test_yaml",
+    Path(__file__).parent / "test_v1_yaml",
+]
 
 
 @pytest.mark.parametrize(
@@ -24,17 +27,12 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ),
     ],
 )
-def test_liblzma_devel(old_meta, new_meta, new_ver, tmp_path):
-    with open(os.path.join(YAML_PATH, old_meta)) as fp:
-        in_yaml = fp.read()
-
-    with open(os.path.join(YAML_PATH, new_meta)) as fp:
-        out_yaml = fp.read()
-
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_liblzma_devel(old_meta, new_meta, new_ver, recipe_version, tmp_path):
     run_test_migration(
         m=VERSION_WITH_XZLIBLZMADEVEL,
-        inp=in_yaml,
-        output=out_yaml,
+        inp=YAML_PATHS[recipe_version].joinpath(old_meta).read_text(),
+        output=YAML_PATHS[recipe_version].joinpath(new_meta).read_text(),
         kwargs={"new_version": new_ver},
         prb="Dependencies have been updated if changed",
         mr_out={
@@ -44,4 +42,5 @@ def test_liblzma_devel(old_meta, new_meta, new_ver, tmp_path):
         },
         tmp_path=tmp_path,
         should_filter=False,
+        recipe_version=recipe_version,
     )
