@@ -169,7 +169,7 @@ class MiniReplacement(MiniMigrator):
         *,
         old_pkg: "PackageName",
         new_pkg: "PackageName",
-        requirement_types: tuple[str] = ("host",)
+        requirement_types: tuple[str] = ("host",),
     ):
         super().__init__()
         self.old_pkg = old_pkg
