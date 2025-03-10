@@ -169,23 +169,20 @@ class MiniReplacement(MiniMigrator):
         *,
         old_pkg: "PackageName",
         new_pkg: "PackageName",
+        requirement_types: tuple[str] = ("host",)
     ):
         super().__init__()
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = {old_pkg}
+        self.requirement_types = requirement_types
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
-        # TODO: do we want to limit to host requirements, like the split
-        # minimigrators did?
-        rq = (
-            requirements.get("build", set())
-            | requirements.get("host", set())
-            | requirements.get("run", set())
-            | requirements.get("test", set())
-        )
+        rq = set()
+        for req_type in self.requirement_types:
+            rq |= requirements.get(req_type, set())
         return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any):
