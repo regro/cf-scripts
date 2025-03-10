@@ -57,6 +57,7 @@ from conda_forge_tick.migrators import (
     MigrationYaml,
     Migrator,
     MiniMigrator,
+    MiniReplacement,
     MPIPinRunAsBuildCleanup,
     NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
