@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from test_migrators import run_test_migration
 
-from conda_forge_tick.migrators import Version, MiniReplacement
+from conda_forge_tick.migrators import MiniReplacement, Version
 
 XZLIBLZMADEVEL = MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
 VERSION_WITH_XZLIBLZMADEVEL = Version(
