@@ -197,12 +197,15 @@ def test_cross_rbase_build_sh(tmp_path):
         assert lines == expected
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_cross_python(tmp_path):
+def test_cross_python(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_python,
-        inp=YAML_PATH.joinpath("python_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("python_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -211,15 +214,21 @@ def test_cross_python(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_cross_python_no_build(tmp_path):
+def test_cross_python_no_build(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_python,
-        inp=YAML_PATH.joinpath("python_no_build_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_no_build_recipe_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_no_build_recipe.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_no_build_recipe_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2020.6.20"},
         mr_out={
@@ -228,6 +237,7 @@ def test_cross_python_no_build(tmp_path):
             "version": "2020.6.20",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
