@@ -1,14 +1,12 @@
 from pathlib import Path
 
 from flaky import flaky
-
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
     CombineV1ConditionsMigrator,
     Version,
 )
-
 
 YAML_PATH = Path(__file__).parent / "test_v1_yaml"
 

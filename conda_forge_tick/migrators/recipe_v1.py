@@ -1,8 +1,7 @@
 import dataclasses
 import logging
-import os
-from pathlib import Path
 import typing
+from pathlib import Path
 from typing import Any, Generator
 
 from conda_forge_tick.migrators.core import MiniMigrator
@@ -121,11 +120,11 @@ class CombineV1ConditionsMigrator(MiniMigrator):
                                 )
                             else:
                                 raise RuntimeError(
-                                    f"then/else expected on line {line_no+1}"
+                                    f"then/else expected on line {line_no + 1}"
                                 )
                         else:
                             raise RuntimeError(
-                                f"then/else/list item expected on {line_no+1}"
+                                f"then/else/list item expected on {line_no + 1}"
                             )
                         continue
 
