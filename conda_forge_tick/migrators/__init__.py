@@ -38,6 +38,7 @@ from .pip_wheel_dep import PipWheelMigrator
 from .pypi_org import PyPIOrgMigrator
 from .qt_to_qt_main import QtQtMainMigrator
 from .r_ucrt import RUCRTCleanup
+from .recipe_v1 import CombineV1ConditionsMigrator
 from .replacement import Replacement
 from .use_pip import PipMigrator
 from .version import Version
