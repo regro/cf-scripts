@@ -72,7 +72,6 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
-    XzLibLzmaDevelMigrator,
     YAMLRoundTrip,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
