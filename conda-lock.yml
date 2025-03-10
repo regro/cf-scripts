@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 3e56c4c7f9447e8324d891f6592bb812
-      sha256: efd626f01579acdd2be2a8d910905b0aa04d749a896981e21f2f6d1ea38a97b4
+      md5: 4acd2d7adc8f718f8cca4d0ba33fb0ad
+      sha256: c18600a3e3be0670fb34a5d34b5070609a1ef02590fe9a76b641b120cf9b03ee
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.12.53.00-hd8ed1ab_0.conda
-    version: 2025.03.10.12.53.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.13.38.04-hd8ed1ab_0.conda
+    version: 2025.03.10.13.38.04
   - category: main
     dependencies: {}
     hash:
-      md5: 3e56c4c7f9447e8324d891f6592bb812
-      sha256: efd626f01579acdd2be2a8d910905b0aa04d749a896981e21f2f6d1ea38a97b4
+      md5: 4acd2d7adc8f718f8cca4d0ba33fb0ad
+      sha256: c18600a3e3be0670fb34a5d34b5070609a1ef02590fe9a76b641b120cf9b03ee
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.12.53.00-hd8ed1ab_0.conda
-    version: 2025.03.10.12.53.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.13.38.04-hd8ed1ab_0.conda
+    version: 2025.03.10.13.38.04
   - category: main
     dependencies: {}
     hash:
-      md5: 3e56c4c7f9447e8324d891f6592bb812
-      sha256: efd626f01579acdd2be2a8d910905b0aa04d749a896981e21f2f6d1ea38a97b4
+      md5: 4acd2d7adc8f718f8cca4d0ba33fb0ad
+      sha256: c18600a3e3be0670fb34a5d34b5070609a1ef02590fe9a76b641b120cf9b03ee
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.12.53.00-hd8ed1ab_0.conda
-    version: 2025.03.10.12.53.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.10.13.38.04-hd8ed1ab_0.conda
+    version: 2025.03.10.13.38.04
   - category: main
     dependencies:
       click: '>=8'
@@ -2538,15 +2538,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 9439782e9618439b9e7daf693f8c0dec
-      sha256: ec953407e6d1fed67a3bac83e0be530a908d3910bab1078322496a59b68b59a6
+      md5: 5f9eb31961ff155520094c1672febdc7
+      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.46.1-unix_pyhd81877a_0.conda
-    version: 3.46.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
+    version: 3.47.0
   - category: main
     dependencies:
       __unix: ''
@@ -2576,15 +2576,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 9439782e9618439b9e7daf693f8c0dec
-      sha256: ec953407e6d1fed67a3bac83e0be530a908d3910bab1078322496a59b68b59a6
+      md5: 5f9eb31961ff155520094c1672febdc7
+      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.46.1-unix_pyhd81877a_0.conda
-    version: 3.46.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
+    version: 3.47.0
   - category: main
     dependencies:
       __unix: ''
@@ -2614,15 +2614,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 9439782e9618439b9e7daf693f8c0dec
-      sha256: ec953407e6d1fed67a3bac83e0be530a908d3910bab1078322496a59b68b59a6
+      md5: 5f9eb31961ff155520094c1672febdc7
+      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.46.1-unix_pyhd81877a_0.conda
-    version: 3.46.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
+    version: 3.47.0
   - category: main
     dependencies:
       python: '>=3.8'
