@@ -132,9 +132,7 @@ Notes and instructions for merging this PR:
 1. Make sure that the recipe can indeed only depend on `{}`.
 2. Please merge the PR only after the tests have passed.
 3. Feel free to push to the bot's branch to update this PR if \
-needed.""".format(
-                self.old_pkg, self.new_pkg, self.rationale, self.new_pkg
-            ),
+needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         )
         return body
 
