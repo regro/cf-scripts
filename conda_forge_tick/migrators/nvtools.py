@@ -152,11 +152,12 @@ class AddNVIDIATools(Migrator):
         namedtuple or bool:
             If namedtuple continue with PR, if False scrap local folder
         """
+        meta = os.path.join(recipe_dir, "meta.yaml")
+
         # STEP 0: Bump the build number
-        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+        self.set_build_number(meta)
 
         # STEP 1: Add cf-nvidia-tools to build requirements
-        meta = os.path.join(recipe_dir, "meta.yaml")
         if _file_contains(meta, "cf-nvidia-tools"):
             logging.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
         else:
