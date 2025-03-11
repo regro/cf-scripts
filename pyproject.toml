@@ -28,7 +28,7 @@ conda-forge-tick-container = "conda_forge_tick.container_cli:cli"
 include-package-data = true
 zip-safe = false
 packages = {find = {exclude=["tests*", "scripts*", "docs*", "autotick-bot*", "planning*"]}}
-package-data = {conda_forge_tick = ["*.xsh", "*.yaml"]}
+package-data = {conda_forge_tick = ["*.xsh", "*.yaml", "*.json"]}
 package-dir = {conda_forge_tick = "conda_forge_tick"}
 
 [tool.setuptools_scm]

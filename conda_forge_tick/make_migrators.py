@@ -41,7 +41,6 @@ from conda_forge_tick.lazy_json_backends import (
 from conda_forge_tick.migrators import (
     AddNVIDIATools,
     ArchRebuild,
-    Build2HostMigrator,
     CondaForgeYAMLCleanup,
     CrossCompilationForARMAndPower,
     CrossPythonMigrator,
@@ -69,6 +68,7 @@ from conda_forge_tick.migrators import (
     QtQtMainMigrator,
     Replacement,
     RUCRTCleanup,
+    StaticLibMigrator,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
@@ -87,6 +87,7 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     CB_CONFIG,
     fold_log_lines,
+    get_keys_default,
     load_existing_graph,
     parse_meta_yaml,
     parse_munged_run_export,
@@ -112,7 +113,6 @@ DEFAULT_MINI_MIGRATORS = [
     LicenseMigrator,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
-    Build2HostMigrator,
     NoCondaInspectMigrator,
     MPIPinRunAsBuildCleanup,
     PyPIOrgMigrator,
@@ -285,7 +285,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 pr_limit=PR_LIMIT,
                 name="arm osx addition",
                 piggy_back_migrations=[
-                    Build2HostMigrator(),
                     UpdateConfigSubGuessMigrator(),
                     CondaForgeYAMLCleanup(),
                     UpdateCMakeArgsMigrator(),
@@ -794,6 +793,44 @@ def add_noarch_python_min_migrator(
         migrators[-1].pr_limit = pr_limit
 
 
+def add_static_lib_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    with fold_log_lines("making static lib migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, StaticLibMigrator.allowed_schema_versions
+                )
+                update_static_libs = get_keys_default(
+                    attrs,
+                    ["conda-forge.yml", "bot", "update_static_libs"],
+                    {},
+                    False,
+                )
+
+            if (not update_static_libs) or skip_schema:
+                pluck(gx2, node)
+
+        gx2.clear_edges()
+
+        migrators.append(
+            StaticLibMigrator(
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            ),
+        )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -827,6 +864,8 @@ def initialize_migrators(
             check_solvable=False,
         )
     )
+
+    add_static_lib_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)

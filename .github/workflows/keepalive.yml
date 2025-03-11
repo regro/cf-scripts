@@ -23,7 +23,7 @@ jobs:
         run: |
           python autotick-bot/stop_me_if_needed.py
 
-      - uses: gautamkrishnar/keepalive-workflow@995aec69bb3f2b45b20f4e107907992c8715086d # v2.0.8
+      - uses: gautamkrishnar/keepalive-workflow@75c59336a3a6589777ab715d83668bb3033c68b2 # v2.0.9
         if: ${{ ! env.CI_SKIP }}
         with:
           commit_message: "Ah ah ah, stayin' alive"

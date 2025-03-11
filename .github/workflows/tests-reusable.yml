@@ -53,7 +53,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -117,11 +117,11 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: set up docker buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         if: ${{ ! env.CI_SKIP }}
 
       - name: build docker image
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         if: ${{ ! env.CI_SKIP }}
         with:
           context: .
@@ -130,7 +130,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57  # v4.2.0
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
         if: ${{ ! env.CI_SKIP }}
         with:
           path: .test_durations
@@ -169,7 +169,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: ${{ ! env.CI_SKIP }}
         with:
           name: test-durations-${{ matrix.group }}
@@ -177,7 +177,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: ${{ ! env.CI_SKIP }}
         with:
           name: coverage-${{ matrix.group }}
@@ -204,7 +204,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -225,7 +225,7 @@ jobs:
           python autotick-bot/stop_me_if_needed.py
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: coverage-*
@@ -237,13 +237,13 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5.1.8
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.1.8
         if: ${{ ! env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         if: ${{ ! env.CI_SKIP }}
         with:
           path: .test_durations
@@ -253,7 +253,7 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: test-durations-*
@@ -264,7 +264,7 @@ jobs:
           jq '. + input' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: ${{ ! env.CI_SKIP }}
         with:
           name: test-durations

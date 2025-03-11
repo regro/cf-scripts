@@ -11,7 +11,10 @@ VERSION_CF = Version(
     piggy_back_migrations=[CondaForgeYAMLCleanup()],
 )
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATHS = [
+    os.path.join(os.path.dirname(__file__), "test_yaml"),
+    os.path.join(os.path.dirname(__file__), "test_v1_yaml"),
+]
 
 
 @pytest.mark.parametrize(
@@ -27,14 +30,19 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("compiler_stack"),
     ],
 )
-def test_version_cfyaml_cleanup(cases, tmpdir):
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_version_cfyaml_cleanup(cases, recipe_version, tmp_path):
     yaml = YAML()
 
-    with open(os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple.yaml")) as fp:
+    with open(
+        os.path.join(YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple.yaml")
+    ) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple_correct.yaml"),
+        os.path.join(
+            YAML_PATHS[recipe_version], "version_cfyaml_cleanup_simple_correct.yaml"
+        ),
     ) as fp:
         out_yaml = fp.read()
 
@@ -43,8 +51,7 @@ def test_version_cfyaml_cleanup(cases, tmpdir):
         cf_yml[case] = "10"
     cf_yml["foo"] = "bar"
 
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-    cf_yml_pth = os.path.join(tmpdir, "conda-forge.yml")
+    cf_yml_pth = tmp_path / "conda-forge.yml"
     with open(cf_yml_pth, "w") as fp:
         yaml.dump(cf_yml, fp)
 
@@ -59,7 +66,8 @@ def test_version_cfyaml_cleanup(cases, tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
     with open(cf_yml_pth) as fp:

@@ -1,12 +1,12 @@
 import collections.abc
 import io
-import json
 import re
 from typing import Any, List, Union
 
 import jinja2
 import jinja2.meta
 import jinja2.sandbox
+import orjson
 from ruamel.yaml import YAML
 
 CONDA_SELECTOR = "__###conda-selector###__"
@@ -54,7 +54,7 @@ def _get_yaml_parser(typ="jinja2"):
     def represent_none(self, data):
         return self.represent_scalar("tag:yaml.org,2002:null", "")
 
-    parser = YAML(typ=typ)
+    parser = YAML(typ=typ)  # spellchecker:disable-line
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
     parser.preserve_quotes = True
@@ -380,7 +380,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     + "{% set "
                     + var.strip()
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}  # ["
                     + sel
                     + "]\n"
@@ -397,7 +397,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     + "{% set "
                     + var.strip()
                     + " = "
-                    + json.dumps(jinja2_vars[var.strip()])
+                    + orjson.dumps(jinja2_vars[var.strip()]).decode("utf-8")
                     + " %}"
                     + end
                 )
@@ -424,7 +424,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     "{% set "
                     + _key
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}"
                     + "  # ["
                     + selector
@@ -435,7 +435,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     "{% set "
                     + key
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}"
                     + "\n",
                 )

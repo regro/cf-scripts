@@ -124,7 +124,7 @@ migrator_ts: 12345.2
     [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY)],
 )
 @mock.patch("time.time")
-def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
+def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmp_path):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.migration_yaml",
@@ -146,10 +146,10 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
         pinnings=["libboost_devel", "libboost_python_devel"],
     )
 
-    with pushd(tmpdir):
+    with pushd(tmp_path):
         eval_cmd(["git", "init", "."])
 
-    os.makedirs(os.path.join(tmpdir, "migrations"), exist_ok=True)
+    tmp_path.joinpath("recipe/migrations").mkdir(parents=True)
 
     run_test_migration(
         m=MYM,
@@ -163,11 +163,11 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
             "name": pname,
             "pin_version": "1.99",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
-    boost_file = os.path.join(tmpdir, "migrations", "libboost_devel199.yaml")
-    assert os.path.exists(boost_file)
+    boost_file = tmp_path / "recipe/migrations/libboost_devel199.yaml"
+    assert boost_file.exists()
     with open(boost_file) as fp:
         bf_out = fp.read()
     assert BOOST_YAML == bf_out
@@ -181,16 +181,18 @@ def run_test_migration(
     prb,
     mr_out,
     should_filter=False,
-    tmpdir=None,
+    tmp_path=None,
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
-    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir(exist_ok=True)
+    with open(recipe_path / "meta.yaml", "w") as f:
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
+    if os.path.exists(tmp_path / "conda-forge.yml"):
+        with open(tmp_path / "conda-forge.yml") as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
@@ -217,14 +219,15 @@ def run_test_migration(
     if should_filter:
         return
 
+    recipe_dir = str(recipe_path)
     m.run_pre_piggyback_migrations(
-        tmpdir,
+        recipe_dir,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    mr = m.migrate(recipe_dir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir,
+        recipe_dir,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
@@ -235,7 +238,7 @@ def run_test_migration(
 
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml")) as f:
+    with open(recipe_path / "meta.yaml") as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")

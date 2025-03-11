@@ -1,9 +1,9 @@
-import json
 import logging
 import os
 import shutil
 import tempfile
 
+import orjson
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -125,7 +125,7 @@ def _is_recipe_solvable_containerized(
         args += ["--additional-channels", ",".join(additional_channels)]
 
     if build_platform:
-        args += ["--build-platform", json.dumps(build_platform)]
+        args += ["--build-platform", orjson.dumps(build_platform).decode("utf-8")]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))

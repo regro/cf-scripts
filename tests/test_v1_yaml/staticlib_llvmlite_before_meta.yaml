@@ -1,0 +1,66 @@
+context:
+  name: llvmlite
+  version: "0.44.0"
+  sha256: "07667d66a5d150abed9157ab6c0b9393c9356f229784a4385c02f99e94fc94d4"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  # don't use github generated tar-ball as the sha256 value may not be stable
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  sha256: ${{ sha256 }}
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - if: build_platform != target_platform
+      then: python
+    - if: build_platform != target_platform
+      then: cross-python_${{ target_platform }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - if: unix
+      then: make
+  host:
+    - python
+    - setuptools
+    - llvmdev 15.*
+    - llvm 15.*
+    - if: osx and arm64
+      then: llvmdev ==15.0.7 h2621b3d_4
+    - if: osx and arm64
+      then: llvm ==15.0.7 *_4
+    - if: ox and x86
+      then: llvmdev ==15.0.7 *_4
+    - if: ox and x86
+      then: llvm ==15.0.7 hed0f868_4
+    - zlib
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - llvmlite
+        - llvmlite.binding
+  - script:
+      - python -m llvmlite.tests
+
+about:
+  license: BSD-2-Clause
+  license_file: LICENSE
+  summary: A lightweight LLVM python binding for writing JIT compilers.
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - souravsingh
+    - marcelotrevisani
+    - xhochy
+    - mbargull

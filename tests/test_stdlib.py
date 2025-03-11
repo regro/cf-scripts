@@ -54,7 +54,7 @@ VERSION_WITH_STDLIB = Version(
         ("pysyntect", "0.3.0", False),
     ],
 )
-def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
+def test_stdlib(feedstock, new_ver, expect_cbc, tmp_path):
     before = f"stdlib_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -62,9 +62,6 @@ def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
     after = f"stdlib_{feedstock}_after_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, after)) as fp:
         out_yaml = fp.read()
-
-    recipe_dir = os.path.join(tmpdir, f"{feedstock}-feedstock")
-    os.makedirs(recipe_dir, exist_ok=True)
 
     run_test_migration(
         m=VERSION_WITH_STDLIB,
@@ -77,11 +74,11 @@ def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
             "migrator_version": VERSION_WITH_STDLIB.migrator_version,
             "version": new_ver,
         },
-        tmpdir=recipe_dir,
+        tmp_path=tmp_path,
         should_filter=False,
     )
 
-    cbc_pth = os.path.join(recipe_dir, "conda_build_config.yaml")
+    cbc_pth = tmp_path / "recipe/conda_build_config.yaml"
     if expect_cbc:
         with open(cbc_pth) as fp:
             lines = fp.readlines()
