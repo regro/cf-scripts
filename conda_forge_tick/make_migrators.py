@@ -51,7 +51,6 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     GuardTestingMigrator,
     Jinja2VarsCleanup,
-    JpegTurboMigrator,
     LibboostMigrator,
     LicenseMigrator,
     MigrationYaml,
@@ -378,7 +377,9 @@ def add_rebuild_migration_yaml(
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
     if migration_name == "jpeg_to_libjpeg_turbo":
-        piggy_back_migrations.append(JpegTurboMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+        )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
     if migration_name == "numpy2":
