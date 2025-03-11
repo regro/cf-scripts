@@ -174,7 +174,6 @@ class MiniReplacement(MiniMigrator):
         super().__init__()
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
-        self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = {old_pkg}
         self.requirement_types = requirement_types
 
@@ -191,12 +190,8 @@ class MiniReplacement(MiniMigrator):
                 next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
             )
             raw = recipe_file.read_text()
-
-            lines = raw.splitlines()
-            for i, line in enumerate(lines):
-                m = self.pattern.match(line)
-                if m is not None:
-                    lines[i] = lines[i].replace(m.group(1), self.new_pkg)
-            upd = "\n".join(lines) + "\n"
+            upd = raw.replace(f" {self.old_pkg} ", f" {self.new_pkg} ").replace(
+                f" {self.old_pkg}\n", f" {self.new_pkg}\n"
+            )
 
             recipe_file.write_text(upd)
