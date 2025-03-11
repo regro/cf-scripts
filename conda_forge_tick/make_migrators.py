@@ -64,7 +64,6 @@ from conda_forge_tick.migrators import (
     PipMigrator,
     PipWheelMigrator,
     PyPIOrgMigrator,
-    QtQtMainMigrator,
     Replacement,
     RUCRTCleanup,
     StaticLibMigrator,
@@ -375,7 +374,7 @@ def add_rebuild_migration_yaml(
         StdlibMigrator(),
     ]
     if migration_name == "qt515":
-        piggy_back_migrations.append(QtQtMainMigrator())
+        piggy_back_migrations.append(MiniReplacement(old_pkg="qt", new_pkg="qt-main"))
     if migration_name == "jpeg_to_libjpeg_turbo":
         piggy_back_migrations.append(
             MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")

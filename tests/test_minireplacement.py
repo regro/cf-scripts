@@ -7,6 +7,8 @@ from conda_forge_tick.migrators import MiniReplacement, Version
 
 XZLIBLZMADEVEL = MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
 JPEGJPEGTURBO = MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+QTQTMAIN = MiniReplacement(old_pkg="qt", new_pkg="qt-main")
+
 VERSION_WITH_XZLIBLZMADEVEL = Version(
     set(),
     piggy_back_migrations=[XZLIBLZMADEVEL],
@@ -14,6 +16,10 @@ VERSION_WITH_XZLIBLZMADEVEL = Version(
 VERSION_WITH_JPEGTURBO = Version(
     set(),
     piggy_back_migrations=[JPEGJPEGTURBO],
+)
+VERSION_WITH_QTQTMAIN = Version(
+    set(),
+    piggy_back_migrations=[QTQTMAIN],
 )
 
 YAML_PATHS = [
@@ -37,22 +43,58 @@ YAML_PATHS = [
             "9.4.0",
             VERSION_WITH_JPEGTURBO,
         ),
+        (
+            "qtqtmain_octave_before_meta.yaml",
+            ("qtqtmain_octave_after_meta.yaml", "qtqtmain_octave_xz_after_meta.yaml"),
+            "7.1.0",
+            VERSION_WITH_QTQTMAIN,
+        ),
+        (
+            "qtqtmain_qgis_before_meta.yaml",
+            "qtqtmain_qgis_after_meta.yaml",
+            "3.18.3",
+            VERSION_WITH_QTQTMAIN,
+        ),
     ],
 )
 @pytest.mark.parametrize("recipe_version", [0, 1])
 def test_liblzma_devel(old_meta, new_meta, new_ver, migrator, recipe_version, tmp_path):
-    run_test_migration(
-        m=migrator,
-        inp=YAML_PATHS[recipe_version].joinpath(old_meta).read_text(),
-        output=YAML_PATHS[recipe_version].joinpath(new_meta).read_text(),
-        kwargs={"new_version": new_ver},
-        prb="Dependencies have been updated if changed",
-        mr_out={
-            "migrator_name": Version.name,
-            "migrator_version": VERSION_WITH_XZLIBLZMADEVEL.migrator_version,
-            "version": new_ver,
-        },
-        tmp_path=tmp_path,
-        should_filter=False,
-        recipe_version=recipe_version,
-    )
+    if not isinstance(new_meta, tuple):
+        new_meta = (new_meta,)
+
+    out_yamls = []
+    for nm in new_meta:
+        out_yamls.append(YAML_PATHS[recipe_version].joinpath(nm).read_text())
+
+    failed = []
+    excepts = []
+    for out_yaml in out_yamls:
+        try:
+            run_test_migration(
+                m=migrator,
+                inp=YAML_PATHS[recipe_version].joinpath(old_meta).read_text(),
+                output=out_yaml,
+                kwargs={"new_version": new_ver},
+                prb="Dependencies have been updated if changed",
+                mr_out={
+                    "migrator_name": Version.name,
+                    "migrator_version": migrator.migrator_version,
+                    "version": new_ver,
+                },
+                tmp_path=tmp_path,
+                should_filter=False,
+                recipe_version=recipe_version,
+            )
+        except Exception as e:
+            failed.append(True)
+            excepts.append(e)
+        else:
+            failed.append(False)
+            excepts.append(None)
+
+    if all(failed):
+        for e in excepts:
+            if e is not None:
+                raise e
+
+    assert not all(failed)
