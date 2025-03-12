@@ -1,12 +1,12 @@
-{% set version = "2025.3.50" %}
+{% set version = "4.5.0" %}
 
 package:
   name: readline
   version: {{ version }}
 
 source:
-  url: https://github.com/regro/cf-scripts/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 18f6510c0e482eb385b9afe3d25482c42804a7fe6e6e9dda9b7375231ceaa0e6
+  url: https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-{{ version }}.tar.gz
+  sha256: 93db9e519efe372657d97e96e68c888aa65696b0ee31408780efa6388563989b
 
 build:
   skip: true  # [win]
