@@ -80,7 +80,7 @@ def test_correct_config_sub(tmp_path):
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "2025.3.50",
         },
         tmp_path=tmp_path,
     )
@@ -102,7 +102,7 @@ def test_make_check(tmp_path):
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "2025.3.50",
         },
         tmp_path=tmp_path,
     )
@@ -133,7 +133,7 @@ def test_cmake(tmp_path):
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "2025.3.50",
         },
         tmp_path=tmp_path,
     )
