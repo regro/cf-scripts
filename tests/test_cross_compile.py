@@ -76,7 +76,7 @@ def test_correct_config_sub(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "2025.3.50"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
@@ -98,7 +98,7 @@ def test_make_check(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_make_check.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "2025.3.50"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
@@ -129,7 +129,7 @@ def test_cmake(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_cmake.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "2025.3.50"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
