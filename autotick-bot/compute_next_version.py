@@ -28,7 +28,7 @@ else:
                 _version = VersionOrder(line)
             except Exception:
                 print(
-                    "skipping tag that is not a version: {line}",
+                    f"skipping tag that is not a version: {line}",
                     file=sys.stderr,
                     flush=True,
                 )
