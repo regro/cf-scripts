@@ -171,10 +171,20 @@ class MiniReplacement(MiniMigrator):
         new_pkg: "PackageName",
         requirement_types: tuple[str] = ("host",),
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "old_pkg": old_pkg,
+                "new_pkg": new_pkg,
+                "requirement_types": requirement_types,
+            }
+
         super().__init__()
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
-        self.packages = {old_pkg}
+        self.packages = {self.old_pkg}
         self.requirement_types = requirement_types
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
