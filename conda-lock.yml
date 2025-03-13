@@ -2104,39 +2104,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 80fbdb6f2e9c0f87e866da6e8e35bf74
-      sha256: df40fae6e0ba2de591805ae7f366f8806d3927d2aac6b1c615b83bccf70c5e24
+      md5: 95afafedcff6ab5deee15f86b1ddc0c2
+      sha256: 4b0060601cb783d884695bea90970b64d14cde2cfe4d3eea3c0e5f2c337c0c88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.18.16.20-hd8ed1ab_0.conda
-    version: 2025.03.13.18.16.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.20.26.56-hd8ed1ab_0.conda
+    version: 2025.03.13.20.26.56
   - category: main
     dependencies: {}
     hash:
-      md5: 80fbdb6f2e9c0f87e866da6e8e35bf74
-      sha256: df40fae6e0ba2de591805ae7f366f8806d3927d2aac6b1c615b83bccf70c5e24
+      md5: 95afafedcff6ab5deee15f86b1ddc0c2
+      sha256: 4b0060601cb783d884695bea90970b64d14cde2cfe4d3eea3c0e5f2c337c0c88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.18.16.20-hd8ed1ab_0.conda
-    version: 2025.03.13.18.16.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.20.26.56-hd8ed1ab_0.conda
+    version: 2025.03.13.20.26.56
   - category: main
     dependencies: {}
     hash:
-      md5: 80fbdb6f2e9c0f87e866da6e8e35bf74
-      sha256: df40fae6e0ba2de591805ae7f366f8806d3927d2aac6b1c615b83bccf70c5e24
+      md5: 95afafedcff6ab5deee15f86b1ddc0c2
+      sha256: 4b0060601cb783d884695bea90970b64d14cde2cfe4d3eea3c0e5f2c337c0c88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.18.16.20-hd8ed1ab_0.conda
-    version: 2025.03.13.18.16.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.20.26.56-hd8ed1ab_0.conda
+    version: 2025.03.13.20.26.56
   - category: main
     dependencies:
       click: '>=8'
@@ -14367,15 +14367,15 @@ package:
       libuuid: '>=2.38.1,<3.0a0'
       xorg-libice: '>=1.1.2,<2.0a0'
     hash:
-      md5: 4c3e9fab69804ec6077697922d70c6e2
-      sha256: 760f43df6c2ce8cbbbcb8f2f3b7fc0f306716c011e28d1d340f3dfa8ccf29185
+      md5: 1c74ff8c35dcadf952a16f752ca5aa49
+      sha256: 277841c43a39f738927145930ff963c5ce4c4dacf66637a3d95d802a64173250
     manager: conda
     name: xorg-libsm
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/xorg-libsm-1.2.5-he73a12e_0.conda
-    version: 1.2.5
+      https://conda.anaconda.org/conda-forge/linux-64/xorg-libsm-1.2.6-he73a12e_0.conda
+    version: 1.2.6
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
