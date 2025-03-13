@@ -2104,39 +2104,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 2ff98ab0e8c13260f354711df4ce8fa3
-      sha256: d2829c9e01cb3850abf4ce44c3e80c7c7d1338358c77328acad520e4e430054e
+      md5: 886e40d2ec1493af39a58c309587bcef
+      sha256: 983c559a15611991271570903e748412f514dd7b460423383525877d75cf2b71
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.08.28.25-hd8ed1ab_0.conda
-    version: 2025.03.13.08.28.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.10.54.12-hd8ed1ab_0.conda
+    version: 2025.03.13.10.54.12
   - category: main
     dependencies: {}
     hash:
-      md5: 2ff98ab0e8c13260f354711df4ce8fa3
-      sha256: d2829c9e01cb3850abf4ce44c3e80c7c7d1338358c77328acad520e4e430054e
+      md5: 886e40d2ec1493af39a58c309587bcef
+      sha256: 983c559a15611991271570903e748412f514dd7b460423383525877d75cf2b71
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.08.28.25-hd8ed1ab_0.conda
-    version: 2025.03.13.08.28.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.10.54.12-hd8ed1ab_0.conda
+    version: 2025.03.13.10.54.12
   - category: main
     dependencies: {}
     hash:
-      md5: 2ff98ab0e8c13260f354711df4ce8fa3
-      sha256: d2829c9e01cb3850abf4ce44c3e80c7c7d1338358c77328acad520e4e430054e
+      md5: 886e40d2ec1493af39a58c309587bcef
+      sha256: 983c559a15611991271570903e748412f514dd7b460423383525877d75cf2b71
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.08.28.25-hd8ed1ab_0.conda
-    version: 2025.03.13.08.28.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.13.10.54.12-hd8ed1ab_0.conda
+    version: 2025.03.13.10.54.12
   - category: main
     dependencies:
       click: '>=8'
@@ -3979,45 +3979,48 @@ package:
     version: '1'
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
-      libpng: '>=1.6.39,<1.7.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      libpng: '>=1.6.47,<1.7.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 9ae35c3d96db2c94ce0cef86efdfa2cb
-      sha256: b2e3c449ec9d907dd4656cb0dc93e140f447175b125a3824b31368b06c666bb6
+      md5: 9ecfd6f2ca17077dd9c2d24770bb9ccd
+      sha256: 7385577509a9c4730130f54bb6841b9b416249d5f4e9f74bf313e6378e313c57
     manager: conda
     name: freetype
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/freetype-2.12.1-h267a509_2.conda
-    version: 2.12.1
+    url: https://conda.anaconda.org/conda-forge/linux-64/freetype-2.13.3-h48d6fc4_0.conda
+    version: 2.13.3
   - category: main
     dependencies:
-      libpng: '>=1.6.39,<1.7.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      __osx: '>=10.13'
+      libpng: '>=1.6.47,<1.7.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 25152fce119320c980e5470e64834b50
-      sha256: b292cf5a25f094eeb4b66e37d99a97894aafd04a5683980852a8cbddccdc8e4e
+      md5: e391f0c2d07df272cf7c6df235e97bb9
+      sha256: 66cc36a313accf28f4ab9b40ad11e4a8ff757c11314cd499435d9b8df1fa0150
     manager: conda
     name: freetype
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/freetype-2.12.1-h60636b9_2.conda
-    version: 2.12.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/freetype-2.13.3-h40dfd5c_0.conda
+    version: 2.13.3
   - category: main
     dependencies:
-      libpng: '>=1.6.39,<1.7.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      __osx: '>=11.0'
+      libpng: '>=1.6.47,<1.7.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: e6085e516a3e304ce41a8ee08b9b89ad
-      sha256: 791673127e037a2dc0eebe122dc4f904cb3f6e635bb888f42cbe1a76b48748d9
+      md5: 630445a505ea6e59f55714853d8c9ed0
+      sha256: 2c273de32431c431a118a8cd33afb6efc616ddbbab9e5ba0fe31e3b4d1ff57a3
     manager: conda
     name: freetype
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/freetype-2.12.1-hadb7bae_2.conda
-    version: 2.12.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/freetype-2.13.3-h1d14073_0.conda
+    version: 2.13.3
   - category: main
     dependencies:
       libgcc-ng: '>=7.5.0'
