@@ -42,7 +42,7 @@ jobs:
         id: version
         if: ${{ ! env.CI_SKIP }}
         run: |
-          echo "current version: "$(git tag --sort=committerdate | tail -1)
+          echo "recent version tags: "$(git tag --sort=committerdate | tail -4)
           NEXT=$(python autotick-bot/compute_next_version.py)
           echo "next version: ${NEXT}"
           echo "NEXT=${NEXT}" >> "$GITHUB_OUTPUT"
