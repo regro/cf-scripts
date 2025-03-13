@@ -2,12 +2,14 @@ import logging
 import os
 import re
 import typing
+from pathlib import Path
 from typing import Any
 
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
-from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators.core import Migrator, MiniMigrator
+from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
@@ -147,3 +149,49 @@ needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
+
+
+class MiniReplacement(MiniMigrator):
+    """Minimigrator for replacing one package with another.
+
+    Parameters
+    ----------
+    old_pkg : str
+        The package to be replaced.
+    new_pkg : str
+        The package to replace the `old_pkg`.
+    """
+
+    allowed_schema_versions = [0, 1]
+
+    def __init__(
+        self,
+        *,
+        old_pkg: "PackageName",
+        new_pkg: "PackageName",
+        requirement_types: tuple[str] = ("host",),
+    ):
+        super().__init__()
+        self.old_pkg = old_pkg
+        self.new_pkg = new_pkg
+        self.packages = {old_pkg}
+        self.requirement_types = requirement_types
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        requirements = attrs.get("requirements", {})
+        rq = set()
+        for req_type in self.requirement_types:
+            rq |= requirements.get(req_type, set())
+        return super().filter(attrs) or len(rq & self.packages) == 0
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any):
+        with pushd(recipe_dir):
+            recipe_file = Path(
+                next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            )
+            raw = recipe_file.read_text()
+            upd = raw.replace(f" {self.old_pkg} ", f" {self.new_pkg} ").replace(
+                f" {self.old_pkg}\n", f" {self.new_pkg}\n"
+            )
+
+            recipe_file.write_text(upd)

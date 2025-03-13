@@ -51,12 +51,12 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     GuardTestingMigrator,
     Jinja2VarsCleanup,
-    JpegTurboMigrator,
     LibboostMigrator,
     LicenseMigrator,
     MigrationYaml,
     Migrator,
     MiniMigrator,
+    MiniReplacement,
     MPIPinRunAsBuildCleanup,
     NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
@@ -64,7 +64,6 @@ from conda_forge_tick.migrators import (
     PipMigrator,
     PipWheelMigrator,
     PyPIOrgMigrator,
-    QtQtMainMigrator,
     Replacement,
     RUCRTCleanup,
     StaticLibMigrator,
@@ -72,7 +71,6 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
-    XzLibLzmaDevelMigrator,
     YAMLRoundTrip,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
@@ -376,9 +374,11 @@ def add_rebuild_migration_yaml(
         StdlibMigrator(),
     ]
     if migration_name == "qt515":
-        piggy_back_migrations.append(QtQtMainMigrator())
+        piggy_back_migrations.append(MiniReplacement(old_pkg="qt", new_pkg="qt-main"))
     if migration_name == "jpeg_to_libjpeg_turbo":
-        piggy_back_migrations.append(JpegTurboMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+        )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
     if migration_name == "numpy2":
@@ -388,7 +388,9 @@ def add_rebuild_migration_yaml(
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
     if migration_name.startswith("xz_to_liblzma_devel"):
-        piggy_back_migrations.append(XzLibLzmaDevelMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
+        )
     piggy_back_migrations = _make_mini_migrators_with_defaults(
         extra_mini_migrators=piggy_back_migrations
     )
