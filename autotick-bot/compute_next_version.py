@@ -24,7 +24,16 @@ else:
     for line in res.stdout.splitlines():
         line = line.strip()
         if line:
-            _version = VersionOrder(line)
+            try:
+                _version = VersionOrder(line)
+            except Exception:
+                print(
+                    "skipping tag that is not a version: {line}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                continue
+
             if curr_version is None or _version > curr_version:
                 curr_version = _version
                 curr_version_line = line
