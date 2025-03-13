@@ -38,7 +38,7 @@ else:
                 curr_version = _version
                 curr_version_line = line
     assert curr_version is not None
-    print("found current version: %s" % curr_version_line, file=sys.stderr, flush=True)
+    print(f"found current version: {curr_version_line}", file=sys.stderr, flush=True)
 
     # figure out if we bump the major, minor or patch version
     major_minor, patch = curr_version_line.rsplit(".", 1)
