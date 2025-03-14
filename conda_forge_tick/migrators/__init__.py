@@ -40,6 +40,5 @@ from .replacement import Replacement, MiniReplacement
 from .use_pip import PipMigrator
 from .version import Version
 from .noarch_python_min import NoarchPythonMinMigrator
-from .nvtools import AddNVIDIATools
 from .round_trip import YAMLRoundTrip
 from .staticlib import StaticLibMigrator
