@@ -219,7 +219,19 @@ class MiniMigrator:
 
 
 class Migrator:
-    """Base class for Migrators"""
+    """Base class for Migrators
+
+    Inheritors
+    ----------
+    Subclasses of Migrator should have at least the following in their __init__ function:
+    
+    ```python
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._reset_effective_graph()
+    ```
+    
+    """
 
     name: str
 
