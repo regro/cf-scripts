@@ -112,6 +112,10 @@ class AddNVIDIATools(Migrator):
 
     allowed_schema_versions = [0]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._reset_effective_graph()
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """If true don't act upon node
 
