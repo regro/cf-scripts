@@ -39,6 +39,7 @@ from conda_forge_tick.lazy_json_backends import (
     remove_key_for_hashmap,
 )
 from conda_forge_tick.migrators import (
+    AddNVIDIATools,
     ArchRebuild,
     CondaForgeYAMLCleanup,
     CrossCompilationForARMAndPower,
@@ -859,6 +860,12 @@ def initialize_migrators(
     )
 
     add_noarch_python_min_migrator(migrators, gx)
+
+    migrators.append(
+        AddNVIDIATools(
+            check_solvable=False,
+        )
+    )
 
     add_static_lib_migrator(migrators, gx)
 
