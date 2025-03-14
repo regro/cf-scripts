@@ -51,6 +51,7 @@ def test_migrator_to_json_minimigrators_nodeps():
             and issubclass(migrator, conda_forge_tick.migrators.MiniMigrator)
             and migrator != conda_forge_tick.migrators.MiniMigrator
             and migrator != conda_forge_tick.migrators.DependencyUpdateMigrator
+            and migrator != conda_forge_tick.migrators.MiniReplacement
         ):
             migrator = migrator()
             data = migrator.to_lazy_json_data()
@@ -79,6 +80,7 @@ def test_migrator_to_json_version():
             conda_forge_tick.migrators.DependencyUpdateMigrator(["blah2"]),
             conda_forge_tick.migrators.LibboostMigrator(),
             conda_forge_tick.migrators.DuplicateLinesCleanup(),
+            conda_forge_tick.migrators.MiniReplacement(old_pkg="foo", new_pkg="bar"),
         ],
     )
     data = migrator.to_lazy_json_data()
