@@ -833,6 +833,27 @@ def add_static_lib_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph
         migrators[-1].pr_limit = pr_limit
 
 
+def add_nvtools_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+):
+    migrators.append(
+        AddNVIDIATools(
+            check_solvable=False,
+            graph=copy.deepcopy(gx),
+            pr_limit=PR_LIMIT,
+            piggy_back_migrations=_make_mini_migrators_with_defaults(
+                extra_mini_migrators=[YAMLRoundTrip()],
+            ),
+        )
+    )
+    pr_limit, _, _ = _compute_migrator_pr_limit(
+        migrators[-1],
+        PR_LIMIT,
+    )
+    migrators[-1].pr_limit = pr_limit
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -861,13 +882,9 @@ def initialize_migrators(
 
     add_noarch_python_min_migrator(migrators, gx)
 
-    migrators.append(
-        AddNVIDIATools(
-            check_solvable=False,
-        )
-    )
-
     add_static_lib_migrator(migrators, gx)
+
+    add_nvtools_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
