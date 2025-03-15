@@ -837,21 +837,35 @@ def add_nvtools_migrator(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
 ):
-    migrators.append(
-        AddNVIDIATools(
-            check_solvable=False,
-            graph=copy.deepcopy(gx),
-            pr_limit=PR_LIMIT,
-            piggy_back_migrations=_make_mini_migrators_with_defaults(
-                extra_mini_migrators=[YAMLRoundTrip()],
-            ),
+    with fold_log_lines("making add nvtools migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, StaticLibMigrator.allowed_schema_versions
+                )
+                has_nvidia = (
+                    "https://developer.download.nvidia.com" in attrs["source"]["url"]
+                )
+
+            if (not has_nvidia) or skip_schema:
+                pluck(gx2, node)
+
+        migrators.append(
+            AddNVIDIATools(
+                check_solvable=False,
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            )
         )
-    )
-    pr_limit, _, _ = _compute_migrator_pr_limit(
-        migrators[-1],
-        PR_LIMIT,
-    )
-    migrators[-1].pr_limit = pr_limit
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
 
 
 def initialize_migrators(
