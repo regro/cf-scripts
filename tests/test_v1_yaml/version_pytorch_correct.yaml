@@ -55,6 +55,7 @@ outputs:
           then:
             - intel-openmp ${{ mkl }}
             - libuv
+            - sccache
         - cmake
         - ninja
         # Keep libprotobuf here so that a compatibile version
@@ -63,8 +64,6 @@ outputs:
         - protobuf
         - if: linux
           then: make
-        - if: win
-          then: sccache
         - if: unix
           then:
             - grep
@@ -72,18 +71,11 @@ outputs:
       host:
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
-          then: cudnn
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "cuda_compiler_version != \"None\""
           then:
+            - cudnn
             - magma
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: cuda-driver-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -93,35 +85,36 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: libcufile-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        # other requirements
-        - if: megabuild
+        - if: "cuda_compiler_version != \"None\" and linux"
+          then: nccl
+        - if: "linux and cuda_compiler_version != \"None\""
           then:
-            - python 3.12.*
-            - numpy *
+            - cuda-driver-dev
+            - libcufile-dev
+        - if: megabuild
           else:
             - python
             - numpy
+          then:
+            - python 3.12.*
+            - numpy *
         - pip
         - setuptools
         - pyyaml
         - requests
         - six
         - if: "blas_impl == \"mkl\""
+          then:
+            - mkl-devel ${{ mkl }}
+            - libcblas * *_mkl
           else:
             - libblas
             - libcblas
             - liblapack
-          then:
-            - mkl-devel ${{ mkl }}
-            - libcblas * *_mkl
         - if: not win
           then: llvm-openmp
         - if: win
@@ -146,14 +139,13 @@ outputs:
           then: libblas * *${{ blas_impl }}
       run_constraints:
         - if: "cuda_compiler_version == \"None\""
-          else:
-            - pytorch-gpu ==${{ version }}
-          then: pytorch-cpu ==${{ version }}
-        - if: "cuda_compiler_version == \"None\""
           then:
+            - pytorch-cpu ==${{ version }}
             - pytorch-gpu ==99999999
             - pytorch =${{ version }} cpu_${{ blas_impl }}_*_${{ build }}
-          else: pytorch-cpu ==99999999
+          else:
+            - pytorch-gpu ==${{ version }}
+            - pytorch-cpu ==99999999
         - if: "cuda_compiler_version != \"None\""
           then: pytorch =${{ version }} cuda${{ cuda_compiler_version | replace('.', '') }}_${{ blas_impl }}_*_${{ build }}
         - if: "unix and blas_impl != \"mkl\""
@@ -174,8 +166,8 @@ outputs:
         - if: "cuda_compiler_version != \"None\""
           then: ${{ compiler('cuda') }}
         - if: not win
-          then: llvm-openmp
           else: intel-openmp ${{ mkl }}
+          then: llvm-openmp
         - cmake
         - ninja
         # Keep libprotobuf here so that a compatibile version
@@ -190,18 +182,11 @@ outputs:
         - ${{ pin_subpackage('libtorch', exact=True) }}
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
-          then: cudnn
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "cuda_compiler_version != \"None\""
           then:
+            - cudnn
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
             - magma
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: cuda-driver-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -211,15 +196,16 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: libcufile-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        # other requirements
+        - if: "cuda_compiler_version != \"None\" and linux"
+          then: nccl
+        - if: "linux and cuda_compiler_version != \"None\""
+          then:
+            - cuda-driver-dev
+            - libcufile-dev
         - python
         - numpy
         - pip
@@ -231,7 +217,8 @@ outputs:
           then:
             - mkl-devel ${{ mkl }}
             - libcblas * *_mkl
-          else: libcblas
+          else:
+            - libcblas
         - if: "blas_impl != \"mkl\""
           then: liblapack
         - if: not win
@@ -265,12 +252,12 @@ outputs:
           then: nomkl
         # GPU requirements without run_exports
         - if: "cuda_compiler_version != \"None\""
-          then: ${{ pin_compatible('cudnn') }}
+          then:
+            - ${{ pin_compatible('cudnn') }}
+            - __cuda
         - if: "cuda_compiler_version != \"None\" and not win"
           then: triton =${{ triton }}
         # avoid that people without GPUs needlessly download ~0.5-1GB
-        - if: "cuda_compiler_version != \"None\""
-          then: __cuda
         - python
         # other requirements, see https://github.com/pytorch/pytorch/blame/main/requirements.txt
         - filelock
@@ -289,9 +276,9 @@ outputs:
           else:
             - pytorch-gpu ==${{ version }}
             - pytorch-cpu ==99999999
-          then: pytorch-cpu ==${{ version }}
-        - if: "cuda_compiler_version == \"None\""
-          then: pytorch-gpu ==99999999
+          then:
+            - pytorch-cpu ==${{ version }}
+            - pytorch-gpu ==99999999
     tests:
       - python:
           imports:
