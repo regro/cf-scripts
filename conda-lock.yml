@@ -4601,7 +4601,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.9'
+      python: '>=3.10'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4611,14 +4611,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
-      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
+      md5: aaf573edde352953947e2bbdc66a2c63
+      sha256: eafd3d566a59112099d001caec009d46092660c85b3bc385779cacb31292e1f5
     manager: conda
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
-    version: 2.7.6
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.8.0-pyhd8ed1ab_0.conda
+    version: 2.8.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4628,7 +4628,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.9'
+      python: '>=3.10'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4638,14 +4638,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
-      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
+      md5: aaf573edde352953947e2bbdc66a2c63
+      sha256: eafd3d566a59112099d001caec009d46092660c85b3bc385779cacb31292e1f5
     manager: conda
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
-    version: 2.7.6
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.8.0-pyhd8ed1ab_0.conda
+    version: 2.8.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4655,7 +4655,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.9'
+      python: '>=3.10'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4665,14 +4665,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
-      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
+      md5: aaf573edde352953947e2bbdc66a2c63
+      sha256: eafd3d566a59112099d001caec009d46092660c85b3bc385779cacb31292e1f5
     manager: conda
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
-    version: 2.7.6
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.8.0-pyhd8ed1ab_0.conda
+    version: 2.8.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
