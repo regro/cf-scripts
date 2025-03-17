@@ -46,7 +46,7 @@ YAML_PATHS = [
         (
             "qtqtmain_octave_before_meta.yaml",
             ("qtqtmain_octave_after_meta.yaml", "qtqtmain_octave_xz_after_meta.yaml"),
-            "2025.3.25",
+            "2025.3.75",
             VERSION_WITH_QTQTMAIN,
         ),
         (
