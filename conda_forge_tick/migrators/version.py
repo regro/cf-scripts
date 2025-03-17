@@ -77,24 +77,22 @@ class Version(Migrator):
         super().__init__(*args, **kwargs, check_solvable=False)
         self._new_version = None
 
-        self._reset_effective_graph()
-
-    def filter(
-        self,
-        attrs: "AttrsTypedDict",
-        not_bad_str_start: str = "",
-        new_version=None,
-    ) -> bool:
+    def filter_not_in_migration(self, attrs, not_bad_str_start="", new_version=None):
         # if no new version do nothing
         if new_version is None:
             vpri = attrs.get("version_pr_info", {})
             if "new_version" not in vpri or not vpri["new_version"]:
-                return True
-            new_version = vpri["new_version"]
+                no_new_version = True
+            else:
+                new_version = vpri["new_version"]
+                no_new_version = False
+        else:
+            no_new_version = False
+
         self._new_version = new_version
 
         # if no jinja2 version, then move on
-
+        no_jinja2_ver = False
         schema_version = get_keys_default(
             attrs,
             ["meta_yaml", "schema_version"],
@@ -103,27 +101,25 @@ class Version(Migrator):
         )
         if schema_version == 0:
             if "raw_meta_yaml" not in attrs:
-                return True
+                no_jinja2_ver = True
             if "{% set version" not in attrs["raw_meta_yaml"]:
-                return True
+                no_jinja2_ver = True
         elif schema_version == 1:
             # load yaml and check if context is there
             if "raw_meta_yaml" not in attrs:
-                return True
+                no_jinja2_ver = True
 
             yaml = load_yaml(attrs["raw_meta_yaml"])
             if "context" not in yaml:
-                return True
+                no_jinja2_ver = True
 
             if "version" not in yaml["context"]:
-                return True
+                no_jinja2_ver = True
         else:
             raise NotImplementedError("Schema version not implemented!")
 
-        conditional = super().filter(attrs)
-        result = bool(
-            conditional  # if archived/finished/schema version skip
-            or len(
+        too_many_prs = (
+            len(
                 [
                     k
                     for k in attrs.get("pr_info", {}).get("PRed", [])
@@ -133,7 +129,6 @@ class Version(Migrator):
                 ],
             )
             > self.max_num_prs
-            or not new_version,  # if no new version
         )
 
         try:
@@ -210,7 +205,18 @@ class Version(Migrator):
         )
 
         self._new_version = None
-        return result or version_filter or skip_filter or ignore_filter or skip_me
+
+        return (
+            no_new_version
+            or (not new_version)
+            or no_jinja2_ver
+            or too_many_prs
+            or version_filter
+            or skip_filter
+            or ignore_filter
+            or skip_me
+            or super().filter_not_in_migration(attrs, not_bad_str_start)
+        )
 
     def migrate(
         self,
