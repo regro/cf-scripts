@@ -20,11 +20,11 @@ build:
 
 requirements:
   build:
-    - if: build_platform != target_platform
+    - if: build_platform != host_platform
       then: python
-    - if: build_platform != target_platform
-      then: cross-python_${{ target_platform }}
-    - if: build_platform != target_platform
+    - if: build_platform != host_platform
+      then: cross-python_${{ host_platform }}
+    - if: build_platform != host_platform
       then: cython
     - ${{ compiler('c') }}
     # gcc 7.3 segfaults on aarch64

@@ -168,7 +168,6 @@ class CrossPythonMigrator(MiniMigrator):
         host_reqs = attrs.get("requirements", {}).get("host", set())
         with pushd(recipe_dir):
             recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
-            var_prefix = "$" if recipe_file == "recipe.yaml" else ""
             with open(recipe_file) as f:
                 lines = f.readlines()
             in_reqs = False
@@ -197,7 +196,11 @@ class CrossPythonMigrator(MiniMigrator):
                     for pkg in reversed(
                         [
                             "python",
-                            f"cross-python_{var_prefix}{{{{ target_platform }}}}",
+                            (
+                                "cross-python_${{ host_platform }}"
+                                if recipe_file == "recipe.yaml"
+                                else "cross-python_{{ target_platform }}"
+                            ),
                             "cython",
                             "numpy",
                             "cffi",
@@ -208,7 +211,7 @@ class CrossPythonMigrator(MiniMigrator):
                             if recipe_file == "recipe.yaml":
                                 new_line = (
                                     " " * spaces
-                                    + "- if: build_platform != target_platform\n"
+                                    + "- if: build_platform != host_platform\n"
                                 )
                                 lines.insert(i + 1, new_line)
                                 new_line = " " * spaces + f"  then: {pkg}\n"
