@@ -25,7 +25,7 @@ def _insert_subsection(
     section: str,
     subsection: str,
     new_item: str,
-) -> None:
+) -> bool:
     """Append a new item onto the end of the section.subsection of a recipe."""
     # Strategy: Read the file as a list of strings. Split the file in half at the end of the
     # section.subsection section. Append the new_item to the first half. Combine the two
@@ -58,10 +58,12 @@ def _insert_subsection(
 
     if not break_located:
         # Don't overwrite file if we didn't find section.subsection
-        return
+        return False
 
     with open(filename, "w") as f:
         f.writelines(first_half + [new_item] + second_half)
+
+    return True
 
 
 class AddNVIDIATools(Migrator):
@@ -165,13 +167,17 @@ class AddNVIDIATools(Migrator):
         if _file_contains(meta, "cf-nvidia-tools"):
             logging.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
         else:
-            _insert_subsection(
+            if _insert_subsection(
                 meta,
                 "requirements",
                 "build",
                 "    - cf-nvidia-tools 1  # [linux]\n",
-            )
-            logging.debug("cf-nvidia-tools added to meta.yaml.")
+            ):
+                logging.debug("cf-nvidia-tools added to meta.yaml.")
+            else:
+                logging.warning(
+                    "cf-nvidia-tools migration failed to add cf-nvidia-tools to meta.yaml. Manual migration required."
+                )
 
         # STEP 2: Add check-glibc to the build script
         build = os.path.join(recipe_dir, "build.sh")
@@ -192,13 +198,17 @@ class AddNVIDIATools(Migrator):
                     "meta.yaml already contains check-glibc; not adding again."
                 )
             else:
-                _insert_subsection(
+                if _insert_subsection(
                     meta,
                     "build",
                     "script",
                     '    - check-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*  # [linux]\n',
-                )
-                logging.debug("Added check-glibc to meta.yaml")
+                ):
+                    logging.debug("Added check-glibc to meta.yaml")
+                else:
+                    logging.warning(
+                        "cf-nvidia-tools migration failed to add check-glibc to meta.yaml. Manual migration required."
+                    )
 
         # STEP 3: Remove os_version keys from conda-forge.yml
         config = os.path.join(recipe_dir, "..", "conda-forge.yml")
