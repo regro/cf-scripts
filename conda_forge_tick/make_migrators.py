@@ -265,7 +265,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
         )
 
 
-# TODO: adjust code here for new migrators that make their own graphs
 def add_rebuild_migration_yaml(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
