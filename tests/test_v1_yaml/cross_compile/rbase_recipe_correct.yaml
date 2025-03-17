@@ -24,7 +24,7 @@ build:
 
 requirements:
   build:
-    - if: build_platform != target_platform
+    - if: build_platform != host_platform
       then:
         - cross-r-base ${{ r_base }}
         - r-rlang

@@ -355,7 +355,7 @@ class CrossRBaseMigrator(MiniMigrator):
                         new_lines.extend(
                             [
                                 " " * nspaces
-                                + "- if: build_platform != target_platform\n",
+                                + "- if: build_platform != host_platform\n",
                                 " " * nspaces + "  then:\n",
                                 " " * nspaces + "    - cross-r-base ${{ r_base }}\n",
                             ]
