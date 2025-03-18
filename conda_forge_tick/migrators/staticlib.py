@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import secrets
 import time
 import typing
 from functools import lru_cache
@@ -31,6 +32,8 @@ if typing.TYPE_CHECKING:
 
 BUILD_STRING_END_RE = re.compile(r".*_\d+$")
 
+RNG = secrets.SystemRandom()
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,8 +62,8 @@ def _read_repodata(platform_arch: str) -> Any:
     for i in range(10):
         try:
             rd_fn = fetch_repodata([platform_arch])[0]
-        except Exception as e:
-            time.sleep(0.1 * 2**i)
+        except Exception:
+            time.sleep((0.1 * 2**i) + RNG.uniform(0, 0.1))
             continue
         else:
             break
