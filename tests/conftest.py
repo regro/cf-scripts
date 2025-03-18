@@ -101,5 +101,6 @@ class FakeLazyJson(dict):
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "mongodb: mark tests that run with mongodb",
+        "markers",
+        "mongodb: mark tests that run with mongodb",
     )
