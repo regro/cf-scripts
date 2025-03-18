@@ -151,6 +151,7 @@ def test_migrator_to_json_matplotlib_base():
             "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
+        total_graph=TOTAL_GRAPH,
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
@@ -170,9 +171,10 @@ def test_migrator_to_json_matplotlib_base():
 
 def test_migrator_to_json_migration_yaml():
     migrator = conda_forge_tick.migrators.MigrationYaml(
-        yaml_contents="hello world",
+        yaml_contents="{}",
         name="hi",
         blah="foo",
+        total_graph=TOTAL_GRAPH,
     )
 
     data = migrator.to_lazy_json_data()
@@ -201,6 +203,7 @@ def test_migrator_to_json_rebuild():
             "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
+        total_graph=TOTAL_GRAPH,
     )
 
     data = migrator.to_lazy_json_data()
@@ -222,12 +225,13 @@ def test_migrator_to_json_rebuild():
 def test_migrator_to_json_arch():
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
 
     migrator = conda_forge_tick.migrators.ArchRebuild(
         target_packages=["python"],
-        graph=gx,
         pr_limit=5,
         name="aarch64 and ppc64le addition",
+        total_graph=gx,
     )
 
     data = migrator.to_lazy_json_data()
@@ -249,10 +253,11 @@ def test_migrator_to_json_arch():
 def test_migrator_to_json_osx_arm():
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
 
     migrator = conda_forge_tick.migrators.OSXArm(
         target_packages=["python"],
-        graph=gx,
+        total_graph=gx,
         pr_limit=5,
         name="arm osx addition",
     )

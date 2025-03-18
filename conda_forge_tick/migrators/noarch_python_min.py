@@ -445,7 +445,7 @@ class NoarchPythonMinMigrator(Migrator):
             total_graph.clear_edges()
 
         super().__init__(
-            pr_limit,
+            pr_limit=pr_limit,
             graph=graph,
             effective_graph=effective_graph,
             piggy_back_migrations=piggy_back_migrations,
