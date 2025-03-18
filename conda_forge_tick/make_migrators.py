@@ -848,7 +848,7 @@ def add_nvtools_migrator(
                     attrs, StaticLibMigrator.allowed_schema_versions
                 )
                 has_nvidia = False
-                if "meta_yaml" in sttrs and "source" in attrs["meta_yaml"]:
+                if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
                     if isinstance(attrs["meta_yaml"]["source"], list):
                         src_list = attrs["meta_yaml"]["source"]
                     else:
