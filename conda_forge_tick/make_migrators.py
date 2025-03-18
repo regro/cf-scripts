@@ -243,7 +243,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             ArchRebuild(
                 total_graph=gx,
                 pr_limit=PR_LIMIT,
-                name="aarch64 and ppc64le addition",
             ),
         )
 
@@ -252,7 +251,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             OSXArm(
                 total_graph=gx,
                 pr_limit=PR_LIMIT,
-                name="arm osx addition",
                 piggy_back_migrations=[
                     UpdateConfigSubGuessMigrator(),
                     CondaForgeYAMLCleanup(),

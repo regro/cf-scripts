@@ -1,19 +1,18 @@
 import logging
 import os
 import re
+import tempfile
 from unittest import mock
 
 import networkx as nx
 import pytest
 
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
+from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 
-G = nx.DiGraph()
-G.add_node("conda", reqs=["python"], payload={})
-G.graph["outputs_lut"] = {}
 os.environ["RUN_URL"] = "hi world"
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -119,12 +118,25 @@ migrator_ts: 12345.2
 """
 
 
+@pytest.fixture
+def test_graph():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        gx = nx.DiGraph()
+        lzj = LazyJson(os.path.join(tmpdir, "conda.json"))
+        with lzj as attrs:
+            attrs.update({"reqs": ["python"]})
+        gx.add_node("conda", payload=lzj)
+        gx.graph["outputs_lut"] = {}
+
+        yield gx
+
+
 @pytest.mark.parametrize(
     "in_out_yaml",
     [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY)],
 )
 @mock.patch("time.time")
-def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmp_path):
+def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmp_path, test_graph):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.migration_yaml",
@@ -142,7 +154,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmp_path):
         pin_spec=pin_spec,
         feedstock_name="hi",
         pinnings=["libboost_devel", "libboost_python_devel"],
-        total_graph=G,
+        total_graph=test_graph,
     )
 
     with pushd(tmp_path):

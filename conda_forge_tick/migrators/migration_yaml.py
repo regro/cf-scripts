@@ -635,7 +635,10 @@ class MigrationYamlCreator(Migrator):
         self.pinnings = pinnings
 
         super().__init__(
-            pr_limit=pr_limit, graph=graph, effective_graph=effective_graph
+            pr_limit=pr_limit,
+            graph=graph,
+            effective_graph=effective_graph,
+            total_graph=total_graph,
         )
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):

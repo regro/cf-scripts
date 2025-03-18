@@ -103,7 +103,7 @@ class ArchRebuild(GraphMigrator):
     def __init__(
         self,
         graph: nx.DiGraph | None = None,
-        name: Optional[str] = None,
+        name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
@@ -258,7 +258,7 @@ class OSXArm(GraphMigrator):
     def __init__(
         self,
         graph: nx.DiGraph | None = None,
-        name: Optional[str] = None,
+        name: str = "arm osx addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
