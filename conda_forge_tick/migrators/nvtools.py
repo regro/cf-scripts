@@ -268,3 +268,15 @@ Please ping carterbox for questions.
             + "</sub>"
         )
         return body
+
+    def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
+        """Create a commit message
+        :param feedstock_ctx:
+        """
+        return "BLD: Try to automatically add cf-nvidia-tols and check glibc"
+
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        """Branch to use on local and remote
+        :param feedstock_context:
+        """
+        return "add-cf-nvidia-tools"
