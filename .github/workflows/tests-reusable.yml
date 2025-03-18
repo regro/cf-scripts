@@ -399,7 +399,8 @@ jobs:
       - name: combine test durations
         if: ${{ ! env.CI_SKIP }}
         run: |
-          jq '. + input' test-durations-*/.test_durations.* > .test_durations
+          # see https://stackoverflow.com/a/71416016/1745538
+          jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
