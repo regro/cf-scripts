@@ -35,10 +35,12 @@ jobs:
       fail-fast: false
       matrix:
         # if change the number of groups here, also change it next to --splits below
-        group: [1, 2]
+        group: [1, 2, 3]
     defaults:
       run:
         shell: bash -leo pipefail {0}
+    env:
+      NUM_SPLITS: 3
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -137,7 +139,7 @@ jobs:
           fi
           pytest \
             -v \
-            --splits 2 --group ${{ matrix.group }} \
+            --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
             --splitting-algorithm least_duration \
@@ -315,7 +317,7 @@ jobs:
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         if: ${{ ! env.CI_SKIP }}
         with:
-          name: coverage-${{ matrix.group }}
+          name: coverage-mongodb
           path: .coverage
           include-hidden-files: true
 
