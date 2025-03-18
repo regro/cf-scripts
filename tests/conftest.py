@@ -97,3 +97,9 @@ class FakeLazyJson(dict):
         exc_tb: TracebackType | None,
     ) -> None:
         pass
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "mongodb: mark tests that run with mongodb",
+    )

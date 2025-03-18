@@ -103,6 +103,153 @@ jobs:
 
           python -m pip install -v --no-deps --no-build-isolation -e .
 
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        if: ${{ ! env.CI_SKIP }}
+
+      - name: build docker image
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:test
+
+      - name: restore test durations
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf  # v4.2.2
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
+
+      - name: run pytest
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          export TEST_BOT_TOKEN_VAL=unpassword
+          # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
+          # MONGODB_CONNECTION_STRING sensitive environment variable
+          if [[ -f .test_durations ]]; then
+            cp .test_durations .test_durations.${{ matrix.group }}
+          fi
+          pytest \
+            -v \
+            --splits 2 --group ${{ matrix.group }} \
+            --store-durations \
+            --durations-path=.test_durations.${{ matrix.group }} \
+            --splitting-algorithm least_duration \
+            --clean-durations \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --durations=10 \
+            --ignore=tests/model \
+            -m "not mongodb" \
+            tests
+        env:
+          RUN_URL: ""
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: upload test durations
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          name: test-durations-${{ matrix.group }}
+          path: .test_durations.${{ matrix.group }}
+          include-hidden-files: true
+
+      - name: upload coverage
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          name: coverage-${{ matrix.group }}
+          path: .coverage
+          include-hidden-files: true
+
+  tests-mongodb:
+    name: tests-mongodb
+    runs-on: "ubuntu-latest"
+    permissions:
+      actions: write  # for deleting cache entries
+      contents: read
+    strategy:
+      # continue running the tests even if one of the groups fails
+      fail-fast: false
+      matrix:
+        # if change the number of groups here, also change it next to --splits below
+        group: [3]
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: "regro/cf-scripts"
+
+      - name: prep the lockfile
+        if:  ${{ !inputs.lockfile-is-artifact }}
+        run: |
+          mkdir input-lockfile
+          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+
+      - name: download lockfile if it is an artifact
+        if: ${{ inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: ${{ inputs.lockfile }}
+          path: input-lockfile
+
+      - name: move lockfile to repo
+        run: |
+          mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
+          rm -rf input-lockfile
+
+      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: stop me if needed
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: configure conda and install code
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Set up git
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+      - name: test versions
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+
+          pip uninstall conda-forge-tick --yes
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
+
       - name: start MongoDB
         uses: supercharge/mongodb-github-action@90004df786821b6308fb02299e5835d0dae05d0d # v1.12.0
         if: ${{ ! env.CI_SKIP }}
@@ -162,6 +309,7 @@ jobs:
             --cov-report=xml \
             --durations=10 \
             --ignore=tests/model \
+            -m "mongodb" \
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
