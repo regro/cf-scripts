@@ -113,3 +113,10 @@ def test_graph():
         gx.graph["outputs_lut"] = {}
 
         yield gx
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "mongodb: mark tests that run with mongodb",
+    )
