@@ -147,11 +147,7 @@ class AddNVIDIATools(Migrator):
                     "https://developer.download.nvidia.com" in src_url
                 )
 
-        return (
-            super().filter(attrs)
-            or attrs["archived"]
-            or (not has_nvidia)
-        )
+        return super().filter(attrs) or attrs["archived"] or (not has_nvidia)
 
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
