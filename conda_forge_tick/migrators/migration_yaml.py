@@ -574,6 +574,7 @@ class MigrationYamlCreator(Migrator):
     # TODO: make yaml_contents an arg?
     def __init__(
         self,
+        *,
         package_name: str,
         new_pin_version: str,
         current_pin: str,

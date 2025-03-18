@@ -136,14 +136,13 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmp_path):
     pin_spec = "x.x"
 
     MYM = MigrationYamlCreator(
-        pname,
-        pin_ver,
-        curr_pin,
-        pin_spec,
-        "hi",
-        G,
-        G,
+        package_name=pname,
+        new_pin_version=pin_ver,
+        current_pin=curr_pin,
+        pin_spec=pin_spec,
+        feedstock_name="hi",
         pinnings=["libboost_devel", "libboost_python_devel"],
+        total_graph=G,
     )
 
     with pushd(tmp_path):

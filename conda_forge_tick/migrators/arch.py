@@ -163,7 +163,6 @@ class ArchRebuild(GraphMigrator):
                 "total_graph": total_graph,
             }
 
-        assert not self.check_solvable, "We don't want to check solvability for aarch!"
         self.target_packages = target_packages
         self.name = name
 
@@ -175,6 +174,7 @@ class ArchRebuild(GraphMigrator):
             effective_graph=effective_graph,
             total_graph=total_graph,
         )
+        assert not self.check_solvable, "We don't want to check solvability for aarch!"
 
     def filter_node_migrated(
         self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
@@ -337,9 +337,6 @@ class OSXArm(GraphMigrator):
                 "total_graph": total_graph,
             }
 
-        assert not self.check_solvable, (
-            "We don't want to check solvability for arm osx!"
-        )
         self.target_packages = target_packages
         self.name = name
 
@@ -350,6 +347,9 @@ class OSXArm(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
             total_graph=total_graph,
+        )
+        assert not self.check_solvable, (
+            "We don't want to check solvability for arm osx!"
         )
 
     def filter_node_migrated(
