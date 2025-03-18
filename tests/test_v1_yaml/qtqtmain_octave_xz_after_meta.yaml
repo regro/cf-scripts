@@ -1,15 +1,15 @@
 schema_version: 1
 
 context:
-  version: "7.1.0"
+  version: "2025.3.75"
 
 package:
   name: octave
   version: ${{ version }}
 
 source:
-  url: https://ftp.gnu.org/gnu/octave/octave-${{ version }}.tar.xz
-  sha256: 3fd4615ebbab02c38c93ea6ba318756aedec38d98a5c732d409899e8b4356273
+  url: https://github.com/regro/cf-scripts/archive/refs/tags/${{ version }}.tar.gz
+  sha256: c77f9b4a22abda3b3b3d5887ccc716d0f99d2cc0f434110f83f3b128f392439a
 
 build:
   number: 0

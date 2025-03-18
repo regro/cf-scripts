@@ -1,11 +1,11 @@
-{% set version = "7.0.0" %}
+{% set version = "2025.3.74" %}
 
 package:
   name: octave
   version: {{ version }}
 
 source:
-  url: https://ftp.gnu.org/gnu/octave/octave-{{ version }}.tar.gz
+  url: https://github.com/regro/cf-scripts/archive/refs/tags/{{ version }}.tar.gz
   sha256: d4a9d81f3f67b4a6e07cb7a80dcb10ad5e9176fcc30762c70a81580a64b8b0b7
 
 build:
