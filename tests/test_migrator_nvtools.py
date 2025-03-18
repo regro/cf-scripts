@@ -39,27 +39,26 @@ def test_nvtools_migrate():
         mock_recipe_dir,
         mock_node_attrs,
     )
-    success = (
+    try:
         filecmp.cmp(
             os.path.join(mock_recipe_dir, "build.sh"),
             os.path.join(mock_recipe_dir_ref, "build.sh"),
             shallow=False,
         )
-        and filecmp.cmp(
+        filecmp.cmp(
             os.path.join(mock_recipe_dir, "meta.yaml"),
             os.path.join(mock_recipe_dir_ref, "meta.yaml"),
             shallow=False,
         )
-        and filecmp.cmp(
+        filecmp.cmp(
             os.path.join(mock_recipe_dir, "..", "conda-forge.yml"),
             os.path.join(mock_recipe_dir_ref, "..", "conda-forge.yml"),
             shallow=False,
         )
-    )
-    if success:
-        # Files only restored on success, so that you can see why the comparison failed
+    except Exception as e:
+        raise e
+    finally:
         [
             write_file_contents(os.path.join(mock_recipe_dir, f), b)
             for f, b in zip(["build.sh", "meta.yaml", "../conda-forge.yml"], backups)
         ]
-    assert success
