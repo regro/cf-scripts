@@ -847,9 +847,17 @@ def add_nvtools_migrator(
                 skip_schema = skip_migrator_due_to_schema(
                     attrs, StaticLibMigrator.allowed_schema_versions
                 )
-                has_nvidia = (
-                    "https://developer.download.nvidia.com" in attrs["source"]["url"]
-                )
+                has_nvidia = False
+                if "source" in attrs["meta_yaml"]:
+                    if isinstance(attrs["meta_yaml"]["source"], list):
+                        src_list = attrs["meta_yaml"]["source"]
+                    else:
+                        src_list = [attrs["meta_yaml"]["source"]]
+                    for src in src_list:
+                        if "url" in src:
+                            has_nvidia = has_nvidia or (
+                                "https://developer.download.nvidia.com" in src["url"]
+                            )
 
             if (not has_nvidia) or skip_schema:
                 pluck(gx2, node)
