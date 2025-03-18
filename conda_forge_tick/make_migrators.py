@@ -854,15 +854,10 @@ def add_nvtools_migrator(
                     else:
                         src_list = [attrs["meta_yaml"]["source"]]
                     for src in src_list:
-                        if "url" in src:
-                            has_nvidia = has_nvidia or (
-                                "https://developer.download.nvidia.com" in src["url"]
-                            )
-                else:
-                    print(
-                        f"no meta_yaml for {node} attrs: keys={set(attrs.keys())}",
-                        flush=True,
-                    )
+                        src_url = src.get("url", "") or ""
+                        has_nvidia = has_nvidia or (
+                            "https://developer.download.nvidia.com" in src_url
+                        )
 
             if (not has_nvidia) or skip_schema:
                 pluck(gx2, node)
