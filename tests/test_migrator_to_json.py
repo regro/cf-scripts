@@ -104,11 +104,7 @@ def test_migrator_to_json_version():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_migration_yaml_creator():
-    gx = nx.DiGraph()
-    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
-    gx.graph["outputs_lut"] = {}
-
+def test_migrator_to_json_migration_yaml_creator(test_graph):
     pname = "boost"
     pin_ver = "1.99.0"
     curr_pin = "1.70.0"
@@ -120,7 +116,7 @@ def test_migrator_to_json_migration_yaml_creator():
         current_pin=curr_pin,
         pin_spec=pin_spec,
         feedstock_name="hi",
-        total_graph=gx,
+        total_graph=test_graph,
         blah="foo",
     )
     data = migrator.to_lazy_json_data()

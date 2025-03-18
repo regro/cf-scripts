@@ -602,16 +602,15 @@ class MigrationYamlCreator(Migrator):
                 pin_impact = -1
 
         if not hasattr(self, "_init_args"):
-            self._init_args = [
-                package_name,
-                new_pin_version,
-                current_pin,
-                pin_spec,
-                feedstock_name,
-            ]
+            self._init_args = []
 
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = {
+                "package_name": package_name,
+                "new_pin_version": new_pin_version,
+                "current_pin": current_pin,
+                "pin_spec": pin_spec,
+                "feedstock_name": feedstock_name,
                 "graph": graph,
                 "pr_limit": pr_limit,
                 "bump_number": bump_number,

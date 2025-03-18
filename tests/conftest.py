@@ -1,10 +1,13 @@
 import os
+import tempfile
 from types import TracebackType
 from typing import Self
 
+import networkx as nx
 import pytest
 
 from conda_forge_tick import global_sensitive_env
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 
 @pytest.fixture
@@ -97,3 +100,16 @@ class FakeLazyJson(dict):
         exc_tb: TracebackType | None,
     ) -> None:
         pass
+
+
+@pytest.fixture
+def test_graph():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        gx = nx.DiGraph()
+        lzj = LazyJson(os.path.join(tmpdir, "conda.json"))
+        with lzj as attrs:
+            attrs.update({"reqs": ["python"]})
+        gx.add_node("conda", payload=lzj)
+        gx.graph["outputs_lut"] = {}
+
+        yield gx

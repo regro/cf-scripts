@@ -1,14 +1,11 @@
 import logging
 import os
 import re
-import tempfile
 from unittest import mock
 
-import networkx as nx
 import pytest
 
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
-from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
@@ -116,19 +113,6 @@ libboost_python_devel:
 - '1.99'
 migrator_ts: 12345.2
 """
-
-
-@pytest.fixture
-def test_graph():
-    with tempfile.TemporaryDirectory() as tmpdir:
-        gx = nx.DiGraph()
-        lzj = LazyJson(os.path.join(tmpdir, "conda.json"))
-        with lzj as attrs:
-            attrs.update({"reqs": ["python"]})
-        gx.add_node("conda", payload=lzj)
-        gx.graph["outputs_lut"] = {}
-
-        yield gx
 
 
 @pytest.mark.parametrize(
