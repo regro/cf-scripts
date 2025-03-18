@@ -859,7 +859,10 @@ def add_nvtools_migrator(
                                 "https://developer.download.nvidia.com" in src["url"]
                             )
                 else:
-                    print(f"no meta_yaml for {node} attrs: keys={set(attrs.keys())}", flush=True)
+                    print(
+                        f"no meta_yaml for {node} attrs: keys={set(attrs.keys())}",
+                        flush=True,
+                    )
 
             if (not has_nvidia) or skip_schema:
                 pluck(gx2, node)
