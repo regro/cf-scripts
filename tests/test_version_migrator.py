@@ -3,6 +3,7 @@ import os
 import random
 from pathlib import Path
 
+import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -10,7 +11,9 @@ from test_migrators import run_test_migration
 from conda_forge_tick.migrators import Version
 from conda_forge_tick.migrators.version import VersionMigrationError
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = Path(__file__).parent / "test_yaml"
 YAML_V1_PATH = Path(__file__).parent / "test_v1_yaml"

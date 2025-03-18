@@ -269,7 +269,7 @@ class MigrationYaml(GraphMigrator):
         # finish special init steps
         if total_graph is not None:
             total_graph = copy.deepcopy(total_graph)
-            _trim_edges_for_abi_rebuild(total_graph, self)
+            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
             total_graph.add_edges_from(
                 [(n, "conda-forge-pinning") for n in total_graph.nodes]
             )

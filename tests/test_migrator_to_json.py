@@ -8,6 +8,9 @@ import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps, loads
 from conda_forge_tick.migrators import make_from_lazy_json_data
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+
 
 def test_migrator_to_json_dep_update_minimigrator():
     python_nodes = ["blah"]
@@ -82,6 +85,7 @@ def test_migrator_to_json_version():
             conda_forge_tick.migrators.DuplicateLinesCleanup(),
             conda_forge_tick.migrators.MiniReplacement(old_pkg="foo", new_pkg="bar"),
         ],
+        total_graph=TOTAL_GRAPH,
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)

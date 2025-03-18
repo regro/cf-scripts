@@ -64,17 +64,35 @@ class Version(Migrator):
     name = MigratorName.VERSION
     allowed_schema_versions = {0, 1}
 
-    def __init__(self, python_nodes, *args, **kwargs):
+    def __init__(
+        self,
+        python_nodes,
+        *args,
+        total_graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
+        **kwargs,
+    ):
         if not hasattr(self, "_init_args"):
             self._init_args = [python_nodes, *args]
 
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = copy.deepcopy(kwargs)
+            self._init_kwargs["total_graph"] = total_graph
+            self._init_kwargs["graph"] = graph
+            self._init_kwargs["effective_graph"] = effective_graph
 
         self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
-        super().__init__(*args, **kwargs, check_solvable=False)
+        super().__init__(
+            *args,
+            **kwargs,
+            check_solvable=False,
+            total_graph=total_graph,
+            graph=graph,
+            effective_graph=effective_graph,
+        )
         self._new_version = None
 
     def filter_not_in_migration(self, attrs, not_bad_str_start="", new_version=None):

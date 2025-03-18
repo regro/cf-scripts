@@ -758,9 +758,9 @@ class GraphMigrator(Migrator):
         self.ignored_deps_per_node = ignored_deps_per_node or {}
 
         super().__init__(
-            pr_limit,
-            obj_version,
-            piggy_back_migrations,
+            pr_limit=pr_limit,
+            obj_version=obj_version,
+            piggy_back_migrations=piggy_back_migrations,
             check_solvable=check_solvable,
             graph=graph,
             effective_graph=effective_graph,

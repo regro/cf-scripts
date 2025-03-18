@@ -76,7 +76,7 @@ class Replacement(Migrator):
         self.name = f"{old_pkg}-to-{new_pkg}"
 
         super().__init__(
-            pr_limit,
+            pr_limit=pr_limit,
             check_solvable=check_solvable,
             graph=graph,
             effective_graph=effective_graph,

@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 
 import conda_smithy
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import (
@@ -48,7 +49,9 @@ from conda_forge_tick.utils import (
     parse_meta_yaml_containerized,
 )
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -608,7 +611,7 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
         assert res_cont == res_local
 
 
-yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
+yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 
 
