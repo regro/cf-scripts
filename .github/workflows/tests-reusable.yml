@@ -137,7 +137,7 @@ jobs:
           fi
           pytest \
             -v \
-            -n auto \
+            -n 3 \
             --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
