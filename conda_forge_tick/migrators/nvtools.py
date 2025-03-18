@@ -135,10 +135,22 @@ class AddNVIDIATools(Migrator):
         bool :
             True if node is to be skipped
         """
+        has_nvidia = False
+        if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
+            if isinstance(attrs["meta_yaml"]["source"], list):
+                src_list = attrs["meta_yaml"]["source"]
+            else:
+                src_list = [attrs["meta_yaml"]["source"]]
+            for src in src_list:
+                src_url = src.get("url", "") or ""
+                has_nvidia = has_nvidia or (
+                    "https://developer.download.nvidia.com" in src_url
+                )
+
         return (
             super().filter(attrs)
             or attrs["archived"]
-            or "https://developer.download.nvidia.com" not in attrs["source"]["url"]
+            or (not has_nvidia)
         )
 
     def migrate(
