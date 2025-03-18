@@ -8,7 +8,7 @@ from functools import lru_cache
 from typing import Any, Optional, Sequence
 
 import networkx as nx
-import rapidjson
+import orjson
 from conda.models.match_spec import MatchSpec
 from conda.models.records import PackageRecord
 from conda.models.version import VersionOrder
@@ -62,13 +62,13 @@ def _read_repodata(platform_arch: str) -> Any:
     for i in range(10):
         try:
             rd_fn = fetch_repodata([platform_arch])[0]
+            with open(rd_fn) as fp:
+                rd = orjson.loads(fp.read())
         except Exception:
             time.sleep((0.1 * 2**i) + RNG.uniform(0, 0.1))
             continue
         else:
             break
-    with open(rd_fn) as fp:
-        rd = rapidjson.load(fp)
     return rd
 
 
