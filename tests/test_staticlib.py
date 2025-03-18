@@ -293,6 +293,7 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
 
     graph = nx.DiGraph()
     graph.add_node(name, payload=pmy)
+    graph.graph["outputs_lut"] = {}
     m = StaticLibMigrator(
         total_graph=graph,
     )
