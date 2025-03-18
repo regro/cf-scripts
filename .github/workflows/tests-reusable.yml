@@ -35,12 +35,12 @@ jobs:
       fail-fast: false
       matrix:
         # if change the number of groups here, also change it next to --splits below
-        group: [1, 2, 3, 4]
+        group: [1, 2]
     defaults:
       run:
         shell: bash -leo pipefail {0}
     env:
-      NUM_SPLITS: 4
+      NUM_SPLITS: 2
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -132,13 +132,12 @@ jobs:
         if: ${{ ! env.CI_SKIP }}
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
-          # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
-          # MONGODB_CONNECTION_STRING sensitive environment variable
           if [[ -f .test_durations ]]; then
             cp .test_durations .test_durations.${{ matrix.group }}
           fi
           pytest \
             -v \
+            -n auto \
             --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
