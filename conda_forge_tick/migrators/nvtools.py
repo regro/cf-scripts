@@ -1,4 +1,5 @@
 import copy
+import inspect
 import logging
 import os.path
 from typing import Any
@@ -96,8 +97,7 @@ class AddNVIDIATools(Migrator):
     > refactored so that the top-level package does not share a name with one of the
     > outputs. i.e. The top-level package name should be something like "libcufoo-split".
 
-    More information about cf-nvidia-tools is available in the feedstock's
-    [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
+    More information about cf-nvidia-tools is available in the feedstock's [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
 
     Please ping carterbox for questions.
     """
@@ -108,7 +108,7 @@ class AddNVIDIATools(Migrator):
 
     max_solver_attempts = 3
 
-    migrator_version = 0
+    migrator_version = 1
 
     allow_empty_commits = False
 
@@ -241,7 +241,12 @@ class AddNVIDIATools(Migrator):
             The body of the PR message
             :param feedstock_ctx:
         """
-        body = f"{AddNVIDIATools.__doc__}\n\n"
+        body = f"{AddNVIDIATools.__doc__}"
+
+        # Dedent the multi-line docstring so that it is formatted correctly on GitHub.
+        body = inspect.cleandoc(body)
+
+        body += "\n\n"
 
         if add_label_text:
             body += (
