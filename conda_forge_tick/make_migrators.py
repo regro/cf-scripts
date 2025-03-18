@@ -35,6 +35,7 @@ from conda_forge_tick.lazy_json_backends import (
     remove_key_for_hashmap,
 )
 from conda_forge_tick.migrators import (
+    AddNVIDIATools,
     ArchRebuild,
     CombineV1ConditionsMigrator,
     CondaForgeYAMLCleanup,
@@ -698,6 +699,49 @@ def add_static_lib_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph
         migrators[-1].pr_limit = pr_limit
 
 
+def add_nvtools_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+):
+    with fold_log_lines("making add nvtools migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, StaticLibMigrator.allowed_schema_versions
+                )
+                has_nvidia = False
+                if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
+                    if isinstance(attrs["meta_yaml"]["source"], list):
+                        src_list = attrs["meta_yaml"]["source"]
+                    else:
+                        src_list = [attrs["meta_yaml"]["source"]]
+                    for src in src_list:
+                        src_url = src.get("url", "") or ""
+                        has_nvidia = has_nvidia or (
+                            "https://developer.download.nvidia.com" in src_url
+                        )
+
+            if (not has_nvidia) or skip_schema:
+                pluck(gx2, node)
+
+        migrators.append(
+            AddNVIDIATools(
+                check_solvable=False,
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            )
+        )
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -727,6 +771,8 @@ def initialize_migrators(
     add_noarch_python_min_migrator(migrators, gx)
 
     add_static_lib_migrator(migrators, gx)
+
+    add_nvtools_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)

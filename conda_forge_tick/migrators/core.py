@@ -240,7 +240,30 @@ class MiniMigrator:
 
 
 class Migrator:
-    """Base class for Migrators"""
+    """Base class for Migrators
+
+    Inheritors
+    ----------
+    Subclasses of Migrator should have at least the following in their __init__ function:
+
+    ```python
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._reset_effective_graph()
+    ```
+
+    Initialization of Instances
+    ---------------------------
+    When a migrator is initialized, you need to supply at least the following items
+
+    - pr_limit: The number of PRs the migrator can open in a given run of the bot.
+    - graph: The graph of feedstocks to be migrated.
+
+    The graph you feed the migrator should be the entire graph of feedstocks the
+    migrator could ever run on. If a migrator skips a feedstock because that migrator
+    does not apply to that feedstock, then it should not be in the graph passed to the
+    migrator. If you do not do this, the status page statistics will be incorrect.
+    """
 
     name: str
 
