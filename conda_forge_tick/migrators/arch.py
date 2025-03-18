@@ -164,7 +164,6 @@ class ArchRebuild(GraphMigrator):
             }
 
         self.target_packages = target_packages
-        self.name = name
 
         super().__init__(
             graph=graph,
@@ -173,6 +172,7 @@ class ArchRebuild(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
             total_graph=total_graph,
+            name=name,
         )
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
 
@@ -338,7 +338,6 @@ class OSXArm(GraphMigrator):
             }
 
         self.target_packages = target_packages
-        self.name = name
 
         super().__init__(
             graph=graph,
@@ -347,6 +346,7 @@ class OSXArm(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
             total_graph=total_graph,
+            name=name,
         )
         assert not self.check_solvable, (
             "We don't want to check solvability for arm osx!"

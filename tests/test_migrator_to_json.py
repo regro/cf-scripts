@@ -229,7 +229,6 @@ def test_migrator_to_json_arch():
     migrator = conda_forge_tick.migrators.ArchRebuild(
         target_packages=["python"],
         pr_limit=5,
-        name="aarch64 and ppc64le addition",
         total_graph=gx,
     )
 
@@ -258,7 +257,6 @@ def test_migrator_to_json_osx_arm():
         target_packages=["python"],
         total_graph=gx,
         pr_limit=5,
-        name="arm osx addition",
     )
 
     data = migrator.to_lazy_json_data()
