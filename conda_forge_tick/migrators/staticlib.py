@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 import typing
 from functools import lru_cache
 from typing import Any, Optional, Sequence
@@ -55,7 +56,14 @@ def _cached_match_spec(req: str | MatchSpec) -> MatchSpec:
 @lru_cache(maxsize=1)
 def _read_repodata(platform_arch: str) -> Any:
     platform_arch = platform_arch.replace("_", "-")
-    rd_fn = fetch_repodata([platform_arch])[0]
+    for i in range(10):
+        try:
+            rd_fn = fetch_repodata([platform_arch])[0]
+        except Exception as e:
+            time.sleep(0.1 * 2**i)
+            continue
+        else:
+            break
     with open(rd_fn) as fp:
         rd = rapidjson.load(fp)
     return rd

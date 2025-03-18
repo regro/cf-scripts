@@ -141,7 +141,7 @@ jobs:
             --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
-            --splitting-algorithm least_duration \
+            --splitting-algorithm duration_based_chunks \
             --clean-durations \
             --cov=conda_forge_tick \
             --cov=tests \
