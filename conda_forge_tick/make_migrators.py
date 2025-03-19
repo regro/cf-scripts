@@ -704,31 +704,10 @@ def add_nvtools_migrator(
     gx: nx.DiGraph,
 ):
     with fold_log_lines("making add nvtools migrator"):
-        gx2 = copy.deepcopy(gx)
-        for node in list(gx2.nodes):
-            with gx2.nodes[node]["payload"] as attrs:
-                skip_schema = skip_migrator_due_to_schema(
-                    attrs, StaticLibMigrator.allowed_schema_versions
-                )
-                has_nvidia = False
-                if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
-                    if isinstance(attrs["meta_yaml"]["source"], list):
-                        src_list = attrs["meta_yaml"]["source"]
-                    else:
-                        src_list = [attrs["meta_yaml"]["source"]]
-                    for src in src_list:
-                        src_url = src.get("url", "") or ""
-                        has_nvidia = has_nvidia or (
-                            "https://developer.download.nvidia.com" in src_url
-                        )
-
-            if (not has_nvidia) or skip_schema:
-                pluck(gx2, node)
-
         migrators.append(
             AddNVIDIATools(
                 check_solvable=False,
-                graph=gx2,
+                total_graph=gx,
                 pr_limit=PR_LIMIT,
                 piggy_back_migrations=_make_mini_migrators_with_defaults(
                     extra_mini_migrators=[YAMLRoundTrip()],

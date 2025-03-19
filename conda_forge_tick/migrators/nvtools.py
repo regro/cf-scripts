@@ -81,27 +81,7 @@ class AddNVIDIATools(Migrator):
 
     allowed_schema_versions = [0]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._reset_effective_graph()
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """If true don't act upon node
-
-        Parameters
-        ----------
-        attrs : dict
-            The node attributes
-        not_bad_str_start : str, optional
-            If the 'bad' notice starts with the string then it is not
-            to be excluded. For example, rebuild migrations don't need
-            to worry about if the upstream can be fetched. Defaults to ``''``
-
-        Returns
-        -------
-        bool :
-            True if node is to be skipped
-        """
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
         has_nvidia = False
         if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
             if isinstance(attrs["meta_yaml"]["source"], list):
@@ -114,7 +94,9 @@ class AddNVIDIATools(Migrator):
                     "https://developer.download.nvidia.com" in src_url
                 )
 
-        return super().filter(attrs) or attrs["archived"] or (not has_nvidia)
+        return (not has_nvidia) or super().filter_not_in_migration(
+            attrs, not_bad_str_start
+        )
 
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
