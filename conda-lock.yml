@@ -6896,29 +6896,29 @@ package:
     version: 14.2.0
   - category: main
     dependencies:
-      libgfortran5: 13.2.0
+      libgfortran5: 14.2.0
     hash:
-      md5: 0b6e23a012ee7a9a5f6b244f5a92c1d5
-      sha256: 4874422e567b68334705c135c17e5acdca1404de8255673ce30ad3510e00be0d
+      md5: 72777bbb62bfb1ab6208075693c51669
+      sha256: 65024cea7d746cf9087b2b5f8571bb505da59c492db61948afea6b806ec529fd
     manager: conda
     name: libgfortran
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libgfortran-5.0.0-13_2_0_h97931a8_3.conda
+      https://conda.anaconda.org/conda-forge/osx-64/libgfortran-5.0.0-14_2_0_h51e75f0_0.conda
     version: 5.0.0
   - category: main
     dependencies:
-      libgfortran5: 13.2.0
+      libgfortran5: 13.3.0
     hash:
-      md5: 4a55d9e169114b2b90d3ec4604cd7bbf
-      sha256: 44e541b4821c96b28b27fef5630883a60ce4fee91fd9c79f25a199f8f73f337b
+      md5: 3eb748379825b5d4f151b0035ae142fa
+      sha256: c2220d5394a518421b11ebfb58bb3a0397ccb77d56b5ccafb41a40f188918773
     manager: conda
     name: libgfortran
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-5.0.0-13_2_0_hd922786_3.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-5.0.0-13_3_0_h90ca347_0.conda
     version: 5.0.0
   - category: main
     dependencies:
@@ -6938,28 +6938,28 @@ package:
     dependencies:
       llvm-openmp: '>=8.0.0'
     hash:
-      md5: e4fb4d23ec2870ff3c40d10afe305aec
-      sha256: da3db4b947e30aec7596a3ef92200d17e774cccbbf7efc47802529a4ca5ca31b
+      md5: add712eb362906605f20542e42d0ef46
+      sha256: a1a6b489b3caf681dc7ccff2907101ecd3e6dd328a766d11734945fbb1722ec7
     manager: conda
     name: libgfortran5
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-13.2.0-h2873a65_3.conda
-    version: 13.2.0
+      https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-14.2.0-h51e75f0_0.conda
+    version: 14.2.0
   - category: main
     dependencies:
       llvm-openmp: '>=8.0.0'
     hash:
-      md5: 66ac81d54e95c534ae488726c1f698ea
-      sha256: bafc679eedb468a86aa4636061c55966186399ee0a04b605920d208d97ac579a
+      md5: 562766651b810784ac40ebf2a0ddf22c
+      sha256: c2045847da912c4c9d8b20b7629171f401d44fefdd499ddee1f1e12f25a67614
     manager: conda
     name: libgfortran5
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-13.2.0-hf226fd6_3.conda
-    version: 13.2.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-13.3.0-h90ca347_0.conda
+    version: 13.3.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -12502,15 +12502,15 @@ package:
       tomli: '>=1.0.0'
       typing-extensions: ''
     hash:
-      md5: ff7e641a17f56af4b8f65654d677f5c3
-      sha256: 8fa2c0460fc910e8c340f25850a2076393eae3879db1085f7dc584258cd883c0
+      md5: 1f960a50e0fba37b5f04ec766df10657
+      sha256: 9a98abc0e600f48ce0be6aa412ca5e83a95b8f16f14a139212a1f15614c5dcaa
     manager: conda
     name: setuptools-scm
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.0-pyhd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.1-pyhd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
       packaging: '>=20.0'
@@ -12519,15 +12519,15 @@ package:
       tomli: '>=1.0.0'
       typing-extensions: ''
     hash:
-      md5: ff7e641a17f56af4b8f65654d677f5c3
-      sha256: 8fa2c0460fc910e8c340f25850a2076393eae3879db1085f7dc584258cd883c0
+      md5: 1f960a50e0fba37b5f04ec766df10657
+      sha256: 9a98abc0e600f48ce0be6aa412ca5e83a95b8f16f14a139212a1f15614c5dcaa
     manager: conda
     name: setuptools-scm
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.0-pyhd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.1-pyhd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
       packaging: '>=20.0'
@@ -12536,54 +12536,54 @@ package:
       tomli: '>=1.0.0'
       typing-extensions: ''
     hash:
-      md5: ff7e641a17f56af4b8f65654d677f5c3
-      sha256: 8fa2c0460fc910e8c340f25850a2076393eae3879db1085f7dc584258cd883c0
+      md5: 1f960a50e0fba37b5f04ec766df10657
+      sha256: 9a98abc0e600f48ce0be6aa412ca5e83a95b8f16f14a139212a1f15614c5dcaa
     manager: conda
     name: setuptools-scm
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.0-pyhd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-8.2.1-pyhd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
-      setuptools-scm: '>=8.2.0,<8.2.1.0a0'
+      setuptools-scm: '>=8.2.1,<8.2.2.0a0'
     hash:
-      md5: 391afbc89b2c6a60377400f1d6fdd0b3
-      sha256: 3a35dda811df581ec59aebfc5068129f93e939e0f73e9b834ee7253b36974426
+      md5: ba6dd8f5a2d2b46fd52f03ac212e8c6a
+      sha256: 368da667755722f4fc70663c3589c192cf9a75487dd7636247bc06d7acc52605
     manager: conda
     name: setuptools_scm
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.0-hd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.1-hd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
-      setuptools-scm: '>=8.2.0,<8.2.1.0a0'
+      setuptools-scm: '>=8.2.1,<8.2.2.0a0'
     hash:
-      md5: 391afbc89b2c6a60377400f1d6fdd0b3
-      sha256: 3a35dda811df581ec59aebfc5068129f93e939e0f73e9b834ee7253b36974426
+      md5: ba6dd8f5a2d2b46fd52f03ac212e8c6a
+      sha256: 368da667755722f4fc70663c3589c192cf9a75487dd7636247bc06d7acc52605
     manager: conda
     name: setuptools_scm
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.0-hd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.1-hd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
-      setuptools-scm: '>=8.2.0,<8.2.1.0a0'
+      setuptools-scm: '>=8.2.1,<8.2.2.0a0'
     hash:
-      md5: 391afbc89b2c6a60377400f1d6fdd0b3
-      sha256: 3a35dda811df581ec59aebfc5068129f93e939e0f73e9b834ee7253b36974426
+      md5: ba6dd8f5a2d2b46fd52f03ac212e8c6a
+      sha256: 368da667755722f4fc70663c3589c192cf9a75487dd7636247bc06d7acc52605
     manager: conda
     name: setuptools_scm
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.0-hd8ed1ab_0.conda
-    version: 8.2.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-8.2.1-hd8ed1ab_0.conda
+    version: 8.2.1
   - category: main
     dependencies:
       python: '>=3.9'
