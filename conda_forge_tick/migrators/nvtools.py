@@ -3,7 +3,7 @@ import logging
 import os.path
 from typing import Any
 
-from conda_forge_tick.contexts import ClonedFeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.utils import (
     get_bot_run_url,
@@ -67,40 +67,7 @@ def _insert_subsection(
 
 
 class AddNVIDIATools(Migrator):
-    """Add the cf-nvidia-tools package to NVIDIA redist feedstocks.
-
-    In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
-    correctly, NVIDIA has created a package containing a collection of tools to perform
-    common actions for NVIDIA recipes.
-
-    At this time, the package may be used to check Linux binaries for their minimum glibc
-    requirement in order to ensure that the correct metadata is being used in the conda
-    package.
-
-    This migrator will attempt to add this glibc check to all feedstocks which download any
-    artifacts from https://developer.download.nvidia.com. The check involves adding
-    "cf-nvidia-tools" to the top-level build requirements and something like:
-
-    ```bash
-    check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*
-    ```
-
-    to the build script after the package artifacts have been installed.
-
-    > [!NOTE]
-    > A human needs to verify that the glob expression is checking all of the correct
-    > artifacts!
-
-    > [!NOTE]
-    > If the recipe does not have a top-level requirements.build section, it should be
-    > refactored so that the top-level package does not share a name with one of the
-    > outputs. i.e. The top-level package name should be something like "libcufoo-split".
-
-    More information about cf-nvidia-tools is available in the feedstock's
-    [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
-
-    Please ping carterbox for questions.
-    """
+    """Add the cf-nvidia-tools package to NVIDIA redist feedstocks."""
 
     name = "NVIDIA Tools Migrator"
 
@@ -108,7 +75,7 @@ class AddNVIDIATools(Migrator):
 
     max_solver_attempts = 3
 
-    migrator_version = 0
+    migrator_version = 1
 
     allow_empty_commits = False
 
@@ -230,6 +197,9 @@ class AddNVIDIATools(Migrator):
 
         return self.migrator_uid(attrs)
 
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        return "Add the cf-nvidia-tools package and run check-glibc"
+
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
@@ -241,7 +211,40 @@ class AddNVIDIATools(Migrator):
             The body of the PR message
             :param feedstock_ctx:
         """
-        body = f"{AddNVIDIATools.__doc__}\n\n"
+        body = """\
+In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
+correctly, NVIDIA has created a package containing a collection of tools to perform
+common actions for NVIDIA recipes.
+
+At this time, the package may be used to check Linux binaries for their minimum glibc
+requirement in order to ensure that the correct metadata is being used in the conda
+package.
+
+This migrator will attempt to add this glibc check to all feedstocks which download any
+artifacts from https://developer.download.nvidia.com. The check involves adding
+"cf-nvidia-tools" to the top-level build requirements and something like:
+
+```bash
+check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*
+```
+
+to the build script after the package artifacts have been installed.
+
+> [!NOTE]
+> A human needs to verify that the glob expression is checking all of the correct
+> artifacts!
+
+> [!NOTE]
+> If the recipe does not have a top-level requirements.build section, it should be
+> refactored so that the top-level package does not share a name with one of the
+> outputs. i.e. The top-level package name should be something like "libcufoo-split".
+
+More information about cf-nvidia-tools is available in the feedstock's [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
+
+Please ping carterbox for questions.
+"""
+
+        body += "\n\n"
 
         if add_label_text:
             body += (
@@ -265,3 +268,15 @@ class AddNVIDIATools(Migrator):
             + "</sub>"
         )
         return body
+
+    def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
+        """Create a commit message
+        :param feedstock_ctx:
+        """
+        return "BLD: Try to automatically add cf-nvidia-tols and check glibc"
+
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        """Branch to use on local and remote
+        :param feedstock_context:
+        """
+        return "add-cf-nvidia-tools"
