@@ -3,6 +3,7 @@ import inspect
 import pprint
 
 import networkx as nx
+import pytest
 
 import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps, loads
@@ -190,7 +191,7 @@ def test_migrator_to_json_migration_yaml():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_rebuild():
+def test_migrator_to_json_replacement():
     migrator = conda_forge_tick.migrators.Replacement(
         old_pkg="matplotlib",
         new_pkg="matplotlib-base",
@@ -268,4 +269,30 @@ def test_migrator_to_json_osx_arm():
         pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
     ]
     assert isinstance(migrator2, conda_forge_tick.migrators.OSXArm)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
+@pytest.mark.parametrize(
+    "klass",
+    [
+        conda_forge_tick.migrators.AddNVIDIATools,
+        conda_forge_tick.migrators.RebuildBroken,
+    ],
+)
+def test_migrator_to_json_others(klass):
+    migrator = klass(total_graph=TOTAL_GRAPH)
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == klass.__name__
+    assert data["name"] == migrator.name.replace(" ", "_")
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, klass)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
