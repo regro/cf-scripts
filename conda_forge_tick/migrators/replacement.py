@@ -84,6 +84,9 @@ class Replacement(Migrator):
         )
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         requirements = attrs.get("requirements", {})
         rq = (
             requirements.get("build", set())
@@ -92,9 +95,7 @@ class Replacement(Migrator):
             | requirements.get("test", set())
         )
 
-        return (len(rq & self.packages) == 0) or super().filter_not_in_migration(
-            attrs, not_bad_str_start
-        )
+        return len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

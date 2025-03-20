@@ -367,8 +367,11 @@ class RebuildBroken(Migrator):
         return sorted(list(graph.nodes), key=lambda x: RNG.random())
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         not_broken = attrs["feedstock_name"] not in self.feedstocks_to_migrate
-        return not_broken or super().filter_not_in_migration(attrs, not_bad_str_start)
+        return not_broken
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))

@@ -82,6 +82,9 @@ class AddNVIDIATools(Migrator):
     allowed_schema_versions = [0]
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         has_nvidia = False
         if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
             if isinstance(attrs["meta_yaml"]["source"], list):
@@ -94,9 +97,7 @@ class AddNVIDIATools(Migrator):
                     "https://developer.download.nvidia.com" in src_url
                 )
 
-        return (not has_nvidia) or super().filter_not_in_migration(
-            attrs, not_bad_str_start
-        )
+        return not has_nvidia
 
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any

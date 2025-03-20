@@ -478,6 +478,9 @@ class StaticLibMigrator(GraphMigrator):
         return False
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         update_static_libs = get_keys_default(
             attrs,
             ["conda-forge.yml", "bot", "update_static_libs"],
@@ -491,25 +494,24 @@ class StaticLibMigrator(GraphMigrator):
                 attrs.get("name") or "",
             )
 
-        platform_arches = tuple(attrs.get("platforms") or [])
-        static_libs_out_of_date, slrep = any_static_libs_out_of_date(
-            platform_arches=platform_arches,
-            raw_meta_yaml=attrs.get("raw_meta_yaml") or "",
-        )
-        if not static_libs_out_of_date:
-            logger.debug(
-                "filter %s: no static libs out of date\nmapping: %s",
-                attrs.get("name") or "",
-                static_libs_out_of_date,
-                slrep,
+        if update_static_libs:
+            platform_arches = tuple(attrs.get("platforms") or [])
+            static_libs_out_of_date, slrep = any_static_libs_out_of_date(
+                platform_arches=platform_arches,
+                raw_meta_yaml=attrs.get("raw_meta_yaml") or "",
             )
-        _read_repodata.cache_clear()
+            if not static_libs_out_of_date:
+                logger.debug(
+                    "filter %s: no static libs out of date\nmapping: %s",
+                    attrs.get("name") or "",
+                    static_libs_out_of_date,
+                    slrep,
+                )
+            _read_repodata.cache_clear()
+        else:
+            static_libs_out_of_date = False
 
-        return (
-            (not update_static_libs)
-            or (not static_libs_out_of_date)
-            or super().filter_not_in_migration(attrs, not_bad_str_start)
-        )
+        return (not update_static_libs) or (not static_libs_out_of_date)
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

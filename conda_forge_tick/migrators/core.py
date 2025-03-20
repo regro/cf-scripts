@@ -839,6 +839,9 @@ class GraphMigrator(Migrator):
         return False
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         name = attrs.get("name", "")
         not_in_migration = attrs.get("feedstock_name", None) not in (
             self.graph or self.total_graph
@@ -847,7 +850,7 @@ class GraphMigrator(Migrator):
         if not_in_migration:
             logger.debug("filter %s: node not in graph", name)
 
-        return not_in_migration or super().filter_not_in_migration(attrs, "Upstream:")
+        return not_in_migration
 
     def filter_node_migrated(self, attrs, not_bad_str_start=""):
         name = attrs.get("name", "")

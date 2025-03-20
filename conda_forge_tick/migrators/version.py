@@ -93,9 +93,11 @@ class Version(Migrator):
             graph=graph,
             effective_graph=effective_graph,
         )
-        self._new_version = None
 
     def filter_not_in_migration(self, attrs, not_bad_str_start="", new_version=None):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         # if no new version do nothing
         if new_version is None:
             vpri = attrs.get("version_pr_info", {})
@@ -107,7 +109,14 @@ class Version(Migrator):
         else:
             no_new_version = False
 
-        self._new_version = new_version
+        if no_new_version:
+            return True
+
+        fs_name = (
+            attrs.get("feedstock_name", "")
+            or attrs.get("name", "")
+            or "!!NO_FEEDSTOCK_NAME!!"
+        )
 
         # if no jinja2 version, then move on
         no_jinja2_ver = False
@@ -136,6 +145,10 @@ class Version(Migrator):
         else:
             raise NotImplementedError("Schema version not implemented!")
 
+        if no_jinja2_ver:
+            logger.debug("No jinja2 version found for feedstock %s, skipping!", fs_name)
+            return True
+
         too_many_prs = (
             len(
                 [
@@ -148,6 +161,13 @@ class Version(Migrator):
             )
             > self.max_num_prs
         )
+
+        if too_many_prs:
+            logger.debug(
+                "Too many PRs open for feedstock %s, skipping!",
+                fs_name,
+            )
+            return True
 
         try:
             version_filter = (
@@ -166,11 +186,16 @@ class Version(Migrator):
                 )
             )
         except conda.exceptions.InvalidVersionSpec as e:
-            name = attrs.get("name", "")
             warnings.warn(
-                f"Failed to filter to to invalid version for {name}\nException: {e}",
+                f"Failed to order versions to invalid version for {fs_name}, skipping!\nException: {e}",
             )
             version_filter = True
+
+        if version_filter:
+            logger.debug(
+                "Version filter failed for feedstock %s, skipping!",
+                fs_name,
+            )
 
         skip_filter = False
         random_fraction_to_keep = get_keys_default(
@@ -179,28 +204,37 @@ class Version(Migrator):
             {},
             None,
         )
-        logger.debug("random_fraction_to_keep: %r", random_fraction_to_keep)
+        logger.debug(
+            "%s: random_fraction_to_keep: %r", fs_name, random_fraction_to_keep
+        )
         if random_fraction_to_keep is not None:
             curr_state = random.getstate()
             try:
                 frac = float(random_fraction_to_keep)
 
                 # the seeding here makes the filter stable given new version
-                random.seed(a=self._new_version.replace("-", "."))
+                random.seed(a=new_version.replace("-", "."))
                 urand = random.uniform(0, 1)
 
                 if urand >= frac:
                     skip_filter = True
 
                 logger.info(
-                    "random version skip: version=%s, fraction=%f, urand=%f, skip=%r",
-                    self._new_version.replace("-", "."),
+                    "%s: random version skip: version=%s, fraction=%f, urand=%f, skip=%r",
+                    fs_name,
+                    new_version.replace("-", "."),
                     frac,
                     urand,
                     skip_filter,
                 )
             finally:
                 random.setstate(curr_state)
+
+        if skip_filter:
+            logger.debug(
+                "Skip due to random version skips for feedstock %s, skipping!", fs_name
+            )
+            return True
 
         ignore_filter = False
         versions_to_ignore = get_keys_default(
@@ -215,6 +249,14 @@ class Version(Migrator):
         ):
             ignore_filter = True
 
+        if ignore_filter:
+            logger.debug(
+                "Skip due to ignored version %s for feedstock %s, skipping!",
+                new_version,
+                fs_name,
+            )
+            return True
+
         skip_me = get_keys_default(
             attrs,
             ["conda-forge.yml", "bot", "version_updates", "skip"],
@@ -222,7 +264,11 @@ class Version(Migrator):
             False,
         )
 
-        self._new_version = None
+        if skip_me:
+            logger.debug(
+                "Skip due to skipped flag for feedstock %s, skipping!", fs_name
+            )
+            return True
 
         return (
             no_new_version
@@ -233,7 +279,6 @@ class Version(Migrator):
             or skip_filter
             or ignore_filter
             or skip_me
-            or super().filter_not_in_migration(attrs, not_bad_str_start)
         )
 
     def migrate(
@@ -243,7 +288,8 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
-        version = attrs["new_version"]
+        version = attrs.get("version_pr_info", {}).get("new_version", None)
+
         recipe_dir = Path(recipe_dir)
         recipe_path = None
         recipe_path_v0 = recipe_dir / "meta.yaml"
@@ -423,12 +469,18 @@ class Version(Migrator):
         return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return "updated v" + feedstock_ctx.attrs["new_version"]
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+            "new_version", None
+        )
+        assert isinstance(new_version, str)
+        return "updated v" + new_version
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        # TODO: turn False to True when we default to automerge
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+            "new_version", None
+        )
+        assert isinstance(new_version, str)
+
         amerge = get_keys_default(
             feedstock_ctx.attrs,
             ["conda-forge.yml", "bot", "automerge"],
@@ -440,12 +492,7 @@ class Version(Migrator):
         else:
             add_slug = ""
 
-        return (
-            add_slug
-            + feedstock_ctx.feedstock_name
-            + " v"
-            + feedstock_ctx.attrs["new_version"]
-        )
+        return add_slug + feedstock_ctx.feedstock_name + " v" + new_version
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
@@ -453,10 +500,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        if self._new_version is not None:
-            new_version = self._new_version
-        else:
-            new_version = attrs["new_version"]
+        new_version = attrs.get("version_pr_info", {}).get("new_version", None)
         n["version"] = new_version
         return n
 

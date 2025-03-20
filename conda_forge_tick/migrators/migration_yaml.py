@@ -268,6 +268,9 @@ class MigrationYaml(GraphMigrator):
 
         # finish special init steps
         if total_graph is not None:
+            # needed so that we can filter nodes not in migration
+            self.graph = None
+            self.total_graph = total_graph
             total_graph = copy.deepcopy(total_graph)
             _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
             total_graph.add_edges_from(
@@ -316,6 +319,9 @@ class MigrationYaml(GraphMigrator):
             self._init_kwargs["cycles"] = cycles
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         node = attrs["feedstock_name"]
         migrator_payload = self.loaded_yaml.get("__migrator", {})
         include_noarch = migrator_payload.get("include_noarch", False)
@@ -357,7 +363,6 @@ class MigrationYaml(GraphMigrator):
             platform_filtered
             or (not inclusion_criteria)
             or (node in excluded_feedstocks)
-            or super().filter_not_in_migration(attrs, not_bad_str_start)
         )
 
     def filter_node_migrated(self, attrs, not_bad_str_start=""):
@@ -641,10 +646,11 @@ class MigrationYamlCreator(Migrator):
         )
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         is_pinning = attrs.get("name", "") == "conda-forge-pinning"
-        return (not is_pinning) or super().filter_not_in_migration(
-            attrs, not_bad_str_start
-        )
+        return not is_pinning
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

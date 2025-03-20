@@ -453,15 +453,16 @@ class NoarchPythonMinMigrator(Migrator):
         )
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
         has_noarch_python = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
                 break
 
-        return (not has_noarch_python) or super().filter_not_in_migration(
-            attrs, not_bad_str_start
-        )
+        return not has_noarch_python
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # if the feedstock has already been updated, return a migration ID
