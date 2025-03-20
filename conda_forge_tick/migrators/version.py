@@ -61,7 +61,7 @@ class Version(Migrator):
     max_num_prs = 3
     migrator_version = 0
     rerender = True
-    name = MigratorName.VERSION
+    name = str(MigratorName.VERSION)
     allowed_schema_versions = {0, 1}
 
     def __init__(

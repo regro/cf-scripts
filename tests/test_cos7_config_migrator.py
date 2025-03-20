@@ -49,6 +49,11 @@ def test_version_cos7_config(case, remove_quay, recipe_version, tmp_path):
                         second.replace("quay.io/condaforge/", "condaforge/") + "\n",
                     )
 
+    print(
+        Version.name,
+        VERSION_COS7.name,
+    )
+
     run_test_migration(
         m=VERSION_COS7,
         inp=in_yaml,
