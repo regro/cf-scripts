@@ -550,6 +550,8 @@ def run_test_migration(
             name = parse_meta_yaml(inp, cbc_path=conda_build_config_file)["package"][
                 "name"
             ]
+            if name is None:
+                name = "blah"
         except Exception:
             name = "blah"
 
@@ -571,6 +573,8 @@ def run_test_migration(
             name = parse_recipe_yaml(inp, cbc_path=conda_build_config_file)["package"][
                 "name"
             ]
+            if name is None:
+                name = "blah"
         except Exception:
             name = "blah"
 
