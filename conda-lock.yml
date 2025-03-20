@@ -9874,15 +9874,15 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5353f5eb201a9415b12385e35ed1148d
-      sha256: b260b4b47956b654232f698be1b757935268830a808040aff2006d08953e9e32
+      md5: 17e487cc8b5507cd3abc09398cf27949
+      sha256: d0bd8cce5f31ae940934feedec107480c00f67e881bf7db9d50c6fc0216a2ee0
     manager: conda
     name: pre-commit
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.1.0-pyha770c72_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       cfgv: '>=2.0.0'
@@ -9892,15 +9892,15 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5353f5eb201a9415b12385e35ed1148d
-      sha256: b260b4b47956b654232f698be1b757935268830a808040aff2006d08953e9e32
+      md5: 17e487cc8b5507cd3abc09398cf27949
+      sha256: d0bd8cce5f31ae940934feedec107480c00f67e881bf7db9d50c6fc0216a2ee0
     manager: conda
     name: pre-commit
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.1.0-pyha770c72_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       cfgv: '>=2.0.0'
@@ -9910,15 +9910,15 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5353f5eb201a9415b12385e35ed1148d
-      sha256: b260b4b47956b654232f698be1b757935268830a808040aff2006d08953e9e32
+      md5: 17e487cc8b5507cd3abc09398cf27949
+      sha256: d0bd8cce5f31ae940934feedec107480c00f67e881bf7db9d50c6fc0216a2ee0
     manager: conda
     name: pre-commit
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.1.0-pyha770c72_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       python: '>=3.9'
