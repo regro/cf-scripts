@@ -735,7 +735,7 @@ def test_migration_runner_run_migration_containerized_version(
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
-    pmy["new_version"] = new_ver
+    pmy["version_pr_info"] = {"new_version": new_ver}
 
     data = run_migration_containerized(
         migrator=m,
