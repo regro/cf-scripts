@@ -10,10 +10,6 @@ from conda_forge_tick.make_graph import try_load_feedstock
 def test_try_load_feedstock(
     request: pytest.FixtureRequest, mark_not_archived: bool, container_enabled: bool
 ):
-    """
-    If executed without containers (which is the default), try_load_feedstock should return the
-    correct LazyJSON data.
-    """
     if container_enabled:
         request.getfixturevalue("use_containers")
 
