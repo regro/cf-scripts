@@ -2104,39 +2104,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 50254226605a00f60accf158048d443f
-      sha256: 6e115c31d5eab589d22584e2b3c3a1486f3991bf337074bed1aa50c58db5ac25
+      md5: 8006ec92cef167902bffacb2cb4722b3
+      sha256: 2aed20a0d8d959ee4072709d304b9fc4142b765cd1b01324cb3eb738a5e4ad20
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.20.56.26-hd8ed1ab_0.conda
-    version: 2025.03.21.20.56.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.21.56.39-hd8ed1ab_0.conda
+    version: 2025.03.21.21.56.39
   - category: main
     dependencies: {}
     hash:
-      md5: 50254226605a00f60accf158048d443f
-      sha256: 6e115c31d5eab589d22584e2b3c3a1486f3991bf337074bed1aa50c58db5ac25
+      md5: 8006ec92cef167902bffacb2cb4722b3
+      sha256: 2aed20a0d8d959ee4072709d304b9fc4142b765cd1b01324cb3eb738a5e4ad20
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.20.56.26-hd8ed1ab_0.conda
-    version: 2025.03.21.20.56.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.21.56.39-hd8ed1ab_0.conda
+    version: 2025.03.21.21.56.39
   - category: main
     dependencies: {}
     hash:
-      md5: 50254226605a00f60accf158048d443f
-      sha256: 6e115c31d5eab589d22584e2b3c3a1486f3991bf337074bed1aa50c58db5ac25
+      md5: 8006ec92cef167902bffacb2cb4722b3
+      sha256: 2aed20a0d8d959ee4072709d304b9fc4142b765cd1b01324cb3eb738a5e4ad20
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.20.56.26-hd8ed1ab_0.conda
-    version: 2025.03.21.20.56.26
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.21.21.56.39-hd8ed1ab_0.conda
+    version: 2025.03.21.21.56.39
   - category: main
     dependencies:
       click: '>=8'
@@ -2670,15 +2670,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: 1923a8a1fd2b87318804f118273c1ab2
-      sha256: 350b0c1eb54d38aa9631255f11a5b83ec924ffd20776d9a2e903f5c58f3d5904
+      md5: 5f57c67f3880dd62b83b3867ea03d9bc
+      sha256: 88eceeaed558d6b313564142a6c013646cbd5289d5f20a61253bcdfe198e6f32
     manager: conda
     name: coverage
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/coverage-7.7.0-py311h2dc5d0c_0.conda
-    version: 7.7.0
+      https://conda.anaconda.org/conda-forge/linux-64/coverage-7.7.1-py311h2dc5d0c_0.conda
+    version: 7.7.1
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -2686,15 +2686,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: 46e5fae4dbf3503f061084b3fe87776c
-      sha256: 1b243a121dd4f56ad7b4c71ad283511d4c492e2e55ad64a5461d374879d149eb
+      md5: 588d993196273d5a122d24643751c39b
+      sha256: 495ea8caa559fbe5cceabc181219ea22de06fc26a3878ef8ab876e9ff99fe54a
     manager: conda
     name: coverage
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/coverage-7.7.0-py311ha3cf9ac_0.conda
-    version: 7.7.0
+      https://conda.anaconda.org/conda-forge/osx-64/coverage-7.7.1-py311ha3cf9ac_0.conda
+    version: 7.7.1
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -2702,15 +2702,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: 1d83dbdbeda66e8cb469e1325e9dc950
-      sha256: a5114f6fca6c02f996685c296e47db0a052d387f2122b7c6474d1cf5a4a3115a
+      md5: 1ba342dd65d19f88074b07c773cbb0e9
+      sha256: 9af78df87955d068231e8a436041f8cc4ec4e559ab59697037eb183cba0c1435
     manager: conda
     name: coverage
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.7.0-py311h4921393_0.conda
-    version: 7.7.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.7.1-py311h4921393_0.conda
+    version: 7.7.1
   - category: main
     dependencies:
       libgcc-ng: '>=12'
