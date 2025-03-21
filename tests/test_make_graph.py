@@ -18,6 +18,7 @@ def test_try_load_feedstock(
     fake_lazy_json = FakeLazyJson()  # empty dict
 
     with fake_lazy_json as loaded_lazy_json:
+        # FakeLazyJson is not an instance of LazyJson
         # noinspection PyTypeChecker
         data = try_load_feedstock(feedstock, loaded_lazy_json, mark_not_archived).data  # type: ignore
 
