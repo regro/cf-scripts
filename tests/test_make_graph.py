@@ -1,8 +1,8 @@
 import pytest
+from conftest import FakeLazyJson
 
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import try_load_feedstock
-from tests.conftest import FakeLazyJson
 
 
 @pytest.mark.parametrize("container_enabled", [True, False])
