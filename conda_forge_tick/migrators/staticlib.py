@@ -58,6 +58,7 @@ def _cached_match_spec(req: str | MatchSpec) -> MatchSpec:
 
 @lru_cache(maxsize=1)
 def _read_repodata(platform_arch: str) -> Any:
+    rd = None
     platform_arch = platform_arch.replace("_", "-")
     for i in range(10):
         try:
@@ -69,6 +70,10 @@ def _read_repodata(platform_arch: str) -> Any:
             continue
         else:
             break
+
+    if rd is None:
+        raise RuntimeError(f"Download of repodata for {platform_arch} failed!")
+
     return rd
 
 
