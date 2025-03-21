@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import networkx as nx
 from test_migrators import run_test_migration, run_test_yaml_migration
 from test_recipe_yaml_parsing import TEST_RECIPE_YAML_PATH
 
@@ -21,12 +22,15 @@ class _MigrationYaml(NoFilter, MigrationYaml):
     pass
 
 
-yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 yaml_rebuild_no_build_number = _MigrationYaml(
-    yaml_contents="hello world",
+    yaml_contents="{}",
     name="hi",
     bump_number=0,
+    total_graph=TOTAL_GRAPH,
 )
 yaml_rebuild_no_build_number.cycles = []
 
@@ -83,7 +87,7 @@ def test_yaml_migration_rebuild_no_buildno(tmp_path):
 # Run Matplotlib mini-migrator                               ###
 ##################################################################
 
-version = Version(set())
+version = Version(set(), total_graph=TOTAL_GRAPH)
 
 matplotlib = Replacement(
     old_pkg="matplotlib",
@@ -92,6 +96,7 @@ matplotlib = Replacement(
         "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
+    total_graph=TOTAL_GRAPH,
 )
 
 
