@@ -98,6 +98,10 @@ class FakeLazyJson(dict):
     ) -> None:
         pass
 
+    @property
+    def data(self):
+        return self
+
 
 def pytest_configure(config):
     config.addinivalue_line(
