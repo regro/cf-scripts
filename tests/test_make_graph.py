@@ -6,9 +6,13 @@ from conda_forge_tick.make_graph import try_load_feedstock
 
 
 @pytest.mark.parametrize("container_enabled", [True, False])
+@pytest.mark.parametrize("existing_archived", [True, False, None])
 @pytest.mark.parametrize("mark_not_archived", [True, False])
 def test_try_load_feedstock(
-    request: pytest.FixtureRequest, mark_not_archived: bool, container_enabled: bool
+    request: pytest.FixtureRequest,
+    mark_not_archived: bool,
+    existing_archived: bool | None,
+    container_enabled: bool,
 ):
     if container_enabled:
         request.getfixturevalue("use_containers")
@@ -18,15 +22,18 @@ def test_try_load_feedstock(
     fake_lazy_json = FakeLazyJson()  # empty dict
 
     with fake_lazy_json as loaded_lazy_json:
+        if existing_archived is not None:
+            loaded_lazy_json["archived"] = existing_archived
         # FakeLazyJson is not an instance of LazyJson
         # noinspection PyTypeChecker
         data = try_load_feedstock(feedstock, loaded_lazy_json, mark_not_archived).data  # type: ignore
 
     if mark_not_archived:
         assert data["archived"] is False
-    else:
-        # apparently, this is how the function behaves
+    elif existing_archived is None:
         assert "archived" not in data
+    else:
+        assert data["archived"] is existing_archived
 
     assert data["feedstock_name"] == feedstock
     assert data["parsing_error"] is False
