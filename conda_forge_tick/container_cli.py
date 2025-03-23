@@ -320,7 +320,7 @@ def _parse_feedstock(
 
     name = attrs["feedstock_name"]
 
-    load_feedstock_local(
+    node_attrs = load_feedstock_local(
         name,
         attrs,
         meta_yaml=meta_yaml,
@@ -329,7 +329,7 @@ def _parse_feedstock(
         mark_not_archived=mark_not_archived,
     )
 
-    return attrs
+    return node_attrs
 
 
 def _parse_meta_yaml(

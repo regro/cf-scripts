@@ -238,16 +238,16 @@ class TestRecipeYamlParsing:
     def test_populate_feedstock_attributes(self, recipe_env, recipe_name):
         """Test parsing different recipe files."""
         recipe_yaml = recipe_env.recipe_path.parent / f"{recipe_name}.yaml"
-        subgraph = {}
-        populate_feedstock_attributes(
+        existing_attrs = {}
+        node_attrs = populate_feedstock_attributes(
             recipe_name,
-            subgraph,
+            existing_attrs,
             recipe_yaml=recipe_yaml.read_text(),
             feedstock_dir=recipe_env.root,
         )
 
-        assert subgraph["feedstock_name"] == recipe_name
-        for key, value in subgraph["total_requirements"].items():
+        assert node_attrs["feedstock_name"] == recipe_name
+        for key, value in node_attrs["total_requirements"].items():
             assert isinstance(value, set)
             for el in value:
                 assert isinstance(el, str)
