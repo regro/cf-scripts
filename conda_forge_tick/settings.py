@@ -6,7 +6,7 @@ Note that there is no further validation of environment variables as of now.
 To make settings easier to understand for humans, we use explicit type annotations.
 """
 
-import os
+from typing import Annotated
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,6 +21,8 @@ ENV_CONDA_FORGE_ORG = ENVIRONMENT_PREFIX + "CONDA_FORGE_ORG"
 The environment variable used to set the `conda_forge_org` setting.
 Note: This must match the field name in the `BotSettings` class.
 """
+
+Fraction = Annotated[float, Field(ge=0.0, le=1.0)]
 
 
 class BotSettings(BaseSettings):
@@ -69,27 +71,22 @@ class BotSettings(BaseSettings):
     https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
     """
 
+    frac_update_upstream_versions: Fraction = 0.1
+    """
+    The fraction of feedstocks (randomly selected) to update in the update-upstream-versions job.
+    This is currently only respected when running concurrently (via process pool), not in sequential mode.
+    Therefore, you don't need to set this when debugging locally.
+    """
+
+    frac_make_graph: Fraction = 0.1
+    """
+    The fraction of feedstocks (randomly selected) to update in the make-graph job.
+    In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
+    """
+
 
 def settings() -> BotSettings:
     """
     Get the current settings object.
     """
     return BotSettings()
-
-
-ENV_FRAC_UPDATE_UPSTREAM_VERSIONS = "CF_TICK_FRAC_UPDATE_UPSTREAM_VERSIONS"
-FRAC_UPDATE_UPSTREAM_VERSIONS: float = float(
-    os.getenv(ENV_FRAC_UPDATE_UPSTREAM_VERSIONS, "0.1")
-)
-"""
-The fraction of feedstocks (randomly selected) to update in the update-upstream-versions job.
-This is currently only respected when running concurrently (via process pool), not in sequential mode.
-Therefore, you don't need to set this when debugging locally.
-"""
-
-ENV_RANDOM_FRAC_MAKE_GRAPH = "CF_TICK_FRAC_MAKE_GRAPH"
-FRAC_MAKE_GRAPH: float = float(os.getenv(ENV_RANDOM_FRAC_MAKE_GRAPH, "0.1"))
-"""
-The fraction of feedstocks (randomly selected) to update in the make-graph job.
-In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
-"""
