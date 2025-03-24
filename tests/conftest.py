@@ -114,4 +114,5 @@ def pytest_configure(config):
 def temporary_environment():
     old_env = os.environ.copy()
     yield
-    os.environ = old_env
+    os.environ.clear()
+    os.environ.update(old_env)
