@@ -34,6 +34,9 @@ class BotSettings(BaseSettings):
     `CF_TICK_GRAPH_GITHUB_BACKEND_REPO`.
 
     To access the current settings object, please use the `settings()` function.
+
+    Note: There still exists a significant amount of settings that are not yet exposed here.
+    All new settings should go here, and the other ones should eventually be migrated.
     """
 
     model_config = SettingsConfigDict(env_prefix=ENVIRONMENT_PREFIX)
