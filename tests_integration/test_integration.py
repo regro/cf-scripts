@@ -174,14 +174,6 @@ def mitmproxy_env():
     os.environ["https_proxy"] = "http://127.0.0.1:8080"
     os.environ["CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE"] = "true"
 
-    # see https://github.com/conda-forge/conda-forge-feedstock-ops/blob/e9d52496b9df241a34b941ca5bfd2b52c1e019ed/conda_forge_feedstock_ops/container_utils.py#L23-L33
-    if os.environ.get("GITHUB_ACTIONS"):
-        os.environ["CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER"] = "http://172.17.0.1:8080"
-    else:
-        os.environ["CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER"] = (
-            "http://host.docker.internal:8080"
-        )
-
     yield
 
     os.environ = old_env
@@ -204,8 +196,6 @@ def test_scenario(
     scenario: tuple[int, dict[str, TestCase]], repositories_setup, mitmproxy
 ):
     _, scenario = scenario
-
-    # import needs to happen dynamically because we set the environment variables first
 
     with in_fresh_cf_graph():
         invoke_bot_command(["--debug", "gather-all-feedstocks"])
