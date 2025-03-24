@@ -11,6 +11,17 @@ import os
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+ENVIRONMENT_PREFIX = "CF_TICK_"
+"""
+All environment are expected to be prefixed with this.
+"""
+
+ENV_CONDA_FORGE_ORG = ENVIRONMENT_PREFIX + "CONDA_FORGE_ORG"
+"""
+The environment variable used to set the `conda_forge_org` setting.
+Note: This must match the field name in the `BotSettings` class.
+"""
+
 
 class BotSettings(BaseSettings):
     """
@@ -23,7 +34,13 @@ class BotSettings(BaseSettings):
     To access the current settings object, please use the `settings()` function.
     """
 
-    model_config = SettingsConfigDict(env_prefix="CF_TICK_")
+    model_config = SettingsConfigDict(env_prefix=ENVIRONMENT_PREFIX)
+
+    conda_forge_org: str = Field("conda-forge", pattern=r"^[\w\.-]+$")
+    """
+    The GitHub organization containing all feedstocks. Default: "conda-forge".
+    If you change the field name, you must also update the `ENV_CONDA_FORGE_ORG` constant.
+    """
 
     graph_github_backend_repo: str = Field(
         "regro/cf-graph-countyfair", pattern=r"^[\w\.-]+/[\w\.-]+$"
@@ -52,13 +69,6 @@ def settings() -> BotSettings:
     """
     return BotSettings()
 
-
-ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
-CONDA_FORGE_ORG: str = os.getenv(ENV_OVERRIDE_CONDA_FORGE_ORG, "conda-forge")
-"""
-The GitHub organization containing all feedstocks. Default: "conda-forge".
-Overwrite with the environment variable CF_TICK_OVERRIDE_CONDA_FORGE_ORG.
-"""
 
 ENV_GITHUB_RUNNER_DEBUG = "RUNNER_DEBUG"
 GITHUB_RUNNER_DEBUG: bool = os.getenv(ENV_GITHUB_RUNNER_DEBUG, "0") == "1"
