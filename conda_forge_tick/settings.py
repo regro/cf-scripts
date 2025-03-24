@@ -62,6 +62,13 @@ class BotSettings(BaseSettings):
         """
         return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}"
 
+    github_runner_debug: bool = Field(False, alias="RUNNER_DEBUG")
+    """
+    Whether we are executing within a GitHub Actions run with debug logging enabled. Default: False.
+    This is set automatically by GitHub Actions.
+    https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+    """
+
 
 def settings() -> BotSettings:
     """
@@ -69,13 +76,6 @@ def settings() -> BotSettings:
     """
     return BotSettings()
 
-
-ENV_GITHUB_RUNNER_DEBUG = "RUNNER_DEBUG"
-GITHUB_RUNNER_DEBUG: bool = os.getenv(ENV_GITHUB_RUNNER_DEBUG, "0") == "1"
-"""
-Whether we are executing within a GitHub Actions run with debug logging enabled. Default: False.
-https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-"""
 
 ENV_FRAC_UPDATE_UPSTREAM_VERSIONS = "CF_TICK_FRAC_UPDATE_UPSTREAM_VERSIONS"
 FRAC_UPDATE_UPSTREAM_VERSIONS: float = float(

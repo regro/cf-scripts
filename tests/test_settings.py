@@ -11,6 +11,7 @@ class TestBotSettings:
         os.environ["CF_TICK_CONDA_FORGE_ORG"] = "myorg"
         os.environ["CF_TICK_GRAPH_GITHUB_BACKEND_REPO"] = "graph-owner/graph-repo"
         os.environ["CF_TICK_GRAPH_REPO_DEFAULT_BRANCH"] = "mybranch"
+        os.environ["RUNNER_DEBUG"] = "1"
 
         settings = BotSettings()
 
@@ -21,6 +22,7 @@ class TestBotSettings:
             settings.graph_github_backend_raw_base_url
             == "https://github.com/graph-owner/graph-repo/raw/mybranch"
         )
+        assert settings.github_runner_debug is True
 
     def test_defaults(self, temporary_environment):
         os.environ.clear()
@@ -30,6 +32,7 @@ class TestBotSettings:
         assert settings.conda_forge_org == "conda-forge"
         assert settings.graph_github_backend_repo == "regro/cf-graph-countyfair"
         assert settings.graph_repo_default_branch == "master"
+        assert settings.github_runner_debug is False
 
     def test_env_conda_forge_org(self, temporary_environment):
         os.environ.clear()
