@@ -1,11 +1,16 @@
 from pathlib import Path
 
 from flaky import flaky
+import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
     CombineV1ConditionsMigrator,
     Version,
+)
+from conda_forge_tick.migrators.recipe_v1 import (
+    is_single_expression,
+    is_negated_condition,
 )
 
 YAML_PATH = Path(__file__).parent / "test_v1_yaml"
@@ -14,6 +19,49 @@ combine_conditions_migrator = Version(
     set(),
     piggy_back_migrations=[CombineV1ConditionsMigrator()],
 )
+
+
+@pytest.mark.parametrize("x", [
+    "win",
+    "not unix",
+    'cuda_compiler_version == "None"',
+    "build_platform != target_platform",
+])
+def test_is_single_expression(x):
+    assert is_single_expression(x)
+
+
+@pytest.mark.parametrize("x", [
+    'cuda_compiler_version != "None" and linux"',
+    'unix and blas_impl != "mkl"',
+    "linux or osx",
+    "foo if bar else baz",
+])
+def test_not_is_single_expression(x):
+    assert not is_single_expression(x)
+
+
+@pytest.mark.parametrize("a,b", [
+    ("unix", "not unix"),
+    ('cuda_compiler_version == "None"', 'not cuda_compiler_version == "None"'),
+    ('cuda_compiler_version == "None"', 'cuda_compiler_version != "None"'),
+    ('not cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
+])
+def test_is_negated_condition(a, b):
+    assert is_negated_condition(a, b)
+    assert is_negated_condition(b, a)
+
+
+@pytest.mark.parametrize("a,b", [
+    ("not unix", "not unix"),
+    ('cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
+    ('cuda_compiler_version != "None"', 'not cuda_compiler_version == "None"'),
+    ("a or b", "not a or b"),
+    ("a and b", "not a and b"),
+])
+def test_not_is_negated_condition(a, b):
+    assert not is_negated_condition(a, b)
+    assert not is_negated_condition(b, a)
 
 
 @flaky

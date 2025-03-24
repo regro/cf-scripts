@@ -41,7 +41,9 @@ def is_negated_condition(a: str, b: str) -> bool:
         return True
 
     # A == B <-> A != B
-    if a == b.replace("==", "!=") or a == b.replace("!=", "=="):
+    if "==" in b and a == b.replace("==", "!=", 1):
+        return True
+    if "!=" in b and a == b.replace("!=", "==", 1):
         return True
 
     return False
