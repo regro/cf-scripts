@@ -6,14 +6,14 @@ import tqdm
 from conda_forge_tick.git_utils import github_client
 
 from .lazy_json_backends import dump, load
+from .settings import CONDA_FORGE_ORG
 
 logger = logging.getLogger(__name__)
 
 
 def get_all_feedstocks_from_github():
     gh = github_client()
-
-    org = gh.get_organization("conda-forge")
+    org = gh.get_organization(CONDA_FORGE_ORG)
     archived = set()
     not_archived = set()
     default_branches = {}
