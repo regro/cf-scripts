@@ -63,8 +63,8 @@ if [[ "${pull_cont}" == "true" ]]; then
 fi
 
 # left intact if already set
-export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
-export CF_FEEDSTOCK_OPS_CONTAINER_NAME=${docker_name}
+export CF_FEEDSTOCK_OPS_CONTAINER_TAG="${docker_tag}"
+export CF_FEEDSTOCK_OPS_CONTAINER_NAME="${docker_name}"
 
 echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
 echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
