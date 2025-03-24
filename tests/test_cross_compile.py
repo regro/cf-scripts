@@ -76,11 +76,11 @@ def test_correct_config_sub(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )
@@ -98,18 +98,18 @@ def test_make_check(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_make_check.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
-        "cp $BUILD_PREFIX/share/gnuconfig/config.* ./support\n",
+        "cp $BUILD_PREFIX/share/gnuconfig/config.* ./config\n",
         'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
         "make check\n",
         "fi\n",
@@ -129,11 +129,11 @@ def test_cmake(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_cmake.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )

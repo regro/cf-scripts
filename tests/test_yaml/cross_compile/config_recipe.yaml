@@ -1,11 +1,11 @@
-{% set version = "7.0" %}
+{% set version = "4.4.1" %}
 
 package:
   name: readline
   version: {{ version }}
 
 source:
-  url: https://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
+  url: https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-{{ version }}.tar.gz
   sha256: 750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334
 
 build:
