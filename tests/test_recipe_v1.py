@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from flaky import flaky
 import pytest
+from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
@@ -9,8 +9,8 @@ from conda_forge_tick.migrators import (
     Version,
 )
 from conda_forge_tick.migrators.recipe_v1 import (
-    is_single_expression,
     is_negated_condition,
+    is_single_expression,
 )
 
 YAML_PATH = Path(__file__).parent / "test_v1_yaml"
