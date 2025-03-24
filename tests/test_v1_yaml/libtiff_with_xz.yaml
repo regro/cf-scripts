@@ -1,0 +1,90 @@
+schema_version: 1
+
+context:
+  version: 4.6.9
+
+package:
+  name: libtiff
+  version: ${{ version }}
+
+source:
+  url: https://download.osgeo.org/libtiff/tiff-${{ version }}.tar.gz
+  sha256: 67160e3457365ab96c5b3286a0903aa6e78bdc44c4bc737d2e486bcecb6ba974
+  patches:
+    # It seems that a recent patch in tifffile 4.1 may have broken
+    # binary compatibility on windows.
+    # https://gitlab.com/libtiff/libtiff/issues/173
+    # https://github.com/python-pillow/Pillow/issues/4237
+    - patches/use_unix_io.patch
+
+build:
+  # Does a very good job of maintaining compatibility.
+  # Except broke abi between 4.4 and 4.5.0
+  #    https://github.com/conda-forge/libtiff-feedstock/issues/77
+  #    https://abi-laboratory.pro/tracker/timeline/libtiff/
+  number: 2
+  dynamic_linking:
+    missing_dso_allowlist:
+      - /opt/X11/lib/libGL.1.dylib
+      - /opt/X11/lib/libglut.3.dylib
+
+requirements:
+  build:
+    - if: unix
+      then: libtool
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - if: win
+      then: cmake
+    - if: win
+      then: ninja
+    - if: unix
+      then: make
+  host:
+    - zlib
+    - libjpeg-turbo
+    - xz
+    - zstd
+    - lerc
+    - libdeflate
+    - if: linux or osx
+      then: libwebp-base
+  run_exports:
+    - ${{ pin_subpackage('libtiff', upper_bound='x.x') }}
+
+tests:
+  - script:
+      - if: not win
+        then: test ! -f ${PREFIX}/lib/libtiff.a
+      - if: not win
+        then: test ! -f ${PREFIX}/lib/libtiffxx.a
+      - if: not win
+        then: test -f ${PREFIX}/lib/libtiff${{ SHLIB_EXT }}
+      - if: not win
+        then: test -f ${PREFIX}/lib/libtiffxx${{ SHLIB_EXT }}
+      - if: win
+        then: if not exist %PREFIX%\\Library\\bin\\tiff.dll exit 1
+      - if: win
+        then: if not exist %PREFIX%\\Library\\bin\\libtiff.dll exit 1
+      - if: win
+        then: if not exist %PREFIX%\\Library\\lib\\tiffxx.lib exit 1
+
+about:
+  license: HPND
+  license_file: LICENSE.md
+  summary: Support for the Tag Image File Format (TIFF).
+  description: |
+    This software provides support for the Tag Image File Format (TIFF), a
+    widely used format for storing image data.
+  homepage: http://www.libtiff.org/
+  documentation: http://www.libtiff.org/document.html
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - mingwandroid
+    - msarahan
+    - ocefpaf
+    - stuarteberg
+    - hmaarrfk

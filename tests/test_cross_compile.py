@@ -1,10 +1,12 @@
 from pathlib import Path
 
+import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
     Build2HostMigrator,
+    CrossCompilationForARMAndPower,
     CrossPythonMigrator,
     CrossRBaseMigrator,
     GuardTestingMigrator,
@@ -14,7 +16,11 @@ from conda_forge_tick.migrators import (
     Version,
 )
 
-YAML_PATH = Path(__file__).parent / "test_yaml/cross_compile"
+YAML_PATHS = [
+    Path(__file__).parent / "test_yaml/cross_compile",
+    Path(__file__).parent / "test_v1_yaml/cross_compile",
+]
+YAML_PATH = YAML_PATHS[0]
 
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
@@ -23,6 +29,7 @@ cross_python_migrator = CrossPythonMigrator()
 cross_rbase_migrator = CrossRBaseMigrator()
 b2h_migrator = Build2HostMigrator()
 nci_migrator = NoCondaInspectMigrator()
+arm_and_power_migrator = CrossCompilationForARMAndPower()
 
 version_migrator_autoconf = Version(
     set(),
@@ -53,6 +60,10 @@ version_migrator_nci = Version(
     set(),
     piggy_back_migrations=[nci_migrator],
 )
+version_migrator_arm_and_power = Version(
+    set(),
+    piggy_back_migrations=[arm_and_power_migrator],
+)
 
 
 @flaky
@@ -65,11 +76,11 @@ def test_correct_config_sub(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )
@@ -87,18 +98,18 @@ def test_make_check(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_make_check.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )
     expected = [
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
-        "cp $BUILD_PREFIX/share/gnuconfig/config.* ./support\n",
+        "cp $BUILD_PREFIX/share/gnuconfig/config.* ./config\n",
         'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
         "make check\n",
         "fi\n",
@@ -118,11 +129,11 @@ def test_cmake(tmp_path):
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
         output=YAML_PATH.joinpath("config_recipe_correct_cmake.yaml").read_text(),
         prb="Dependencies have been updated if changed",
-        kwargs={"new_version": "8.0"},
+        kwargs={"new_version": "4.5.0"},
         mr_out={
             "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
-            "version": "8.0",
+            "version": "4.5.0",
         },
         tmp_path=tmp_path,
     )
@@ -220,12 +231,15 @@ def test_cross_python_no_build(tmp_path):
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host(tmp_path):
+def test_build2host(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("python_recipe_b2h.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -234,15 +248,21 @@ def test_build2host(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host_buildok(tmp_path):
+def test_build2host_buildok(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h_buildok.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_buildok_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -251,15 +271,21 @@ def test_build2host_buildok(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_build2host_bhskip(tmp_path):
+def test_build2host_bhskip(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
-        inp=YAML_PATH.joinpath("python_recipe_b2h_bhskip.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_b2h_bhskip_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_bhskip.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_bhskip_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -268,6 +294,7 @@ def test_build2host_bhskip(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
@@ -286,3 +313,75 @@ def test_nocondainspect(tmp_path):
         },
         tmp_path=tmp_path,
     )
+
+
+@pytest.mark.parametrize("build_sh", [False, True])
+@pytest.mark.parametrize("recipe_version", [0, 1])
+@flaky
+def test_cross_compilation_for_arm_and_power(
+    tmp_path, build_sh: bool, recipe_version: int
+):
+    tmp_path.joinpath("conda-forge.yml").write_text(
+        """\
+build_platform:
+  linux_64: linux_64
+provider:
+  linux_aarch64: default
+  linux_ppc64le: default
+"""
+    )
+    if build_sh:
+        tmp_path.joinpath("recipe").mkdir()
+        tmp_path.joinpath("recipe/build.sh").write_text(
+            """\
+#!/bin/bash
+
+if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "0" ]]; then
+    make check
+fi
+"""
+        )
+
+    run_test_migration(
+        m=version_migrator_arm_and_power,
+        # this migrator does not change the recipe file, so any unchanged recipe is fine
+        inp=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok.yaml")
+        .read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_b2h_buildok_correct.yaml")
+        .read_text(),
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "1.19.1"},
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": "1.19.1",
+        },
+        tmp_path=tmp_path,
+        recipe_version=recipe_version,
+    )
+
+    assert (
+        tmp_path.joinpath("conda-forge.yml").read_text()
+        == """\
+build_platform:
+  linux_64: linux_64
+  linux_aarch64: linux_64
+  linux_ppc64le: linux_64
+provider:
+  linux_aarch64: default
+  linux_ppc64le: default
+"""
+    )
+    if build_sh:
+        assert (
+            tmp_path.joinpath("recipe/build.sh").read_text()
+            == """\
+#!/bin/bash
+
+if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then
+    make check
+fi
+"""
+        )

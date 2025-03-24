@@ -39,8 +39,9 @@ from conda_forge_tick.lazy_json_backends import (
     remove_key_for_hashmap,
 )
 from conda_forge_tick.migrators import (
+    AddNVIDIATools,
     ArchRebuild,
-    Build2HostMigrator,
+    CombineV1ConditionsMigrator,
     CondaForgeYAMLCleanup,
     CrossCompilationForARMAndPower,
     CrossPythonMigrator,
@@ -52,12 +53,12 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     GuardTestingMigrator,
     Jinja2VarsCleanup,
-    JpegTurboMigrator,
     LibboostMigrator,
     LicenseMigrator,
     MigrationYaml,
     Migrator,
     MiniMigrator,
+    MiniReplacement,
     MPIPinRunAsBuildCleanup,
     NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
@@ -65,14 +66,13 @@ from conda_forge_tick.migrators import (
     PipMigrator,
     PipWheelMigrator,
     PyPIOrgMigrator,
-    QtQtMainMigrator,
     Replacement,
     RUCRTCleanup,
+    StaticLibMigrator,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
-    XzLibLzmaDevelMigrator,
     YAMLRoundTrip,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
@@ -86,6 +86,7 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     CB_CONFIG,
     fold_log_lines,
+    get_keys_default,
     load_existing_graph,
     parse_meta_yaml,
     parse_munged_run_export,
@@ -111,10 +112,10 @@ DEFAULT_MINI_MIGRATORS = [
     LicenseMigrator,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
-    Build2HostMigrator,
     NoCondaInspectMigrator,
     MPIPinRunAsBuildCleanup,
     PyPIOrgMigrator,
+    CombineV1ConditionsMigrator,
 ]
 
 
@@ -284,7 +285,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 pr_limit=PR_LIMIT,
                 name="arm osx addition",
                 piggy_back_migrations=[
-                    Build2HostMigrator(),
                     UpdateConfigSubGuessMigrator(),
                     CondaForgeYAMLCleanup(),
                     UpdateCMakeArgsMigrator(),
@@ -293,6 +293,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                     CrossPythonMigrator(),
                     NoCondaInspectMigrator(),
                     MPIPinRunAsBuildCleanup(),
+                    CombineV1ConditionsMigrator(),
                 ],
             ),
         )
@@ -377,9 +378,11 @@ def add_rebuild_migration_yaml(
         StdlibMigrator(),
     ]
     if migration_name == "qt515":
-        piggy_back_migrations.append(QtQtMainMigrator())
+        piggy_back_migrations.append(MiniReplacement(old_pkg="qt", new_pkg="qt-main"))
     if migration_name == "jpeg_to_libjpeg_turbo":
-        piggy_back_migrations.append(JpegTurboMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+        )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
     if migration_name == "numpy2":
@@ -389,7 +392,9 @@ def add_rebuild_migration_yaml(
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
     if migration_name.startswith("xz_to_liblzma_devel"):
-        piggy_back_migrations.append(XzLibLzmaDevelMigrator())
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
+        )
     piggy_back_migrations = _make_mini_migrators_with_defaults(
         extra_mini_migrators=piggy_back_migrations
     )
@@ -793,6 +798,87 @@ def add_noarch_python_min_migrator(
         migrators[-1].pr_limit = pr_limit
 
 
+def add_static_lib_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    with fold_log_lines("making static lib migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, StaticLibMigrator.allowed_schema_versions
+                )
+                update_static_libs = get_keys_default(
+                    attrs,
+                    ["conda-forge.yml", "bot", "update_static_libs"],
+                    {},
+                    False,
+                )
+
+            if (not update_static_libs) or skip_schema:
+                pluck(gx2, node)
+
+        gx2.clear_edges()
+
+        migrators.append(
+            StaticLibMigrator(
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            ),
+        )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
+
+def add_nvtools_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+):
+    with fold_log_lines("making add nvtools migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, StaticLibMigrator.allowed_schema_versions
+                )
+                has_nvidia = False
+                if "meta_yaml" in attrs and "source" in attrs["meta_yaml"]:
+                    if isinstance(attrs["meta_yaml"]["source"], list):
+                        src_list = attrs["meta_yaml"]["source"]
+                    else:
+                        src_list = [attrs["meta_yaml"]["source"]]
+                    for src in src_list:
+                        src_url = src.get("url", "") or ""
+                        has_nvidia = has_nvidia or (
+                            "https://developer.download.nvidia.com" in src_url
+                        )
+
+            if (not has_nvidia) or skip_schema:
+                pluck(gx2, node)
+
+        migrators.append(
+            AddNVIDIATools(
+                check_solvable=False,
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            )
+        )
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -820,6 +906,10 @@ def initialize_migrators(
     )
 
     add_noarch_python_min_migrator(migrators, gx)
+
+    add_static_lib_migrator(migrators, gx)
+
+    add_nvtools_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
