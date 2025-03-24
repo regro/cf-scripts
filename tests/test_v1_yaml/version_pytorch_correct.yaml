@@ -55,7 +55,6 @@ outputs:
           then:
             - intel-openmp ${{ mkl }}
             - libuv
-            - sccache
         - cmake
         - ninja
         # Keep libprotobuf here so that a compatibile version
@@ -64,6 +63,8 @@ outputs:
         - protobuf
         - if: linux
           then: make
+        - if: win
+          then: sccache
         - if: unix
           then:
             - grep
@@ -71,11 +72,18 @@ outputs:
       host:
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
+          then: cudnn
+        - if: "cuda_compiler_version != \"None\" and linux"
+          then: nccl
+        - if: "cuda_compiler_version != \"None\""
           then:
-            - cudnn
             - magma
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
+        - if: "linux and cuda_compiler_version != \"None\""
+          then: cuda-driver-dev
+        - if: "cuda_compiler_version != \"None\""
+          then:
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -85,16 +93,14 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
+        - if: "linux and cuda_compiler_version != \"None\""
+          then: libcufile-dev
+        - if: "cuda_compiler_version != \"None\""
+          then:
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "linux and cuda_compiler_version != \"None\""
-          then:
-            - cuda-driver-dev
-            - libcufile-dev
         - if: megabuild
           else:
             - python
@@ -182,11 +188,18 @@ outputs:
         - ${{ pin_subpackage('libtorch', exact=True) }}
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
+          then: cudnn
+        - if: "cuda_compiler_version != \"None\" and linux"
+          then: nccl
+        - if: "cuda_compiler_version != \"None\""
           then:
-            - cudnn
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
             - magma
+        - if: "linux and cuda_compiler_version != \"None\""
+          then: cuda-driver-dev
+        - if: "cuda_compiler_version != \"None\""
+          then:
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -196,16 +209,14 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
+        - if: "linux and cuda_compiler_version != \"None\""
+          then: libcufile-dev
+        - if: "cuda_compiler_version != \"None\""
+          then:
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "linux and cuda_compiler_version != \"None\""
-          then:
-            - cuda-driver-dev
-            - libcufile-dev
         - python
         - numpy
         - pip
@@ -252,12 +263,12 @@ outputs:
           then: nomkl
         # GPU requirements without run_exports
         - if: "cuda_compiler_version != \"None\""
-          then:
-            - ${{ pin_compatible('cudnn') }}
-            - __cuda
+          then: ${{ pin_compatible('cudnn') }}
         - if: "cuda_compiler_version != \"None\" and not win"
           then: triton =${{ triton }}
         # avoid that people without GPUs needlessly download ~0.5-1GB
+        - if: "cuda_compiler_version != \"None\""
+          then: __cuda
         - python
         # other requirements, see https://github.com/pytorch/pytorch/blame/main/requirements.txt
         - filelock
@@ -285,6 +296,8 @@ outputs:
             - torch
             - torch._C
       - files:
+          recipe:
+            - cmake_test/
           source:
             - test
             - tools
@@ -333,6 +346,15 @@ outputs:
             then: test ! -f $SP_DIR/functorch/__pycache__/__init__.cpython-313.pyc
           - if: match(python, "!=3.13") and win
             then: if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-313.pyc exit 1
+          - cd cmake_test
+          - if: unix
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON $CMAKE_ARGS .
+          - if: win
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON %CMAKE_ARGS% .
+          - if: unix
+            then: cmake --build .
+          - if: win
+            then: cmake --build . --config Release
 
 about:
   license: BSD-3-Clause
