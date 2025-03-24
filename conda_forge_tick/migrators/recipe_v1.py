@@ -12,28 +12,50 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def is_same_condition(a: Any, b: Any) -> bool:
+def get_condition(node: Any) -> str | None:
+    if isinstance(node, dict) and "if" in node:
+        return node["if"].strip()
+    return None
+
+
+def is_same_condition(a: str, b: str) -> bool:
+    return a == b
+
+
+def is_single_expression(condition: str) -> bool:
+    return not any(f" {x} " in condition for x in ("and", "or", "if"))
+
+
+def is_negated_condition(a: str, b: str) -> bool:
+    # we only handle negating trivial expressions
+    if not all(map(is_single_expression, (a, b))):
+        return False
+
+    a_not = a.startswith("not")
+    b_not = b.startswith("not")
     return (
-        isinstance(a, dict)
-        and isinstance(b, dict)
-        and "if" in a
-        and "if" in b
-        and a["if"] == b["if"]
+        a_not != b_not
+        and a.removeprefix("not").lstrip() == b.removeprefix("not").lstrip()
     )
 
 
-def fold_branch(source: Any, dest: Any, branch: str) -> None:
+def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:
     if branch not in source:
         return
+
     source_l = source[branch]
     if isinstance(source_l, str):
+        if dest_branch not in dest:
+            # special-case: do not expand a single string to list
+            dest[dest_branch] = source_l
+            return
         source_l = [source_l]
 
-    if branch not in dest:
-        dest[branch] = []
-    elif isinstance(dest[branch], str):
-        dest[branch] = [dest[branch]]
-    dest[branch].extend(source_l)
+    if dest_branch not in dest:
+        dest[dest_branch] = []
+    elif isinstance(dest[dest_branch], str):
+        dest[dest_branch] = [dest[dest_branch]]
+    dest[dest_branch].extend(source_l)
 
 
 def combine_conditions(node: Any):
@@ -45,9 +67,18 @@ def combine_conditions(node: Any):
         # iterate in reverse order, so we can remove elements on the fly
         # start at index 1, since we can only fold to the previous node
         for i in reversed(range(1, len(node))):
-            if is_same_condition(node[i], node[i - 1]):
-                fold_branch(node[i], node[i - 1], "then")
-                fold_branch(node[i], node[i - 1], "else")
+            node_cond = get_condition(node[i])
+            prev_cond = get_condition(node[i - 1])
+            if node_cond is None or prev_cond is None:
+                continue
+
+            if is_same_condition(node_cond, prev_cond):
+                fold_branch(node[i], node[i - 1], "then", "then")
+                fold_branch(node[i], node[i - 1], "else", "else")
+                del node[i]
+            elif is_negated_condition(node_cond, prev_cond):
+                fold_branch(node[i], node[i - 1], "then", "else")
+                fold_branch(node[i], node[i - 1], "else", "then")
                 del node[i]
 
     # then we descend down the tree
