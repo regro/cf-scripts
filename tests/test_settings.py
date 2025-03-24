@@ -3,7 +3,12 @@ import os
 import pytest
 from pydantic import ValidationError
 
-from conda_forge_tick.settings import ENV_CONDA_FORGE_ORG, BotSettings
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    BotSettings,
+    settings,
+    use_settings,
+)
 
 
 class TestBotSettings:
@@ -15,39 +20,39 @@ class TestBotSettings:
         os.environ["CF_TICK_FRAC_UPDATE_UPSTREAM_VERSIONS"] = "0.5"
         os.environ["CF_TICK_FRAC_MAKE_GRAPH"] = "0.7"
 
-        settings = BotSettings()
+        bot_settings = BotSettings()
 
-        assert settings.conda_forge_org == "myorg"
-        assert settings.graph_github_backend_repo == "graph-owner/graph-repo"
-        assert settings.graph_repo_default_branch == "mybranch"
+        assert bot_settings.conda_forge_org == "myorg"
+        assert bot_settings.graph_github_backend_repo == "graph-owner/graph-repo"
+        assert bot_settings.graph_repo_default_branch == "mybranch"
         assert (
-            settings.graph_github_backend_raw_base_url
+            bot_settings.graph_github_backend_raw_base_url
             == "https://github.com/graph-owner/graph-repo/raw/mybranch"
         )
-        assert settings.github_runner_debug is True
-        assert settings.frac_update_upstream_versions == 0.5
-        assert settings.frac_make_graph == 0.7
+        assert bot_settings.github_runner_debug is True
+        assert bot_settings.frac_update_upstream_versions == 0.5
+        assert bot_settings.frac_make_graph == 0.7
 
     def test_defaults(self, temporary_environment):
         os.environ.clear()
 
-        settings = BotSettings()
+        bot_settings = BotSettings()
 
-        assert settings.conda_forge_org == "conda-forge"
-        assert settings.graph_github_backend_repo == "regro/cf-graph-countyfair"
-        assert settings.graph_repo_default_branch == "master"
-        assert settings.github_runner_debug is False
-        assert settings.frac_update_upstream_versions == 0.1
-        assert settings.frac_make_graph == 0.1
+        assert bot_settings.conda_forge_org == "conda-forge"
+        assert bot_settings.graph_github_backend_repo == "regro/cf-graph-countyfair"
+        assert bot_settings.graph_repo_default_branch == "master"
+        assert bot_settings.github_runner_debug is False
+        assert bot_settings.frac_update_upstream_versions == 0.1
+        assert bot_settings.frac_make_graph == 0.1
 
     def test_env_conda_forge_org(self, temporary_environment):
         os.environ.clear()
 
         os.environ[ENV_CONDA_FORGE_ORG] = "myorg"
 
-        settings = BotSettings()
+        bot_settings = BotSettings()
 
-        assert settings.conda_forge_org == "myorg"
+        assert bot_settings.conda_forge_org == "myorg"
 
     def test_reject_invalid_conda_forge_org(self, temporary_environment):
         os.environ.clear()
@@ -90,6 +95,23 @@ class TestBotSettings:
 
         os.environ[f"CF_TICK_{attribute}"] = str(value)
 
-        settings = BotSettings()
+        bot_settings = BotSettings()
 
-        assert getattr(settings, attribute.lower()) == value
+        assert getattr(bot_settings, attribute.lower()) == value
+
+
+def test_use_settings(temporary_environment):
+    os.environ.clear()
+    bot_settings = settings()
+    bot_settings.github_runner_debug = True
+    use_settings(bot_settings)
+
+    ret_settings = settings()
+    assert ret_settings.github_runner_debug is True
+
+    # there should be no side effects
+    bot_settings.github_runner_debug = False
+    ret_settings.github_runner_debug = False
+
+    side_effect_check_settings = settings()
+    assert side_effect_check_settings.github_runner_debug is True

@@ -103,4 +103,4 @@ def use_settings(s: BotSettings | None) -> None:
     :param s: The settings object to use. If None, the application will revert to using the default settings.
     """
     global _USE_SETTINGS_OVERRIDE
-    _USE_SETTINGS_OVERRIDE = s
+    _USE_SETTINGS_OVERRIDE = s.model_copy()  # prevent side-effects
