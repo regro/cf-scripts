@@ -6,8 +6,6 @@ from typing import Any
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.recipe_parser._parser import _get_yaml_parser
 
-from typing import Any
-
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
