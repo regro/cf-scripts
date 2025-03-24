@@ -16,7 +16,6 @@ import conda_forge_tick
 import conda_forge_tick.utils
 from conda_forge_tick.git_utils import github_client
 from conda_forge_tick.lazy_json_backends import (
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
     GithubLazyJsonBackend,
     LazyJson,
@@ -37,6 +36,7 @@ from conda_forge_tick.lazy_json_backends import (
     touch_all_lazy_json_refs,
 )
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import settings
 
 HAVE_MONGODB = (
     "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.classified_info
@@ -624,7 +624,7 @@ def test_lazy_json_backends_hashmap(tmpdir):
 
 def test_github_base_url() -> None:
     github_backend = GithubLazyJsonBackend()
-    assert github_backend.base_url == CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL + "/"
+    assert github_backend.base_url == settings().graph_github_backend_raw_base_url + "/"
     github_backend.base_url = "https://github.com/lorem/ipsum"
     assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 

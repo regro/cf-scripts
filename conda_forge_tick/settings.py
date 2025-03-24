@@ -8,17 +8,50 @@ To make settings easier to understand for humans, we use explicit type annotatio
 
 import os
 
-ENV_GRAPH_REPO = "CF_TICK_GRAPH_GITHUB_BACKEND_REPO"
-GRAPH_REPO: str = os.getenv(ENV_GRAPH_REPO, "regro/cf-graph-countyfair")
-"""
-The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
-Overwrite with the environment variable CF_TICK_GRAPH_GITHUB_BACKEND_REPO.
-"""
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-GRAPH_REPO_DEFAULT_BRANCH: str = "master"
-"""
-The default branch of the GRAPH_REPO repository.
-"""
+
+class BotSettings(BaseSettings):
+    """
+    The global settings for the bot.
+
+    To configure a settings value, set the corresponding environment variable with the prefix `CF_TICK_`.
+    For example, to set the `graph_github_backend_repo` setting, set the environment variable
+    `CF_TICK_GRAPH_GITHUB_BACKEND_REPO`.
+
+    To access the current settings object, please use the `settings()` function.
+    """
+
+    model_config = SettingsConfigDict(env_prefix="CF_TICK_")
+
+    graph_github_backend_repo: str = Field(
+        "regro/cf-graph-countyfair", pattern=r"^[\w\.-]+/[\w\.-]+$"
+    )
+    """
+    The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
+    """
+
+    graph_repo_default_branch: str = "master"
+    """
+    The default branch of the graph_github_backend_repo repository.
+    """
+
+    @property
+    def graph_github_backend_raw_base_url(self) -> str:
+        """
+        The base URL for the GitHub raw view of the graph_github_backend_repo repository.
+        Example: https://github.com/regro/cf-graph-countyfair/raw/master
+        """
+        return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}"
+
+
+def settings() -> BotSettings:
+    """
+    Get the current settings object.
+    """
+    return BotSettings()
+
 
 ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
 CONDA_FORGE_ORG: str = os.getenv(ENV_OVERRIDE_CONDA_FORGE_ORG, "conda-forge")
