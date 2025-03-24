@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENVIRONMENT_PREFIX = "CF_TICK_"
 """
-All environment are expected to be prefixed with this.
+All environment variables are expected to be prefixed with this.
 """
 
 ENV_CONDA_FORGE_ORG = ENVIRONMENT_PREFIX + "CONDA_FORGE_ORG"
