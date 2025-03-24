@@ -556,7 +556,7 @@ def run_test_migration(
             name = "blah"
 
         pmy = populate_feedstock_attributes(
-            name, sub_graph={}, meta_yaml=inp, conda_forge_yaml=cf_yml
+            name, existing_node_attrs={}, meta_yaml=inp, conda_forge_yaml=cf_yml
         )
 
         # these are here for legacy migrators
@@ -580,7 +580,7 @@ def run_test_migration(
 
         pmy = populate_feedstock_attributes(
             name,
-            sub_graph={},
+            existing_node_attrs={},
             recipe_yaml=inp,
             conda_forge_yaml=cf_yml,
             feedstock_dir=tmp_path,

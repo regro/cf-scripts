@@ -273,7 +273,7 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
         }
     pmy = populate_feedstock_attributes(
         name,
-        sub_graph={},
+        existing_node_attrs={},
         conda_forge_yaml="bot: {update_static_libs: true}\n",
         **pkwargs,
         feedstock_dir=tmp_path,

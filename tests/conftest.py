@@ -101,6 +101,10 @@ class FakeLazyJson(dict):
     ) -> None:
         pass
 
+    @property
+    def data(self):
+        return self
+
 
 @pytest.fixture
 def test_graph():
