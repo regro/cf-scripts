@@ -21,44 +21,56 @@ combine_conditions_migrator = Version(
 )
 
 
-@pytest.mark.parametrize("x", [
-    "win",
-    "not unix",
-    'cuda_compiler_version == "None"',
-    "build_platform != target_platform",
-])
+@pytest.mark.parametrize(
+    "x",
+    [
+        "win",
+        "not unix",
+        'cuda_compiler_version == "None"',
+        "build_platform != target_platform",
+    ],
+)
 def test_is_single_expression(x):
     assert is_single_expression(x)
 
 
-@pytest.mark.parametrize("x", [
-    'cuda_compiler_version != "None" and linux"',
-    'unix and blas_impl != "mkl"',
-    "linux or osx",
-    "foo if bar else baz",
-])
+@pytest.mark.parametrize(
+    "x",
+    [
+        'cuda_compiler_version != "None" and linux"',
+        'unix and blas_impl != "mkl"',
+        "linux or osx",
+        "foo if bar else baz",
+    ],
+)
 def test_not_is_single_expression(x):
     assert not is_single_expression(x)
 
 
-@pytest.mark.parametrize("a,b", [
-    ("unix", "not unix"),
-    ('cuda_compiler_version == "None"', 'not cuda_compiler_version == "None"'),
-    ('cuda_compiler_version == "None"', 'cuda_compiler_version != "None"'),
-    ('not cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
-])
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        ("unix", "not unix"),
+        ('cuda_compiler_version == "None"', 'not cuda_compiler_version == "None"'),
+        ('cuda_compiler_version == "None"', 'cuda_compiler_version != "None"'),
+        ('not cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
+    ],
+)
 def test_is_negated_condition(a, b):
     assert is_negated_condition(a, b)
     assert is_negated_condition(b, a)
 
 
-@pytest.mark.parametrize("a,b", [
-    ("not unix", "not unix"),
-    ('cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
-    ('cuda_compiler_version != "None"', 'not cuda_compiler_version == "None"'),
-    ("a or b", "not a or b"),
-    ("a and b", "not a and b"),
-])
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        ("not unix", "not unix"),
+        ('cuda_compiler_version == "None"', 'not cuda_compiler_version != "None"'),
+        ('cuda_compiler_version != "None"', 'not cuda_compiler_version == "None"'),
+        ("a or b", "not a or b"),
+        ("a and b", "not a and b"),
+    ],
+)
 def test_not_is_negated_condition(a, b):
     assert not is_negated_condition(a, b)
     assert not is_negated_condition(b, a)
