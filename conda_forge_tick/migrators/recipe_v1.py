@@ -31,12 +31,20 @@ def is_negated_condition(a: str, b: str) -> bool:
     if not all(map(is_single_expression, (a, b))):
         return False
 
+    # X <-> not X
     a_not = a.startswith("not")
     b_not = b.startswith("not")
-    return (
+    if (
         a_not != b_not
         and a.removeprefix("not").lstrip() == b.removeprefix("not").lstrip()
-    )
+    ):
+        return True
+
+    # A == B <-> A != B
+    if a == b.replace("==", "!=") or a == b.replace("!=", "=="):
+        return True
+
+    return False
 
 
 def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:

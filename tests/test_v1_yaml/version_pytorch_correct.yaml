@@ -149,8 +149,7 @@ outputs:
           else:
             - pytorch-gpu ==${{ version }}
             - pytorch-cpu ==99999999
-        - if: "cuda_compiler_version != \"None\""
-          then: pytorch =${{ version }} cuda${{ cuda_compiler_version | replace('.', '') }}_${{ blas_impl }}_*_${{ build }}
+            - pytorch =${{ version }} cuda${{ cuda_compiler_version | replace('.', '') }}_${{ blas_impl }}_*_${{ build }}
         - if: "unix and blas_impl != \"mkl\""
           then: openblas * openmp_*
 
@@ -225,9 +224,9 @@ outputs:
           then:
             - mkl-devel ${{ mkl }}
             - libcblas * *_mkl
-          else: libcblas
-        - if: "blas_impl != \"mkl\""
-          then: liblapack
+          else:
+            - libcblas
+            - liblapack
         - if: not win
           then: llvm-openmp
           else: intel-openmp ${{ mkl }}
@@ -252,9 +251,7 @@ outputs:
           else: intel-openmp ${{ mkl }}
         - if: "blas_impl == \"mkl\""
           then: libblas * *${{ blas_impl }}
-        - if: "blas_impl != \"mkl\""
-          then: nomkl
-        # GPU requirements without run_exports
+          else: nomkl
         - if: "cuda_compiler_version != \"None\""
           then: ${{ pin_compatible('cudnn') }}
         - if: "cuda_compiler_version != \"None\" and not win"
