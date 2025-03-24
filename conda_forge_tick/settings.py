@@ -1,11 +1,3 @@
-"""
-This module contains global settings for the bot.
-For each setting available as `SETTING_NAME`, there is an environment variable available as `ENV_SETTING_NAME`
-that can be used to override the default value.
-Note that there is no further validation of environment variables as of now.
-To make settings easier to understand for humans, we use explicit type annotations.
-"""
-
 from typing import Annotated
 
 from pydantic import Field
@@ -88,8 +80,27 @@ class BotSettings(BaseSettings):
     """
 
 
+_USE_SETTINGS_OVERRIDE: BotSettings | None = None
+"""
+If not None, the application should use this settings object instead of generating a new one.
+"""
+
+
 def settings() -> BotSettings:
     """
     Get the current settings object.
     """
+    if _USE_SETTINGS_OVERRIDE:
+        return _USE_SETTINGS_OVERRIDE.model_copy()  # prevent side-effects
     return BotSettings()
+
+
+def use_settings(s: BotSettings | None) -> None:
+    """
+    Overrides the application settings with the given settings object.
+    The new settings object is persisted indefinitely until another call to `use_settings` is made.
+
+    :param s: The settings object to use. If None, the application will revert to using the default settings.
+    """
+    global _USE_SETTINGS_OVERRIDE
+    _USE_SETTINGS_OVERRIDE = s

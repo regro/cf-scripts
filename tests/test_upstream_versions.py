@@ -15,6 +15,7 @@ from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
@@ -1356,13 +1357,26 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
+@pytest.fixture
+def version_update_frac_always():
+    new_settings = settings()
+
+    new_settings.frac_update_upstream_versions = True
+    use_settings(new_settings)
+
+    yield
+
+    # revert to default settings
+    use_settings(None)
+
+
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1396,13 +1410,13 @@ class BrokenException(Exception):
         raise Exception("broken exception")
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1433,13 +1447,13 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
     )
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1486,13 +1500,13 @@ def test_update_upstream_versions_sequential(
     assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1549,13 +1563,13 @@ def test_update_upstream_versions_process_pool(
     assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1595,13 +1609,13 @@ def test_update_upstream_versions_process_pool_exception(
     assert "source a error" in caplog.text
 
 
-@mock.patch(
-    "conda_forge_tick.update_upstream_versions.FRAC_UPDATE_UPSTREAM_VERSIONS", new=1.1
-)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
