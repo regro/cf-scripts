@@ -48,6 +48,7 @@ HAVE_MONGODB = (
 
 
 @pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
+@pytest.mark.mongodb
 def test_lazy_json_override_backends_global(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -149,6 +150,7 @@ def test_lazy_json_override_backends_global(tmpdir):
 
 
 @pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
+@pytest.mark.mongodb
 def test_lazy_json_override_backends_global_nocache(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -215,6 +217,7 @@ def test_lazy_json_override_backends_global_nocache(tmpdir):
         ("mongodb", "file"),
     ],
 )
+@pytest.mark.mongodb
 def test_lazy_json_backends_sync(backends, tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -261,10 +264,13 @@ def test_lazy_json_backends_sync(backends, tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )
@@ -328,10 +334,13 @@ def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )
@@ -417,10 +426,13 @@ def test_lazy_json_backends_dump_load(tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )

@@ -1,12 +1,14 @@
 import logging
 import os
 import re
+import secrets
+import time
 import typing
 from functools import lru_cache
 from typing import Any, Optional, Sequence
 
 import networkx as nx
-import rapidjson
+import orjson
 from conda.models.match_spec import MatchSpec
 from conda.models.records import PackageRecord
 from conda.models.version import VersionOrder
@@ -29,6 +31,8 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 BUILD_STRING_END_RE = re.compile(r".*_\d+$")
+
+RNG = secrets.SystemRandom()
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +58,22 @@ def _cached_match_spec(req: str | MatchSpec) -> MatchSpec:
 
 @lru_cache(maxsize=1)
 def _read_repodata(platform_arch: str) -> Any:
+    rd = None
     platform_arch = platform_arch.replace("_", "-")
-    rd_fn = fetch_repodata([platform_arch])[0]
-    with open(rd_fn) as fp:
-        rd = rapidjson.load(fp)
+    for i in range(10):
+        try:
+            rd_fn = fetch_repodata([platform_arch])[0]
+            with open(rd_fn) as fp:
+                rd = orjson.loads(fp.read())
+        except Exception:
+            time.sleep((0.1 * 2**i) + RNG.uniform(0, 0.1))
+            continue
+        else:
+            break
+
+    if rd is None:
+        raise RuntimeError(f"Download of repodata for {platform_arch} failed!")
+
     return rd
 
 
