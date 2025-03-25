@@ -149,12 +149,15 @@ def test_cmake(tmp_path):
         assert lines == expected
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_cross_rbase(tmp_path):
+def test_cross_rbase(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_rbase,
-        inp=YAML_PATH.joinpath("rbase_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("rbase_recipe_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("rbase_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("rbase_recipe_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2.0.1"},
         mr_out={
@@ -163,18 +166,22 @@ def test_cross_rbase(tmp_path):
             "version": "2.0.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 
+@pytest.mark.parametrize("recipe_version", [0, 1])
 @flaky
-def test_cross_rbase_build_sh(tmp_path):
+def test_cross_rbase_build_sh(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\nR CMD INSTALL --build .")
     run_test_migration(
         m=version_migrator_rbase,
-        inp=YAML_PATH.joinpath("rbase_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("rbase_recipe_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("rbase_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("rbase_recipe_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2.0.1"},
         mr_out={
@@ -183,6 +190,7 @@ def test_cross_rbase_build_sh(tmp_path):
             "version": "2.0.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     expected = [
         "#!/bin/bash\n",
