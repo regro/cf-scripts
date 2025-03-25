@@ -3,6 +3,10 @@ import typing
 from pathlib import Path
 from typing import Any
 
+from jinja2 import Environment
+from jinja2.nodes import Compare, Node, Not
+from jinja2.parser import Parser
+
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.recipe_parser._parser import _get_yaml_parser
 
@@ -12,38 +16,49 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def get_condition(node: Any) -> str | None:
+def get_condition(node: Any) -> Node | None:
     if isinstance(node, dict) and "if" in node:
-        return node["if"].strip()
+        return Parser(
+            Environment(), node["if"].strip(), state="variable"
+        ).parse_expression()
     return None
 
 
-def is_same_condition(a: str, b: str) -> bool:
+def is_same_condition(a: Node, b: Node) -> bool:
     return a == b
 
 
-def is_single_expression(condition: str) -> bool:
-    return not any(f" {x} " in condition for x in ("and", "or", "if"))
+INVERSE_OPS = {
+    "eq": "ne",
+    "ne": "eq",
+    "gt": "lteq",
+    "gteq": "lt",
+    "lt": "gteq",
+    "lteq": "gt",
+    "in": "notin",
+    "notin": "in",
+}
 
 
-def is_negated_condition(a: str, b: str) -> bool:
-    # we only handle negating trivial expressions
-    if not all(map(is_single_expression, (a, b))):
-        return False
-
+def is_negated_condition(a: Node, b: Node) -> bool:
     # X <-> not X
-    a_not = a.startswith("not")
-    b_not = b.startswith("not")
-    if (
-        a_not != b_not
-        and a.removeprefix("not").lstrip() == b.removeprefix("not").lstrip()
-    ):
+    if Not(a) == b or a == Not(b):
         return True
+
+    # unwrap (not X) <-> (not Y)
+    if isinstance(a, Not) and isinstance(b, Not):
+        a = a.node
+        b = b.node
 
     # A == B <-> A != B
-    if "==" in b and a == b.replace("==", "!=", 1):
-        return True
-    if "!=" in b and a == b.replace("!=", "==", 1):
+    if (
+        isinstance(a, Compare)
+        and isinstance(b, Compare)
+        and len(a.ops) == len(b.ops) == 1
+        and a.expr == b.expr
+        and a.ops[0].expr == b.ops[0].expr
+        and a.ops[0].op == INVERSE_OPS[b.ops[0].op]
+    ):
         return True
 
     return False
