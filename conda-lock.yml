@@ -2104,39 +2104,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 70a927214f86c015bc968a3a9191effd
-      sha256: 6b215f2483afc2e36d01c4cc537a02bf3dcc9c8c6fb1bbd1ec6ac3471cee3435
+      md5: 691ca1b3b86e0fe667fb3d689a4da992
+      sha256: ea8cdbf2a402624094d9e508941c75ac13dff8e320dcb4b5f7c55c184b02e425
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.13.35.37-hd8ed1ab_0.conda
-    version: 2025.03.25.13.35.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.21.45.18-hd8ed1ab_0.conda
+    version: 2025.03.25.21.45.18
   - category: main
     dependencies: {}
     hash:
-      md5: 70a927214f86c015bc968a3a9191effd
-      sha256: 6b215f2483afc2e36d01c4cc537a02bf3dcc9c8c6fb1bbd1ec6ac3471cee3435
+      md5: 691ca1b3b86e0fe667fb3d689a4da992
+      sha256: ea8cdbf2a402624094d9e508941c75ac13dff8e320dcb4b5f7c55c184b02e425
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.13.35.37-hd8ed1ab_0.conda
-    version: 2025.03.25.13.35.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.21.45.18-hd8ed1ab_0.conda
+    version: 2025.03.25.21.45.18
   - category: main
     dependencies: {}
     hash:
-      md5: 70a927214f86c015bc968a3a9191effd
-      sha256: 6b215f2483afc2e36d01c4cc537a02bf3dcc9c8c6fb1bbd1ec6ac3471cee3435
+      md5: 691ca1b3b86e0fe667fb3d689a4da992
+      sha256: ea8cdbf2a402624094d9e508941c75ac13dff8e320dcb4b5f7c55c184b02e425
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.13.35.37-hd8ed1ab_0.conda
-    version: 2025.03.25.13.35.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.03.25.21.45.18-hd8ed1ab_0.conda
+    version: 2025.03.25.21.45.18
   - category: main
     dependencies:
       click: '>=8'
@@ -11538,38 +11538,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: d451ccded808abf6511f0a2ac9bb9dcc
-      sha256: bc35995ecbd38693567fc143d3e6008e53cff900b453412cae48ffa535f25d1f
+      md5: bc8e3267d44011051f2eb14d22fb0960
+      sha256: 8d2a8bf110cc1fc3df6904091dead158ba3e614d8402a83e51ed3a8aa93cdeb0
     manager: conda
     name: pytz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.1-pyhd8ed1ab_0.conda
-    version: '2025.1'
+    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    version: '2025.2'
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: d451ccded808abf6511f0a2ac9bb9dcc
-      sha256: bc35995ecbd38693567fc143d3e6008e53cff900b453412cae48ffa535f25d1f
+      md5: bc8e3267d44011051f2eb14d22fb0960
+      sha256: 8d2a8bf110cc1fc3df6904091dead158ba3e614d8402a83e51ed3a8aa93cdeb0
     manager: conda
     name: pytz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.1-pyhd8ed1ab_0.conda
-    version: '2025.1'
+    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    version: '2025.2'
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: d451ccded808abf6511f0a2ac9bb9dcc
-      sha256: bc35995ecbd38693567fc143d3e6008e53cff900b453412cae48ffa535f25d1f
+      md5: bc8e3267d44011051f2eb14d22fb0960
+      sha256: 8d2a8bf110cc1fc3df6904091dead158ba3e614d8402a83e51ed3a8aa93cdeb0
     manager: conda
     name: pytz
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.1-pyhd8ed1ab_0.conda
-    version: '2025.1'
+    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    version: '2025.2'
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
