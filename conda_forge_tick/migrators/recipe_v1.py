@@ -68,6 +68,18 @@ def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
     return isinstance(sub_node, And) and super_node in (sub_node.left, sub_node.right)
 
 
+def get_common_condition_part(sub_cond: str, super_cond: str) -> str | None:
+    if sub_cond.startswith(super_cond):
+        strip_cond = sub_cond.removeprefix(super_cond).lstrip()
+        if strip_cond.startswith("and"):
+            return strip_cond.removeprefix("and").lstrip()
+    elif sub_cond.endswith(super_cond):
+        strip_cond = sub_cond.removesuffix(super_cond).rstrip()
+        if strip_cond.endswith("and"):
+            return strip_cond.removesuffix("and").rstrip()
+    return None
+
+
 def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:
     if branch not in source:
         return
@@ -105,24 +117,25 @@ def combine_conditions(node: Any):
                 continue
 
             if is_sub_condition(sub_node=node_cond, super_node=prev_cond):
-                raw_cond = node[i]["if"].strip()
-                raw_super_cond = node[i - 1]["if"].strip()
-                new_cond = None
-                if raw_cond.startswith(raw_super_cond):
-                    strip_cond = raw_cond.removeprefix(raw_super_cond).lstrip()
-                    if strip_cond.startswith("and"):
-                        new_cond = strip_cond.removeprefix("and").lstrip()
-                elif raw_cond.endswith(raw_super_cond):
-                    strip_cond = raw_cond.removesuffix(raw_super_cond).rstrip()
-                    if strip_cond.endswith("and"):
-                        new_cond = strip_cond.removesuffix("and").rstrip()
-
+                new_cond = get_common_condition_part(
+                    sub_cond=node[i]["if"].strip(), super_cond=node[i - 1]["if"].strip()
+                )
                 if new_cond is not None:
                     node[i]["if"] = new_cond
                     if isinstance(node[i - 1]["then"], str):
                         node[i - 1]["then"] = [node[i - 1]["then"]]
                     node[i - 1]["then"].append(node[i])
                     del node[i]
+            elif is_sub_condition(sub_node=prev_cond, super_node=node_cond):
+                new_cond = get_common_condition_part(
+                    sub_cond=node[i - 1]["if"].strip(), super_cond=node[i]["if"].strip()
+                )
+                if new_cond is not None:
+                    node[i - 1]["if"] = new_cond
+                    if isinstance(node[i]["then"], str):
+                        node[i]["then"] = [node[i]["then"]]
+                    node[i]["then"].insert(0, node[i - 1])
+                    del node[i - 1]
 
         # now combine same-level conditions
         for i in reversed(range(1, len(node))):

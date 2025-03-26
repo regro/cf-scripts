@@ -71,9 +71,9 @@ outputs:
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
           then:
-            - cudnn
             - if: "linux"
               then: nccl
+            - cudnn
             - magma
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
