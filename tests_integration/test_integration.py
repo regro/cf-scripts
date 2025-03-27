@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from xprocess import ProcessStarter, XProcess
 
-from conda_forge_tick.settings import settings
+from conda_forge_tick.settings import settings, use_settings
 from tests_integration import setup_repositories
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.shared import setup_logging
@@ -21,6 +21,8 @@ from tests_integration.step_prepare import (
 from tests_integration.step_validate import run_all_validate_functions
 
 TESTS_INTEGRATION_DIR = Path(__file__).parent
+MITMPROXY_CONFDIR = TESTS_INTEGRATION_DIR / ".mitmproxy"
+MITMPROXY_CERT_BUNDLE_FILE = MITMPROXY_CONFDIR / "mitmproxy-cert-bundle.pem"
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -29,27 +31,50 @@ def global_environment_setup():
     Set up the global environment variables for the tests.
     If we once migrate to pydantic-settings, this should be more fine-grained for each bot step.
     """
-    # assert os.environ.get("BOT_TOKEN"), "BOT_TOKEN must be set."
-    assert os.environ.get("MITMPROXY_CONFDIR"), "MITMPROXY_CONFDIR must be set."
-    assert os.environ.get("SSL_CERT_FILE"), "SSL_CERT_FILE must be set."
-    assert os.environ.get("REQUESTS_CA_BUNDLE"), "REQUESTS_CA_BUNDLE must be set."
+    # Make sure to also set BOT_TOKEN, we cannot validate this here!
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
 
-    # os.environ["CF_TICK_OVERRIDE_CONDA_FORGE_ORG"] = "conda-forge-bot-staging"
-    # os.environ["CF_TICK_GRAPH_DATA_BACKENDS"] = "file"
-    # os.environ["CF_FEEDSTOCK_OPS_CONTAINER_NAME"] = "conda-forge-tick"
-    # os.environ["CF_FEEDSTOCK_OPS_CONTAINER_TAG"] = "test"
-    # os.environ["CF_TICK_GRAPH_GITHUB_BACKEND_REPO"] = (
-    #    "regro-staging/cf-graph-countyfair"
-    # )
-    # github_run_id = os.environ.get("GITHUB_RUN_ID", "GITHUB_RUN_ID_NOT_SET")
-    # os.environ["RUN_URL"] = (
-    #    f"https://github.com/regro/cf-scripts/actions/runs/{github_run_id}"
-    # )
+    os.environ["MITMPROXY_CONFDIR"] = str(MITMPROXY_CONFDIR.resolve())
+    os.environ["SSL_CERT_FILE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
+    os.environ["REQUESTS_CA_BUNDLE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
 
-    # os.environ["CF_TICK_FRAC_MAKE_GRAPH"] = "1.0"
+    github_run_id = os.environ.get("GITHUB_RUN_ID", "GITHUB_RUN_ID_NOT_SET")
+    os.environ["RUN_URL"] = (
+        f"https://github.com/regro/cf-scripts/actions/runs/{github_run_id}"
+    )
 
+    # by default, we enable container mode because it is the default in the bot
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "false"
+
+    # set if not set
+    os.environ.setdefault("CF_FEEDSTOCK_OPS_CONTAINER_NAME", "conda-forge-tick")
+    os.environ.setdefault("CF_FEEDSTOCK_OPS_CONTAINER_TAG", "test")
+
+    new_settings = settings()
+
+    new_settings.frac_make_graph = 1.0  # do not skip nodes due to randomness
+    new_settings.frac_update_upstream_versions = 1.0
+    new_settings.graph_github_backend_repo = "regro-staging/cf-graph-countyfair"
+    new_settings.conda_forge_org = "conda-forge-bot-staging"
+
+    use_settings(new_settings)
     setup_logging(logging.INFO)
+
+    yield
+
+    # reset settings
+    use_settings(None)
+
+
+@pytest.fixture
+def disable_container_mode():
+    """
+    Disable container mode for the test.
+    """
+    value_before = os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"]
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
+    yield
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = value_before
 
 
 @pytest.fixture(scope="module")
@@ -189,14 +214,19 @@ def invoke_bot_command(args: list[str]):
     cli.main(args, standalone_mode=False)
 
 
-# TODO: parameterize to include no containers test
-
-
+@pytest.mark.parametrize("use_containers", [False, True])
 @pytest.mark.integration
 def test_scenario(
-    scenario: tuple[int, dict[str, TestCase]], repositories_setup, mitmproxy
+    use_containers: bool,
+    scenario: tuple[int, dict[str, TestCase]],
+    repositories_setup,
+    mitmproxy,
+    request: pytest.FixtureRequest,
 ):
     _, scenario = scenario
+
+    if not use_containers:
+        request.getfixturevalue("disable_container_mode")
 
     with in_fresh_cf_graph():
         invoke_bot_command(["--debug", "gather-all-feedstocks"])
