@@ -58,7 +58,7 @@ jobs:
         run: |
           # place a script in the mitmproxy directory that will be run by the setup wizard
           # to trust the mitmproxy certificate
-          cat <<EOF > "${MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT}"
+          cat <<EOF > ./tests_integration/.mitmproxy/${{ env.MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT }}
           #!/usr/bin/env bash
           set -euo pipefail
           sudo cp "$1" /usr/local/share/ca-certificates/mitmproxy.crt
@@ -68,7 +68,7 @@ jobs:
           ./tests_integration/mitmproxy_setup_wizard.sh
         env:
           MITMPROXY_WIZARD_HEADLESS: true
-          MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: ./tests_integration/.mitmproxy/mitmproxy_trust_script.sh
+          MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: mitmproxy_trust_script.sh
 
       - name: Run Integration Tests with pytest
         working-directory: cf-scripts
