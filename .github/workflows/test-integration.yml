@@ -40,8 +40,6 @@ jobs:
           push: false
           load: true
           tags: conda-forge-tick:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
