@@ -26,18 +26,15 @@ definitions/
 │   ├── resources/
 │   │   ├── feedstock
 │   │   └── ... (entirely custom)
-│   ├── version_update.py
-│   ├── aarch_migration.py
-│   ├── some_other_test_case.py
-│   └── ...
+│   └── __init__.py
 ├── llvmdev/
 │   ├── resources/
-│   └── test_case.py
+│   └── __init__.py
 └── ...
 ```
 
-Each feedstock has its own directory containing the test cases for that feedstock. The test cases are defined in
-Python files in the feedstock directory, where each file contains a single test case.
+Each feedstock has its own Python module containing the test cases for that feedstock.
+**The test cases are always defined in the top-level `__init__.py` file of the feedstock directory.**
 
 For storing resources, a `resources` directory is used for each feedstock directory.
 Inside the `resources` directory, you can use an arbitrary directory structure to store the resources.
@@ -45,21 +42,22 @@ Inside the `resources` directory, you can use an arbitrary directory structure t
 Usually, we include a specific revision of the original feedstock as a submodule in the `resources` directory.
 
 A test case always tests the entire pipeline of the bot and not any intermediate states that could be checked
-in the cf-graph. See the [workflow file](../.github/workflows/test-integration.yml) for more details.
+in the cf-graph. See the [pytest test definition](test_integration.py) for more details.
 Also, a test case is always bound to one specific feedstock.
 
 ### Test Case Definition
-To define a test case, create a Python file in the definitions dir of the feedstock. You can name it arbitrarily.
-Referring to
-[this](definitions/pydantic/version_update.py) minimal test case,
-you have to define three things:
+To define a test case, create a subclass of `tests_integration.lib.test_case.TestCase` in the `__init__.py` file of
+your feedstock. You can name it arbitrarily.
+Referring to the minimal `VersionUpdate` test case in the
+[pydantic module](definitions/pydantic/__init__.py),
+your class has to implement three methods:
 
-1. A function `prepare(helper: IntegrationTestHelper)` for setting up your test case. Usually, you will want to
+1. `get_router()` should return an `APIRouter` object to define mock responses for specific HTTP requests. All web requests are intercepted by an HTTP proxy.
+Refer to `tests_integration.lib.shared.get_transparent_urls` to define URLs that should not be intercepted.
+
+2. `prepare(helper: IntegrationTestHelper)` for setting up your test case. Usually, you will want to
 overwrite the feedstock repository in the test environment. The `IntegrationTestHelper` provides methods to interact
 with the test environment.
-
-2. A `router` object to define mock responses for specific HTTP requests. All web requests are intercepted by an HTTP proxy.
-Consult `tests_integration.lib.shared.get_transparent_urls` to define URLs that should not be intercepted.
 
 3. A function `validate(helper: IntegrationTestHelper)` for validating the state after the bot has run.
 The `IntegrationTestHelper` provides convenience methods such as `assert_version_pr_present` to check for the presence
@@ -119,10 +117,11 @@ For example, scenario 1 uses `test_case_3.py` from Feedstock A and `test_case_2.
 ## Environment Variables
 The tests expect the following environment variables:
 
-| Variable           | Description                                                                                                                      |
-|--------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `TEST_SETUP_TOKEN` | Classic PAT for `cf-regro-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`. |
-| `GITHUB_RUN_ID`    | Set by GitHub. ID of the current run. Used as random seed.                                                                       |
+| Variable           | Description                                                                                                                       |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `BOT_TOKEN`        | Classic PAT for `cf-regro-autotick-bot-staging`. Used to interact with the test environment.                                      |
+| `TEST_SETUP_TOKEN` | Classic PAT for `cf-regro-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`.  |
+| `GITHUB_RUN_ID`    | Set by GitHub. ID of the current run. Used as random seed.                                                                        |
 
 
 We do not use `BOT_TOKEN` instead of `TEST_SETUP_TOKEN` for setting up the test environment to allow for future separation of the two tokens.
@@ -130,33 +129,13 @@ Furthermore, `BOT_TOKEN` is hidden by the sensitive env logic of `conda_forge_ti
 
 
 ### GitHub Token Permissions
-The token should have the following scopes: `repo`, `workflow`, `delete_repo`.
+The bot token (which you can should use as the test setup token) should have the following scopes: `repo`, `workflow`, `delete_repo`.
 
 ## Running the Integration Tests Locally
 
 To run the integration tests locally, you currently need to have a valid token for the `cf-regro-autotick-bot-staging` account.
-Besides that, the further setup is described below.
-
-### Generate CA Certificates
-
-For mitmproxy to properly intercept HTTPS traffic, you need to generate a CA certificate:
+Besides that, run the following setup wizard to set up self-signed certificates for the HTTP proxy:
 
 ```bash
-cd .mitmproxy
-openssl genrsa -out mitmproxy-ca.key 4096
-openssl req -x509 -new -nodes -key mitmproxy-ca.key -sha256 -out mitmproxy-ca.crt -addext keyUsage=critical,keyCertSign -subj "/C=US/ST=cf-scripts/L=cf-scripts/O=cf-scripts/OU=cf-scripts/CN=cf-scripts"
-cat mitmproxy-ca.key mitmproxy-ca.crt > mitmproxy-ca.pem
-```
-
-After running the commands above, trust the CA certificate in your system's keychain.
-
-On macOS, you do this by dragging the `mitmproxy-ca.pem` file into the "Keychain Access" app while having the
-"Login" keychain selected. Then, double-click the certificate in the keychain and set "Always Trust" in the "Trust" section.
-
-Then, build the certificate bundle to pass to Python:
-
-```bash
-cd .mitmproxy # if not already there
-cp $(python -m certifi) mitmproxy-cert-bundle.pem
-cat mitmproxy-ca.pem >> mitmproxy-cert-bundle.pem
+./mitmproxy_setup_wizard.sh
 ```
