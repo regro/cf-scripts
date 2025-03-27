@@ -65,6 +65,12 @@ of a version update PR.
 
 The creation of GitHub repositories in the test environment is done automatically based on the directory structure.
 
+### Adding to Test Case Lists
+
+> [!IMPORTANT]
+> Please make sure to add any added test cases to the `ALL_TEST_CASES` list in the respective `__init__.py` file of the feedstock.
+> You also need to add any added feedstock to the `TEST_CASE_MAPPING` dictionary in the `definitions/__init__.py` file.
+
 ### How Test Cases are Run
 
 Importantly, the integration test workflow does not execute the test cases directly.

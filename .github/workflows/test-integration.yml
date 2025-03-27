@@ -44,7 +44,7 @@ jobs:
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
-          environment-file: conda-lock.yml
+          environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
