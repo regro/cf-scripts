@@ -58,7 +58,7 @@ jobs:
         run: |
           # place a script in the mitmproxy directory that will be run by the setup wizard
           # to trust the mitmproxy certificate
-          cat <<EOF "${MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT}"
+          cat <<EOF > "${MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT}"
           #!/usr/bin/env bash
           set -euo pipefail
           sudo cp "$1" /usr/local/share/ca-certificates/mitmproxy.crt
