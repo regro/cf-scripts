@@ -42,6 +42,7 @@ dependencies:
   - psutil
   - pydantic
   - pydantic-extra-types
+  - pydantic-settings
   - pygithub
   - pymongo
   - pynamodb

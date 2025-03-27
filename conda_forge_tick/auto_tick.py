@@ -72,7 +72,7 @@ from conda_forge_tick.utils import (
 
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
-from .settings import CONDA_FORGE_ORG
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -1044,7 +1044,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             fctx = FeedstockContext(
                 feedstock_name=attrs["feedstock_name"],
                 attrs=attrs,
-                git_repo_owner=CONDA_FORGE_ORG,
+                git_repo_owner=settings().conda_forge_org,
             )
 
             # map main to current default branch
