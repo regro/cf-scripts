@@ -19,17 +19,19 @@ from mitmproxy.http import HTTPFlow
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.shared import (
     ENV_TEST_SCENARIO_ID,
-    TRANSPARENT_URLS,
     VIRTUAL_PROXY_HOSTNAME,
     VIRTUAL_PROXY_PORT,
     get_global_router,
+    get_transparent_urls,
 )
 
 LOGGER = logging.getLogger(__name__)
 
 
 def request(flow: HTTPFlow):
-    if any(fnmatch.fnmatch(flow.request.url, pattern) for pattern in TRANSPARENT_URLS):
+    if any(
+        fnmatch.fnmatch(flow.request.url, pattern) for pattern in get_transparent_urls()
+    ):
         return
     flow.request.path = f"/{flow.request.host}{flow.request.path}"
     flow.request.host = VIRTUAL_PROXY_HOSTNAME

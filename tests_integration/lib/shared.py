@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter
 
-from conda_forge_tick.settings import GITHUB_RUNNER_DEBUG, GRAPH_REPO_DEFAULT_BRANCH
+from conda_forge_tick.settings import settings
 
 
 class GitHubAccount(StrEnum):
@@ -44,24 +44,6 @@ DEFINITIONS_DIR = Path(__file__).parents[1] / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 
-TRANSPARENT_URLS = {
-    f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{GRAPH_REPO_DEFAULT_BRANCH}/mappings/pypi/name_mapping.yaml",
-    f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{GRAPH_REPO_DEFAULT_BRANCH}/mappings/pypi/grayskull_pypi_mapping.json",
-    "https://api.github.com/*",
-    "https://pypi.io/packages/source/*",
-    "https://pypi.org/packages/source/*",
-    "https://files.pythonhosted.org/packages/*",
-    "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
-    "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
-    "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
-}
-"""
-Requests to those are forwarded to the actual upstream URLs in the tests.
-Use Unix filename patterns (provided by fnmatch) to specify wildcards:
-
-https://docs.python.org/3/library/fnmatch.html
-"""
-
 
 def setup_logging(default_level: int):
     """
@@ -69,7 +51,7 @@ def setup_logging(default_level: int):
     Uses the passed log level as the default level.
     If running within GitHub Actions and the workflow runs in debug mode, the log level is never set above DEBUG.
     """
-    if GITHUB_RUNNER_DEBUG and default_level > logging.DEBUG:
+    if settings().github_runner_debug and default_level > logging.DEBUG:
         level = logging.DEBUG
     else:
         level = default_level
@@ -82,6 +64,28 @@ def get_github_token(account: GitHubAccount) -> str:
 
 def is_user_account(account: GitHubAccount) -> bool:
     return IS_USER_ACCOUNT[account]
+
+
+def get_transparent_urls() -> set[str]:
+    """
+    Returns URLs which should be forwarded to the actual upstream URLs in the tests.
+    Unix filename patterns (provided by fnmatch) are used to specify wildcards:
+    https://docs.python.org/3/library/fnmatch.html
+    """
+
+    # this is not a constant because the graph_repo_default_branch setting is dynamic
+    graph_repo_default_branch = settings().graph_repo_default_branch
+    return {
+        f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{graph_repo_default_branch}/mappings/pypi/name_mapping.yaml",
+        f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{graph_repo_default_branch}/mappings/pypi/grayskull_pypi_mapping.json",
+        "https://api.github.com/*",
+        "https://pypi.io/packages/source/*",
+        "https://pypi.org/packages/source/*",
+        "https://files.pythonhosted.org/packages/*",
+        "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
+        "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
+        "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
+    }
 
 
 def get_global_router():

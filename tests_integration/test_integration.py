@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from xprocess import ProcessStarter, XProcess
 
+from conda_forge_tick.settings import settings
 from tests_integration import setup_repositories
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.shared import setup_logging
@@ -107,7 +108,7 @@ def in_fresh_cf_graph():
     with tempfile.TemporaryDirectory() as tmpdir_s:
         tmpdir = Path(tmpdir_s)
 
-        cf_graph_repo = os.environ["CF_TICK_GRAPH_GITHUB_BACKEND_REPO"]
+        cf_graph_repo = settings().graph_github_backend_repo
         subprocess.run(
             [
                 "git",
