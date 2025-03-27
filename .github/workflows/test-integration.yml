@@ -46,7 +46,7 @@ jobs:
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Run pip install
         working-directory: cf-scripts
