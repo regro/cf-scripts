@@ -24,6 +24,7 @@ dependencies:
   - curl
   - depfinder
   - distributed
+  - fastapi
   - feedparser
   - frozendict
   - git
@@ -32,6 +33,7 @@ dependencies:
   - jinja2
   - lockfile
   - mamba >=0.23
+  - mitmproxy
   - msgpack-python
   - networkx !=2.8.1
   - numpy
@@ -40,6 +42,7 @@ dependencies:
   - psutil
   - pydantic
   - pydantic-extra-types
+  - pydantic-settings
   - pygithub
   - pymongo
   - pynamodb
@@ -57,11 +60,13 @@ dependencies:
   - streamz
   - tar
   - tqdm
+  - truststore
   - wget
   - wurlitzer
   - yaml
   - pip
   - pytest <8.1.0
+  - pytest-xprocess
   - codecov
   - requests-mock
   - pre-commit

@@ -3,15 +3,14 @@ import os
 import subprocess
 import sys
 
-from . import sensitive_env
 from .cli_context import CliContext
-from .git_utils import delete_file_via_gh_api, push_file_via_gh_api
+from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_REPO,
     get_lazy_json_backends,
 )
 from .os_utils import clean_disk_space
+from .settings import settings
 from .utils import (
     fold_log_lines,
     get_bot_run_url,
@@ -148,22 +147,17 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     pass
 
                 print(">>>>>>>>>>>> git push try", flush=True)
-                with sensitive_env() as env:
-                    status = run_command_hiding_token(
-                        [
-                            "git",
-                            "push",
-                            "https://{token}@github.com/{deploy_repo}.git".format(
-                                token=env.get("BOT_TOKEN", ""),
-                                deploy_repo="regro/cf-graph-countyfair",
-                            ),
-                            "master",
-                        ],
-                        token=env.get("BOT_TOKEN", ""),
-                    )
-                if status != 0:
-                    print(">>>>>>>>>>>> git push failed", flush=True)
-
+            status = run_command_hiding_token(
+                [
+                    "git",
+                    "push",
+                    f"https://{get_bot_token()}@github.com/{settings().graph_github_backend_repo}.git",
+                    settings().graph_repo_default_branch,
+                ],
+                token=get_bot_token(),
+            )
+            if status != 0:
+                print(">>>>>>>>>>>> git push failed", flush=True)
             num_try += 1
 
         if status != 0 or not graph_ok:
@@ -207,6 +201,7 @@ def _get_pth_commit_message(pth):
 def _reset_and_restore_file(pth):
     subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
     subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
 
 
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
@@ -282,7 +277,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
                 msg = _get_pth_commit_message(pth)
 
-                push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
+                push_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
             except Exception as e:
                 logger.warning(
                     "git push via API failed - trying via git CLI", exc_info=e
@@ -305,7 +300,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
                 # make a nice message for stuff managed via LazyJson
                 msg = _get_pth_commit_message(pth)
 
-                delete_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
+                delete_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
             except Exception as e:
                 logger.warning(
                     "git delete via API failed - trying via git CLI", exc_info=e

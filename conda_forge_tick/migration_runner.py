@@ -229,8 +229,11 @@ def run_migration_local(
           - pr_body: The PR body for the migration.
     """
 
-    # it would be better if we don't re-instantiate ClonedFeedstockContext ourselves and let
-    # FeedstockContext.reserve_clone_directory be the only way to create a ClonedFeedstockContext
+    # Instead of mimicking the ClonedFeedstockContext which is already available in the call hierarchy of this function,
+    # we should instead pass the ClonedFeedstockContext object to this function. This would allow the following issue.
+    # POSSIBLE BUG: The feedstock_ctx object is mimicked and any attributes not listed here might have incorrect
+    # default values that were actually overridden. FOR EXAMPLE, DO NOT use the git_repo_owner attribute of the
+    # feedstock_ctx object below. Instead, refactor to make this function accept a ClonedFeedstockContext object.
     feedstock_ctx = ClonedFeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,

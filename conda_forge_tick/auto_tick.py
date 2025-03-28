@@ -72,10 +72,10 @@ from conda_forge_tick.utils import (
 
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
-BOT_HOME_DIR: str = os.getcwd()
 START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 
@@ -507,10 +507,6 @@ def run(
     pr_json: dict
         The PR json object for recreating the PR as needed
     """
-
-    # sometimes we get weird directory issues so make sure we reset
-    os.chdir(BOT_HOME_DIR)
-
     migrator_name = get_migrator_name(migrator)
     is_version_migration = isinstance(migrator, Version)
     _increment_pre_pr_migrator_attempt(
@@ -959,6 +955,7 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, tried_prs):
 
 def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
     _mg_start = time.time()
+    home_directory = os.getcwd()
 
     migrator_name = get_migrator_name(migrator)
 
@@ -1047,6 +1044,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             fctx = FeedstockContext(
                 feedstock_name=attrs["feedstock_name"],
                 attrs=attrs,
+                git_repo_owner=settings().conda_forge_org,
             )
 
             # map main to current default branch
@@ -1101,7 +1099,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                 gc.collect()
 
                 # sometimes we get weird directory issues so make sure we reset
-                os.chdir(BOT_HOME_DIR)
+                os.chdir(home_directory)
 
                 # Write graph partially through
                 dump_graph(mctx.graph)
