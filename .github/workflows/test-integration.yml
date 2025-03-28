@@ -86,8 +86,7 @@ jobs:
           TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
 
       - name: Print Proxy Logs
-        run: |
-          cat /tmp/mitmproxy.log
+        run: cat /tmp/mitmproxy.log
         if: always()
 
       - name: Setup tmate session
