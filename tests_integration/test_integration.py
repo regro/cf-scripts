@@ -1,6 +1,7 @@
 import contextlib
 import logging
 import os
+import socket
 import subprocess
 import tempfile
 from pathlib import Path
@@ -105,17 +106,34 @@ def scenario(request) -> tuple[int, dict[str, TestCase]]:
     return scenario_id, scenario
 
 
+def is_proxy_running(port: int, timeout: float = 2.0) -> bool:
+    """
+    Returns if the proxy is running on localhost:port.
+
+    :param port: The port to check.
+    :param timeout: The timeout in seconds.
+
+    :return: A function that returns True if the proxy is running, False otherwise.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(timeout)
+        return sock.connect_ex(("localhost", port)) == 0
+
+
 @pytest.fixture
 def mitmproxy(xprocess: XProcess, scenario: tuple[int, dict[str, TestCase]]):
     scenario_id, _ = scenario
 
     class MitmproxyStarter(ProcessStarter):
-        pattern = r".* HTTP\(S\) proxy listening at \*:8080\."
         args = ["./mock_proxy_start.sh"]
+        timeout = 60
         popen_kwargs = {"cwd": TESTS_INTEGRATION_DIR}
         env = os.environ | {"SCENARIO_ID": str(scenario_id)}
 
-    _ = xprocess.ensure("mitmproxy", MitmproxyStarter)
+        def startup_check(self):
+            return is_proxy_running(port=8080)
+
+    xprocess.ensure("mitmproxy", MitmproxyStarter)
 
     yield
 
