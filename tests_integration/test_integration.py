@@ -215,7 +215,6 @@ def invoke_bot_command(args: list[str]):
 
 
 @pytest.mark.parametrize("use_containers", [False, True])
-@pytest.mark.integration
 def test_scenario(
     use_containers: bool,
     scenario: tuple[int, dict[str, TestCase]],

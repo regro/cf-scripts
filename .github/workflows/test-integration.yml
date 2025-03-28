@@ -70,6 +70,11 @@ jobs:
           MITMPROXY_WIZARD_HEADLESS: true
           MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: mitmproxy_trust_script.sh
 
+      - name: Set up git identity
+        run: |
+          git config --global user.name "regro-cf-autotick-bot-staging"
+          git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
+
       - name: Run Integration Tests with pytest
         working-directory: cf-scripts
         run: pytest -s -v tests_integration
