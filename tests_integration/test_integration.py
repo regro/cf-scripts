@@ -22,6 +22,7 @@ from tests_integration.step_prepare import (
 from tests_integration.step_validate import run_all_validate_functions
 
 TESTS_INTEGRATION_DIR = Path(__file__).parent
+CF_SCRIPTS_ROOT_DIR = TESTS_INTEGRATION_DIR.parent
 MITMPROXY_CONFDIR = TESTS_INTEGRATION_DIR / ".mitmproxy"
 MITMPROXY_CERT_BUNDLE_FILE = MITMPROXY_CONFDIR / "mitmproxy-cert-bundle.pem"
 
@@ -128,7 +129,10 @@ def mitmproxy(xprocess: XProcess, scenario: tuple[int, dict[str, TestCase]]):
         args = ["./mock_proxy_start.sh"]
         timeout = 60
         popen_kwargs = {"cwd": TESTS_INTEGRATION_DIR}
-        env = os.environ | {"SCENARIO_ID": str(scenario_id)}
+        env = os.environ | {
+            "SCENARIO_ID": str(scenario_id),
+            "PYTHONPATH": str(CF_SCRIPTS_ROOT_DIR.resolve()),
+        }
 
         def startup_check(self):
             return is_proxy_running(port=8080)
