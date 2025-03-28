@@ -75,6 +75,9 @@ jobs:
           git config --global user.name "regro-cf-autotick-bot-staging"
           git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run Integration Tests with pytest
         working-directory: cf-scripts
         run: pytest -s -v tests_integration
