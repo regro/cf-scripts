@@ -64,7 +64,7 @@ jobs:
           cat <<EOF > ./tests_integration/.mitmproxy/${{ env.MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT }}
           #!/usr/bin/env bash
           set -euo pipefail
-          sudo cp "$1" /usr/local/share/ca-certificates/mitmproxy.crt
+          sudo cp "\$1" /usr/local/share/ca-certificates/mitmproxy.crt
           sudo update-ca-certificates
           EOF
 
