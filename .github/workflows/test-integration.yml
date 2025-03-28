@@ -33,13 +33,13 @@ jobs:
           path: cf-scripts
           submodules: 'true'
 
-      #- name: Build Docker Image
-      #  uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
-      #  with:
-      #    context: cf-scripts
-      #    push: false
-      #    load: true
-      #    tags: conda-forge-tick:test
+      - name: Build Docker Image
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        with:
+          context: cf-scripts
+          push: false
+          load: true
+          tags: conda-forge-tick:test
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
@@ -52,9 +52,6 @@ jobs:
         working-directory: cf-scripts
         run: |
           pip install --no-deps --no-build-isolation -e .
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
 
       - name: Run mitmproxy certificate setup wizard
         working-directory: cf-scripts
