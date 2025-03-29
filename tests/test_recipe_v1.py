@@ -10,9 +10,9 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.migrators.recipe_v1 import (
     get_condition,
+    get_new_sub_condition,
     is_negated_condition,
     is_sub_condition,
-    get_new_sub_condition,
 )
 
 YAML_PATH = Path(__file__).parent / "test_v1_yaml"
