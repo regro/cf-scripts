@@ -73,27 +73,36 @@ def test_not_is_negated_condition(a, b):
 @pytest.mark.parametrize(
     "sub_cond,super_cond,new_sub",
     [
-        ("build_platform != target_platform and megabuild",
-         "build_platform != target_platform", "megabuild"),
-        ("build_platform != target_platform and not megabuild",
-         "build_platform != target_platform", "not megabuild"),
-        ('cuda_compiler_version != "None" and linux',
-         'cuda_compiler_version != "None"', "linux"),
-        ('linux and cuda_compiler_version != "None"',
-         'cuda_compiler_version != "None"', "linux"),
-
+        (
+            "build_platform != target_platform and megabuild",
+            "build_platform != target_platform",
+            "megabuild",
+        ),
+        (
+            "build_platform != target_platform and not megabuild",
+            "build_platform != target_platform",
+            "not megabuild",
+        ),
+        (
+            'cuda_compiler_version != "None" and linux',
+            'cuda_compiler_version != "None"',
+            "linux",
+        ),
+        (
+            'linux and cuda_compiler_version != "None"',
+            'cuda_compiler_version != "None"',
+            "linux",
+        ),
         ("a and b", "a", "b"),
         ("a and b", "b", "a"),
         ("(a or b) and c", "c", "(a or b)"),
         ("(a or b) and c", "(a or b)", "c"),
         ("(a or b) and (c or d)", "(a or b)", "(c or d)"),
         ("(a or b) and (c or d)", "(c or d)", "(a or b)"),
-
         # we can't handle extra parentheses in sub_cond right now
         ("(a or b) and c", "a or b", None),
         ("(a or b) and (c or d)", "a or b", None),
         ("(a or b) and (c or d)", "c or d", None),
-
         ("a and b and c", "a and b", "c"),
         ("a and b and c", "c", "a and b"),
         ("a and (b and c)", "a", "(b and c)"),
@@ -115,12 +124,10 @@ def test_sub_condition(sub_cond, super_cond, new_sub):
     [
         ("a or b and c", "a"),
         ("a or b and c", "c"),
-
         # jinja2 interprets this as (a and b) and c, but we handle only
         # the top-most node
         ("a and b and c", "a"),
         ("a and b and c", "b and c"),
-
         ("a and bar", "a and b"),
         ("not (a and b)", "a and b"),
     ],
