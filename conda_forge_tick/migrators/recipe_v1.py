@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment
-from jinja2.nodes import Compare, Node, Not
+from jinja2.nodes import And, Compare, Node, Not
 from jinja2.parser import Parser
 
 from conda_forge_tick.migrators.core import MiniMigrator
@@ -64,6 +64,22 @@ def is_negated_condition(a: Node, b: Node) -> bool:
     return False
 
 
+def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
+    return isinstance(sub_node, And) and super_node in (sub_node.left, sub_node.right)
+
+
+def get_new_sub_condition(sub_cond: str, super_cond: str) -> str | None:
+    if sub_cond.startswith(super_cond):
+        strip_cond = sub_cond.removeprefix(super_cond).lstrip()
+        if strip_cond.startswith("and"):
+            return strip_cond.removeprefix("and").lstrip()
+    elif sub_cond.endswith(super_cond):
+        strip_cond = sub_cond.removesuffix(super_cond).rstrip()
+        if strip_cond.endswith("and"):
+            return strip_cond.removesuffix("and").rstrip()
+    return None
+
+
 def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:
     if branch not in source:
         return
@@ -91,6 +107,37 @@ def combine_conditions(node: Any):
     if isinstance(node, list):
         # iterate in reverse order, so we can remove elements on the fly
         # start at index 1, since we can only fold to the previous node
+
+        # fold subconditions into superconditions in the first run, since
+        # they can enable us to further combine same/opposite conditions later
+        for i in reversed(range(1, len(node))):
+            node_cond = get_condition(node[i])
+            prev_cond = get_condition(node[i - 1])
+            if node_cond is None or prev_cond is None:
+                continue
+
+            if is_sub_condition(sub_node=node_cond, super_node=prev_cond):
+                new_cond = get_new_sub_condition(
+                    sub_cond=node[i]["if"].strip(), super_cond=node[i - 1]["if"].strip()
+                )
+                if new_cond is not None:
+                    node[i]["if"] = new_cond
+                    if isinstance(node[i - 1]["then"], str):
+                        node[i - 1]["then"] = [node[i - 1]["then"]]
+                    node[i - 1]["then"].append(node[i])
+                    del node[i]
+            elif is_sub_condition(sub_node=prev_cond, super_node=node_cond):
+                new_cond = get_new_sub_condition(
+                    sub_cond=node[i - 1]["if"].strip(), super_cond=node[i]["if"].strip()
+                )
+                if new_cond is not None:
+                    node[i - 1]["if"] = new_cond
+                    if isinstance(node[i]["then"], str):
+                        node[i]["then"] = [node[i]["then"]]
+                    node[i]["then"].insert(0, node[i - 1])
+                    del node[i - 1]
+
+        # now combine same-level conditions
         for i in reversed(range(1, len(node))):
             node_cond = get_condition(node[i])
             prev_cond = get_condition(node[i - 1])

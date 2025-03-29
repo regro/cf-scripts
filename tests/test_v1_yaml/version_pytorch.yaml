@@ -71,10 +71,10 @@ outputs:
           then: rsync
       host:
         # GPU requirements
-        - if: "cuda_compiler_version != \"None\""
-          then: cudnn
         - if: "cuda_compiler_version != \"None\" and linux"
           then: nccl
+        - if: "cuda_compiler_version != \"None\""
+          then: cudnn
         - if: "cuda_compiler_version != \"None\""
           then: magma
         - if: "cuda_compiler_version != \"None\""
