@@ -23,12 +23,12 @@ from packaging.utils import canonicalize_name as canonicalize_pypi_name
 from .import_to_pkg import IMPORT_TO_PKG_DIR_CLOBBERING
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_all_keys_for_hashmap,
     loads,
 )
+from .settings import settings
 from .utils import as_iterable, load_existing_graph
 
 
@@ -320,7 +320,7 @@ def determine_best_matches_for_pypi_import(
             clobberers = loads(
                 requests.get(
                     os.path.join(
-                        CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                        settings().graph_github_backend_raw_base_url,
                         IMPORT_TO_PKG_DIR_CLOBBERING,
                     )
                 ).text,

@@ -8,9 +8,9 @@ from typing import Any, Dict
 import requests
 from ruamel.yaml import YAML
 
-from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import settings
 from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
@@ -28,7 +28,7 @@ def pypi_conda_mapping() -> Dict[str, str]:
     yaml = YAML()
     content = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "mappings",
             "pypi",
             "grayskull_pypi_mapping.yaml",

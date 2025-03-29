@@ -19,6 +19,8 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
+from conda_forge_tick.settings import ENV_CONDA_FORGE_ORG, settings
+
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
 
@@ -192,7 +194,7 @@ def _fetch_static_repo(name, dest):
     for branch in ["main", "master"]:
         try:
             r = requests.get(
-                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+                f"https://github.com/{settings().conda_forge_org}/{name}-feedstock/archive/{branch}.zip",
             )
             r.raise_for_status()
             found_branch = branch
@@ -672,6 +674,10 @@ def load_feedstock_containerized(
         args,
         json_loads=loads,
         input=json_blob,
+        extra_container_args=[
+            "-e",
+            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+        ],
     )
 
     return data

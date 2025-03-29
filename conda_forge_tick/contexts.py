@@ -37,6 +37,10 @@ class FeedstockContext:
     """
     If not provided, this is set to a default branch read from all_feedstocks.json, or 'main'.
     """
+    git_repo_owner: str = "conda-forge"
+    """
+    The owner of the upstream git repository.
+    """
 
     def __post_init__(self):
         if not self.default_branch:
@@ -45,10 +49,6 @@ class FeedstockContext:
                 "default_branch",
                 DEFAULT_BRANCHES.get(self.feedstock_name, "main"),
             )
-
-    @property
-    def git_repo_owner(self) -> str:
-        return "conda-forge"
 
     @property
     def git_repo_name(self) -> str:
