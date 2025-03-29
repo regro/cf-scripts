@@ -68,7 +68,7 @@ def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
     return isinstance(sub_node, And) and super_node in (sub_node.left, sub_node.right)
 
 
-def get_common_condition_part(sub_cond: str, super_cond: str) -> str | None:
+def get_new_sub_condition(sub_cond: str, super_cond: str) -> str | None:
     if sub_cond.startswith(super_cond):
         strip_cond = sub_cond.removeprefix(super_cond).lstrip()
         if strip_cond.startswith("and"):
@@ -117,7 +117,7 @@ def combine_conditions(node: Any):
                 continue
 
             if is_sub_condition(sub_node=node_cond, super_node=prev_cond):
-                new_cond = get_common_condition_part(
+                new_cond = get_new_sub_condition(
                     sub_cond=node[i]["if"].strip(), super_cond=node[i - 1]["if"].strip()
                 )
                 if new_cond is not None:
@@ -127,7 +127,7 @@ def combine_conditions(node: Any):
                     node[i - 1]["then"].append(node[i])
                     del node[i]
             elif is_sub_condition(sub_node=prev_cond, super_node=node_cond):
-                new_cond = get_common_condition_part(
+                new_cond = get_new_sub_condition(
                     sub_cond=node[i - 1]["if"].strip(), super_cond=node[i]["if"].strip()
                 )
                 if new_cond is not None:
