@@ -3,6 +3,10 @@ import typing
 from pathlib import Path
 from typing import Any
 
+from jinja2 import Environment
+from jinja2.nodes import And, Compare, Node, Not
+from jinja2.parser import Parser
+
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.recipe_parser._parser import _get_yaml_parser
 
@@ -12,56 +16,142 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def combine_conditions(node):
+def get_condition(node: Any) -> Node | None:
+    if isinstance(node, dict) and "if" in node:
+        return Parser(
+            Environment(), node["if"].strip(), state="variable"
+        ).parse_expression()
+    return None
+
+
+def is_same_condition(a: Node, b: Node) -> bool:
+    return a == b
+
+
+INVERSE_OPS = {
+    "eq": "ne",
+    "ne": "eq",
+    "gt": "lteq",
+    "gteq": "lt",
+    "lt": "gteq",
+    "lteq": "gt",
+    "in": "notin",
+    "notin": "in",
+}
+
+
+def is_negated_condition(a: Node, b: Node) -> bool:
+    # X <-> not X
+    if Not(a) == b or a == Not(b):
+        return True
+
+    # unwrap (not X) <-> (not Y)
+    if isinstance(a, Not) and isinstance(b, Not):
+        a = a.node
+        b = b.node
+
+    # A == B <-> A != B
+    if (
+        isinstance(a, Compare)
+        and isinstance(b, Compare)
+        and len(a.ops) == len(b.ops) == 1
+        and a.expr == b.expr
+        and a.ops[0].expr == b.ops[0].expr
+        and a.ops[0].op == INVERSE_OPS[b.ops[0].op]
+    ):
+        return True
+
+    return False
+
+
+def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
+    return isinstance(sub_node, And) and super_node in (sub_node.left, sub_node.right)
+
+
+def get_new_sub_condition(sub_cond: str, super_cond: str) -> str | None:
+    if sub_cond.startswith(super_cond):
+        strip_cond = sub_cond.removeprefix(super_cond).lstrip()
+        if strip_cond.startswith("and"):
+            return strip_cond.removeprefix("and").lstrip()
+    elif sub_cond.endswith(super_cond):
+        strip_cond = sub_cond.removesuffix(super_cond).rstrip()
+        if strip_cond.endswith("and"):
+            return strip_cond.removesuffix("and").rstrip()
+    return None
+
+
+def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:
+    if branch not in source:
+        return
+
+    source_l = source[branch]
+    if isinstance(source_l, str):
+        if dest_branch not in dest:
+            # special-case: do not expand a single string to list
+            dest[dest_branch] = source_l
+            return
+        source_l = [source_l]
+
+    if dest_branch not in dest:
+        dest[dest_branch] = []
+    elif isinstance(dest[dest_branch], str):
+        dest[dest_branch] = [dest[dest_branch]]
+    dest[dest_branch].extend(source_l)
+
+
+def combine_conditions(node: Any):
     """Breadth first recursive call to combine list conditions"""
 
     # recursion is breadth first because we go through each element here
     # before calling `combine_conditions` on any element in the node
     if isinstance(node, list):
-        # 1. loop through list elements, gather the if conditions
+        # iterate in reverse order, so we can remove elements on the fly
+        # start at index 1, since we can only fold to the previous node
 
-        # condition ("if:") -> [(then, else), (then, else)...]
-        conditions = {}
+        # fold subconditions into superconditions in the first run, since
+        # they can enable us to further combine same/opposite conditions later
+        for i in reversed(range(1, len(node))):
+            node_cond = get_condition(node[i])
+            prev_cond = get_condition(node[i - 1])
+            if node_cond is None or prev_cond is None:
+                continue
 
-        for i in node:
-            if isinstance(i, dict) and "if" in i:
-                conditions.setdefault(i["if"], []).append((i["then"], i.get("else")))
+            if is_sub_condition(sub_node=node_cond, super_node=prev_cond):
+                new_cond = get_new_sub_condition(
+                    sub_cond=node[i]["if"].strip(), super_cond=node[i - 1]["if"].strip()
+                )
+                if new_cond is not None:
+                    node[i]["if"] = new_cond
+                    if isinstance(node[i - 1]["then"], str):
+                        node[i - 1]["then"] = [node[i - 1]["then"]]
+                    node[i - 1]["then"].append(node[i])
+                    del node[i]
+            elif is_sub_condition(sub_node=prev_cond, super_node=node_cond):
+                new_cond = get_new_sub_condition(
+                    sub_cond=node[i - 1]["if"].strip(), super_cond=node[i]["if"].strip()
+                )
+                if new_cond is not None:
+                    node[i - 1]["if"] = new_cond
+                    if isinstance(node[i]["then"], str):
+                        node[i]["then"] = [node[i]["then"]]
+                    node[i]["then"].insert(0, node[i - 1])
+                    del node[i - 1]
 
-        # 2. if elements share a compatible if condition
-        # combine their if...then...else statements
-        to_drop = []
-        for i in range(len(node)):
-            if isinstance(node[i], dict) and "if" in node[i]:
-                condition = node[i]["if"]
-                if condition not in conditions:
-                    # already combined it, so drop the repeat instance
-                    to_drop.append(i)
-                    continue
-                if len(conditions[condition]) > 1:
-                    new_then = []
-                    new_else = []
-                    for sub_then, sub_else in conditions[node[i]["if"]]:
-                        if isinstance(sub_then, list):
-                            new_then.extend(sub_then)
-                        else:
-                            assert sub_then is not None
-                            new_then.append(sub_then)
-                        if isinstance(sub_else, list):
-                            new_else.extend(sub_else)
-                        elif sub_else is not None:
-                            new_else.append(sub_else)
-                    node[i]["then"] = new_then
-                    if new_else:
-                        # TODO: preserve inline "else" instead of converting it to a list?
-                        node[i]["else"] = new_else
-                    else:
-                        assert "else" not in node[i]
-                    # remove it from the dict, so we don't output it again
-                    del conditions[condition]
+        # now combine same-level conditions
+        for i in reversed(range(1, len(node))):
+            node_cond = get_condition(node[i])
+            prev_cond = get_condition(node[i - 1])
+            if node_cond is None or prev_cond is None:
+                continue
 
-        # drop the repeated conditions
-        for i in reversed(to_drop):
-            del node[i]
+            if is_same_condition(node_cond, prev_cond):
+                fold_branch(node[i], node[i - 1], "then", "then")
+                fold_branch(node[i], node[i - 1], "else", "else")
+                del node[i]
+            elif is_negated_condition(node_cond, prev_cond):
+                fold_branch(node[i], node[i - 1], "then", "else")
+                fold_branch(node[i], node[i - 1], "else", "then")
+                del node[i]
 
     # then we descend down the tree
     if isinstance(node, dict):

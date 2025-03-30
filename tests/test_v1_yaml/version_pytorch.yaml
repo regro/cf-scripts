@@ -71,10 +71,10 @@ outputs:
           then: rsync
       host:
         # GPU requirements
-        - if: "cuda_compiler_version != \"None\""
-          then: cudnn
         - if: "cuda_compiler_version != \"None\" and linux"
           then: nccl
+        - if: "cuda_compiler_version != \"None\""
+          then: cudnn
         - if: "cuda_compiler_version != \"None\""
           then: magma
         - if: "cuda_compiler_version != \"None\""
@@ -318,6 +318,8 @@ outputs:
             - torch
             - torch._C
       - files:
+          recipe:
+            - cmake_test/
           source:
             - test
             - tools
@@ -369,6 +371,15 @@ outputs:
             then: test ! -f $SP_DIR/functorch/__pycache__/__init__.cpython-313.pyc
           - if: match(python, "!=3.13") and win
             then: if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-313.pyc exit 1
+          - cd cmake_test
+          - if: unix
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON $CMAKE_ARGS .
+          - if: win
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON %CMAKE_ARGS% .
+          - if: unix
+            then: cmake --build .
+          - if: win
+            then: cmake --build . --config Release
 
 about:
   license: BSD-3-Clause

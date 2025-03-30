@@ -39,8 +39,7 @@ outputs:
               then:
                 - python 3.12.*
                 - numpy  *
-            - if: not megabuild
-              then:
+              else:
                 - python
                 - numpy
             - cross-python_${{ target_platform }}
@@ -51,11 +50,9 @@ outputs:
           then: ${{ compiler('cuda') }}
         - if: not win
           then: llvm-openmp
-        - if: win
-          then:
+          else:
             - intel-openmp ${{ mkl }}
             - libuv
-            - sccache
         - cmake
         - ninja
         # Keep libprotobuf here so that a compatibile version
@@ -64,6 +61,8 @@ outputs:
         - protobuf
         - if: linux
           then: make
+        - if: win
+          then: sccache
         - if: unix
           then:
             - grep
@@ -72,10 +71,14 @@ outputs:
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
           then:
+            - if: "linux"
+              then: nccl
             - cudnn
             - magma
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
+            - if: "linux"
+              then: cuda-driver-dev
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -85,16 +88,12 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
+            - if: "linux"
+              then: libcufile-dev
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "linux and cuda_compiler_version != \"None\""
-          then:
-            - cuda-driver-dev
-            - libcufile-dev
         - if: megabuild
           else:
             - python
@@ -117,8 +116,7 @@ outputs:
             - liblapack
         - if: not win
           then: llvm-openmp
-        - if: win
-          then: intel-openmp ${{ mkl }}
+          else: intel-openmp ${{ mkl }}
         - libabseil
         - libprotobuf
         - sleef
@@ -146,8 +144,7 @@ outputs:
           else:
             - pytorch-gpu ==${{ version }}
             - pytorch-cpu ==99999999
-        - if: "cuda_compiler_version != \"None\""
-          then: pytorch =${{ version }} cuda${{ cuda_compiler_version | replace('.', '') }}_${{ blas_impl }}_*_${{ build }}
+            - pytorch =${{ version }} cuda${{ cuda_compiler_version | replace('.', '') }}_${{ blas_impl }}_*_${{ build }}
         - if: "unix and blas_impl != \"mkl\""
           then: openblas * openmp_*
 
@@ -184,9 +181,13 @@ outputs:
         - if: "cuda_compiler_version != \"None\""
           then:
             - cudnn
+            - if: "linux"
+              then: nccl
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
             - magma
+            - if: "linux"
+              then: cuda-driver-dev
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -196,16 +197,12 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
+            - if: "linux"
+              then: libcufile-dev
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
             - libcusparse-dev
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "linux and cuda_compiler_version != \"None\""
-          then:
-            - cuda-driver-dev
-            - libcufile-dev
         - python
         - numpy
         - pip
@@ -219,12 +216,10 @@ outputs:
             - libcblas * *_mkl
           else:
             - libcblas
-        - if: "blas_impl != \"mkl\""
-          then: liblapack
+            - liblapack
         - if: not win
           then: llvm-openmp
-        - if: win
-          then: intel-openmp ${{ mkl }}
+          else: intel-openmp ${{ mkl }}
         - libabseil
         - libprotobuf
         - pybind11
@@ -240,24 +235,20 @@ outputs:
           then: ${{ pin_subpackage('libtorch', exact=True) }}
         # for non-megabuild, allow libtorch from any python version;
         # pinning build number would be nice but breaks conda
-        - if: not megabuild
-          then: libtorch ${{ version }}.*
+          else: libtorch ${{ version }}.*
         - if: not win
           then: llvm-openmp
-        - if: win
-          then: intel-openmp ${{ mkl }}
+          else: intel-openmp ${{ mkl }}
         - if: "blas_impl == \"mkl\""
           then: libblas * *${{ blas_impl }}
-        - if: "blas_impl != \"mkl\""
-          then: nomkl
-        # GPU requirements without run_exports
+          else: nomkl
         - if: "cuda_compiler_version != \"None\""
           then:
             - ${{ pin_compatible('cudnn') }}
-            - __cuda
-        - if: "cuda_compiler_version != \"None\" and not win"
-          then: triton =${{ triton }}
+            - if: "not win"
+              then: triton =${{ triton }}
         # avoid that people without GPUs needlessly download ~0.5-1GB
+            - __cuda
         - python
         # other requirements, see https://github.com/pytorch/pytorch/blame/main/requirements.txt
         - filelock
@@ -285,6 +276,8 @@ outputs:
             - torch
             - torch._C
       - files:
+          recipe:
+            - cmake_test/
           source:
             - test
             - tools
@@ -333,6 +326,15 @@ outputs:
             then: test ! -f $SP_DIR/functorch/__pycache__/__init__.cpython-313.pyc
           - if: match(python, "!=3.13") and win
             then: if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-313.pyc exit 1
+          - cd cmake_test
+          - if: unix
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON $CMAKE_ARGS .
+          - if: win
+            then: cmake -GNinja -DCMAKE_CXX_STANDARD=17 -DWITH_TORCH_PYTHON=ON %CMAKE_ARGS% .
+          - if: unix
+            then: cmake --build .
+          - if: win
+            then: cmake --build . --config Release
 
 about:
   license: BSD-3-Clause
