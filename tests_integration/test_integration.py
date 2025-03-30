@@ -59,13 +59,9 @@ def global_environment_setup():
     new_settings.graph_github_backend_repo = "regro-staging/cf-graph-countyfair"
     new_settings.conda_forge_org = "conda-forge-bot-staging"
 
-    use_settings(new_settings)
-    setup_logging(logging.INFO)
-
-    yield
-
-    # reset settings
-    use_settings(None)
+    with use_settings(new_settings):
+        setup_logging(logging.INFO)
+        yield
 
 
 @pytest.fixture

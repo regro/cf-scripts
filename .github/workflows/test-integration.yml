@@ -75,10 +75,10 @@ jobs:
           git config --global user.name "regro-cf-autotick-bot-staging"
           git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
 
-      - name: 🐛 Debug Build
-        uses: stateful/vscode-server-action@ec99599aefe0bf96d14491e1d5f7e80d30e22247  # v1.1.0
-        with:
-          timeout: '3000000'
+      #- name: 🐛 Debug Build
+      #  uses: stateful/vscode-server-action@ec99599aefe0bf96d14491e1d5f7e80d30e22247  # v1.1.0
+      #  with:
+      #    timeout: '3000000'
 
       - name: Run Integration Tests with pytest
         working-directory: cf-scripts
