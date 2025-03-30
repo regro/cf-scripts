@@ -145,3 +145,19 @@ Besides that, run the following setup wizard to set up self-signed certificates 
 ```bash
 ./mitmproxy_setup_wizard.sh
 ```
+
+After that, run the following command to run the tests
+(you need to be in the `tests_integration` directory):
+
+```bash
+pytest -s -v tests_integration
+```
+
+Remember to set the environment variables from above beforehand.
+
+## Debugging CI Issues
+
+The proxy setup of the integration tests is quite complex, and you can experience issues that only occur on GitHub Actions
+and not locally.
+
+To debug them, consider to [use vscode-server-action](https://gist.github.com/ytausch/612106cfbc2cc660130d247fa2f3a673).
