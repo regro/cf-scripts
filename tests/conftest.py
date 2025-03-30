@@ -128,7 +128,9 @@ def pytest_configure(config):
 
 @pytest.fixture
 def temporary_environment():
-    old_env = os.environ.copy()
-    yield
-    os.environ.clear()
-    os.environ.update(old_env)
+    try:
+        old_env = os.environ.copy()
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(old_env)

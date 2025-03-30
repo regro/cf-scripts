@@ -614,17 +614,17 @@ def create_migration_yaml_creator(
                         pinnings_together = packages_to_migrate_together.get(
                             pinning_name, [pinning_name]
                         )
-                        print("    %s:" % pinning_name, flush=True)
-                        print("        package name:", package_name, flush=True)
-                        print("        feedstock name:", fs_name, flush=True)
+                        print("%s:" % pinning_name, flush=True)
+                        print("    package name:", package_name, flush=True)
+                        print("    feedstock name:", fs_name, flush=True)
                         for p in possible_p_dicts:
-                            print("        possible pin spec:", p, flush=True)
+                            print("    possible pin spec:", p, flush=True)
                         print(
-                            "        migrator:\n"
-                            "            curr version: %s\n"
-                            "            curr pin: %s\n"
-                            "            pin_spec: %s\n"
-                            "            pinnings: %s"
+                            "    migrator:\n"
+                            "        curr version: %s\n"
+                            "        curr pin: %s\n"
+                            "        pin_spec: %s\n"
+                            "        pinnings: %s"
                             % (
                                 current_version,
                                 current_pin,
@@ -635,12 +635,12 @@ def create_migration_yaml_creator(
                         )
                         migrators.append(
                             MigrationYamlCreator(
-                                pinning_name,
-                                current_version,
-                                current_pin,
-                                pin_spec,
-                                fs_name,
-                                cfp_gx,
+                                package_name=pinning_name,
+                                new_pin_version=current_version,
+                                current_pin=current_pin,
+                                pin_spec=pin_spec,
+                                feedstock_name=fs_name,
+                                total_graph=cfp_gx,
                                 pinnings=pinnings_together,
                                 full_graph=gx,
                                 pr_limit=1,
@@ -650,10 +650,10 @@ def create_migration_yaml_creator(
                 with fold_log_lines(
                     "failed to make pinning migrator for %s" % pinning_name
                 ):
-                    print("    %s:" % pinning_name, flush=True)
-                    print("        package name:", package_name, flush=True)
-                    print("        feedstock name:", fs_name, flush=True)
-                    print("        error:", repr(e), flush=True)
+                    print("%s:" % pinning_name, flush=True)
+                    print("    package name:", package_name, flush=True)
+                    print("    feedstock name:", fs_name, flush=True)
+                    print("    error:", repr(e), flush=True)
                 continue
 
 
@@ -855,12 +855,20 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     return migrators
 
 
-def main(ctx: CliContext) -> None:
-    gx = load_existing_graph()
-    migrators = initialize_migrators(
-        gx,
-        dry_run=ctx.dry_run,
-    )
+def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) -> None:
+    """Dumps the current migrators to JSON.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to dump.
+    dry_run : bool, optional
+        Whether to perform a dry run, defaults to False. If True, no changes will be made.
+    """
+    if dry_run:
+        print("dry run: dumping migrators to json", flush=True)
+        return
+
     with (
         fold_log_lines("dumping migrators to JSON"),
         lazy_json_override_backends(
@@ -889,3 +897,15 @@ def main(ctx: CliContext) -> None:
         migrators_to_remove = old_migrators - new_migrators
         for migrator in migrators_to_remove:
             remove_key_for_hashmap("migrators", migrator)
+
+
+def main(ctx: CliContext) -> None:
+    gx = load_existing_graph()
+    migrators = initialize_migrators(
+        gx,
+        dry_run=ctx.dry_run,
+    )
+    dump_migrators(
+        migrators,
+        dry_run=ctx.dry_run,
+    )

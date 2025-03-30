@@ -323,6 +323,11 @@ class MigrationYaml(GraphMigrator):
             return True
 
         node = attrs["feedstock_name"]
+
+        if node == "conda-forge-pinning":
+            # conda-forge-pinning is always included in migration
+            return False
+
         migrator_payload = self.loaded_yaml.get("__migrator", {})
         include_noarch = migrator_payload.get("include_noarch", False)
         include_build = migrator_payload.get("include_build", False)

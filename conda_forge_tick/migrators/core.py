@@ -76,6 +76,11 @@ def _make_migrator_graph(graph, migrator, effective=False):
 
     # Prune graph to only things that need builds right now
     for node in list(gx2.nodes):
+        if "payload" not in gx2.nodes[node]:
+            logger.critical("node %s: no payload, removing", node)
+            pluck(gx2, node)
+            continue
+
         if isinstance(graph.nodes[node]["payload"], LazyJson):
             with graph.nodes[node]["payload"] as _attrs:
                 attrs = copy.deepcopy(_attrs.data)
