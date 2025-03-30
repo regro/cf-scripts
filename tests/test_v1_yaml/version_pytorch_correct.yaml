@@ -70,18 +70,15 @@ outputs:
       host:
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
-          then: cudnn
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "cuda_compiler_version != \"None\""
           then:
+            - if: "linux"
+              then: nccl
+            - cudnn
             - magma
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: cuda-driver-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
+            - if: "linux"
+              then: cuda-driver-dev
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -91,10 +88,8 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: libcufile-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
+            - if: "linux"
+              then: libcufile-dev
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
@@ -184,18 +179,15 @@ outputs:
         - ${{ pin_subpackage('libtorch', exact=True) }}
         # GPU requirements
         - if: "cuda_compiler_version != \"None\""
-          then: cudnn
-        - if: "cuda_compiler_version != \"None\" and linux"
-          then: nccl
-        - if: "cuda_compiler_version != \"None\""
           then:
+            - cudnn
+            - if: "linux"
+              then: nccl
             - cuda-version ${{ cuda_compiler_version }}
             - nvtx-c
             - magma
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: cuda-driver-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
+            - if: "linux"
+              then: cuda-driver-dev
             - cuda-cudart-dev
             - cuda-cupti-dev
             - cuda-nvrtc-dev
@@ -205,10 +197,8 @@ outputs:
             - cusparselt
             - libcublas-dev
             - libcudss-dev
-        - if: "linux and cuda_compiler_version != \"None\""
-          then: libcufile-dev
-        - if: "cuda_compiler_version != \"None\""
-          then:
+            - if: "linux"
+              then: libcufile-dev
             - libcufft-dev
             - libcurand-dev
             - libcusolver-dev
@@ -253,12 +243,12 @@ outputs:
           then: libblas * *${{ blas_impl }}
           else: nomkl
         - if: "cuda_compiler_version != \"None\""
-          then: ${{ pin_compatible('cudnn') }}
-        - if: "cuda_compiler_version != \"None\" and not win"
-          then: triton =${{ triton }}
+          then:
+            - ${{ pin_compatible('cudnn') }}
+            - if: "not win"
+              then: triton =${{ triton }}
         # avoid that people without GPUs needlessly download ~0.5-1GB
-        - if: "cuda_compiler_version != \"None\""
-          then: __cuda
+            - __cuda
         - python
         # other requirements, see https://github.com/pytorch/pytorch/blame/main/requirements.txt
         - filelock

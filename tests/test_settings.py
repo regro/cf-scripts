@@ -104,14 +104,17 @@ def test_use_settings(temporary_environment):
     os.environ.clear()
     bot_settings = settings()
     bot_settings.github_runner_debug = True
-    use_settings(bot_settings)
 
-    ret_settings = settings()
-    assert ret_settings.github_runner_debug is True
+    with use_settings(bot_settings):
+        ret_settings = settings()
+        assert ret_settings.github_runner_debug is True
 
-    # there should be no side effects
-    bot_settings.github_runner_debug = False
-    ret_settings.github_runner_debug = False
+        # there should be no side effects
+        bot_settings.github_runner_debug = False
+        ret_settings.github_runner_debug = False
 
-    side_effect_check_settings = settings()
-    assert side_effect_check_settings.github_runner_debug is True
+        side_effect_check_settings = settings()
+        assert side_effect_check_settings.github_runner_debug is True
+
+    # the settings should be restored
+    assert settings().github_runner_debug is False

@@ -1362,12 +1362,8 @@ def version_update_frac_always():
     new_settings = settings()
 
     new_settings.frac_update_upstream_versions = True
-    use_settings(new_settings)
-
-    yield
-
-    # revert to default settings
-    use_settings(None)
+    with use_settings(new_settings):
+        yield
 
 
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")

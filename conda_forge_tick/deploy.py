@@ -147,17 +147,17 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     pass
 
                 print(">>>>>>>>>>>> git push try", flush=True)
-            status = run_command_hiding_token(
-                [
-                    "git",
-                    "push",
-                    f"https://{get_bot_token()}@github.com/{settings().graph_github_backend_repo}.git",
-                    settings().graph_repo_default_branch,
-                ],
-                token=get_bot_token(),
-            )
-            if status != 0:
-                print(">>>>>>>>>>>> git push failed", flush=True)
+                status = run_command_hiding_token(
+                    [
+                        "git",
+                        "push",
+                        f"https://{get_bot_token()}@github.com/{settings().graph_github_backend_repo}.git",
+                        settings().graph_repo_default_branch,
+                    ],
+                    token=get_bot_token(),
+                )
+                if status != 0:
+                    print(">>>>>>>>>>>> git push failed", flush=True)
             num_try += 1
 
         if status != 0 or not graph_ok:
