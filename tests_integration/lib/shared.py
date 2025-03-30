@@ -75,7 +75,7 @@ def get_transparent_urls() -> set[str]:
 
     # this is not a constant because the graph_repo_default_branch setting is dynamic
     graph_repo_default_branch = settings().graph_repo_default_branch
-    return {
+    transparent_urls = {
         f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{graph_repo_default_branch}/mappings/pypi/name_mapping.yaml",
         f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{graph_repo_default_branch}/mappings/pypi/grayskull_pypi_mapping.json",
         "https://raw.githubusercontent.com/regro/cf-scripts/refs/heads/main/conda_forge_tick/cf_tick_schema.json",
@@ -91,6 +91,15 @@ def get_transparent_urls() -> set[str]:
         "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
         "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
     }
+
+    if any(not url.startswith("https://") for url in transparent_urls):
+        # this is to protect against mistakes and typos, adjust if it ever becomes too strict
+        raise ValueError("All URLs in transparent_urls must start with https://")
+
+    # noinspection HttpUrlsUsage
+    http_urls = {url.replace("https://", "http://", 1) for url in transparent_urls}
+
+    return transparent_urls | http_urls
 
 
 def get_global_router():
