@@ -1,3 +1,4 @@
+import contextlib
 from typing import Annotated
 
 from pydantic import Field
@@ -80,7 +81,7 @@ class BotSettings(BaseSettings):
     """
 
 
-_USE_SETTINGS_OVERRIDE: BotSettings | None = None
+_use_settings_override: BotSettings | None = None
 """
 If not None, the application should use this settings object instead of generating a new one.
 """
@@ -90,17 +91,31 @@ def settings() -> BotSettings:
     """
     Get the current settings object.
     """
-    if _USE_SETTINGS_OVERRIDE:
-        return _USE_SETTINGS_OVERRIDE.model_copy()  # prevent side-effects
+    if _use_settings_override:
+        return _use_settings_override.model_copy()  # prevent side-effects
     return BotSettings()
 
 
-def use_settings(s: BotSettings | None) -> None:
+@contextlib.contextmanager
+def use_settings(s: BotSettings | None):
     """
-    Overrides the application settings with the given settings object.
-    The new settings object is persisted indefinitely until another call to `use_settings` is made.
+    Context manager that overrides the application settings with the values set in the provided settings object.
+    The new settings are used within the context of the `with` statement.
+    After exiting the context, the original settings are restored.
 
-    :param s: The settings object to use. If None, the application will revert to using the default settings.
+    DO NOT call this function within multithreading contexts, as it will override the settings for all threads,
+    and lead to unpredictable behavior.
+
+    :param s: The settings object to use. None stands for the default settings behavior. The default settings
+    behavior reads the environment variables every time the settings are accessed.
     """
-    global _USE_SETTINGS_OVERRIDE
-    _USE_SETTINGS_OVERRIDE = s.model_copy() if s else s  # prevent side-effects
+    global _use_settings_override
+
+    old_settings = (
+        _use_settings_override.model_copy() if _use_settings_override else None
+    )
+    _use_settings_override = s.model_copy() if s else None
+
+    yield
+
+    _use_settings_override = old_settings
