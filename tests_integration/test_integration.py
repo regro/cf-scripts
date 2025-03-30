@@ -220,7 +220,8 @@ def mitmproxy_env():
 
     yield
 
-    os.environ = old_env
+    os.environ.clear()
+    os.environ.update(old_env)
 
 
 def invoke_bot_command(args: list[str]):
