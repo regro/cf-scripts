@@ -24,6 +24,7 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
+from .settings import settings
 from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 
 # from conda_forge_tick.profiler import profiling
@@ -33,8 +34,6 @@ logger = logging.getLogger(__name__)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 RNG = secrets.SystemRandom()
-
-RANDOM_FRAC_TO_UPDATE = 0.1
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -200,7 +199,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if RNG.random() < RANDOM_FRAC_TO_UPDATE
+            if RNG.random() < settings().frac_make_graph
         }
         logger.info("submitted all nodes")
 
@@ -231,7 +230,8 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
+        if RNG.random() >= settings().frac_make_graph:
+            logger.debug("skipping %s due to random fraction to update", name)
             continue
 
         try:

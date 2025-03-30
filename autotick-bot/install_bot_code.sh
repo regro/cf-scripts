@@ -1,4 +1,16 @@
 #!/bin/bash
+
+# Environment Variables:
+# - CF_FEEDSTOCK_OPS_CONTAINER_NAME: The name of the container image to use for the bot (optional, not used but left intact)
+# - CF_FEEDSTOCK_OPS_CONTAINER_TAG: The tag of the container image to use for the bot (optional).
+# - CF_TICK_GRAPH_GITHUB_BACKEND_REPO: The GitHub repository to clone cf-graph from. Default: regro/cf-graph-countyfair
+
+# Sets the following environment variables via GITHUB_ENV:
+# - CF_FEEDSTOCK_OPS_CONTAINER_NAME (see above)
+# - CF_FEEDSTOCK_OPS_CONTAINER_TAG (see above)
+
+set -euo pipefail
+
 git config --global user.name regro-cf-autotick-bot
 git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
 git config --global pull.rebase false
@@ -29,11 +41,14 @@ for arg in "$@"; do
   fi
 done
 if [[ "${clone_graph}" == "true" ]]; then
-  git clone --depth=5 https://github.com/regro/cf-graph-countyfair.git cf-graph
+  cf_graph_repo=${CF_TICK_GRAPH_GITHUB_BACKEND_REPO:-"regro/cf-graph-countyfair"}
+  cf_graph_remote="https://github.com/${cf_graph_repo}.git"
+  git clone --depth=5 "${cf_graph_remote}" cf-graph
 else
   echo "Skipping cloning of cf-graph"
 fi
 
+docker_name=${CF_FEEDSTOCK_OPS_CONTAINER_NAME:-"ghcr.io/regro/conda-forge-tick"}
 bot_tag=$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
 docker_tag=${CF_FEEDSTOCK_OPS_CONTAINER_TAG:-${bot_tag}}
 
@@ -44,11 +59,12 @@ for arg in "$@"; do
   fi
 done
 if [[ "${pull_cont}" == "true" ]]; then
-  docker pull ghcr.io/regro/conda-forge-tick:${docker_tag}
+  docker pull "${docker_name}:${docker_tag}"
 fi
 
-export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
-export CF_FEEDSTOCK_OPS_CONTAINER_NAME="ghcr.io/regro/conda-forge-tick"
+# left intact if already set
+export CF_FEEDSTOCK_OPS_CONTAINER_TAG="${docker_tag}"
+export CF_FEEDSTOCK_OPS_CONTAINER_NAME="${docker_name}"
 
 echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
 echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
