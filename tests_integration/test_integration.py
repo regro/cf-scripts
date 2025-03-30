@@ -257,28 +257,33 @@ def test_scenario(
         invoke_bot_command(["--debug", "make-graph"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
-    with in_fresh_cf_graph(), mitmproxy_env():
-        invoke_bot_command(["--debug", "update-upstream-versions"])
+    with in_fresh_cf_graph():
+        with mitmproxy_env():
+            invoke_bot_command(["--debug", "update-upstream-versions"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
-    with in_fresh_cf_graph(), mitmproxy_env():
-        invoke_bot_command(["--debug", "make-migrators"])
+    with in_fresh_cf_graph():
+        with mitmproxy_env():
+            invoke_bot_command(["--debug", "make-migrators"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
-    with in_fresh_cf_graph(), mitmproxy_env():
-        invoke_bot_command(["--debug", "auto-tick"])
+    with in_fresh_cf_graph():
+        with mitmproxy_env():
+            invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
-    with in_fresh_cf_graph(), mitmproxy_env():
+    with in_fresh_cf_graph():
         # because of an implementation detail in the bot, we need to run make-migrators twice
         # for changes to be picked up
-        invoke_bot_command(["--debug", "make-migrators"])
+        with mitmproxy_env():
+            invoke_bot_command(["--debug", "make-migrators"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
-    with in_fresh_cf_graph(), mitmproxy_env():
+    with in_fresh_cf_graph():
         # due to a similar implementation detail, we need to run auto-tick twice
         # for changes to be picked up
-        invoke_bot_command(["--debug", "auto-tick"])
+        with mitmproxy_env():
+            invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(["--debug", "deploy-to-github"])
 
     run_all_validate_functions(scenario)
