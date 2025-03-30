@@ -77,7 +77,10 @@ jobs:
 
       - name: Run Integration Tests with pytest
         working-directory: cf-scripts
-        run: pytest -s -v tests_integration
+        run: |
+          pytest -s -v \
+          --dist=no \
+          tests_integration
         env:
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
           TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
