@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: ea0be66fad42c0be775b6964370d3e0630c3edfb46574a41e2fc7c21377be6dc
-    osx-64: 72950d92f109f4e2d6564afa451fe7c844d672d1bc57572fa706d45f85958c5d
-    osx-arm64: 85ed712bf6cefe23ec9a3973cc2b4bca64aaa23adcf0a6b0e3df5edda95b6198
+    linux-64: 7ba8c322a536718d19bfcabde20be1b67078d035abfe5d023c354adb17aaf007
+    osx-64: ac75d6b342290a7f650d0d9915a2d0efaf1a20208b2537a0fa56a139c33791d6
+    osx-arm64: f7aa2f8db311ba197dada2877a3a744f92c5493a61dd0040eda7041799a8bb9a
   platforms:
     - osx-arm64
     - linux-64
@@ -10485,6 +10485,51 @@ package:
     version: 2.10.3
   - category: main
     dependencies:
+      pydantic: '>=2.7.0'
+      python: '>=3.9'
+      python-dotenv: '>=0.21.0'
+    hash:
+      md5: 88715188749bfac9fa92aec9c747d62c
+      sha256: 84b78dcdc75d7dacd8c85df9a7fef42ff5684897217b46beef6c516afb2550dc
+    manager: conda
+    name: pydantic-settings
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.8.1-pyh3cfb1c2_0.conda
+    version: 2.8.1
+  - category: main
+    dependencies:
+      pydantic: '>=2.7.0'
+      python: '>=3.9'
+      python-dotenv: '>=0.21.0'
+    hash:
+      md5: 88715188749bfac9fa92aec9c747d62c
+      sha256: 84b78dcdc75d7dacd8c85df9a7fef42ff5684897217b46beef6c516afb2550dc
+    manager: conda
+    name: pydantic-settings
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.8.1-pyh3cfb1c2_0.conda
+    version: 2.8.1
+  - category: main
+    dependencies:
+      pydantic: '>=2.7.0'
+      python: '>=3.9'
+      python-dotenv: '>=0.21.0'
+    hash:
+      md5: 88715188749bfac9fa92aec9c747d62c
+      sha256: 84b78dcdc75d7dacd8c85df9a7fef42ff5684897217b46beef6c516afb2550dc
+    manager: conda
+    name: pydantic-settings
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.8.1-pyh3cfb1c2_0.conda
+    version: 2.8.1
+  - category: main
+    dependencies:
       __glibc: '>=2.17,<3.0.a0'
       cffi: ''
       libgcc: '>=13'
@@ -11184,6 +11229,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.4.1,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
@@ -11208,6 +11254,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.4.1,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
@@ -11232,6 +11279,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.4.1,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
@@ -11341,6 +11389,45 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/python-dateutil-2.9.0.post0-pyhff2d567_1.conda
     version: 2.9.0.post0
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e5c6ed218664802d305e79cc2d4491de
+      sha256: 99713f6b534fef94995c6c16fd21d59f3548784e9111775d692bdc7c44678f02
+    manager: conda
+    name: python-dotenv
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_1.conda
+    version: 1.0.1
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e5c6ed218664802d305e79cc2d4491de
+      sha256: 99713f6b534fef94995c6c16fd21d59f3548784e9111775d692bdc7c44678f02
+    manager: conda
+    name: python-dotenv
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_1.conda
+    version: 1.0.1
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e5c6ed218664802d305e79cc2d4491de
+      sha256: 99713f6b534fef94995c6c16fd21d59f3548784e9111775d692bdc7c44678f02
+    manager: conda
+    name: python-dotenv
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_1.conda
+    version: 1.0.1
   - category: main
     dependencies:
       cpython: 3.11.11.*

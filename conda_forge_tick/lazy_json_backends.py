@@ -31,6 +31,7 @@ import requests
 
 from .cli_context import CliContext
 from .executors import lock_git_operation
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +57,6 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "migrators",
 ]
 
-CF_TICK_GRAPH_GITHUB_BACKEND_REPO = "regro/cf-graph-countyfair"
-CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
-    f"https://github.com/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/raw/master"
-)
 CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 
@@ -207,7 +204,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     _n_requests = 0
 
     def __init__(self) -> None:
-        self.base_url = CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
+        self.base_url = settings().graph_github_backend_raw_base_url
 
     @property
     def base_url(self) -> str:
@@ -327,7 +324,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         from conda_forge_tick.git_utils import github_client
 
         self._gh = github_client()
-        self._repo = self._gh.get_repo(CF_TICK_GRAPH_GITHUB_BACKEND_REPO)
+        self._repo = self._gh.get_repo(settings().graph_github_backend_repo)
 
     @contextlib.contextmanager
     def transaction_context(self) -> "Iterator[FileLazyJsonBackend]":
@@ -499,7 +496,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         for tr in range(ntries):
             try:
                 cnts = requests.get(
-                    f"https://api.github.com/repos/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/contents/{pth}",
+                    f"https://api.github.com/repos/{settings().graph_github_backend_repo}/contents/{pth}",
                     headers=hrds,
                 )
                 cnts.raise_for_status()

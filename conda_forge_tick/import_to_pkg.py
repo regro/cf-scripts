@@ -18,7 +18,6 @@ from tqdm import tqdm
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
     LazyJson,
     dump,
@@ -26,6 +25,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
     load,
 )
+from conda_forge_tick.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def _get_head_letters(name):
 def _ranked_hubs_authorities() -> list[str]:
     req = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "ranked_hubs_authorities.json",
         )
     )
@@ -99,7 +99,7 @@ def _import_to_pkg_maps_cache(import_first_letters: str) -> dict[str, set[str]]:
     else:
         req = requests.get(
             os.path.join(
-                CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                settings().graph_github_backend_raw_base_url,
                 pth,
             )
         )

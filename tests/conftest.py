@@ -108,3 +108,11 @@ def pytest_configure(config):
         "markers",
         "mongodb: mark tests that run with mongodb",
     )
+
+
+@pytest.fixture
+def temporary_environment():
+    old_env = os.environ.copy()
+    yield
+    os.environ.clear()
+    os.environ.update(old_env)
