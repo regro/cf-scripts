@@ -106,7 +106,6 @@ class BotConfig(BaseModel):
     """
     This dictates the behavior of the conda-forge auto-tick bot which issues
     automatic version updates/migrations for feedstocks.
-
     A valid example is:
 
     ```yaml
