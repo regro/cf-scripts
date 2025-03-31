@@ -427,14 +427,14 @@ class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
     next_ver_func = None
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "feedstock_name" not in meta_yaml:
+    def get_url(self, attrs) -> Optional[str]:
+        if "feedstock_name" not in attrs:
             return None
-        if "version" not in meta_yaml:
+        if "version" not in attrs:
             return None
 
         # TODO: pull this from the graph itself
-        content = meta_yaml["raw_meta_yaml"]
+        content = attrs["raw_meta_yaml"]
 
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
@@ -443,9 +443,9 @@ class BaseRawURL(AbstractSource):
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
-        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
+        orig_urls = urls_from_meta(attrs["meta_yaml"])
         logger.debug("orig urls: %s", orig_urls)
-        current_ver = meta_yaml["version"]
+        current_ver = attrs["version"]
         current_sha256 = None
         orig_ver = current_ver
         found = True
@@ -469,7 +469,7 @@ class BaseRawURL(AbstractSource):
                     new_content = "\n".join(_new_lines)
                 else:
                     new_content = content.replace(orig_ver, next_ver)
-                if meta_yaml["meta_yaml"].get("schema_version", 0) == 0:
+                if attrs["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
                     new_meta = parse_recipe_yaml(new_content)
@@ -484,7 +484,7 @@ class BaseRawURL(AbstractSource):
                     # this URL looks bad if these things happen
                     if (
                         str(new_meta["package"]["version"]) != next_ver
-                        or meta_yaml["url"] == url
+                        or attrs.get("url", "") == url
                         or url in orig_urls
                     ):
                         logger.debug(
@@ -494,7 +494,7 @@ class BaseRawURL(AbstractSource):
                             'str(new_meta["package"]["version"]) != next_ver',
                             str(new_meta["package"]["version"]) != next_ver,
                             'meta_yaml["url"] == url',
-                            meta_yaml["url"] == url,
+                            attrs.get("url", "") == url,
                             "url in orig_urls",
                             url in orig_urls,
                         )
