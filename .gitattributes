@@ -1,1 +1,3 @@
 .git_archival.txt  export-subst
+
+conda-lock.yml merge=binary linguist-language=YAML linguist-generated=true
