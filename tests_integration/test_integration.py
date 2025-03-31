@@ -39,6 +39,7 @@ def global_environment_setup():
     os.environ["MITMPROXY_CONFDIR"] = str(MITMPROXY_CONFDIR.resolve())
     os.environ["SSL_CERT_FILE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
     os.environ["REQUESTS_CA_BUNDLE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
+    os.environ["GIT_SSL_CAINFO"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
 
     github_run_id = os.environ.get("GITHUB_RUN_ID", "GITHUB_RUN_ID_NOT_SET")
     os.environ["RUN_URL"] = (
@@ -199,7 +200,9 @@ def in_fresh_cf_graph():
             cwd=cf_graph_dir,
         )
 
-        subprocess.run(["git", "config", 'http."https://github.com".proxy', '""'])
+        subprocess.run(
+            ["git", "config", 'http."https://github.com".proxy', '""'], check=True
+        )
 
         os.chdir(cf_graph_dir)
         yield

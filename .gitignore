@@ -60,3 +60,5 @@ pixi.lock
 pixi.toml
 .ruff_cache/
 .repodata_cache/
+
+.env
