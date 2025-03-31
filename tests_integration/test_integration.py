@@ -34,7 +34,6 @@ MITMPROXY_CERT_BUNDLE_FILE = MITMPROXY_CONFDIR / "mitmproxy-cert-bundle.pem"
 def global_environment_setup():
     """
     Set up the global environment variables for the tests.
-    If we once migrate to pydantic-settings, this should be more fine-grained for each bot step.
     """
     # Make sure to also set BOT_TOKEN, we cannot validate this here!
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
