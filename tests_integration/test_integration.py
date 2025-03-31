@@ -11,7 +11,10 @@ from xprocess import ProcessStarter, XProcess
 
 from conda_forge_tick.settings import settings, use_settings
 from tests_integration import setup_repositories
-from tests_integration.collect_test_scenarios import get_test_scenario
+from tests_integration.collect_test_scenarios import (
+    get_all_test_scenario_ids,
+    get_test_scenario,
+)
 from tests_integration.lib.shared import setup_logging
 from tests_integration.lib.test_case import TestCase
 from tests_integration.step_prepare import (
@@ -85,7 +88,7 @@ def repositories_setup():
     setup_repositories.prepare_all_accounts()
 
 
-@pytest.fixture(params=[0])
+@pytest.fixture(params=get_all_test_scenario_ids())
 def scenario(request) -> tuple[int, dict[str, TestCase]]:
     scenario_id: int = request.param
     close_all_open_pull_requests()
