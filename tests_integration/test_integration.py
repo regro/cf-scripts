@@ -36,6 +36,7 @@ def global_environment_setup():
     # Make sure to also set BOT_TOKEN, we cannot validate this here!
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
 
+    # In Python 3.13, this might break. https://stackoverflow.com/a/79124282
     os.environ["MITMPROXY_CONFDIR"] = str(MITMPROXY_CONFDIR.resolve())
     os.environ["SSL_CERT_FILE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
     os.environ["REQUESTS_CA_BUNDLE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
