@@ -24,8 +24,8 @@ if [ "${headless_mode}" = "true" ]; then
     echo "The mitmproxy certificates will be generated in the directory: ${mitmproxy_dir}"
 
     # path to a script that will be executed after the certificates have been generated
-    # the script should add the mitmproxy-ca.pem certificate to the system's trust store
-    # the first argument is the path to the mitmproxy-ca.pem certificate
+    # the script should add the mitmproxy-ca.crt certificate to the system's trust store
+    # the first argument is the path to the mitmproxy-ca.crt certificate
     headless_mode_trust_script="${MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT}"
 else
     echo "The mitmproxy certificates will be generated in the directory: ${mitmproxy_dir}"
