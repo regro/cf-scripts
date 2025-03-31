@@ -156,6 +156,8 @@ def in_fresh_cf_graph():
         tmpdir = Path(tmpdir_s)
 
         cf_graph_repo = settings().graph_github_backend_repo
+
+        # --depth=5 is the same value as used in prod (see autotick-bot/install_bot_code.sh)
         subprocess.run(
             [
                 "git",
