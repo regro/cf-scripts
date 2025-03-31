@@ -469,7 +469,10 @@ class BaseRawURL(AbstractSource):
                     new_content = "\n".join(_new_lines)
                 else:
                     new_content = content.replace(orig_ver, next_ver)
-                new_meta = parse_meta_yaml(new_content)
+                if meta_yaml["meta_yaml"].get("schema_version", 0) == 0:
+                    new_meta = parse_meta_yaml(new_content)
+                else:
+                    raise RuntimeError("blah!")
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
