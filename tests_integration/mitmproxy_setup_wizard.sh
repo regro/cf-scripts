@@ -48,7 +48,7 @@ if [ "${headless_mode}" = "true" ]; then
 else
     echo "You now need to trust the mitmproxy-ca.crt certificate in your system's trust store."
     echo "The exact process depends on your operating system."
-    echo "On MacOS, drag and drop the mitmproxy-ca.crt file into the Keychain Access app while having the 'Login' keychain selected."
+    echo "On macOS, drag and drop the mitmproxy-ca.crt file into the Keychain Access app while having the 'Login' keychain selected."
     echo "Then, double-click the certificate in the keychain and set ‘Always Trust‘ in the ‘Trust‘ section."
     echo "The certificate is located at: ${mitmproxy_ca_crt_file}"
     echo "After you're done, press enter to continue."
