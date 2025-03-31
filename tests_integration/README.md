@@ -120,6 +120,8 @@ For example, scenario 1 uses `test_case_3.py` from Feedstock A and `test_case_2.
 ](../docs/assets/integration-tests/scenarios-shuffle-3-light.svg#gh-light-mode-only)
 ![Description available in light mode.](../docs/assets/integration-tests/scenarios-shuffle-3-dark.svg#gh-dark-mode-only)
 
+<sup>The images have been generated with draw.io from the source file present in [docs/assets](../docs/assets).</sup>
+
 ## Environment Variables
 The tests expect the following environment variables:
 
