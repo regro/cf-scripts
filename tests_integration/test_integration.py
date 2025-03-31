@@ -199,7 +199,7 @@ def in_fresh_cf_graph():
             cwd=cf_graph_dir,
         )
 
-        subprocess.run(["git", "config", 'http."https://github.com".proxy', '""'])  #
+        subprocess.run(["git", "config", 'http."https://github.com".proxy', '""'])
 
         os.chdir(cf_graph_dir)
         yield
