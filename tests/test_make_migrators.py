@@ -48,12 +48,11 @@ def test_make_migrators_initialize_migrators():
             ]
             while nodes_to_test:
                 pkg = nodes_to_test.pop(0)
-                if pkg not in gx.nodes:
-                    continue
-                nodes_to_keep.add(pkg)
-                for n in gx.predecessors(pkg):
-                    if n not in nodes_to_keep:
-                        nodes_to_test.append(n)
+                if pkg in gx.nodes:
+                    nodes_to_keep.add(pkg)
+                    for n in gx.predecessors(pkg):
+                        if n not in nodes_to_keep:
+                            nodes_to_test.append(n)
 
             for pkg in set(gx.nodes) - nodes_to_keep:
                 pluck(gx, pkg)
