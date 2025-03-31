@@ -150,7 +150,7 @@ After that, run the following command to run the tests
 (you need to be in the `tests_integration` directory):
 
 ```bash
-pytest -s -v tests_integration
+pytest -s -v --dist=no tests_integration
 ```
 
 Remember to set the environment variables from above beforehand.
