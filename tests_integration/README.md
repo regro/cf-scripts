@@ -1,4 +1,5 @@
 # Integration Tests
+
 This directory contains integration tests for the autotick-bot.
 The tests are run against actual GitHub repositories, and are used to verify that the
 bot works as expected in an environment closely resembling production.
