@@ -59,3 +59,5 @@ pixi.lock
 pixi.toml
 .ruff_cache/
 .repodata_cache/
+venv
+oryx-build-commands.txt

@@ -20,7 +20,7 @@ from conda.models.version import VersionOrder
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
 from .hashing import hash_url
 
@@ -472,7 +472,7 @@ class BaseRawURL(AbstractSource):
                 if meta_yaml["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
-                    raise RuntimeError("blah!")
+                    new_meta = parse_recipe_yaml(new_content)
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
