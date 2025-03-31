@@ -437,6 +437,7 @@ def run_with_tmpdir(
     git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
+    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """
@@ -455,11 +456,12 @@ def run_with_tmpdir(
             git_backend=git_backend,
             rerender=rerender,
             base_branch=base_branch,
+            dry_run=dry_run,
             **kwargs,
         )
 
 
-def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson:
+def _make_and_sync_pr_lazy_json(pr_data, dry_run) -> LazyJson:
     if pr_data:
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
@@ -467,7 +469,7 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson:
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
-        if "id" in pr_lazy_json:
+        if "id" in pr_lazy_json and not dry_run:
             sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
 
     else:
@@ -482,6 +484,7 @@ def run(
     git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
+    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
@@ -558,7 +561,7 @@ def run(
 
         # spoof this so it looks like the package is done
         pr_data = get_spoofed_closed_pr_info()
-        pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
+        pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data, dry_run)
         _reset_pre_pr_migrator_fields(
             context.attrs, migrator_name, is_version=is_version_migration
         )
@@ -653,7 +656,7 @@ def run(
             comment=rerender_info.rerender_comment,
         )
 
-    pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
+    pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data, dry_run)
 
     # If we've gotten this far then the node is good
     with context.attrs["pr_info"] as pri:
@@ -732,6 +735,7 @@ def _run_migrator_on_feedstock_branch(
     mctx,
     migrator_name,
     good_prs,
+    dry_run,
 ):
     break_loop = False
     sync_pr_info = False
@@ -749,6 +753,7 @@ def _run_migrator_on_feedstock_branch(
                 rerender=migrator.rerender,
                 base_branch=base_branch,
                 hash_type=attrs.get("hash_type", "sha256"),
+                dry_run=dry_run,
             )
         finally:
             fctx.attrs.pop("new_version", None)
@@ -902,19 +907,22 @@ def _run_migrator_on_feedstock_branch(
         if sync_pr_info:
             with attrs["pr_info"] as pri:
                 pass
-            sync_lazy_json_object(pri, "file", ["github_api"])
+            if not dry_run:
+                sync_lazy_json_object(pri, "file", ["github_api"])
 
         if sync_version_pr_info:
             with attrs["version_pr_info"] as vpri:
                 pass
-            sync_lazy_json_object(vpri, "file", ["github_api"])
+            if not dry_run:
+                sync_lazy_json_object(vpri, "file", ["github_api"])
 
     return good_prs, break_loop
 
 
-def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, tried_prs):
+def _is_migrator_done(
+    _mg_start, good_prs, time_per, pr_limit, tried_prs, backend: GitPlatformBackend
+):
     curr_time = time.time()
-    backend = github_backend()
     api_req = backend.get_api_requests_left()
 
     if curr_time - START_TIME > TIMEOUT:
@@ -958,7 +966,9 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, tried_prs):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
+def _run_migrator(
+    migrator, mctx, temp, time_per, git_backend: GitPlatformBackend, dry_run
+):
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -1014,7 +1024,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         )
 
         if _is_migrator_done(
-            _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs
+            _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs, git_backend
         ):
             return 0
 
@@ -1033,7 +1043,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
             if _is_migrator_done(
-                _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs
+                _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs, git_backend
             ):
                 break
 
@@ -1091,6 +1101,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                             mctx=mctx,
                             migrator_name=migrator_name,
                             good_prs=good_prs,
+                            dry_run=dry_run,
                         )
                         if break_loop:
                             break
@@ -1280,15 +1291,16 @@ def _update_graph_with_pr_info():
     dump_graph(gx)
 
 
-def main(ctx: CliContext) -> None:
+def main(ctx: CliContext, no_update_graph: bool, filter_pattern: str | None) -> None:
     global START_TIME
     START_TIME = time.time()
 
     _setup_limits()
 
-    with fold_log_lines("updating graph with PR info"):
-        _update_graph_with_pr_info()
-        deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
+    if not no_update_graph:
+        with fold_log_lines("updating graph with PR info"):
+            _update_graph_with_pr_info()
+            deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")
@@ -1307,7 +1319,7 @@ def main(ctx: CliContext) -> None:
             smithy_version=smithy_version,
             pinning_version=pinning_version,
         )
-        migrators = load_migrators()
+        migrators = load_migrators(pattern=filter_pattern)
 
     # compute the time per migrator
     with fold_log_lines("computing migrator run times"):
@@ -1341,7 +1353,15 @@ def main(ctx: CliContext) -> None:
     git_backend = github_backend() if not ctx.dry_run else DryRunBackend()
 
     for mg_ind, migrator in enumerate(migrators):
-        _run_migrator(migrator, mctx, temp, time_per_migrator[mg_ind], git_backend)
+        _run_migrator(
+            migrator,
+            mctx,
+            temp,
+            time_per_migrator[mg_ind],
+            git_backend,
+            dry_run=ctx.dry_run,
+        )
 
-    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
+    if not ctx.dry_run:
+        logger.info("API Calls Remaining: %d", git_backend.get_api_requests_left())
     logger.info("Done")

@@ -962,13 +962,17 @@ def _load(name):
         return make_from_lazy_json_data(lzj.data)
 
 
-def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
+def load_migrators(
+    skip_paused: bool = True, pattern: str | None = None
+) -> MutableSequence[Migrator]:
     """Loads all current migrators.
 
     Parameters
     ----------
     skip_paused : bool, optional
         Whether to skip paused migrators, defaults to True.
+    pattern : str, optional
+        A regular expression pattern to filter migrators, defaults to None.
 
     Returns
     -------
@@ -980,6 +984,15 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     pinning_migrators = []
     longterm_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
+    if pattern is not None:
+        original_all_names = all_names
+        all_names = [n for n in all_names if re.fullmatch(pattern, n)]
+        if not all_names:
+            raise ValueError(
+                f"No migrators found matching pattern {pattern}. "
+                f"Available migrators: {original_all_names}"
+            )
+        print(f"Reduced migrators from {len(original_all_names)} to {len(all_names)}")
     with executor("process", 4) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 
@@ -1004,11 +1017,14 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
                 migrators.append(migrator)
 
     if version_migrator is None:
-        raise RuntimeError("No version migrator found in the migrators directory!")
+        if pattern is None:
+            raise RuntimeError("No version migrator found in the migrators directory!")
+    else:
+        migrators.insert(0, version_migrator)
 
     RNG.shuffle(pinning_migrators)
     RNG.shuffle(longterm_migrators)
-    migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
+    migrators += pinning_migrators + longterm_migrators
 
     return migrators
 

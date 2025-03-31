@@ -160,11 +160,19 @@ def update_upstream_versions(
 
 
 @main.command(name="auto-tick")
+@click.option(
+    "--no-update-graph", is_flag=True, help="Don't update the graph with PR info"
+)
+@click.option(
+    "--filter-pattern", default=None, help="Only run migrators matching this pattern"
+)
 @pass_context
-def auto_tick(ctx: CliContext) -> None:
+def auto_tick(
+    ctx: CliContext, no_update_graph: bool, filter_pattern=Optional[str]
+) -> None:
     from . import auto_tick
 
-    auto_tick.main(ctx)
+    auto_tick.main(ctx, no_update_graph, filter_pattern)
 
 
 @main.command(name="make-status-report")

@@ -281,9 +281,10 @@ pip install -e .
 Then you can use the CLI like this:
 
 ```bash
-conda-forge-tick --help
+conda-forge-tick --dry-run ...
 ```
 
+See `--help` for a list of the commands available.
 For debugging, use the `--debug` flag. This enables debug logging and disables multiprocessing.
 
 Note that the bot expects the [conda-forge dependency graph](https://github.com/regro/cf-graph-countyfair) to be
@@ -298,6 +299,7 @@ The local debugging functionality is still work in progress and might not work f
 Currently, the following commands are supported and tested:
 
 - `update-upstream-versions`
+- `auto-tick`: To ease debugging, pass `--filter-pattern=` to give a regex of which migrators to enable.
 
 ### Structure of the Bot's Jobs
 
