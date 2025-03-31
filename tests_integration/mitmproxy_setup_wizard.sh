@@ -48,8 +48,15 @@ if [ "${headless_mode}" = "true" ]; then
 else
     echo "You now need to trust the mitmproxy-ca.crt certificate in your system's trust store."
     echo "The exact process depends on your operating system."
-    echo "On macOS, drag and drop the mitmproxy-ca.crt file into the Keychain Access app while having the 'Login' keychain selected."
-    echo "Then, double-click the certificate in the keychain and set ‘Always Trust‘ in the ‘Trust‘ section."
+
+    if [[ -f "/etc/debian_version" ]]; then
+        echo "On Debian-based systems, you can use the following command to trust the certificate:"
+        echo "sudo cp ${mitmproxy_ca_crt_file} /usr/local/share/ca-certificates/mitmproxy-ca.crt"
+        echo "sudo update-ca-certificates"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "On macOS, drag and drop the mitmproxy-ca.crt file into the Keychain Access app while having the 'Login' keychain selected."
+        echo "Then, double-click the certificate in the keychain and set ‘Always Trust‘ in the ‘Trust‘ section."
+    fi
     echo "The certificate is located at: ${mitmproxy_ca_crt_file}"
     echo "After you're done, press enter to continue."
     read -r
