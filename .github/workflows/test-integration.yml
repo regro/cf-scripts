@@ -88,9 +88,3 @@ jobs:
       - name: Print Proxy Logs
         run: cat /tmp/mitmproxy.log
         if: always()
-
-      - name: 🐛 Debug with VSCode
-        uses: stateful/vscode-server-action@ec99599aefe0bf96d14491e1d5f7e80d30e22247  # v1.1.0
-        with:
-          timeout: '3000000'
-        if: failure()
