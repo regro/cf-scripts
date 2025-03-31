@@ -48,7 +48,6 @@ if [ "${headless_mode}" = "true" ]; then
 else
     echo "You now need to trust the mitmproxy-ca.crt certificate in your system's trust store."
     echo "The exact process depends on your operating system."
-
     if [[ -f "/etc/debian_version" ]]; then
         echo "On Debian-based systems, you can use the following command to trust the certificate:"
         echo "sudo cp ${mitmproxy_ca_crt_file} /usr/local/share/ca-certificates/mitmproxy-ca.crt"
