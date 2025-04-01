@@ -2538,15 +2538,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5f9eb31961ff155520094c1672febdc7
-      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
+      md5: 3162c3def821d746e600e98a278fcaaa
+      sha256: 3b03a3bf7c1a8f25899f977c2d2522681d59e364ed057ad1632eaa62982a9002
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
-    version: 3.47.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.1-unix_pyhd81877a_0.conda
+    version: 3.47.1
   - category: main
     dependencies:
       __unix: ''
@@ -2576,15 +2576,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5f9eb31961ff155520094c1672febdc7
-      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
+      md5: 3162c3def821d746e600e98a278fcaaa
+      sha256: 3b03a3bf7c1a8f25899f977c2d2522681d59e364ed057ad1632eaa62982a9002
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
-    version: 3.47.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.1-unix_pyhd81877a_0.conda
+    version: 3.47.1
   - category: main
     dependencies:
       __unix: ''
@@ -2614,15 +2614,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5f9eb31961ff155520094c1672febdc7
-      sha256: fbd6dcffdc1f07925cc191e3578b6997f09df7be377892c8b2d8a39b9b42224a
+      md5: 3162c3def821d746e600e98a278fcaaa
+      sha256: 3b03a3bf7c1a8f25899f977c2d2522681d59e364ed057ad1632eaa62982a9002
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.0-unix_pyhd81877a_0.conda
-    version: 3.47.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.47.1-unix_pyhd81877a_0.conda
+    version: 3.47.1
   - category: main
     dependencies:
       python: '>=3.8'
@@ -3387,15 +3387,15 @@ package:
       python: '>=3.9'
       requests: '>=2'
     hash:
-      md5: 4e144cc34d9647a2a902170c735ba763
-      sha256: 872e8909fb580ab611dc7118a9cbde7769f5b2c1b259311be2e966ca83430e12
+      md5: 0b4ada1147417b3d9abeb47066e1f714
+      sha256: 98312b643047074bab51d2d7576aa0444591dc0d86dd8e9be40befb6b3057036
     manager: conda
     name: ensureconda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       appdirs: ''
@@ -3405,15 +3405,15 @@ package:
       python: '>=3.9'
       requests: '>=2'
     hash:
-      md5: 4e144cc34d9647a2a902170c735ba763
-      sha256: 872e8909fb580ab611dc7118a9cbde7769f5b2c1b259311be2e966ca83430e12
+      md5: 0b4ada1147417b3d9abeb47066e1f714
+      sha256: 98312b643047074bab51d2d7576aa0444591dc0d86dd8e9be40befb6b3057036
     manager: conda
     name: ensureconda
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       appdirs: ''
@@ -3423,15 +3423,15 @@ package:
       python: '>=3.9'
       requests: '>=2'
     hash:
-      md5: 4e144cc34d9647a2a902170c735ba763
-      sha256: 872e8909fb580ab611dc7118a9cbde7769f5b2c1b259311be2e966ca83430e12
+      md5: 0b4ada1147417b3d9abeb47066e1f714
+      sha256: 98312b643047074bab51d2d7576aa0444591dc0d86dd8e9be40befb6b3057036
     manager: conda
     name: ensureconda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/ensureconda-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       libgcc-ng: '>=10.3.0'
