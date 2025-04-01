@@ -71,22 +71,22 @@ def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
 
 def get_new_sub_condition(sub_cond: str, super_cond: str) -> str | None:
     l_cond_re = re.compile(
-        r"^\s* (?P<p1> \( )? \s*"                # optional "("
-        + re.escape(super_cond) +                # super_cond
-        r"\s* (?(p1) \) ) \s*"                   # matching ")"
-        r"and \s* (?P<p2> \( )? \s*"             # "and", optional "("
-        r"(?P<new_cond>.*?)"                     # new_cond
-        r"\s* (?(p2) \) ) \s*$",                 # matching ")"
-        re.VERBOSE
+        r"^\s* (?P<p1> \( )? \s*"  # optional "("
+        + re.escape(super_cond)  # super_cond
+        + r"\s* (?(p1) \) ) \s*"  # matching ")"
+        r"and \s* (?P<p2> \( )? \s*"  # "and", optional "("
+        r"(?P<new_cond>.*?)"  # new_cond
+        r"\s* (?(p2) \) ) \s*$",  # matching ")"
+        re.VERBOSE,
     )
     r_cond_re = re.compile(
-        r"^\s* (?P<p1> \( )? \s*"                # optional "("
-        r"(?P<new_cond>.*?)"                     # new_cond
-        r"\s* (?(p1) \) ) \s*"                   # matching ")"
-        r"and \s* (?P<p2> \( )? \s*"             # "and", optional "("
-        + re.escape(super_cond) +                # super_cond
-        r"\s* (?(p2) \) ) \s*$",                 # matching ")"
-        re.VERBOSE
+        r"^\s* (?P<p1> \( )? \s*"  # optional "("
+        r"(?P<new_cond>.*?)"  # new_cond
+        r"\s* (?(p1) \) ) \s*"  # matching ")"
+        r"and \s* (?P<p2> \( )? \s*"  # "and", optional "("
+        + re.escape(super_cond)  # super_cond
+        + r"\s* (?(p2) \) ) \s*$",  # matching ")"
+        re.VERBOSE,
     )
     if match := l_cond_re.match(sub_cond):
         return match.group("new_cond")
