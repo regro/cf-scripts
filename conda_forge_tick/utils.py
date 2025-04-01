@@ -1314,7 +1314,7 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
-def run_command_hiding_token(args: list[str], token: str) -> int:
+def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
     """
     Run a command and hide the token in the output.
 
@@ -1325,9 +1325,15 @@ def run_command_hiding_token(args: list[str], token: str) -> int:
 
     :param args: The command to run.
     :param token: The token to hide in the output.
+    :param kwargs: additional arguments for subprocess.run
     :return: The return code of the command.
     """
-    p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if kwargs.keys() & {"text", "stdout", "stderr"}:
+        raise ValueError("text, stdout, and stderr are not allowed in kwargs")
+
+    p = subprocess.run(
+        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+    )
 
     out, err = p.stdout, p.stderr
 
