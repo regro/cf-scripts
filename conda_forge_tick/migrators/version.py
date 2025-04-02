@@ -18,7 +18,11 @@ from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version, update_version_v1
-from conda_forge_tick.utils import get_keys_default, sanitize_string
+from conda_forge_tick.utils import (
+    get_keys_default,
+    get_recipe_schema_version,
+    sanitize_string,
+)
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -95,12 +99,7 @@ class Version(Migrator):
 
         # if no jinja2 version, then move on
 
-        schema_version = get_keys_default(
-            attrs,
-            ["meta_yaml", "schema_version"],
-            {},
-            0,
-        )
+        schema_version = get_recipe_schema_version(attrs)
         if schema_version == 0:
             if "raw_meta_yaml" not in attrs:
                 return True
