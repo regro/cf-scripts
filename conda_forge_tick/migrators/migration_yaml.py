@@ -352,6 +352,14 @@ class MigrationYaml(GraphMigrator):
             include_noarch or not all_noarch(attrs, only_python=only_python)
         )
 
+        if not inclusion_criteria:
+            logger.debug(
+                "filter %s: pin %s not in host/build %s",
+                node,
+                self.package_names,
+                bh,
+            )
+
         platform_allowlist = migrator_payload.get("platform_allowlist", [])
         platform_filtered = False
         if platform_allowlist:
@@ -363,6 +371,20 @@ class MigrationYaml(GraphMigrator):
             # attrs.platforms and platform_allowlist is empty
             intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
             platform_filtered = not bool(intersection)
+
+            if platform_filtered:
+                logger.debug(
+                    "filter %s: platform(s) %s not in %s",
+                    node,
+                    attrs.get("platforms", {}),
+                    platform_allowlist,
+                )
+
+        if node in excluded_feedstocks:
+            logger.debug(
+                "filter %s: excluded feedstock",
+                node,
+            )
 
         return (
             platform_filtered

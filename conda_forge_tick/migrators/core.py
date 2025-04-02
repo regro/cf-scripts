@@ -848,9 +848,8 @@ class GraphMigrator(Migrator):
             return True
 
         name = attrs.get("name", "")
-        not_in_migration = attrs.get("feedstock_name", None) not in (
-            self.graph or self.total_graph
-        )
+        _gx = self.total_graph or self.graph
+        not_in_migration = attrs.get("feedstock_name", None) not in _gx
 
         if not_in_migration:
             logger.debug("filter %s: node not in graph", name)

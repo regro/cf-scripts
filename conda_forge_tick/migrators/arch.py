@@ -176,18 +176,6 @@ class ArchRebuild(GraphMigrator):
         )
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
 
-    def filter_node_migrated(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
-        for arch in self.arches:
-            configured_arch = (
-                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
-            )
-            if configured_arch:
-                return super().filter_node_migrated(attrs, not_bad_str_start)
-        else:
-            return False
-
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
@@ -351,18 +339,6 @@ class OSXArm(GraphMigrator):
         assert not self.check_solvable, (
             "We don't want to check solvability for arm osx!"
         )
-
-    def filter_node_migrated(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
-        for arch in self.arches:
-            configured_arch = (
-                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
-            )
-            if configured_arch:
-                return super().filter_node_migrated(attrs, not_bad_str_start)
-        else:
-            return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

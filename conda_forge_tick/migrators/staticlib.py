@@ -509,7 +509,6 @@ class StaticLibMigrator(GraphMigrator):
                 logger.debug(
                     "filter %s: no static libs out of date\nmapping: %s",
                     attrs.get("name") or "",
-                    static_libs_out_of_date,
                     slrep,
                 )
             _read_repodata.cache_clear()
