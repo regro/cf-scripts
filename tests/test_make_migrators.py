@@ -5,7 +5,7 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
-from _pytest.fixtures import FixtureRequest
+from pytest import FixtureRequest
 
 from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.make_migrators import create_migration_yaml_creator
