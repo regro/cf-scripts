@@ -42,3 +42,6 @@ is_python_min:
   - false
   - false
   - false
+
+aws_c_io:
+  - 0.15.3

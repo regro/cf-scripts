@@ -19,6 +19,12 @@
         "elements": [
           "numpy"
         ]
+      },
+      "aws-c-io": {
+        "__set__": true,
+        "elements": [
+          "aws-c-io"
+        ]
       }
     },
     "strong_exports": {
@@ -45,6 +51,12 @@
       "id": "numpy",
       "payload": {
         "__lazy_json__": "node_attrs/numpy.json"
+      }
+    },
+    {
+      "id": "aws-c-io",
+      "payload": {
+        "__lazy_json__": "node_attrs/aws-c-io.json"
       }
     }
   ]
