@@ -5,6 +5,7 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
+from _pytest.fixtures import FixtureRequest
 
 from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.make_migrators import create_migration_yaml_creator
@@ -19,6 +20,7 @@ CONDA_FORGE_PINNINGS_ATTRS_FILE = TEST_FILES_DIR / "conda-forge-pinning_node_att
 NUMPY_NODE_ATTRS_FILE = TEST_FILES_DIR / "numpy_node_attrs.json"
 
 
+@pytest.mark.parametrize("enable_containers", [True, False])
 class TestCreateMigrationYamlCreator:
     @pytest.fixture
     def inject_conda_build_config(self):
@@ -63,8 +65,15 @@ class TestCreateMigrationYamlCreator:
         "prepared_graph", [["conda-forge-pinning", "numpy"]], indirect=True
     )
     def test_successful_recipe_v0(
-        self, prepared_graph: nx.DiGraph, inject_conda_build_config
+        self,
+        prepared_graph: nx.DiGraph,
+        inject_conda_build_config,
+        enable_containers: bool,
+        request: FixtureRequest,
     ):
+        if enable_containers:
+            request.getfixturevalue("use_containers")
+
         # feedstock under test: numpy
         migrators: list[MigrationYamlCreator] = []
         create_migration_yaml_creator(migrators, prepared_graph)
@@ -85,8 +94,15 @@ class TestCreateMigrationYamlCreator:
         "prepared_graph", [["conda-forge-pinning", "aws-c-io"]], indirect=True
     )
     def test_successful_recipe_v1(
-        self, prepared_graph: nx.DiGraph, inject_conda_build_config
+        self,
+        prepared_graph: nx.DiGraph,
+        inject_conda_build_config,
+        enable_containers: bool,
+        request: FixtureRequest,
     ):
+        if enable_containers:
+            request.getfixturevalue("use_containers")
+
         # feedstock under test: aws-c-io
         migrators: list[MigrationYamlCreator] = []
         create_migration_yaml_creator(migrators, prepared_graph)

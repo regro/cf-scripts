@@ -83,7 +83,7 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
-def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
+def _run_bot_task(func, *, log_level: str, existing_feedstock_node_attrs, **kwargs):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cbld,
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
@@ -434,7 +434,7 @@ def cli():
 )
 @click.option("--log-debug", is_flag=True, help="Log debug information.")
 def parse_meta_yaml(
-    log_level,
+    log_level: str,
     for_pinning,
     platform,
     arch,
@@ -472,12 +472,14 @@ def parse_meta_yaml(
     "--cbc-path", type=str, default=None, help="The path to global pinning file."
 )
 def parse_recipe_yaml(
+    log_level: str,
     for_pinning,
     platform_arch,
     cbc_path,
 ):
     return _run_bot_task(
         _parse_recipe_yaml,
+        log_level=log_level,
         existing_feedstock_node_attrs=None,
         for_pinning=for_pinning,
         platform_arch=platform_arch,
