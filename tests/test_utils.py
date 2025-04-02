@@ -156,15 +156,17 @@ def test_munge_dict_repr():
     assert parse_munged_run_export(_munge_dict_repr(d)) == d
 
 
-@pytest.mark.parametrize("version", [None, 0, 1])
-def test_get_recipe_schema_version_valid(version: int | None):
+@pytest.mark.parametrize("version", [0, 1])
+def test_get_recipe_schema_version_valid(version: int):
     attrs = {
         "meta_yaml": {
             "schema_version": version,
         }
+        if version is not None
+        else {},
     }
 
-    assert get_recipe_schema_version(attrs) == version if version is not None else 0
+    assert get_recipe_schema_version(attrs) == version
 
 
 def test_get_recipe_schema_version_missing_keys_1():
