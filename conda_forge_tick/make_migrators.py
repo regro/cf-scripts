@@ -762,6 +762,7 @@ def create_migration_yaml_creator(
 
             # fall back to the pinning file or "x"
             if not pin_spec:
+                # since this comes from conda_build_config.yaml, max_pin is correct for v1 as well
                 pin_spec = (
                     pinnings["pin_run_as_build"]
                     .get(pinning_name, {})
