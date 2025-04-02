@@ -628,7 +628,6 @@ def _extract_most_stringent_pin_from_recipe(
         build = block.get("build", {}) or {}
 
         # parse back to dict
-        possible_p_dicts = []
         if isinstance(build.get("run_exports", None), MutableMapping):
             for _, v in build.get("run_exports", {}).items():
                 for p in v:
