@@ -897,7 +897,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     pinning_migrators = []
     longterm_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
-    with executor("process", 4) as pool:
+    with executor("process", 2) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 
         for fut in tqdm.tqdm(
