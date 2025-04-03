@@ -1643,15 +1643,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 3928dbcf8641f9d62093ca98ed2ae22d
-      sha256: 8b7854d016c106055b28c34e0af53bb41e1d35c9eb215fcc98544701465a3137
+      md5: 09c60d34a2dc754b452cff6d34be5a10
+      sha256: ac9664f1685c07c77598e5168d0d7896796623efaf87b70123012206336cdbf3
     manager: conda
     name: conda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-25.3.0-py311h38be061_0.conda
-    version: 25.3.0
+      https://conda.anaconda.org/conda-forge/linux-64/conda-25.3.1-py311h38be061_0.conda
+    version: 25.3.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1708,15 +1708,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 7b8cb0bf5eb5c4e8d5eb20173e2c1b06
-      sha256: df94327583278d755e764231767b97adc16f72d6e62d1ab70ac1a617dfbd0cb6
+      md5: 6f2c74aff05deb10168fc413af36302e
+      sha256: 75d908a7e568dbeaa2f517a695e5031a07aa3ecacc729ca9bb7887ccb5e469ee
     manager: conda
     name: conda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.3.0-py311h267d04e_0.conda
-    version: 25.3.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.3.1-py311h267d04e_0.conda
+    version: 25.3.1
   - category: main
     dependencies:
       beautifulsoup4: ''
