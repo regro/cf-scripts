@@ -709,12 +709,12 @@ def create_migration_yaml_creator(
                     print(" ", flush=True)
                     migrators.append(
                         MigrationYamlCreator(
-                            pinning_name,
-                            current_version,
-                            current_pin,
-                            pin_spec,
-                            feedstock_name,
-                            cfp_gx,
+                            package_name=pinning_name,
+                            new_pin_version=current_version,
+                            current_pin=current_pin,
+                            pin_spec=pin_spec,
+                            feedstock_name=feedstock_name,
+                            total_graph=cfp_gx,
                             pinnings=pinnings_together,
                             full_graph=gx,
                             pr_limit=1,
