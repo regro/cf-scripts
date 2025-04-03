@@ -662,38 +662,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 27cb6fe5f5bf73b837a6854d5a2daadc
-      sha256: 5b032b2a7bf2de4ddba16df54c66cc4a0953cc243bec42509dd04ded2be92613
+      md5: 26c3480f80364e9498a48bb5c3e35f85
+      sha256: 6195e09f7d8a3a5e2fc0dddd6d1e87198e9c3d2a1982ff04624957a6c6466e54
     manager: conda
     name: boolean.py
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-4.0-pyhd8ed1ab_1.conda
-    version: '4.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    version: '5.0'
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 27cb6fe5f5bf73b837a6854d5a2daadc
-      sha256: 5b032b2a7bf2de4ddba16df54c66cc4a0953cc243bec42509dd04ded2be92613
+      md5: 26c3480f80364e9498a48bb5c3e35f85
+      sha256: 6195e09f7d8a3a5e2fc0dddd6d1e87198e9c3d2a1982ff04624957a6c6466e54
     manager: conda
     name: boolean.py
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-4.0-pyhd8ed1ab_1.conda
-    version: '4.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    version: '5.0'
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 27cb6fe5f5bf73b837a6854d5a2daadc
-      sha256: 5b032b2a7bf2de4ddba16df54c66cc4a0953cc243bec42509dd04ded2be92613
+      md5: 26c3480f80364e9498a48bb5c3e35f85
+      sha256: 6195e09f7d8a3a5e2fc0dddd6d1e87198e9c3d2a1982ff04624957a6c6466e54
     manager: conda
     name: boolean.py
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-4.0-pyhd8ed1ab_1.conda
-    version: '4.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    version: '5.0'
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -1744,15 +1744,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 589d15547fd87730b2f26bca79747729
-      sha256: 4b26bc18a5dad346cc0d4f7f15083e7296f5f5e299d8a073ca7a38bb8c3e5558
+      md5: 0388abc17116ecc8af08ce9cf2412515
+      sha256: 324a641b4c4d843d2f481bc2e4efa857e18955dce86bd92d21beae12011374ca
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.3.1-py311h38be061_0.conda
-    version: 25.3.1
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.3.2-py311h38be061_0.conda
+    version: 25.3.2
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1780,15 +1780,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 9569cd36a72293e505b5267d8344857d
-      sha256: bda7b44f502dc7fabbcc3e05f78716922aa9fb60f88233180a9ab2f13dc365c4
+      md5: 1f238e83e3781f0bce90a6db9e819733
+      sha256: cbd42191f0470557d493c1e43d76948e9ae6b3d7a27cf9d8da07d482b32cf421
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.3.1-py311h6eed73b_0.conda
-    version: 25.3.1
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.3.2-py311h6eed73b_0.conda
+    version: 25.3.2
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1816,15 +1816,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 7443aa8d0b8fb8221b00f11db8371d35
-      sha256: 44a0a2c1e4296e3ecc236a1d213ba3b5b34093513162d748bac85e643dcd6c30
+      md5: c23032a0ff8278ecadf1cf957d3cac40
+      sha256: 7fa8b00289255f39bdb0b2bfc38748261fd1e9d63ee2fd276fe1dc28e97261e3
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.3.1-py311h267d04e_0.conda
-    version: 25.3.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.3.2-py311h267d04e_0.conda
+    version: 25.3.2
   - category: main
     dependencies:
       boltons: '>=23.0.0'
