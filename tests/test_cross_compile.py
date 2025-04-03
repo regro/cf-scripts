@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -23,9 +22,6 @@ YAML_PATHS = [
 ]
 YAML_PATH = YAML_PATHS[0]
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
-
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
@@ -38,7 +34,6 @@ arm_and_power_migrator = CrossCompilationForARMAndPower()
 version_migrator_autoconf = Version(
     set(),
     piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_cmake = Version(
     set(),
@@ -48,32 +43,26 @@ version_migrator_cmake = Version(
         cross_rbase_migrator,
         cross_python_migrator,
     ],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_python = Version(
     set(),
     piggy_back_migrations=[cross_python_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_rbase = Version(
     set(),
     piggy_back_migrations=[cross_rbase_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_b2h = Version(
     set(),
     piggy_back_migrations=[b2h_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_nci = Version(
     set(),
     piggy_back_migrations=[nci_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 version_migrator_arm_and_power = Version(
     set(),
     piggy_back_migrations=[arm_and_power_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 
 

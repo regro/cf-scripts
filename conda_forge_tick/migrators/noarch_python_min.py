@@ -1,4 +1,3 @@
-import copy
 import functools
 import logging
 import os
@@ -15,6 +14,7 @@ from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import (
     Migrator,
     MiniMigrator,
+    skip_migrator_due_to_schema,
 )
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
@@ -421,9 +421,8 @@ class NoarchPythonMinMigrator(Migrator):
         self,
         *,
         pr_limit: int = 0,
-        graph: nx.DiGraph | None = None,
-        effective_graph: nx.DiGraph | None = None,
-        total_graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph = None,
+        effective_graph: nx.DiGraph = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
     ):
         if not hasattr(self, "_init_args"):
@@ -435,34 +434,30 @@ class NoarchPythonMinMigrator(Migrator):
                 "graph": graph,
                 "effective_graph": effective_graph,
                 "piggy_back_migrations": piggy_back_migrations,
-                "total_graph": total_graph,
             }
 
-        self.name = "noarch_python_min"
-
-        if total_graph is not None:
-            total_graph = copy.deepcopy(total_graph)
-            total_graph.clear_edges()
-
         super().__init__(
-            pr_limit=pr_limit,
+            pr_limit,
             graph=graph,
             effective_graph=effective_graph,
             piggy_back_migrations=piggy_back_migrations,
-            total_graph=total_graph,
         )
+        self.name = "noarch_python_min"
 
-    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
-        if super().filter_not_in_migration(attrs, not_bad_str_start):
-            return True
+        self._reset_effective_graph()
 
+    def filter(self, attrs) -> bool:
         has_noarch_python = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
                 break
 
-        return not has_noarch_python
+        return (
+            super().filter(attrs)
+            or (not has_noarch_python)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
+        )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # if the feedstock has already been updated, return a migration ID

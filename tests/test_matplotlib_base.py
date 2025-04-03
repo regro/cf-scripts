@@ -1,13 +1,10 @@
 import os
 
-import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import MatplotlibBase
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 MPLB = MatplotlibBase(
     old_pkg="matplotlib",
     new_pkg="matplotlib-base",
@@ -15,7 +12,6 @@ MPLB = MatplotlibBase(
         "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
-    total_graph=TOTAL_GRAPH,
 )
 
 

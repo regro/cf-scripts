@@ -1,7 +1,6 @@
 import os
 import re
 
-import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -10,13 +9,10 @@ from conda_forge_tick.migrators import StdlibMigrator, Version
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 STDLIB = StdlibMigrator()
 VERSION_WITH_STDLIB = Version(
     set(),
     piggy_back_migrations=[STDLIB],
-    total_graph=TOTAL_GRAPH,
 )
 
 

@@ -1403,15 +1403,7 @@ def extract_section_from_yaml_text(
         A list of strings for the extracted sections.
     """
     # normalize the indents etc.
-    try:
-        yaml_text = CondaMetaYAML(yaml_text).dumps()
-    except Exception as e:
-        logger.debug(
-            "Failed to normalize the YAML text due to error %s. We will try to parse anyways!",
-            repr(e),
-        )
-        pass
-
+    yaml_text = CondaMetaYAML(yaml_text).dumps()
     lines = yaml_text.splitlines()
 
     in_requirements = False

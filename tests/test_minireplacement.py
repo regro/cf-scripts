@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -10,23 +9,17 @@ XZLIBLZMADEVEL = MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
 JPEGJPEGTURBO = MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
 QTQTMAIN = MiniReplacement(old_pkg="qt", new_pkg="qt-main")
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
-
 VERSION_WITH_XZLIBLZMADEVEL = Version(
     set(),
     piggy_back_migrations=[XZLIBLZMADEVEL],
-    total_graph=TOTAL_GRAPH,
 )
 VERSION_WITH_JPEGTURBO = Version(
     set(),
     piggy_back_migrations=[JPEGJPEGTURBO],
-    total_graph=TOTAL_GRAPH,
 )
 VERSION_WITH_QTQTMAIN = Version(
     set(),
     piggy_back_migrations=[QTQTMAIN],
-    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATHS = [

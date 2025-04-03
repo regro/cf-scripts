@@ -2,7 +2,6 @@ import os
 import pprint
 import subprocess
 
-import networkx as nx
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
 from conda_forge_tick.migration_runner import run_migration_local
@@ -20,9 +19,7 @@ class _MigrationYaml(NoFilter, MigrationYaml):
     pass
 
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
-yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
+yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi")
 yaml_rebuild.cycles = []
 
 

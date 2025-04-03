@@ -19,9 +19,6 @@ from conda_forge_tick.migrators.staticlib import (
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 TEST_YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
-
 
 @pytest.mark.parametrize(
     "spec,res",
@@ -293,9 +290,8 @@ def test_staticlib_migrator_llvmlite(tmp_path, yaml_path):
 
     graph = nx.DiGraph()
     graph.add_node(name, payload=pmy)
-    graph.graph["outputs_lut"] = {}
     m = StaticLibMigrator(
-        total_graph=graph,
+        graph=graph,
     )
     run_test_migration(
         m=m,

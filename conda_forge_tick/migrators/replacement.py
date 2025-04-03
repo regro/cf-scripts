@@ -47,11 +47,10 @@ class Replacement(Migrator):
         old_pkg: "PackageName",
         new_pkg: "PackageName",
         rationale: str,
-        graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph = None,
         pr_limit: int = 0,
         check_solvable=True,
-        effective_graph: nx.DiGraph | None = None,
-        total_graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -65,9 +64,14 @@ class Replacement(Migrator):
                 "pr_limit": pr_limit,
                 "check_solvable": check_solvable,
                 "effective_graph": effective_graph,
-                "total_graph": total_graph,
             }
 
+        super().__init__(
+            pr_limit,
+            check_solvable=check_solvable,
+            graph=graph,
+            effective_graph=effective_graph,
+        )
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
@@ -75,18 +79,9 @@ class Replacement(Migrator):
         self.rationale = rationale
         self.name = f"{old_pkg}-to-{new_pkg}"
 
-        super().__init__(
-            pr_limit=pr_limit,
-            check_solvable=check_solvable,
-            graph=graph,
-            effective_graph=effective_graph,
-            total_graph=total_graph,
-        )
+        self._reset_effective_graph()
 
-    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
-        if super().filter_not_in_migration(attrs, not_bad_str_start):
-            return True
-
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
         rq = (
             requirements.get("build", set())
@@ -94,8 +89,7 @@ class Replacement(Migrator):
             | requirements.get("run", set())
             | requirements.get("test", set())
         )
-
-        return len(rq & self.packages) == 0
+        return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

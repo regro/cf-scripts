@@ -1,6 +1,5 @@
 import os
 
-import networkx as nx
 import pytest
 from ruamel.yaml import YAML
 from test_migrators import run_test_migration
@@ -8,12 +7,9 @@ from test_migrators import run_test_migration
 from conda_forge_tick.migrators import MPIPinRunAsBuildCleanup, Version
 from conda_forge_tick.migrators.mpi_pin_run_as_build import MPIS
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 VERSION_CF = Version(
     set(),
     piggy_back_migrations=[MPIPinRunAsBuildCleanup()],
-    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
