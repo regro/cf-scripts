@@ -1,18 +1,14 @@
 import os
 
-import networkx as nx
 import pytest
 from ruamel.yaml import YAML
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import CondaForgeYAMLCleanup, Version
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 VERSION_CF = Version(
     set(),
     piggy_back_migrations=[CondaForgeYAMLCleanup()],
-    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATHS = [

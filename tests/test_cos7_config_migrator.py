@@ -1,18 +1,14 @@
 import os
 
-import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import Cos7Config, Version
 from conda_forge_tick.migrators.cos7 import REQUIRED_RE_LINES, _has_line_set
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 VERSION_COS7 = Version(
     set(),
     piggy_back_migrations=[Cos7Config()],
-    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATHS = [

@@ -100,26 +100,11 @@ def write_version_migrator_status(migrator, mctx):
                 else:
                     new_version = vpri.get("new_version", False)
 
-                try:
-                    if "new_version" in vpri:
-                        old_vpri_version = vpri["new_version"]
-                        had_vpri_version = True
-                    else:
-                        had_vpri_version = False
-
-                    vpri["new_version"] = new_version
-
-                    new_version_is_ok = _ok_version(
-                        new_version
-                    ) and not migrator.filter(attrs)
-                finally:
-                    if had_vpri_version:
-                        vpri["new_version"] = old_vpri_version
-                    else:
-                        del vpri["new_version"]
-
                 # run filter with new_version
-                if new_version_is_ok:
+                if _ok_version(new_version) and not migrator.filter(
+                    attrs,
+                    new_version=new_version,
+                ):
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
                         out["queued"][node] = new_version

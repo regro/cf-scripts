@@ -28,13 +28,13 @@ def write_file_contents(filename, buffer):
         file.write(buffer)
 
 
-def test_nvtools_migrate(test_graph):
+def test_nvtools_migrate():
     backups = [
         store_file_contents(os.path.join(mock_recipe_dir, f))
         for f in ["build.sh", "meta.yaml", "../conda-forge.yml"]
     ]
 
-    migrator = AddNVIDIATools(total_graph=test_graph)
+    migrator = AddNVIDIATools()
     migrator.migrate(
         mock_recipe_dir,
         mock_node_attrs,

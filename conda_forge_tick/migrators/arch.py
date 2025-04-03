@@ -9,11 +9,13 @@ import networkx as nx
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
+    make_outputs_lut_from_graph,
 )
-from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, get_outputs_lut
+from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
+    frozen_to_json_friendly,
     pluck,
     yaml_safe_dump,
     yaml_safe_load,
@@ -23,6 +25,8 @@ from .migration_yaml import all_noarch
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
+
+from .core import MiniMigrator
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
@@ -102,15 +106,15 @@ class ArchRebuild(GraphMigrator):
 
     def __init__(
         self,
-        graph: nx.DiGraph | None = None,
-        name: str = "aarch64 and ppc64le addition",
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
-        effective_graph: nx.DiGraph | None = None,
-        total_graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph = None,
+        _do_init: bool = True,
     ):
-        if total_graph is not None:
+        if _do_init:
             if target_packages is None:
                 # We are constraining the scope of this migrator
                 with open(
@@ -124,11 +128,12 @@ class ArchRebuild(GraphMigrator):
                 ) as f:
                     target_packages = set(f.read().split())
 
-            outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
+            if "outputs_lut" not in graph.graph:
+                graph.graph["outputs_lut"] = make_outputs_lut_from_graph(graph)
 
             # rebuild the graph to only use edges from the arm and power requirements
-            graph2 = nx.create_empty_copy(total_graph)
-            for node, attrs in total_graph.nodes(data="payload"):
+            graph2 = nx.create_empty_copy(graph)
+            for node, attrs in graph.nodes(data="payload"):
                 for plat_arch in self.arches:
                     deps = set().union(
                         *attrs.get(
@@ -136,18 +141,20 @@ class ArchRebuild(GraphMigrator):
                             attrs.get("requirements", {}),
                         ).values()
                     )
-                    for dep in get_deps_from_outputs_lut(deps, outputs_lut):
+                    for dep in get_deps_from_outputs_lut(
+                        deps, graph.graph["outputs_lut"]
+                    ):
                         graph2.add_edge(dep, node)
                 pass
 
-            total_graph = graph2
+            graph = graph2
             target_packages = set(target_packages)
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                _cut_to_target_packages(graph, target_packages)
 
             # filter out stub packages and ignored packages
-            _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
+            _filter_stubby_and_ignored_nodes(graph, self.ignored_packages)
 
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -160,10 +167,8 @@ class ArchRebuild(GraphMigrator):
                 "piggy_back_migrations": piggy_back_migrations,
                 "target_packages": target_packages,
                 "effective_graph": effective_graph,
-                "total_graph": total_graph,
+                "_do_init": False,
             }
-
-        self.target_packages = target_packages
 
         super().__init__(
             graph=graph,
@@ -171,10 +176,29 @@ class ArchRebuild(GraphMigrator):
             check_solvable=False,
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
-            total_graph=total_graph,
-            name=name,
         )
+
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
+        self.target_packages = target_packages
+        self.name = name
+
+        if _do_init:
+            self._reset_effective_graph()
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
+        for arch in self.arches:
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            )
+            if configured_arch:
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
+        else:
+            return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -245,15 +269,15 @@ class OSXArm(GraphMigrator):
 
     def __init__(
         self,
-        graph: nx.DiGraph | None = None,
-        name: str = "arm osx addition",
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
-        effective_graph: nx.DiGraph | None = None,
-        total_graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph = None,
+        _do_init: bool = True,
     ):
-        if total_graph is not None:
+        if _do_init:
             if target_packages is None:
                 # We are constraining the scope of this migrator
                 with open(
@@ -267,11 +291,12 @@ class OSXArm(GraphMigrator):
                 ) as f:
                     target_packages = set(f.read().split())
 
-            outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
+            if "outputs_lut" not in graph.graph:
+                graph.graph["outputs_lut"] = make_outputs_lut_from_graph(graph)
 
             # rebuild the graph to only use edges from the arm osx requirements
-            graph2 = nx.create_empty_copy(total_graph)
-            for node, attrs in total_graph.nodes(data="payload"):
+            graph2 = nx.create_empty_copy(graph)
+            for node, attrs in graph.nodes(data="payload"):
                 for plat_arch in self.arches:
                     reqs = attrs.get(
                         f"{plat_arch}_requirements",
@@ -289,27 +314,26 @@ class OSXArm(GraphMigrator):
                         if build_dep.endswith("_stub"):
                             deps.add(build_dep)
                     for dep in get_deps_from_outputs_lut(
-                        deps,
-                        outputs_lut,
+                        deps, graph.graph["outputs_lut"]
                     ):
                         graph2.add_edge(dep, node)
 
-            total_graph = graph2
+            graph = graph2
 
             # Excluded dependencies need to be removed before non target_packages are
             # filtered out so that if a target_package is excluded, its dependencies
             # are not added to the graph
-            _filter_excluded_deps(total_graph, self.excluded_dependencies)
+            _filter_excluded_deps(graph, self.excluded_dependencies)
 
             target_packages = set(target_packages)
 
             # filter the graph down to the target packages
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                _cut_to_target_packages(graph, target_packages)
 
             # filter out stub packages and ignored packages
-            _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
+            _filter_stubby_and_ignored_nodes(graph, self.ignored_packages)
 
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -322,10 +346,8 @@ class OSXArm(GraphMigrator):
                 "piggy_back_migrations": piggy_back_migrations,
                 "target_packages": target_packages,
                 "effective_graph": effective_graph,
-                "total_graph": total_graph,
+                "_do_init": False,
             }
-
-        self.target_packages = target_packages
 
         super().__init__(
             graph=graph,
@@ -333,12 +355,31 @@ class OSXArm(GraphMigrator):
             check_solvable=False,
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
-            total_graph=total_graph,
-            name=name,
         )
+
         assert not self.check_solvable, (
             "We don't want to check solvability for arm osx!"
         )
+        self.target_packages = target_packages
+        self.name = name
+
+        if _do_init:
+            self._reset_effective_graph()
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
+        for arch in self.arches:
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            )
+            if configured_arch:
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
+        else:
+            return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

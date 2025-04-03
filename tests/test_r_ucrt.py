@@ -1,16 +1,12 @@
-import networkx as nx
 from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import RUCRTCleanup, Version
 
-TOTAL_GRAPH = nx.DiGraph()
-TOTAL_GRAPH.graph["outputs_lut"] = {}
 r_ucrt_migrator = RUCRTCleanup()
 version_migrator_rbase = Version(
     set(),
     piggy_back_migrations=[r_ucrt_migrator],
-    total_graph=TOTAL_GRAPH,
 )
 
 rbase_recipe = """\
