@@ -26,6 +26,7 @@ from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
     get_migrator_name,
+    get_recipe_schema_version,
 )
 
 if typing.TYPE_CHECKING:
@@ -532,12 +533,7 @@ class StaticLibMigrator(GraphMigrator):
                 with open("meta.yaml") as f:
                     raw_meta_yaml = f.read()
 
-        schema_version = get_keys_default(
-            attrs,
-            ["meta_yaml", "schema_version"],
-            {},
-            0,
-        )
+        schema_version = get_recipe_schema_version(attrs)
 
         needs_update, static_lib_replacements = any_static_libs_out_of_date(
             platform_arches=platform_arches,

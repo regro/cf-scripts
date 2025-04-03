@@ -17,6 +17,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
     get_keys_default,
+    get_recipe_schema_version,
     pluck,
 )
 
@@ -35,12 +36,7 @@ def skip_migrator_due_to_schema(
     attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
 ) -> bool:
     __name = attrs.get("name", "")
-    schema_version = get_keys_default(
-        attrs,
-        ["meta_yaml", "schema_version"],
-        {},
-        0,
-    )
+    schema_version = get_recipe_schema_version(attrs)
     if schema_version not in allowed_schema_versions:
         logger.debug(
             "%s: schema version not allowed - %r not in %r",
