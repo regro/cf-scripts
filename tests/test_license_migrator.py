@@ -1,11 +1,14 @@
+import networkx as nx
 from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import LicenseMigrator, Version
 from conda_forge_tick.migrators.license import _munge_licenses
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 LM = LicenseMigrator()
-VER_LM = Version(set(), piggy_back_migrations=[LM])
+VER_LM = Version(set(), piggy_back_migrations=[LM], total_graph=TOTAL_GRAPH)
 
 version_license = """\
 {% set version = "0.8" %}
