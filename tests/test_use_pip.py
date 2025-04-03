@@ -1,12 +1,15 @@
 import os
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import PipMigrator, Version
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 PC = PipMigrator()
-VERSION_PC = Version(set(), piggy_back_migrations=[PC])
+VERSION_PC = Version(set(), piggy_back_migrations=[PC], total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 

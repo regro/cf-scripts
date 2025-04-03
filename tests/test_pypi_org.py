@@ -1,5 +1,6 @@
 import os
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -7,11 +8,13 @@ from conda_forge_tick.migrators import PyPIOrgMigrator, Version
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
-
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 PYPI_ORG = PyPIOrgMigrator()
 VERSION_WITH_PYPI_ORG = Version(
     set(),
     piggy_back_migrations=[PYPI_ORG],
+    total_graph=TOTAL_GRAPH,
 )
 
 
