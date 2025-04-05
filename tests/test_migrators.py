@@ -5,6 +5,7 @@ import re
 import subprocess
 from pathlib import Path
 
+import networkx as nx
 import pytest
 import yaml
 
@@ -261,12 +262,15 @@ class _MigrationYaml(NoFilter, MigrationYaml):
     pass
 
 
-yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 yaml_rebuild_no_build_number = _MigrationYaml(
-    yaml_contents="hello world",
+    yaml_contents="{}",
     name="hi",
     bump_number=0,
+    total_graph=TOTAL_GRAPH,
 )
 yaml_rebuild_no_build_number.cycles = []
 
@@ -449,7 +453,7 @@ extra:
     - kthyng
 """
 
-version = Version(set())
+version = Version(set(), total_graph=TOTAL_GRAPH)
 
 matplotlib = Replacement(
     old_pkg="matplotlib",
@@ -458,6 +462,7 @@ matplotlib = Replacement(
         "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -545,6 +550,8 @@ def run_test_migration(
             name = parse_meta_yaml(inp, cbc_path=conda_build_config_file)["package"][
                 "name"
             ]
+            if name is None:
+                name = "blah"
         except Exception:
             name = "blah"
 
@@ -566,6 +573,8 @@ def run_test_migration(
             name = parse_recipe_yaml(inp, cbc_path=conda_build_config_file)["package"][
                 "name"
             ]
+            if name is None:
+                name = "blah"
         except Exception:
             name = "blah"
 
@@ -578,14 +587,14 @@ def run_test_migration(
         )
         pmy["version"] = pmy["meta_yaml"]["package"]["version"]
         pmy["raw_meta_yaml"] = inp
-        pmy.update(kwargs)
 
-    try:
-        if "new_version" in kwargs:
-            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
-        assert m.filter(pmy) == should_filter
-    finally:
-        pmy.pop("version_pr_info", None)
+    if "new_version" in kwargs:
+        pmy["version_pr_info"] = {"new_version": kwargs.pop("new_version")}
+
+    pmy.update(kwargs)
+
+    assert m.filter(pmy) == should_filter
+
     if should_filter:
         return pmy
 
@@ -602,7 +611,7 @@ def run_test_migration(
         hash_type=pmy.get("hash_type", "sha256"),
     )
 
-    if make_body:
+    if make_body or prb:
         fctx = ClonedFeedstockContext(
             feedstock_name=name,
             attrs=pmy,
@@ -610,7 +619,9 @@ def run_test_migration(
         )
         m.effective_graph.add_node(name)
         m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
-        m.pr_body(fctx)
+        prb_from_m = m.pr_body(fctx)
+    else:
+        prb_from_m = None
 
     assert mr_out == mr
     if not mr:
@@ -628,17 +639,11 @@ def run_test_migration(
     output = pat.sub("", output)
 
     assert actual_output == output
-    # TODO: fix subgraph here (need this to be xsh file)
-    if isinstance(m, Version):
-        pass
-    else:
-        assert prb in m.pr_body(None)
-    try:
-        if "new_version" in kwargs:
-            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
-        assert m.filter(pmy) is True
-    finally:
-        pmy.pop("version_pr_info", None)
+
+    if prb_from_m and prb:
+        assert prb in prb_from_m
+
+    assert m.filter(pmy) is True
 
     return pmy
 

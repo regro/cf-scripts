@@ -1,5 +1,6 @@
 import os
 
+import networkx as nx
 import pytest
 import requests
 from flaky import flaky
@@ -7,11 +8,15 @@ from test_migrators import run_minimigrator, run_test_migration
 
 from conda_forge_tick.migrators import PipWheelMigrator, Version
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+
 wheel_mig = PipWheelMigrator()
 
 version_migrator_whl = Version(
     set(),
     piggy_back_migrations=[wheel_mig],
+    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")

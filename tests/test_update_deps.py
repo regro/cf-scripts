@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -20,9 +21,12 @@ from conda_forge_tick.update_deps import (
     make_grayskull_recipe,
 )
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 VERSION = Version(
     set(),
     piggy_back_migrations=[DependencyUpdateMigrator(set())],
+    total_graph=TOTAL_GRAPH,
 )
 
 
