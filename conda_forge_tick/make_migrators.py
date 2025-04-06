@@ -716,7 +716,6 @@ def create_migration_yaml_creator(
                             feedstock_name=feedstock_name,
                             total_graph=cfp_gx,
                             pinnings=pinnings_together,
-                            full_graph=gx,
                             pr_limit=1,
                         ),
                     )

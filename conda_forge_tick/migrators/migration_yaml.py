@@ -270,12 +270,14 @@ class MigrationYaml(GraphMigrator):
         if total_graph is not None:
             # needed so that we can filter nodes not in migration
             self.graph = None
-            self.total_graph = total_graph
             total_graph = copy.deepcopy(total_graph)
+            self.total_graph = total_graph
             _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
             total_graph.add_edges_from(
                 [(n, "conda-forge-pinning") for n in total_graph.nodes]
             )
+            delattr(self, "total_graph")
+            delattr(self, "graph")
 
         super().__init__(
             graph=graph,

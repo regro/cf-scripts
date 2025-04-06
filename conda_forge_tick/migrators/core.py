@@ -1,5 +1,6 @@
 """Base classes for migrating repos"""
 
+import contextlib
 import copy
 import logging
 import re
@@ -66,34 +67,50 @@ def get_outputs_lut(
         )
 
 
+@contextlib.contextmanager
+def _lazy_json_or_dict(data):
+    if isinstance(data, LazyJson):
+        with data as _data:
+            yield _data
+    else:
+        yield data
+
+
 def _make_migrator_graph(graph, migrator, effective=False):
     """Prune graph only to nodes that need rebuilds."""
     gx2 = copy.deepcopy(graph)
 
     # Prune graph to only things that need builds right now
+    nodes_to_pluck = set()
     for node in list(gx2.nodes):
         if "payload" not in gx2.nodes[node]:
             logger.critical("node %s: no payload, removing", node)
-            pluck(gx2, node)
+            nodes_to_pluck.add(node)
             continue
 
-        if isinstance(graph.nodes[node]["payload"], LazyJson):
-            with graph.nodes[node]["payload"] as _attrs:
-                attrs = copy.deepcopy(_attrs.data)
-        else:
-            attrs = copy.deepcopy(graph.nodes[node]["payload"])
-        base_branches = migrator.get_possible_feedstock_branches(attrs)
-        filters = []
-        for base_branch in base_branches:
-            attrs["branch"] = base_branch
-            if effective:
-                filters.append(migrator.filter(attrs))
+        with _lazy_json_or_dict(graph.nodes[node]["payload"]) as attrs:
+            had_orig_branch = "branch" in attrs
+            orig_branch = attrs.get("branch")
+            # try:
+            base_branches = migrator.get_possible_feedstock_branches(attrs)
+            filters = []
+            for base_branch in base_branches:
+                attrs["branch"] = base_branch
+                if effective:
+                    filters.append(migrator.filter_node_migrated(attrs))
+                else:
+                    filters.append(migrator.filter_not_in_migration(attrs))
+            if filters and all(filters):
+                nodes_to_pluck.add(node)
+            # finally:
+            if had_orig_branch:
+                attrs["branch"] = orig_branch
             else:
-                filters.append(migrator.filter_not_in_migration(attrs))
-        if filters and all(filters):
-            pluck(gx2, node)
+                del attrs["branch"]
 
-    # post plucking cleanup
+    # the plucking
+    for node in nodes_to_pluck:
+        pluck(gx2, node)
     gx2.remove_edges_from(nx.selfloop_edges(gx2))
     return gx2
 
