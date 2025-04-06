@@ -91,22 +91,22 @@ def _make_migrator_graph(graph, migrator, effective=False):
         with _lazy_json_or_dict(graph.nodes[node]["payload"]) as attrs:
             had_orig_branch = "branch" in attrs
             orig_branch = attrs.get("branch")
-            # try:
-            base_branches = migrator.get_possible_feedstock_branches(attrs)
-            filters = []
-            for base_branch in base_branches:
-                attrs["branch"] = base_branch
-                if effective:
-                    filters.append(migrator.filter_node_migrated(attrs))
+            try:
+                base_branches = migrator.get_possible_feedstock_branches(attrs)
+                filters = []
+                for base_branch in base_branches:
+                    attrs["branch"] = base_branch
+                    if effective:
+                        filters.append(migrator.filter_node_migrated(attrs))
+                    else:
+                        filters.append(migrator.filter_not_in_migration(attrs))
+                if filters and all(filters):
+                    nodes_to_pluck.add(node)
+            finally:
+                if had_orig_branch:
+                    attrs["branch"] = orig_branch
                 else:
-                    filters.append(migrator.filter_not_in_migration(attrs))
-            if filters and all(filters):
-                nodes_to_pluck.add(node)
-            # finally:
-            if had_orig_branch:
-                attrs["branch"] = orig_branch
-            else:
-                del attrs["branch"]
+                    del attrs["branch"]
 
     # the plucking
     for node in nodes_to_pluck:
