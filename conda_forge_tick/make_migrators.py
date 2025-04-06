@@ -1,10 +1,12 @@
 import contextlib
+import copy
 import glob
 import logging
 import os
 import pprint
 import re
 import secrets
+import sys
 import time
 import typing
 from concurrent.futures import as_completed
@@ -83,6 +85,7 @@ from conda_forge_tick.utils import (
     parse_meta_yaml,
     parse_munged_run_export,
     parse_recipe_yaml,
+    pluck,
     yaml_safe_load,
 )
 
@@ -345,7 +348,7 @@ def add_rebuild_migration_yaml(
     )
     migrator.pr_limit = pr_limit
 
-    print(f"migration yaml:\n{migration_yaml}", flush=True)
+    print(f"migration yaml:\n{migration_yaml.rstrip()}", flush=True)
     print(f"bump number: {migrator.bump_number}", flush=True)
     print(
         f"# of PRs made so far: {number_pred} ({frac_pred * 100:0.2f} percent)",
@@ -355,7 +358,7 @@ def add_rebuild_migration_yaml(
     final_config.update(config)
     final_config["pr_limit"] = migrator.pr_limit
     final_config["max_solver_attempts"] = max_solver_attempts
-    print("final config:\n", pprint.pformat(final_config) + "\n\n", flush=True)
+    print("final config:\n", pprint.pformat(final_config), flush=True)
     migrators.append(migrator)
 
 
@@ -449,6 +452,10 @@ def migration_factory(
 
             if paused:
                 print(f"skipping migration {__mname} because it is paused", flush=True)
+
+            print("\n", flush=True)
+            sys.stdout.flush()
+            sys.stderr.flush()
 
 
 def _get_max_pin_from_pinning_dict(
@@ -571,9 +578,48 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
     return False
 
 
+def _compute_approximate_pinning_migration_sizes(
+    gx,
+    pinning_names,
+    packages_to_migrate_together_mapping,
+    packages_to_migrate_together,
+    pinnings,
+):
+    pinning_migration_sizes = {pinning_name: 0 for pinning_name in pinning_names}
+    for node in list(gx.nodes):
+        with gx.nodes[node]["payload"] as attrs:
+            for pinning_name in pinning_names:
+                if (
+                    pinning_name in packages_to_migrate_together_mapping
+                    and pinning_name not in packages_to_migrate_together
+                ):
+                    continue
+
+                if pinning_name not in gx.graph["outputs_lut"]:
+                    # conda_build_config.yaml can't have `-` unlike our package names
+                    package_name = pinning_name.replace("_", "-")
+                else:
+                    package_name = pinning_name
+
+                requirements = attrs.get("requirements", {})
+                host = requirements.get("host", set())
+                build = requirements.get("build", set())
+                bh = host or build
+                if package_name in bh:
+                    pinning_migration_sizes[pinning_name] += 1
+
+    return pinning_migration_sizes
+
+
 def create_migration_yaml_creator(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph, pin_to_debug=None
 ):
+    cfp_gx = copy.deepcopy(gx)
+    for node in list(cfp_gx.nodes):
+        if node != "conda-forge-pinning":
+            pluck(cfp_gx, node)
+    cfp_gx.remove_edges_from(nx.selfloop_edges(cfp_gx))
+
     with pushd(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
@@ -594,6 +640,14 @@ def create_migration_yaml_creator(
             packages_to_migrate_together_mapping[pkg] = top
 
     pinning_names = sorted(list(pinnings.keys()))
+
+    pinning_migration_sizes = _compute_approximate_pinning_migration_sizes(
+        gx,
+        pinning_names,
+        packages_to_migrate_together_mapping,
+        packages_to_migrate_together,
+        pinnings,
+    )
 
     feedstocks_to_be_repinned = []
     for pinning_name in pinning_names:
@@ -706,9 +760,10 @@ def create_migration_yaml_creator(
                             current_pin=current_pin,
                             pin_spec=pin_spec,
                             feedstock_name=feedstock_name,
-                            total_graph=gx,
+                            total_graph=cfp_gx,
                             pinnings=pinnings_together,
                             pr_limit=1,
+                            pin_impact=pinning_migration_sizes[pinning_name],
                         ),
                     )
         except Exception as e:
