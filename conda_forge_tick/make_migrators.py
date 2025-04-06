@@ -1,5 +1,4 @@
 import contextlib
-import copy
 import glob
 import logging
 import os
@@ -85,7 +84,6 @@ from conda_forge_tick.utils import (
     parse_meta_yaml,
     parse_munged_run_export,
     parse_recipe_yaml,
-    pluck,
     yaml_safe_load,
 )
 
@@ -577,11 +575,6 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 def create_migration_yaml_creator(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph, pin_to_debug=None
 ):
-    cfp_gx = copy.deepcopy(gx)
-    for node in list(cfp_gx.nodes):
-        if node != "conda-forge-pinning":
-            pluck(cfp_gx, node)
-
     with pushd(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
@@ -714,7 +707,7 @@ def create_migration_yaml_creator(
                             current_pin=current_pin,
                             pin_spec=pin_spec,
                             feedstock_name=feedstock_name,
-                            total_graph=cfp_gx,
+                            total_graph=gx,
                             pinnings=pinnings_together,
                             pr_limit=1,
                         ),

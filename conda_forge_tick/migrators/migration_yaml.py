@@ -675,11 +675,13 @@ class MigrationYamlCreator(Migrator):
         )
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
-        if super().filter_not_in_migration(attrs, not_bad_str_start):
+        if (
+            attrs.get("name", "") == "conda-forge-pinning"
+            or attrs.get("feedstock_name", "") == "conda-forge-pinning"
+        ):
+            return super().filter_not_in_migration(attrs, not_bad_str_start)
+        else:
             return True
-
-        is_pinning = attrs.get("name", "") == "conda-forge-pinning"
-        return not is_pinning
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
