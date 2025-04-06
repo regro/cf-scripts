@@ -47,7 +47,6 @@ from conda_forge_tick.migrators import (
     DuplicateLinesCleanup,
     ExtraJinja2KeysCleanup,
     FlangMigrator,
-    GraphMigrator,
     GuardTestingMigrator,
     Jinja2VarsCleanup,
     LibboostMigrator,
@@ -824,16 +823,6 @@ def initialize_migrators(
     migration_factory(pinning_migrators, gx)
     create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
 
-    with fold_log_lines("migration graph sizes"):
-        print("rebuild migration graph sizes:", flush=True)
-        for m in migrators + pinning_migrators:
-            if isinstance(m, GraphMigrator):
-                print(
-                    f"    {getattr(m, 'name', m)} graph size: "
-                    f"{len(getattr(m, 'graph', []))}",
-                    flush=True,
-                )
-
     with fold_log_lines("making version migrator"):
         print("building package import maps and version migrator", flush=True)
         python_nodes = {
@@ -862,6 +851,15 @@ def initialize_migrators(
 
         RNG.shuffle(pinning_migrators)
         migrators = [version_migrator] + migrators + pinning_migrators
+
+    with fold_log_lines("migration graph sizes"):
+        print("rebuild migration graph sizes:", flush=True)
+        for m in migrators:
+            print(
+                f"    {getattr(m, 'name', m)} graph size: "
+                f"{len(getattr(m, 'graph', []))}",
+                flush=True,
+            )
 
     return migrators
 
