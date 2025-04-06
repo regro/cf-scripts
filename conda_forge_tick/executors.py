@@ -2,7 +2,8 @@ import contextlib
 import logging
 import multiprocessing
 import typing
-from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import Executor, Future, ProcessPoolExecutor, ThreadPoolExecutor
+from threading import Lock
 from threading import RLock as TRLock
 
 from distributed import Lock as DaskLock
@@ -78,6 +79,43 @@ def _init_dask(lock):
     GIT_LOCK_DASK = DaskRLock(name=lock)
 
 
+class SerialExecutor(Executor):
+    """A serial executor that does not use threads or processes.
+
+    See https://stackoverflow.com/a/10436851/1745538.
+    """
+
+    def __init__(self):
+        self._shutdown = False
+        self._shutdownLock = Lock()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.shutdown()
+        pass
+
+    def submit(self, fn, *args, **kwargs):
+        with self._shutdownLock:
+            if self._shutdown:
+                raise RuntimeError("cannot schedule new futures after shutdown")
+
+            f = Future()
+            try:
+                result = fn(*args, **kwargs)
+            except BaseException as e:
+                f.set_exception(e)
+            else:
+                f.set_result(result)
+
+            return f
+
+    def shutdown(self, wait=True):
+        with self._shutdownLock:
+            self._shutdown = True
+
+
 @contextlib.contextmanager
 def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
     """General purpose utility to get an executor with its as_completed handler
@@ -87,7 +125,10 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
     global GIT_LOCK_DASK
     global GIT_LOCK_PROCESS
 
-    if kind == "thread":
+    if kind == "serial":
+        with SerialExecutor() as pool_s:
+            yield pool_s
+    elif kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
             yield pool_t
     elif kind == "process":

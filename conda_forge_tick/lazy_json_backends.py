@@ -965,6 +965,12 @@ class LazyJson(MutableMapping):
                 dumps({}),
             )
 
+    def __copy__(self):
+        return LazyJson(self.file_name)
+
+    def __deepcopy__(self, memo):
+        return LazyJson(self.file_name)
+
     @property
     def data(self):
         self._load()
