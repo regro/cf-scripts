@@ -2,6 +2,7 @@ import os
 import tempfile
 import textwrap
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -20,6 +21,9 @@ NEXT_GLOBAL_PYTHON_MIN = (
     + "."
     + str(int(GLOBAL_PYTHON_MIN.split(".")[1]) + 1)
 )
+
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 
 
 @pytest.mark.parametrize("replace_host_with_build", [True, False])
@@ -561,7 +565,7 @@ def test_noarch_python_min_migrator(tmp_path, name):
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_after_meta.yaml")
     ) as f:
         recipe_after = f.read()
-    m = NoarchPythonMinMigrator()
+    m = NoarchPythonMinMigrator(total_graph=TOTAL_GRAPH)
     run_test_migration(
         m=m,
         inp=recipe_before,
