@@ -516,6 +516,18 @@ def _remove_bad_jinja2_set_statements(lines):
     return new_lines
 
 
+def _munge_jinj2_comments(lines):
+    """Turn any jinja2 comments: `{# #}` into yaml comments."""
+
+    new_lines = []
+    for line in lines:
+        if line.lstrip().startswith("{#") and line.rstrip().endswith("#}"):
+            line = line.replace("{#", "#").replace("#}", "")
+            line = line.rstrip() + "\n"
+        new_lines.append(line)
+    return new_lines
+
+
 class CondaMetaYAML:
     """Crude parsing of conda recipes.
 
@@ -569,6 +581,9 @@ class CondaMetaYAML:
 
         # pre-munge odd syntax that we do not want
         lines = list(io.StringIO(meta_yaml).readlines())
+
+        # turn jinja2 comments in yaml ones
+        lines = _munge_jinj2_comments(lines)
 
         # remove bad jinja2 set statements
         lines = _remove_bad_jinja2_set_statements(lines)
