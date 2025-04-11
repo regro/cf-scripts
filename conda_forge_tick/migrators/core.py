@@ -76,7 +76,7 @@ def _lazy_json_or_dict(data):
         yield data
 
 
-def _make_migrator_graph(graph, migrator, effective=False):
+def _make_migrator_graph(graph, migrator, effective=False, pluck_nodes=True):
     """Prune graph only to nodes that need rebuilds."""
     gx2 = copy.deepcopy(graph)
 
@@ -110,7 +110,10 @@ def _make_migrator_graph(graph, migrator, effective=False):
 
     # the plucking
     for node in nodes_to_pluck:
-        pluck(gx2, node)
+        if pluck_nodes:
+            pluck(gx2, node)
+        else:
+            gx2.remove_node(node)
     gx2.remove_edges_from(nx.selfloop_edges(gx2))
     return gx2
 
@@ -281,6 +284,8 @@ class Migrator:
 
     allowed_schema_versions = [0]
 
+    pluck_nodes = True
+
     build_patterns = (
         (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
         (
@@ -331,11 +336,15 @@ class Migrator:
                     "`effective_graph` to the Migrator."
                 )
 
-            graph = _make_migrator_graph(total_graph, self, effective=False)
+            graph = _make_migrator_graph(
+                total_graph, self, effective=False, pluck_nodes=self.pluck_nodes
+            )
             self.graph = graph
             self._init_kwargs["graph"] = graph
 
-            effective_graph = _make_migrator_graph(self.graph, self, effective=True)
+            effective_graph = _make_migrator_graph(
+                self.graph, self, effective=True, pluck_nodes=self.pluck_nodes
+            )
             self.effective_graph = effective_graph
             self._init_kwargs["effective_graph"] = effective_graph
 

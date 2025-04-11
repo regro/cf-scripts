@@ -67,6 +67,7 @@ class Version(Migrator):
     rerender = True
     name = str(MigratorName.VERSION)
     allowed_schema_versions = {0, 1}
+    pluck_nodes = False
 
     def __init__(
         self,
