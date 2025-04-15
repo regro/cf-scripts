@@ -273,9 +273,18 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
     with fold_log_lines("making win-arm64 migrator"):
         migrators.append(
             WinArm64(
-                graph=total_graph,
+                total_graph=gx,
                 pr_limit=PR_LIMIT,
-                name="arm64 win addition",
+                piggy_back_migrations=[
+                    CondaForgeYAMLCleanup(),
+                    UpdateCMakeArgsWinMigrator(),
+                    GuardTestingWinMigrator(),
+                    # CrossRBaseMigrator(),
+                    CrossPythonMigrator(),
+                    NoCondaInspectMigrator(),
+                    MPIPinRunAsBuildCleanup(),
+                    CombineV1ConditionsMigrator(),
+                ],
             ),
         )
 
