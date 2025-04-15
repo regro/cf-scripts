@@ -164,10 +164,7 @@ class GuardTestingWinMigrator(CrossCompilationMigratorBase):
                     or line.strip().startswith("ctest")
                     or line.strip().startswith("make test")
                 ):
-                    lines.insert(
-                        i,
-                        'if not %CONDA_BUILD_SKIP_TESTS%==1 (\n'
-                    )
+                    lines.insert(i, "if not %CONDA_BUILD_SKIP_TESTS%==1 (\n")
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
                         "\\\n",

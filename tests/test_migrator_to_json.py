@@ -298,6 +298,7 @@ def test_migrator_to_json_win_arm64():
     assert isinstance(migrator2, conda_forge_tick.migrators.WinArm64)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
+
 @pytest.mark.parametrize(
     "klass",
     [
