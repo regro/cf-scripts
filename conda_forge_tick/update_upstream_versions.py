@@ -2,7 +2,7 @@ import functools
 import hashlib
 import logging
 import os
-import random
+import secrets
 import time
 from concurrent.futures import as_completed
 from typing import (
@@ -30,6 +30,9 @@ from conda_forge_feedstock_ops.container_utils import (
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.settings import (
+    settings,
+)
 from conda_forge_tick.update_sources import (
     CRAN,
     NPM,
@@ -49,6 +52,8 @@ T = TypeVar("T")
 
 # conda_forge_tick :: cft
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
 
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
@@ -361,6 +366,9 @@ def _update_upstream_versions_process_pool(
             ncols=80,
             desc="submitting version update jobs",
         ):
+            if RNG.random() >= settings().frac_update_upstream_versions:
+                continue
+
             futures.update(
                 {
                     pool.submit(get_latest_version, node, attrs, sources): (
@@ -475,7 +483,7 @@ def update_upstream_versions(
         ),
     )
 
-    random.shuffle(to_update)
+    RNG.shuffle(to_update)
 
     sources = all_version_sources() if sources is None else sources
 

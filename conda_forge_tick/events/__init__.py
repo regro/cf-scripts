@@ -1,6 +1,4 @@
 from ..cli import CliContext
-from .pr_events import react_to_pr
-from .push_events import react_to_push
 
 
 def react_to_event(ctx: CliContext, event: str, uid: str) -> None:
@@ -17,8 +15,12 @@ def react_to_event(ctx: CliContext, event: str, uid: str) -> None:
         the feedstock name for push events.
     """
     if event == "pr":
+        from .pr_events import react_to_pr
+
         react_to_pr(uid, dry_run=ctx.dry_run)
     elif event == "push":
+        from .push_events import react_to_push
+
         react_to_push(uid, dry_run=ctx.dry_run)
     else:
         raise RuntimeError(f"Event `{event}` w/ uid `{uid}` not recognized!")

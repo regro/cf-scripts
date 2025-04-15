@@ -10,7 +10,7 @@ from typing import Any, Dict, Set, Tuple, cast
 
 import dateutil.parser
 import networkx as nx
-import rapidjson as json
+import orjson
 import requests
 import tqdm
 import yaml
@@ -25,6 +25,7 @@ from conda_forge_tick.migrators import (
     ArchRebuild,
     GraphMigrator,
     MatplotlibBase,
+    MigrationYamlCreator,
     Migrator,
     OSXArm,
     Replacement,
@@ -100,11 +101,26 @@ def write_version_migrator_status(migrator, mctx):
                 else:
                     new_version = vpri.get("new_version", False)
 
+                try:
+                    if "new_version" in vpri:
+                        old_vpri_version = vpri["new_version"]
+                        had_vpri_version = True
+                    else:
+                        had_vpri_version = False
+
+                    vpri["new_version"] = new_version
+
+                    new_version_is_ok = _ok_version(
+                        new_version
+                    ) and not migrator.filter(attrs)
+                finally:
+                    if had_vpri_version:
+                        vpri["new_version"] = old_vpri_version
+                    else:
+                        del vpri["new_version"]
+
                 # run filter with new_version
-                if _ok_version(new_version) and not migrator.filter(
-                    attrs,
-                    new_version=new_version,
-                ):
+                if new_version_is_ok:
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
                         out["queued"][node] = new_version
@@ -118,14 +134,26 @@ def write_version_migrator_status(migrator, mctx):
                             % new_version,
                         )
 
-    with open("./status/version_status.json", "w") as f:
+    with open("./status/version_status.json", "wb") as f:
         old_out = out.copy()
         old_out["queued"] = set(out["queued"].keys())
         old_out["errored"] = set(out["errors"].keys())
-        json.dump(old_out, f, sort_keys=True, indent=2, default=_sorted_set_json)
+        f.write(
+            orjson.dumps(
+                old_out,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
-    with open("./status/version_status.v2.json", "w") as f:
-        json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
+    with open("./status/version_status.v2.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                out,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
 
 def graph_migrator_status(
@@ -380,20 +408,20 @@ def main() -> None:
 
         # cache these for later
         if os.path.exists("status/closed_status.json"):
-            with open("status/closed_status.json") as fp:
-                old_closed_status = json.load(fp)
+            with open("status/closed_status.json", "rb") as fp:
+                old_closed_status = orjson.loads(fp.read())
         else:
             old_closed_status = {}
 
-        with open("status/total_status.json") as fp:
-            old_total_status = json.load(fp)
+        with open("status/total_status.json", "rb") as fp:
+            old_total_status = orjson.loads(fp.read())
 
         smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
         pinning_version: str = cast(
             str,
-            json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
-                "version"
-            ],
+            orjson.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[
+                0
+            ]["version"],
         )
         gx = load_existing_graph()
         mctx = MigratorSessionContext(
@@ -410,6 +438,11 @@ def main() -> None:
     paused_status = {}
 
     for migrator in migrators:
+        # we do not show these on the status page since they are used to
+        # open and close migrations
+        if isinstance(migrator, MigrationYamlCreator):
+            continue
+
         if hasattr(migrator, "name"):
             assert isinstance(migrator.name, str)
             migrator_name = migrator.name.lower().replace(" ", "")
@@ -450,14 +483,14 @@ def main() -> None:
             num_viz = status.pop("_num_viz", 0)
             with open(
                 os.path.join(f"./status/migration_json/{migrator_name}.json"),
-                "w",
+                "wb",
             ) as fp:
-                json.dump(
-                    status,
-                    fp,
-                    indent=2,
-                    default=_sorted_set_json,
-                    sort_keys=True,
+                fp.write(
+                    orjson.dumps(
+                        status,
+                        option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                        default=_sorted_set_json,
+                    )
                 )
 
             if num_viz <= 500:
@@ -488,29 +521,59 @@ def main() -> None:
         print(" ", flush=True)
 
     print("writing data", flush=True)
-    with open("./status/regular_status.json", "w") as f:
-        json.dump(regular_status, f, sort_keys=True, indent=2)
+    with open("./status/regular_status.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                regular_status,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
-    with open("./status/longterm_status.json", "w") as f:
-        json.dump(longterm_status, f, sort_keys=True, indent=2)
+    with open("./status/longterm_status.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                longterm_status,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
-    with open("./status/paused_status.json", "w") as f:
-        json.dump(paused_status, f, sort_keys=True, indent=2)
+    with open("./status/paused_status.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                paused_status,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
     total_status = {}
     total_status.update(regular_status)
     total_status.update(longterm_status)
     total_status.update(paused_status)
-    with open("./status/total_status.json", "w") as f:
-        json.dump(total_status, f, sort_keys=True, indent=2)
+    with open("./status/total_status.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                total_status,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
     closed_status = _compute_recently_closed(
         total_status,
         old_closed_status,
         old_total_status,
     )
-    with open("./status/closed_status.json", "w") as f:
-        json.dump(closed_status, f, sort_keys=True, indent=2)
+    with open("./status/closed_status.json", "wb") as f:
+        f.write(
+            orjson.dumps(
+                closed_status,
+                option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
+                default=_sorted_set_json,
+            )
+        )
 
     # remove old status files
     old_files = glob.glob("./status/migration_*/*.*")

@@ -148,8 +148,14 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 f.write("".join(lines))
 
 
-class CrossPythonMigrator(CrossCompilationMigratorBase):
+class CrossPythonMigrator(MiniMigrator):
+    allowed_schema_versions = {0, 1}
+    post_migration = True
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, not_bad_str_start):
+            return True
+
         host_reqs = attrs.get("requirements", {}).get("host", set())
         build_reqs = attrs.get("requirements", {}).get("build", set())
         return (
@@ -161,7 +167,8 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         host_reqs = attrs.get("requirements", {}).get("host", set())
         with pushd(recipe_dir):
-            with open("meta.yaml") as f:
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            with open(recipe_file) as f:
                 lines = f.readlines()
             in_reqs = False
             for i, line in enumerate(lines):
@@ -189,7 +196,11 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     for pkg in reversed(
                         [
                             "python",
-                            "cross-python_{{ target_platform }}",
+                            (
+                                "cross-python_${{ host_platform }}"
+                                if recipe_file == "recipe.yaml"
+                                else "cross-python_{{ target_platform }}"
+                            ),
                             "cython",
                             "numpy",
                             "cffi",
@@ -197,16 +208,25 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                         ],
                     ):
                         if pkg in host_reqs or pkg.startswith("cross-python"):
-                            new_line = (
-                                " " * spaces
-                                + "- "
-                                + pkg.ljust(37)
-                                + "  # [build_platform != target_platform]\n"
-                            )
-                            lines.insert(i + 1, new_line)
+                            if recipe_file == "recipe.yaml":
+                                new_line = (
+                                    " " * spaces
+                                    + "- if: build_platform != host_platform\n"
+                                )
+                                lines.insert(i + 1, new_line)
+                                new_line = " " * spaces + f"  then: {pkg}\n"
+                                lines.insert(i + 2, new_line)
+                            else:
+                                new_line = (
+                                    " " * spaces
+                                    + "- "
+                                    + pkg.ljust(37)
+                                    + "  # [build_platform != target_platform]\n"
+                                )
+                                lines.insert(i + 1, new_line)
                     break
 
-            with open("meta.yaml", "w") as f:
+            with open(recipe_file, "w") as f:
                 f.write("".join(lines))
 
 
@@ -240,13 +260,16 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
 
 class Build2HostMigrator(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     post_migration = False
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, not_bad_str_start):
+            return True
+
         build_reqs = attrs.get("requirements", {}).get("build", set())
         host_reqs = attrs.get("requirements", {}).get("host", set())
         run_reqs = attrs.get("requirements", {}).get("run", set())
-        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         if (
             len(attrs.get("outputs_names", [])) <= 1
             and "python" in build_reqs
@@ -261,7 +284,6 @@ class Build2HostMigrator(MiniMigrator):
                     "cxx_compiler_stub",
                 ]
             )
-            and not skip_schema
         ):
             return False
         else:
@@ -269,7 +291,8 @@ class Build2HostMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            with open("meta.yaml") as fp:
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            with open(recipe_file) as fp:
                 meta_yaml = fp.readlines()
 
             new_lines = []
@@ -283,7 +306,7 @@ class Build2HostMigrator(MiniMigrator):
                     in_req = False
                 new_lines.append(line)
 
-            with open("meta.yaml", "w") as f:
+            with open(recipe_file, "w") as f:
                 f.write("".join(new_lines))
 
 
@@ -322,20 +345,24 @@ ${R} CMD INSTALL --build . ${R_ARGS}
 """
 
 
-class CrossRBaseMigrator(CrossCompilationMigratorBase):
+class CrossRBaseMigrator(MiniMigrator):
+    allowed_schema_versions = {0, 1}
+    post_migration = True
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, not_bad_str_start):
+            return True
+
         host_reqs = attrs.get("requirements", {}).get("host", set())
-        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
-        if (
-            "r-base" in host_reqs or attrs.get("name", "").startswith("r-")
-        ) and not skip_schema:
+        if "r-base" in host_reqs or attrs.get("name", "").startswith("r-"):
             return False
         else:
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            with open("meta.yaml") as fp:
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            with open(recipe_file) as fp:
                 meta_yaml = fp.readlines()
 
             new_lines = []
@@ -344,10 +371,20 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
             for line in meta_yaml:
                 if previous_was_build:
                     nspaces = len(line) - len(line.lstrip())
-                    new_lines.append(
-                        " " * nspaces
-                        + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]\n",
-                    )
+                    if recipe_file == "recipe.yaml":
+                        new_lines.extend(
+                            [
+                                " " * nspaces
+                                + "- if: build_platform != host_platform\n",
+                                " " * nspaces + "  then:\n",
+                                " " * nspaces + "    - cross-r-base ${{ r_base }}\n",
+                            ]
+                        )
+                    else:
+                        new_lines.append(
+                            " " * nspaces
+                            + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]\n",
+                        )
                     # Add host R requirements to build
                     host_reqs = attrs.get("requirements", {}).get("host", set())
                     r_host_reqs = [
@@ -356,15 +393,18 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
                         if req.startswith("r-") and req != "r-base"
                     ]
                     for r_req in r_host_reqs:
-                        # Ensure nice formatting
-                        post_nspaces = max(0, 25 - len(r_req))
-                        new_lines.append(
-                            " " * nspaces
-                            + "- "
-                            + r_req
-                            + " " * post_nspaces
-                            + "  # [build_platform != target_platform]\n",
-                        )
+                        if recipe_file == "recipe.yaml":
+                            new_lines.append(" " * nspaces + f"    - {r_req}\n")
+                        else:
+                            # Ensure nice formatting
+                            post_nspaces = max(0, 25 - len(r_req))
+                            new_lines.append(
+                                " " * nspaces
+                                + "- "
+                                + r_req
+                                + " " * post_nspaces
+                                + "  # [build_platform != target_platform]\n",
+                            )
                     in_req = False
                     previous_was_build = False
                 if "requirements:" in line:
@@ -373,7 +413,7 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
                     previous_was_build = True
                 new_lines.append(line)
 
-            with open("meta.yaml", "w") as f:
+            with open(recipe_file, "w") as f:
                 f.write("".join(new_lines))
 
             if os.path.exists("build.sh"):
@@ -382,10 +422,11 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
 
 
 class CrossCompilationForARMAndPower(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
+        return super().filter(attrs, not_bad_str_start)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):

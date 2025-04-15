@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -20,9 +21,12 @@ from conda_forge_tick.update_deps import (
     make_grayskull_recipe,
 )
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 VERSION = Version(
     set(),
     piggy_back_migrations=[DependencyUpdateMigrator(set())],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -426,7 +430,7 @@ extra:
         ),
     ],
 )
-def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
+def test_update_deps_version(caplog, tmp_path, update_kind, out_yml):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -447,10 +451,6 @@ def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
         "conda-forge.yml": {"bot": {"inspection": update_kind}},
     }
 
-    os.makedirs(os.path.join(tmpdir, "recipe"))
-    with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as fp:
-        fp.write(in_yaml)
-
     run_test_migration(
         m=VERSION,
         inp=in_yaml,
@@ -462,7 +462,7 @@ def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmp_path=tmp_path,
         make_body=True,
     )
 
@@ -601,7 +601,7 @@ extra:
         ("update-grayskull", out_yml_pyquil),
     ],
 )
-def test_update_deps_version_pyquil(caplog, tmpdir, update_kind, out_yml):
+def test_update_deps_version_pyquil(caplog, tmp_path, update_kind, out_yml):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -614,10 +614,6 @@ def test_update_deps_version_pyquil(caplog, tmpdir, update_kind, out_yml):
         "conda-forge.yml": {"bot": {"inspection": update_kind}},
     }
 
-    os.makedirs(os.path.join(tmpdir, "recipe"))
-    with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as fp:
-        fp.write(in_yml_pyquil)
-
     run_test_migration(
         m=VERSION,
         inp=in_yml_pyquil,
@@ -629,6 +625,6 @@ def test_update_deps_version_pyquil(caplog, tmpdir, update_kind, out_yml):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=os.path.join(tmpdir, "recipe"),
+        tmp_path=tmp_path,
         make_body=True,
     )

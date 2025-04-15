@@ -2,6 +2,7 @@ import os
 import tempfile
 import textwrap
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -20,6 +21,9 @@ NEXT_GLOBAL_PYTHON_MIN = (
     + "."
     + str(int(GLOBAL_PYTHON_MIN.split(".")[1]) + 1)
 )
+
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 
 
 @pytest.mark.parametrize("replace_host_with_build", [True, False])
@@ -552,7 +556,7 @@ def test_apply_noarch_python_min(
 
 
 @pytest.mark.parametrize("name", ["seaborn", "extra_new_line", "zospy"])
-def test_noarch_python_min_migrator(tmpdir, name):
+def test_noarch_python_min_migrator(tmp_path, name):
     with open(
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
     ) as f:
@@ -561,7 +565,7 @@ def test_noarch_python_min_migrator(tmpdir, name):
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_after_meta.yaml")
     ) as f:
         recipe_after = f.read()
-    m = NoarchPythonMinMigrator()
+    m = NoarchPythonMinMigrator(total_graph=TOTAL_GRAPH)
     run_test_migration(
         m=m,
         inp=recipe_before,
@@ -573,5 +577,5 @@ def test_noarch_python_min_migrator(tmpdir, name):
             "migrator_version": m.migrator_version,
             "name": "noarch_python_min",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

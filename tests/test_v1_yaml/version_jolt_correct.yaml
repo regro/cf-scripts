@@ -1,0 +1,73 @@
+context:
+  version: "5.2.0"
+  sha: 6953a6293f1ccfe3790cb0d778c71e3736031c441e0f434fd2baa8d307ebfef3
+
+package:
+  name: jolt-physics
+  version: ${{ version }}
+
+source:
+  url: https://github.com/jrouwe/JoltPhysics/archive/refs/tags/v${{ version }}.zip
+  sha256: ${{ sha }}
+  patches:
+    - patches/001-use-gnuinstalldirs.patch
+
+build:
+  number: 0
+  script:
+    - if: win
+      then: |
+        cmake -GNinja ^
+            %CMAKE_ARGS% ^
+            -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
+            -DBUILD_SHARED_LIBS=ON ^
+            -DCMAKE_BUILD_TYPE=Distribution ^
+            -DCROSS_PLATFORM_DETERMINISTIC=ON ^
+            -DTARGET_VIEWER=OFF ^
+            -DTARGET_SAMPLES=OFF ^
+            -DTARGET_HELLO_WORLD=OFF ^
+            -DTARGET_UNIT_TESTS=OFF ^
+            -DTARGET_PERFORMANCE_TEST=OFF ^
+            -S %SRC_DIR%\Build
+        cmake --build . --target install
+      else: |
+        cmake -GNinja \
+            $CMAKE_ARGS \
+            -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Distribution \
+            -DCROSS_PLATFORM_DETERMINISTIC=ON \
+            -DTARGET_VIEWER=OFF \
+            -DTARGET_SAMPLES=OFF \
+            -DTARGET_HELLO_WORLD=OFF \
+            -DTARGET_UNIT_TESTS=OFF \
+            -DTARGET_PERFORMANCE_TEST=OFF \
+            -S $SRC_DIR/Build
+        cmake --build . --target install
+
+requirements:
+  build:
+    - ${{ compiler("cxx") }}
+    - ${{ stdlib("c") }}
+    - cmake
+    - ninja
+
+tests:
+  - package_contents:
+      include:
+        - Jolt/Jolt.h
+      lib:
+        - Jolt
+
+about:
+  homepage: https://github.com/jrouwe/JoltPhysics
+  license: MIT
+  license_file: LICENSE
+  summary: A multi core friendly rigid body physics and collision detection library.
+  description: A multi core friendly rigid body physics and collision detection library. Written in C++. Suitable for games and VR applications. Used by Horizon Forbidden West.
+  documentation: https://jrouwe.github.io/JoltPhysics/
+  repository: https://github.com/jrouwe/JoltPhysics
+
+extra:
+  recipe-maintainers:
+    - baszalmstra

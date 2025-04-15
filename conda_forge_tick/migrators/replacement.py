@@ -2,12 +2,14 @@ import logging
 import os
 import re
 import typing
-from typing import Any, Sequence
+from pathlib import Path
+from typing import Any
 
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
-from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators.core import Migrator, MiniMigrator
+from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
@@ -37,6 +39,7 @@ class Replacement(Migrator):
 
     migrator_version = 0
     rerender = True
+    allowed_schema_versions = (0, 1)
 
     def __init__(
         self,
@@ -44,10 +47,11 @@ class Replacement(Migrator):
         old_pkg: "PackageName",
         new_pkg: "PackageName",
         rationale: str,
-        graph: nx.DiGraph = None,
+        graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
         check_solvable=True,
-        effective_graph: nx.DiGraph = None,
+        effective_graph: nx.DiGraph | None = None,
+        total_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -61,14 +65,9 @@ class Replacement(Migrator):
                 "pr_limit": pr_limit,
                 "check_solvable": check_solvable,
                 "effective_graph": effective_graph,
+                "total_graph": total_graph,
             }
 
-        super().__init__(
-            pr_limit,
-            check_solvable=check_solvable,
-            graph=graph,
-            effective_graph=effective_graph,
-        )
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
@@ -76,28 +75,18 @@ class Replacement(Migrator):
         self.rationale = rationale
         self.name = f"{old_pkg}-to-{new_pkg}"
 
-        self._reset_effective_graph()
+        super().__init__(
+            pr_limit=pr_limit,
+            check_solvable=check_solvable,
+            graph=graph,
+            effective_graph=effective_graph,
+            total_graph=total_graph,
+        )
 
-    def order(
-        self,
-        graph: nx.DiGraph,
-        total_graph: nx.DiGraph,
-    ) -> Sequence["PackageName"]:
-        """Order to run migrations in
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
-
-        Returns
-        -------
-        graph : nx.DiGraph
-            The ordered graph.
-        """
-        return graph
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
         rq = (
             requirements.get("build", set())
@@ -105,13 +94,22 @@ class Replacement(Migrator):
             | requirements.get("run", set())
             | requirements.get("test", set())
         )
-        return super().filter(attrs) or len(rq & self.packages) == 0
+
+        return len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
+        if os.path.exists(os.path.join(recipe_dir, "meta.yaml")):
+            recipe_file = os.path.join(recipe_dir, "meta.yaml")
+        elif os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
+            recipe_file = os.path.join(recipe_dir, "recipe.yaml")
+        else:
+            raise RuntimeError(f"Could not find recipe file in {recipe_dir}!")
+
+        with open(recipe_file) as f:
             raw = f.read()
+
         lines = raw.splitlines()
         n = False
         for i, line in enumerate(lines):
@@ -122,9 +120,12 @@ class Replacement(Migrator):
         if not n:
             return False
         upd = "\n".join(lines) + "\n"
-        with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
+
+        with open(recipe_file, "w") as f:
             f.write(upd)
-        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+
+        self.set_build_number(recipe_file)
+
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
@@ -154,3 +155,59 @@ needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
+
+
+class MiniReplacement(MiniMigrator):
+    """Minimigrator for replacing one package with another.
+
+    Parameters
+    ----------
+    old_pkg : str
+        The package to be replaced.
+    new_pkg : str
+        The package to replace the `old_pkg`.
+    """
+
+    allowed_schema_versions = [0, 1]
+
+    def __init__(
+        self,
+        *,
+        old_pkg: "PackageName",
+        new_pkg: "PackageName",
+        requirement_types: tuple[str] = ("host",),
+    ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "old_pkg": old_pkg,
+                "new_pkg": new_pkg,
+                "requirement_types": requirement_types,
+            }
+
+        super().__init__()
+        self.old_pkg = old_pkg
+        self.new_pkg = new_pkg
+        self.packages = {self.old_pkg}
+        self.requirement_types = requirement_types
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        requirements = attrs.get("requirements", {})
+        rq = set()
+        for req_type in self.requirement_types:
+            rq |= requirements.get(req_type, set())
+        return super().filter(attrs) or len(rq & self.packages) == 0
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any):
+        with pushd(recipe_dir):
+            recipe_file = Path(
+                next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            )
+            raw = recipe_file.read_text()
+            upd = raw.replace(f" {self.old_pkg} ", f" {self.new_pkg} ").replace(
+                f" {self.old_pkg}\n", f" {self.new_pkg}\n"
+            )
+
+            recipe_file.write_text(upd)

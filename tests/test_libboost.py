@@ -1,5 +1,6 @@
 import os
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -9,10 +10,13 @@ from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 LIBBOOST = LibboostMigrator()
 VERSION_WITH_LIBBOOST = Version(
     set(),
     piggy_back_migrations=[LIBBOOST],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -38,7 +42,7 @@ VERSION_WITH_LIBBOOST = Version(
         ("cctx", "1.10.0"),
     ],
 )
-def test_boost(feedstock, new_ver, tmpdir):
+def test_boost(feedstock, new_ver, tmp_path):
     before = f"libboost_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -58,7 +62,7 @@ def test_boost(feedstock, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_LIBBOOST.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
         should_filter=False,
     )
 

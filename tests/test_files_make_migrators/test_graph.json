@@ -1,0 +1,63 @@
+{
+  "directed": true,
+  "graph": {
+    "outputs_lut": {
+      "conda-forge-pinning": {
+        "__set__": true,
+        "elements": [
+          "conda-forge-pinning"
+        ]
+      },
+      "pydantic": {
+        "__set__": true,
+        "elements": [
+          "pydantic"
+        ]
+      },
+      "numpy": {
+        "__set__": true,
+        "elements": [
+          "numpy"
+        ]
+      },
+      "aws-c-io": {
+        "__set__": true,
+        "elements": [
+          "aws-c-io"
+        ]
+      }
+    },
+    "strong_exports": {
+      "__set__": true,
+      "elements": []
+    }
+  },
+  "links": [],
+  "multigraph": false,
+  "nodes": [
+    {
+      "id": "conda-forge-pinning",
+      "payload": {
+        "__lazy_json__": "node_attrs/conda-forge-pinning.json"
+      }
+    },
+    {
+      "id": "pydantic",
+      "payload": {
+        "__lazy_json__": "node_attrs/pydantic.json"
+      }
+    },
+    {
+      "id": "numpy",
+      "payload": {
+        "__lazy_json__": "node_attrs/numpy.json"
+      }
+    },
+    {
+      "id": "aws-c-io",
+      "payload": {
+        "__lazy_json__": "node_attrs/aws-c-io.json"
+      }
+    }
+  ]
+}

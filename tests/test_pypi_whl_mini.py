@@ -1,5 +1,6 @@
 import os
 
+import networkx as nx
 import pytest
 import requests
 from flaky import flaky
@@ -7,11 +8,15 @@ from test_migrators import run_minimigrator, run_test_migration
 
 from conda_forge_tick.migrators import PipWheelMigrator, Version
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+
 wheel_mig = PipWheelMigrator()
 
 version_migrator_whl = Version(
     set(),
     piggy_back_migrations=[wheel_mig],
+    total_graph=TOTAL_GRAPH,
 )
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -92,9 +97,7 @@ bot:
     run_deps_from_wheel: true
 """,
     )
-    recipe_path = tmp_path / "recipe"
-    recipe_path.mkdir()
-    return str(recipe_path)
+    return tmp_path
 
 
 @flaky
@@ -110,7 +113,7 @@ def test_migrate_opentelemetry(tmp_dir_with_conf):
             "migrator_version": Version.migrator_version,
             "version": "0.23b2",
         },
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -129,7 +132,7 @@ def test_migrate_non_python(tmp_dir_with_conf, package):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -148,7 +151,7 @@ def test_migrate_thrift(tmp_dir_with_conf):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -167,7 +170,7 @@ def test_migrate_psutil(tmp_dir_with_conf):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
@@ -187,12 +190,12 @@ def test_migrate_black(tmp_dir_with_conf):
         output=in_yaml,
         mr_out=None,
         should_filter=False,
-        tmpdir=tmp_dir_with_conf,
+        tmp_path=tmp_dir_with_conf,
     )
 
 
 @flaky
-def test_migrate_black_no_conf(tmpdir):
+def test_migrate_black_no_conf(tmp_path):
     """Without enabling the feature, don't run for black"""
     url = (
         "https://raw.githubusercontent.com/conda-forge/black-feedstock/"
@@ -207,5 +210,5 @@ def test_migrate_black_no_conf(tmpdir):
         output=in_yaml,
         mr_out=None,
         should_filter=True,
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

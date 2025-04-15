@@ -6,7 +6,6 @@ Builds and maintains mapping of pypi-names to conda-forge names
 """
 
 import functools
-import json
 import math
 import os
 import pathlib
@@ -15,6 +14,7 @@ from collections import Counter, defaultdict
 from os.path import commonprefix
 from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
 
+import orjson
 import requests
 import yaml
 from packaging.utils import NormalizedName as PypiName
@@ -23,12 +23,12 @@ from packaging.utils import canonicalize_name as canonicalize_pypi_name
 from .import_to_pkg import IMPORT_TO_PKG_DIR_CLOBBERING
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_all_keys_for_hashmap,
     loads,
 )
+from .settings import settings
 from .utils import as_iterable, load_existing_graph
 
 
@@ -320,7 +320,7 @@ def determine_best_matches_for_pypi_import(
             clobberers = loads(
                 requests.get(
                     os.path.join(
-                        CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                        settings().graph_github_backend_raw_base_url,
                         IMPORT_TO_PKG_DIR_CLOBBERING,
                     )
                 ).text,
@@ -434,8 +434,16 @@ def main() -> None:
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+
+    def json_dump(obj, fp):
+        fp.write(
+            orjson.dumps(obj, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2).decode(
+                "utf-8"
+            )
+        )
+
     # import pdb; pdb.set_trace()
-    for dumper, suffix in ((yaml_dump, "yaml"), (json.dump, "json")):
+    for dumper, suffix in ((yaml_dump, "yaml"), (json_dump, "json")):
         with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
             dumper(grayskull_style, fp)
 

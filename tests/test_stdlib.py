@@ -1,6 +1,7 @@
 import os
 import re
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -9,10 +10,13 @@ from conda_forge_tick.migrators import StdlibMigrator, Version
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 STDLIB = StdlibMigrator()
 VERSION_WITH_STDLIB = Version(
     set(),
     piggy_back_migrations=[STDLIB],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -48,9 +52,13 @@ VERSION_WITH_STDLIB = Version(
         ("gz-common", "5_5.6.0", False),
         # test recipe with quoting
         ("libhdbpp-timescale", "2.1.0", False),
+        # test section before build
+        ("unicorn", "2.0.1.post1", False),
+        # commented compiler dep
+        ("pysyntect", "0.3.0", False),
     ],
 )
-def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
+def test_stdlib(feedstock, new_ver, expect_cbc, tmp_path):
     before = f"stdlib_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -58,9 +66,6 @@ def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
     after = f"stdlib_{feedstock}_after_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, after)) as fp:
         out_yaml = fp.read()
-
-    recipe_dir = os.path.join(tmpdir, f"{feedstock}-feedstock")
-    os.makedirs(recipe_dir, exist_ok=True)
 
     run_test_migration(
         m=VERSION_WITH_STDLIB,
@@ -73,11 +78,11 @@ def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
             "migrator_version": VERSION_WITH_STDLIB.migrator_version,
             "version": new_ver,
         },
-        tmpdir=recipe_dir,
+        tmp_path=tmp_path,
         should_filter=False,
     )
 
-    cbc_pth = os.path.join(recipe_dir, "conda_build_config.yaml")
+    cbc_pth = tmp_path / "recipe/conda_build_config.yaml"
     if expect_cbc:
         with open(cbc_pth) as fp:
             lines = fp.readlines()

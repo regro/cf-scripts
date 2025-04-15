@@ -1,7 +1,9 @@
 import logging
 import os
 import random
+import re
 from concurrent.futures import Future
+from pathlib import Path
 from typing import Dict, Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
@@ -13,6 +15,7 @@ from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
@@ -1287,9 +1290,6 @@ def test_update_upstream_versions_run_sequential(
         ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
     ]
 
-    # swaps the packages
-    random.seed(1)
-
     def custom_include_node(name: str, _: Mapping) -> bool:
         return name in ("testpackage", "testpackage2")
 
@@ -1307,10 +1307,11 @@ def test_update_upstream_versions_run_sequential(
     )
 
     update_sequential_mock.assert_called_once()
-    assert update_sequential_mock.call_args.args[0] == [
+    for pkg in [
         ("testpackage2", {"dummy": "1.2.4"}),
         ("testpackage", {"dummy": "1.2.3"}),
-    ]
+    ]:
+        assert pkg in update_sequential_mock.call_args.args[0]
     assert (
         tuple(source.name for source in update_sequential_mock.call_args.args[1])
         == default_sources
@@ -1356,10 +1357,22 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
+@pytest.fixture
+def version_update_frac_always():
+    new_settings = settings()
+
+    new_settings.frac_update_upstream_versions = True
+    with use_settings(new_settings):
+        yield
+
+
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1396,7 +1409,10 @@ class BrokenException(Exception):
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1430,7 +1446,10 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1480,7 +1499,10 @@ def test_update_upstream_versions_sequential(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1540,7 +1562,10 @@ def test_update_upstream_versions_process_pool(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1583,7 +1608,10 @@ def test_update_upstream_versions_process_pool_exception(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1720,6 +1748,41 @@ def test_github_releases(tmpdir, url, feedstock_version):
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
     assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version, regex",
+    [
+        (
+            "https://github.com/minio/minio/archive/RELEASE.2025-01-20T14-49-07Z.tar.gz",
+            "2025-01-20T14-49-07Z",
+            r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
+        )
+    ],
+)
+@flaky
+def test_github_releases_unusual_version(
+    tmp_path: Path, url: str, feedstock_version: str, regex: str
+):
+    """
+    Tests that the GitHubReleases source can handle unusual version strings such as timestamps.
+    """
+    meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+
+    version = ghr.get_version(url)
+
+    assert isinstance(version, str)
+    assert re.match(regex, version)
 
 
 def test_latest_version_cratesio(tmpdir):

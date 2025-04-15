@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 
 import conda_smithy
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import (
@@ -48,7 +49,9 @@ from conda_forge_tick.utils import (
     parse_meta_yaml_containerized,
 )
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -318,16 +321,16 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                 print(f"out: {captured.out}\nerr: {captured.err}")
 
             if "git commit -m " in captured.err:
-                assert (
-                    msg is not None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-                assert msg.startswith(
-                    "MNT:"
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is not None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
+                assert msg.startswith("MNT:"), (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
             else:
-                assert (
-                    msg is None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
 
         with pushd(tmpdir_local):
             subprocess.run(
@@ -377,9 +380,9 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
         rel_local_fnames = {
             os.path.relpath(fname, tmpdir_local) for fname in local_fnames
         }
-        assert (
-            rel_cont_fnames == rel_local_fnames
-        ), f"{rel_cont_fnames} != {rel_local_fnames}"
+        assert rel_cont_fnames == rel_local_fnames, (
+            f"{rel_cont_fnames} != {rel_local_fnames}"
+        )
 
         for cfname in cont_fnames:
             lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))
@@ -608,7 +611,7 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
         assert res_cont == res_local
 
 
-yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
+yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 
 
@@ -732,7 +735,7 @@ def test_migration_runner_run_migration_containerized_version(
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
-    pmy["new_version"] = new_ver
+    pmy["version_pr_info"] = {"new_version": new_ver}
 
     data = run_migration_containerized(
         migrator=m,

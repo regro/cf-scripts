@@ -66,6 +66,7 @@ class MigratorName(StrEnum):
     """
     Only operates on the conda-forge-pinning feedstock and updates the pinning version of packages.
     """
+    NOARCH_PYTHON_MIN_MIGRATOR = "NoarchPythonMinMigrator"
 
     JS = "JS"
     """

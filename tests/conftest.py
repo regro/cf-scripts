@@ -1,10 +1,13 @@
 import os
+import tempfile
 from types import TracebackType
 from typing import Self
 
+import networkx as nx
 import pytest
 
 from conda_forge_tick import global_sensitive_env
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 
 @pytest.fixture
@@ -97,3 +100,37 @@ class FakeLazyJson(dict):
         exc_tb: TracebackType | None,
     ) -> None:
         pass
+
+    @property
+    def data(self):
+        return self
+
+
+@pytest.fixture
+def test_graph():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        gx = nx.DiGraph()
+        lzj = LazyJson(os.path.join(tmpdir, "conda.json"))
+        with lzj as attrs:
+            attrs.update({"reqs": ["python"]})
+        gx.add_node("conda", payload=lzj)
+        gx.graph["outputs_lut"] = {}
+
+        yield gx
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "mongodb: mark tests that run with mongodb",
+    )
+
+
+@pytest.fixture
+def temporary_environment():
+    try:
+        old_env = os.environ.copy()
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(old_env)

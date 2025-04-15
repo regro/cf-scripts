@@ -25,12 +25,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
+      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -44,7 +44,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -53,10 +53,13 @@ jobs:
         run: |
           pushd cf-graph
 
+          export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           conda-forge-tick make-migrators
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
 
       - name: deploy
         if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP

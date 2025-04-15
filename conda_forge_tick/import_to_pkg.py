@@ -1,7 +1,6 @@
 import bz2
 import hashlib
 import io
-import json
 import logging
 import os
 from collections import defaultdict
@@ -10,6 +9,7 @@ from functools import lru_cache
 from itertools import chain, groupby
 from typing import List
 
+import orjson
 import requests
 import requests.exceptions
 from conda_forge_metadata.artifact_info import get_artifact_info_as_json
@@ -18,7 +18,6 @@ from tqdm import tqdm
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
     LazyJson,
     dump,
@@ -26,6 +25,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
     load,
 )
+from conda_forge_tick.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def _get_head_letters(name):
 def _ranked_hubs_authorities() -> list[str]:
     req = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "ranked_hubs_authorities.json",
         )
     )
@@ -99,7 +99,7 @@ def _import_to_pkg_maps_cache(import_first_letters: str) -> dict[str, set[str]]:
     else:
         req = requests.get(
             os.path.join(
-                CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                settings().graph_github_backend_raw_base_url,
                 pth,
             )
         )
@@ -202,7 +202,7 @@ def _fetch_arch(arch):
             f"https://conda.anaconda.org/conda-forge/{arch}/repodata.json.bz2"
         )
         r.raise_for_status()
-        repodata = json.load(bz2.BZ2File(io.BytesIO(r.content)))
+        repodata = orjson.loads(bz2.BZ2File(io.BytesIO(r.content)).read())
     except Exception as e:
         logger.error(f"Failed to fetch {arch}: {e}")
         return

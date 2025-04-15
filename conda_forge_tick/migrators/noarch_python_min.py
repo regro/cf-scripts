@@ -1,7 +1,7 @@
+import copy
 import functools
 import logging
 import os
-import random
 import textwrap
 import typing
 from typing import Sequence
@@ -15,13 +15,12 @@ from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import (
     Migrator,
     MiniMigrator,
-    skip_migrator_due_to_schema,
 )
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, PackageName
+    from ..migrators_types import AttrsTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +117,7 @@ def _extract_bounds(req):
         upper_ver = None
     else:
         raise RuntimeError(
-            "Encountered a python requirement `{req}` that cannot easily be "
+            f"Encountered a python requirement `{req}` that cannot easily be "
             "handled by the bot for setting the runtime python "
             "version range. The bot will not be able to issue the "
             "`noarch: python` min migration PR!"
@@ -141,7 +140,7 @@ def _extract_bounds(req):
         lower_ver = None
     else:
         raise RuntimeError(
-            "Encountered a python requirement `{req}` that cannot easily be "
+            f"Encountered a python requirement `{req}` that cannot easily be "
             "handled by the bot for setting the runtime python "
             "version range. The bot will not be able to issue the "
             "`noarch: python` min migration PR!"
@@ -421,9 +420,10 @@ class NoarchPythonMinMigrator(Migrator):
     def __init__(
         self,
         *,
-        pr_limit: int = 10,
-        graph: nx.DiGraph = None,
-        effective_graph: nx.DiGraph = None,
+        pr_limit: int = 0,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
+        total_graph: nx.DiGraph | None = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
     ):
         if not hasattr(self, "_init_args"):
@@ -435,39 +435,45 @@ class NoarchPythonMinMigrator(Migrator):
                 "graph": graph,
                 "effective_graph": effective_graph,
                 "piggy_back_migrations": piggy_back_migrations,
+                "total_graph": total_graph,
             }
 
+        self.name = "noarch_python_min"
+
+        if total_graph is not None:
+            total_graph = copy.deepcopy(total_graph)
+            total_graph.clear_edges()
+
         super().__init__(
-            pr_limit,
+            pr_limit=pr_limit,
             graph=graph,
             effective_graph=effective_graph,
             piggy_back_migrations=piggy_back_migrations,
+            total_graph=total_graph,
         )
-        self.name = "noarch_python_min"
 
-        self._reset_effective_graph()
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-    def filter(self, attrs) -> bool:
         has_noarch_python = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
                 break
 
-        return (
-            super().filter(attrs)
-            or (not has_noarch_python)
-            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
-        )
+        return not has_noarch_python
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # if the feedstock has already been updated, return a migration ID
         # and make no changes.
-        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
-
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if "{{ python_min }}" in line:
-                return super().migrate(recipe_dir, attrs)
+                muid = super().migrate(recipe_dir, attrs)
+                muid["already_done"] = True
+                return muid
+
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
 
         _apply_noarch_python_min(
             recipe_dir,
@@ -502,49 +508,3 @@ for more details.
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
-
-    def order(
-        self,
-        graph: nx.DiGraph,
-        total_graph: nx.DiGraph,
-    ) -> Sequence["PackageName"]:
-        if hasattr(self, "name"):
-            assert isinstance(self.name, str)
-            migrator_name = self.name.lower().replace(" ", "")
-        else:
-            migrator_name = self.__class__.__name__.lower()
-
-        def _not_has_error(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pr_info",
-                {},
-            ).get("pre_pr_migrator_status", {}) and (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempts",
-                    {},
-                )
-                .get(
-                    migrator_name,
-                    self.max_solver_attempts,
-                )
-                >= self.max_solver_attempts
-            ):
-                return 0
-            else:
-                return 1
-
-        return sorted(
-            graph,
-            key=lambda x: (
-                _not_has_error(x),
-                (
-                    random.uniform(0, 1)
-                    if not _not_has_error(x)
-                    else len(nx.descendants(total_graph, x))
-                ),
-                x,
-            ),
-            reverse=True,
-        )
