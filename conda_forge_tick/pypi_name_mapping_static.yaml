@@ -123,3 +123,11 @@
 - pypi_name: pyyaml
   import_name: yaml
   conda_name: pyyaml
+
+- pypi_name: memory_allocator
+  import_name: memory_allocator
+  conda_name: memory-allocator
+
+- pypi_name: symengine
+  import_name: symengine
+  conda_name: python-symengine
