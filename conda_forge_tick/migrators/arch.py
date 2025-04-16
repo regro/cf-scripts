@@ -382,7 +382,8 @@ class OSXArm(_CrossCompileRebuild):
     pkg_list_filename = "osx_arm64.txt"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, name="arm osx addition")
+        kwargs.setdefault("name", "arm osx addition")
+        super().__init__(*args, **kwargs)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
@@ -415,7 +416,8 @@ class WinArm64(_CrossCompileRebuild):
     pkg_list_filename = "win_arm64.txt"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, name="support windows arm64 platform")
+        kwargs.setdefault("name", "support windows arm64 platform")
+        super().__init__(*args, **kwargs)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Support Windows ARM64 platform"
