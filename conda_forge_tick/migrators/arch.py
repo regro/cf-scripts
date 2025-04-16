@@ -371,7 +371,7 @@ class _CrossCompileRebuild(GraphMigrator):
         return muid
 
 
-class OSXArm64(_CrossCompileRebuild):
+class OSXArm(_CrossCompileRebuild):
     """
     A Migrator that add osx-arm64 builds to feedstocks
     """
