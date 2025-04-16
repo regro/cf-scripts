@@ -223,12 +223,11 @@ class ArchRebuild(GraphMigrator):
         return super().remote_branch(feedstock_ctx) + "_arch"
 
 
-class OSXArm(GraphMigrator):
+class _CrossCompileRebuild(GraphMigrator):
     """
-    A Migrator that add arm osx builds to feedstocks
+    A Migrator that adds arch platform builds to feedstocks
     """
 
-    migrator_version = 1
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
@@ -236,18 +235,18 @@ class OSXArm(GraphMigrator):
     ignored_packages = set()
     excluded_dependencies = set()
 
-    arches = ["osx_arm64"]
-
-    additional_keys = {
-        "build_platform": {"osx_arm64": "osx_64"},
-        "test": "native_and_emulated",
-    }
+    @property
+    def additional_keys(self):
+        return {
+            "build_platform": self.build_platform,
+            "test": "native_and_emulated",
+        }
 
     def __init__(
         self,
         graph: nx.DiGraph | None = None,
-        name: str = "arm osx addition",
         pr_limit: int = 0,
+        name: str = "",
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
         effective_graph: nx.DiGraph | None = None,
@@ -262,20 +261,23 @@ class OSXArm(GraphMigrator):
                         "share",
                         "conda-forge",
                         "migrations",
-                        "osx_arm64.txt",
+                        self.pkg_list_filename,
                     )
                 ) as f:
                     target_packages = set(f.read().split())
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
-            # rebuild the graph to only use edges from the arm osx requirements
+            # rebuild the graph to only use edges from the arch requirements
             graph2 = nx.create_empty_copy(total_graph)
             for node, attrs in total_graph.nodes(data="payload"):
-                for plat_arch in self.arches:
+                for plat_arch, build_plat_arch in self.build_platform.items():
                     reqs = attrs.get(
                         f"{plat_arch}_requirements",
-                        attrs.get("osx_64_requirements", attrs.get("requirements", {})),
+                        attrs.get(
+                            f"{build_plat_arch}_requirements",
+                            attrs.get("requirements", {}),
+                        ),
                     )
                     host_deps = set(as_iterable(reqs.get("host", set())))
                     run_deps = set(as_iterable(reqs.get("run", set())))
@@ -336,9 +338,7 @@ class OSXArm(GraphMigrator):
             total_graph=total_graph,
             name=name,
         )
-        assert not self.check_solvable, (
-            "We don't want to check solvability for arm osx!"
-        )
+        assert not self.check_solvable, "We don't want to check solvability!"
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -371,6 +371,20 @@ class OSXArm(GraphMigrator):
 
         return muid
 
+
+class OSXArm(_CrossCompileRebuild):
+    """
+    A Migrator that add osx-arm64 builds to feedstocks
+    """
+
+    migrator_version = 1
+    build_platform = {"osx_arm64": "osx_64"}
+    pkg_list_filename = "osx_arm64.txt"
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("name", "arm osx addition")
+        super().__init__(*args, **kwargs)
+
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
 
@@ -390,3 +404,37 @@ class OSXArm(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return super().remote_branch(feedstock_ctx) + "_arm_osx"
+
+
+class WinArm64(_CrossCompileRebuild):
+    """
+    A Migrator that add win-arm64 builds to feedstocks
+    """
+
+    migrator_version = 1
+    build_platform = {"win_arm64": "win_64"}
+    pkg_list_filename = "win_arm64.txt"
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("name", "support windows arm64 platform")
+        super().__init__(*args, **kwargs)
+
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        return "Support Windows ARM64 platform"
+
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+        body = super().pr_body(feedstock_ctx)
+        body = body.format(
+            dedent(
+                """\
+        This feedstock is being rebuilt as part of the windows arm migration.
+
+        **Feel free to merge the PR if CI is all green, but please don't close it
+        without reaching out the the ARM Windows team first at <code>@</code>conda-forge/help-win-arm64.**
+        """,
+            ),
+        )
+        return body
+
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        return super().remote_branch(feedstock_ctx) + "_arm64_win"

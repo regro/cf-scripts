@@ -272,6 +272,33 @@ def test_migrator_to_json_osx_arm():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
+def test_migrator_to_json_win_arm64():
+    gx = nx.DiGraph()
+    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
+
+    migrator = conda_forge_tick.migrators.WinArm64(
+        target_packages=["python"],
+        total_graph=gx,
+        pr_limit=5,
+    )
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == "WinArm64"
+    assert data["name"] == "support_windows_arm64_platform"
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, conda_forge_tick.migrators.WinArm64)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
 @pytest.mark.parametrize(
     "klass",
     [
