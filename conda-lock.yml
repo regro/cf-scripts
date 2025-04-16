@@ -547,45 +547,45 @@ package:
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 373374a3ed20141090504031dc7b693e
-      sha256: 4ce42860292a57867cfc81a5d261fb9886fc709a34eca52164cc8bbf6d03de9f
+      md5: 9f07c4fc992adb2d6c30da7fab3959a7
+      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.3-pyha770c72_0.conda
-    version: 4.13.3
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
+    version: 4.13.4
   - category: main
     dependencies:
       python: '>=3.9'
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 373374a3ed20141090504031dc7b693e
-      sha256: 4ce42860292a57867cfc81a5d261fb9886fc709a34eca52164cc8bbf6d03de9f
+      md5: 9f07c4fc992adb2d6c30da7fab3959a7
+      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.3-pyha770c72_0.conda
-    version: 4.13.3
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
+    version: 4.13.4
   - category: main
     dependencies:
       python: '>=3.9'
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 373374a3ed20141090504031dc7b693e
-      sha256: 4ce42860292a57867cfc81a5d261fb9886fc709a34eca52164cc8bbf6d03de9f
+      md5: 9f07c4fc992adb2d6c30da7fab3959a7
+      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.3-pyha770c72_0.conda
-    version: 4.13.3
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
+    version: 4.13.4
   - category: main
     dependencies:
       python: '>=3.9'
@@ -2029,39 +2029,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b07deb1ee92b99b8f0b23a42992e8f4a
-      sha256: 4865be1ee940bde34b8b78893d7ce8a6fea59b24e151d08813e6c459ee13d34e
+      md5: bf1862a8574c394a117400708c1bdc87
+      sha256: 52bc37f3a452dc04043d7228f4388d48b36bffef0f406acf2a98be955a9a883d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.03.46.51-hd8ed1ab_0.conda
-    version: 2025.04.16.03.46.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.10.14.51-hd8ed1ab_0.conda
+    version: 2025.04.16.10.14.51
   - category: main
     dependencies: {}
     hash:
-      md5: b07deb1ee92b99b8f0b23a42992e8f4a
-      sha256: 4865be1ee940bde34b8b78893d7ce8a6fea59b24e151d08813e6c459ee13d34e
+      md5: bf1862a8574c394a117400708c1bdc87
+      sha256: 52bc37f3a452dc04043d7228f4388d48b36bffef0f406acf2a98be955a9a883d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.03.46.51-hd8ed1ab_0.conda
-    version: 2025.04.16.03.46.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.10.14.51-hd8ed1ab_0.conda
+    version: 2025.04.16.10.14.51
   - category: main
     dependencies: {}
     hash:
-      md5: b07deb1ee92b99b8f0b23a42992e8f4a
-      sha256: 4865be1ee940bde34b8b78893d7ce8a6fea59b24e151d08813e6c459ee13d34e
+      md5: bf1862a8574c394a117400708c1bdc87
+      sha256: 52bc37f3a452dc04043d7228f4388d48b36bffef0f406acf2a98be955a9a883d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.03.46.51-hd8ed1ab_0.conda
-    version: 2025.04.16.03.46.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.16.10.14.51-hd8ed1ab_0.conda
+    version: 2025.04.16.10.14.51
   - category: main
     dependencies:
       click: '>=8'
