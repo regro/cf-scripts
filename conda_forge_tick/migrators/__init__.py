@@ -16,8 +16,10 @@ from .cross_compile import (
     CrossPythonMigrator,
     CrossRBaseMigrator,
     GuardTestingMigrator,
+    GuardTestingWinMigrator,
     NoCondaInspectMigrator,
     UpdateCMakeArgsMigrator,
+    UpdateCMakeArgsWinMigrator,
     UpdateConfigSubGuessMigrator,
 )
 from .cstdlib import StdlibMigrator
