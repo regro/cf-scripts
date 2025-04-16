@@ -246,6 +246,7 @@ class _CrossCompileRebuild(GraphMigrator):
         self,
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
+        name: str = "",
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
         effective_graph: nx.DiGraph | None = None,
@@ -318,7 +319,7 @@ class _CrossCompileRebuild(GraphMigrator):
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = {
                 "graph": graph,
-                "name": self.name,
+                "name": name,
                 "pr_limit": pr_limit,
                 "piggy_back_migrations": piggy_back_migrations,
                 "target_packages": target_packages,
@@ -335,7 +336,7 @@ class _CrossCompileRebuild(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             effective_graph=effective_graph,
             total_graph=total_graph,
-            name=self.name,
+            name=name,
         )
         assert not self.check_solvable, "We don't want to check solvability!"
 
@@ -378,8 +379,10 @@ class OSXArm(_CrossCompileRebuild):
 
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
-    name: str = "arm osx addition"
     pkg_list_filename = "osx_arm64.txt"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, name="arm osx addition")
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
@@ -409,8 +412,10 @@ class WinArm64(_CrossCompileRebuild):
 
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}
-    name: str = "support windows arm64 platform"
     pkg_list_filename = "win_arm64.txt"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, name="support windows arm64 platform")
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Support Windows ARM64 platform"

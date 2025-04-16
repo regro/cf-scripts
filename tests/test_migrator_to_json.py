@@ -275,12 +275,12 @@ def test_migrator_to_json_osx_arm():
 def test_migrator_to_json_win_arm64():
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
 
     migrator = conda_forge_tick.migrators.WinArm64(
         target_packages=["python"],
-        graph=gx,
+        total_graph=gx,
         pr_limit=5,
-        name="support windows arm64 platform",
     )
 
     data = migrator.to_lazy_json_data()
