@@ -1724,6 +1724,7 @@ package:
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=2.2.0'
+      evalidate: '>=2,<3.0a'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1744,15 +1745,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 0388abc17116ecc8af08ce9cf2412515
-      sha256: 324a641b4c4d843d2f481bc2e4efa857e18955dce86bd92d21beae12011374ca
+      md5: a539598cf29f2715c3f93494678f6246
+      sha256: e667dbfb0df0afe409106bfb9c547fa775aa6b8ec0f4f6893a224f32c5888e8c
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.3.2-py311h38be061_0.conda
-    version: 25.3.2
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.4.0-py311h38be061_0.conda
+    version: 25.4.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1761,6 +1762,7 @@ package:
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=2.2.0'
+      evalidate: '>=2,<3.0a'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1780,15 +1782,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 1f238e83e3781f0bce90a6db9e819733
-      sha256: cbd42191f0470557d493c1e43d76948e9ae6b3d7a27cf9d8da07d482b32cf421
+      md5: 5b1af1dff2895106c1e2233135e5bc7b
+      sha256: ac88116d9830aa8e59b9fe42f0e9acbce30bb33af171223b7d362c83660842b8
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.3.2-py311h6eed73b_0.conda
-    version: 25.3.2
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.4.0-py311h6eed73b_0.conda
+    version: 25.4.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1797,6 +1799,7 @@ package:
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=2.2.0'
+      evalidate: '>=2,<3.0a'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1816,15 +1819,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: c23032a0ff8278ecadf1cf957d3cac40
-      sha256: 7fa8b00289255f39bdb0b2bfc38748261fd1e9d63ee2fd276fe1dc28e97261e3
+      md5: bd7271e2adfea806792638786f248352
+      sha256: 6ae4fa244f0d1d4556964d39adf527e400a513644a8a4baeba2c525ba7a48789
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.3.2-py311h267d04e_0.conda
-    version: 25.3.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.4.0-py311h267d04e_0.conda
+    version: 25.4.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2029,39 +2032,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 57141918e7c4d3e22c901571aea6f973
-      sha256: 1d5f052500d9f438b518b8388adbd537a706ea2c693023d3c313c29cd04f34d8
+      md5: 759e9db540979e831803217edbb18cc9
+      sha256: 241b5f4afd4294428f4e54ee62a4248eab4b7687b31d7a0ca9f331cbd09a6033
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.18.42.47-hd8ed1ab_0.conda
-    version: 2025.04.17.18.42.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.19.15.44-hd8ed1ab_0.conda
+    version: 2025.04.17.19.15.44
   - category: main
     dependencies: {}
     hash:
-      md5: 57141918e7c4d3e22c901571aea6f973
-      sha256: 1d5f052500d9f438b518b8388adbd537a706ea2c693023d3c313c29cd04f34d8
+      md5: 759e9db540979e831803217edbb18cc9
+      sha256: 241b5f4afd4294428f4e54ee62a4248eab4b7687b31d7a0ca9f331cbd09a6033
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.18.42.47-hd8ed1ab_0.conda
-    version: 2025.04.17.18.42.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.19.15.44-hd8ed1ab_0.conda
+    version: 2025.04.17.19.15.44
   - category: main
     dependencies: {}
     hash:
-      md5: 57141918e7c4d3e22c901571aea6f973
-      sha256: 1d5f052500d9f438b518b8388adbd537a706ea2c693023d3c313c29cd04f34d8
+      md5: 759e9db540979e831803217edbb18cc9
+      sha256: 241b5f4afd4294428f4e54ee62a4248eab4b7687b31d7a0ca9f331cbd09a6033
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.18.42.47-hd8ed1ab_0.conda
-    version: 2025.04.17.18.42.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.17.19.15.44-hd8ed1ab_0.conda
+    version: 2025.04.17.19.15.44
   - category: main
     dependencies:
       click: '>=8'
@@ -3475,6 +3478,42 @@ package:
     platform: osx-arm64
     url: https://conda.anaconda.org/conda-forge/osx-arm64/epoxy-1.5.10-h1c322ee_1.tar.bz2
     version: 1.5.10
+  - category: main
+    dependencies:
+      python: ''
+    hash:
+      md5: 5008f0252a7496890a6c351c094d7e9e
+      sha256: 0d4e00965c83a44bf1d43429b09ec44d17a1d9aba56ddb9b1283b37e6e4e1489
+    manager: conda
+    name: evalidate
+    optional: false
+    platform: linux-64
+    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.3-pyh29332c3_1.conda
+    version: 2.0.3
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: 5008f0252a7496890a6c351c094d7e9e
+      sha256: 0d4e00965c83a44bf1d43429b09ec44d17a1d9aba56ddb9b1283b37e6e4e1489
+    manager: conda
+    name: evalidate
+    optional: false
+    platform: osx-64
+    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.3-pyh29332c3_1.conda
+    version: 2.0.3
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: 5008f0252a7496890a6c351c094d7e9e
+      sha256: 0d4e00965c83a44bf1d43429b09ec44d17a1d9aba56ddb9b1283b37e6e4e1489
+    manager: conda
+    name: evalidate
+    optional: false
+    platform: osx-arm64
+    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.3-pyh29332c3_1.conda
+    version: 2.0.3
   - category: main
     dependencies:
       python: '>=3.9'
