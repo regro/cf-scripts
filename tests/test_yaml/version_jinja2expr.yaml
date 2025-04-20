@@ -3,7 +3,7 @@
 {% set version = "0.10.4" %}
 
 {% set name = goname.split('/')[-1] %}
-{% set pkg_src = ('src/'+goname).replace("/",os.sep) %}
+{% set pkg_src = ('src/'+goname).replace("/","/") %}
 
 {% set x4_plugin = name + '_v' + version + "_x4" + (".exe" if win else "")%}
 
