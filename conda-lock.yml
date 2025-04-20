@@ -5443,40 +5443,40 @@ package:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 542f45bf054c6b9cf8d00a3b1976f945
-      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
+      md5: 8d5b9b702810fb3054d52ba146023bc3
+      sha256: 02f47df6c6982b796aecb086b434627207e87c0a90a50226f11f2cc99c089770
     manager: conda
     name: identify
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
-    version: 2.6.9
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.10-pyhd8ed1ab_0.conda
+    version: 2.6.10
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 542f45bf054c6b9cf8d00a3b1976f945
-      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
+      md5: 8d5b9b702810fb3054d52ba146023bc3
+      sha256: 02f47df6c6982b796aecb086b434627207e87c0a90a50226f11f2cc99c089770
     manager: conda
     name: identify
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
-    version: 2.6.9
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.10-pyhd8ed1ab_0.conda
+    version: 2.6.10
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: 542f45bf054c6b9cf8d00a3b1976f945
-      sha256: b74a2ffa7be9278d7b8770b6870c360747149c683865e63476b0e1db23038429
+      md5: 8d5b9b702810fb3054d52ba146023bc3
+      sha256: 02f47df6c6982b796aecb086b434627207e87c0a90a50226f11f2cc99c089770
     manager: conda
     name: identify
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.9-pyhd8ed1ab_0.conda
-    version: 2.6.9
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.10-pyhd8ed1ab_0.conda
+    version: 2.6.10
   - category: main
     dependencies:
       python: '>=3.9'
@@ -9078,14 +9078,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8cc792914f85f8a0f52eb010e1bc2841
-      sha256: 9a6a463e5dc101a5bd80e1684a3d51b2f12cc6fd3dd353fb8b976826b72c5171
+      md5: 5164212554b8d50a535db11621a08d54
+      sha256: 3700f5b01d236dd86b770c7ff54d3c587f5d117ca60f7d17b8b82067fcc6b4f6
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.4-py311h27c81cd_0.conda
-    version: 2.2.4
+    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.5-py311h27c81cd_0.conda
+    version: 2.2.5
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -9096,15 +9096,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 602a97eb615fcf5c7d94da0282a35bb5
-      sha256: 87c8b96560398a4f39dab87dee3c4aab3e7296744302dab2915c223094c0159d
+      md5: fae31abeb9224e4a29b5e09bd3a9246d
+      sha256: 9e5c2e6b603bd4e165760bc354e33bd7b3551096bf0e93499637fc7229081cd3
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.4-py311h762c074_0.conda
-    version: 2.2.4
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.5-py311h762c074_0.conda
+    version: 2.2.5
   - category: main
     dependencies:
       blinker: ''
