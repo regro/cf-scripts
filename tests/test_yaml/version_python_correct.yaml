@@ -151,7 +151,6 @@ outputs:
       #   - lib/python{{ ver2 }}/lib-dynload/_hashlib.cpython-{{ ver2nd }}-x86_64-linux-gnu.so  # [linux]
       #   - lib/libpython3.dylib  # [osx]
       # match python.org compiler standard
-      skip: true  # [win and int(float(vc)) < 14]
       skip_compile_pyc:
         - '*.py'            # [osx and arm64]
       string: {{ dev_ }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}{{ linkage_nature }}{{ debug }}_cpython  # ["conda-forge" in (channel_targets or "")]
