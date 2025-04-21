@@ -11656,35 +11656,35 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 37ec65e056b9964529c0e1e2697b9955
-      sha256: 2ff22fffe5bb93802c1687b5c4a34b9062394b78f23cfb5c1c1ef9b635bb030e
+      md5: 6320dac78b3b215ceac35858b2cfdb70
+      sha256: 705d06b15c497b585d235e7e87f6c893ffe5fbfdb3326e376e56c842879e0a09
     manager: conda
     name: python_abi
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/python_abi-3.11-6_cp311.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies: {}
     hash:
-      md5: 84778fa68daf740c402dc83f4d747006
-      sha256: a4c3015e6b08febd35e441369ad2ae9ceb74be33a45fe19b3b23786c68c705e5
+      md5: 6320dac78b3b215ceac35858b2cfdb70
+      sha256: 705d06b15c497b585d235e7e87f6c893ffe5fbfdb3326e376e56c842879e0a09
     manager: conda
     name: python_abi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/python_abi-3.11-6_cp311.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies: {}
     hash:
-      md5: b30f805c0fccfebec5012f9f4c2ccfd9
-      sha256: 3d17ac9da54e92fd3d8b52a37aecdf532a45bbc2c0025871da78cec469f1aff7
+      md5: 6320dac78b3b215ceac35858b2cfdb70
+      sha256: 705d06b15c497b585d235e7e87f6c893ffe5fbfdb3326e376e56c842879e0a09
     manager: conda
     name: python_abi
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/python_abi-3.11-6_cp311.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies:
@@ -12709,41 +12709,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 72437384f9364b6baf20b6dd68d282c2
-      sha256: 33a0cab4724d8130055f65e6edc101df7136f2f26cefb52669df88de8aeee28c
+      md5: 36c8697843eb7573fe3dde0e36193a06
+      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-78.1.1-pyhff2d567_0.conda
-    version: 78.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
+    version: 79.0.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 72437384f9364b6baf20b6dd68d282c2
-      sha256: 33a0cab4724d8130055f65e6edc101df7136f2f26cefb52669df88de8aeee28c
+      md5: 36c8697843eb7573fe3dde0e36193a06
+      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-78.1.1-pyhff2d567_0.conda
-    version: 78.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
+    version: 79.0.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 72437384f9364b6baf20b6dd68d282c2
-      sha256: 33a0cab4724d8130055f65e6edc101df7136f2f26cefb52669df88de8aeee28c
+      md5: 36c8697843eb7573fe3dde0e36193a06
+      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-78.1.1-pyhff2d567_0.conda
-    version: 78.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
+    version: 79.0.0
   - category: main
     dependencies:
       packaging: '>=20.0'
