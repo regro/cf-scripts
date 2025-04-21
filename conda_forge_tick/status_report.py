@@ -30,6 +30,7 @@ from conda_forge_tick.migrators import (
     OSXArm,
     Replacement,
     Version,
+    WinArm64,
 )
 from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.path_lengths import cyclic_topological_sort
@@ -470,6 +471,7 @@ def main() -> None:
                     mgconf.get("longterm", False)
                     or isinstance(migrator, ArchRebuild)
                     or isinstance(migrator, OSXArm)
+                    or isinstance(migrator, WinArm64)
                 ):
                     longterm_status[migrator_name] = f"{migrator.name} Migration Status"
                 else:

@@ -45,11 +45,13 @@ from conda_forge_tick.migrators import (
     CrossCompilationForARMAndPower,
     CrossPythonMigrator,
     CrossRBaseMigrator,
+    CrossRBaseWinMigrator,
     DependencyUpdateMigrator,
     DuplicateLinesCleanup,
     ExtraJinja2KeysCleanup,
     FlangMigrator,
     GuardTestingMigrator,
+    GuardTestingWinMigrator,
     Jinja2VarsCleanup,
     LibboostMigrator,
     LicenseMigrator,
@@ -69,12 +71,13 @@ from conda_forge_tick.migrators import (
     StaticLibMigrator,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
+    UpdateCMakeArgsWinMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
     YAMLRoundTrip,
     make_from_lazy_json_data,
 )
-from conda_forge_tick.migrators.arch import OSXArm
+from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
@@ -262,6 +265,24 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                     UpdateCMakeArgsMigrator(),
                     GuardTestingMigrator(),
                     CrossRBaseMigrator(),
+                    CrossPythonMigrator(),
+                    NoCondaInspectMigrator(),
+                    MPIPinRunAsBuildCleanup(),
+                    CombineV1ConditionsMigrator(),
+                ],
+            ),
+        )
+
+    with fold_log_lines("making win-arm64 migrator"):
+        migrators.append(
+            WinArm64(
+                total_graph=gx,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=[
+                    CondaForgeYAMLCleanup(),
+                    UpdateCMakeArgsWinMigrator(),
+                    GuardTestingWinMigrator(),
+                    CrossRBaseWinMigrator(),
                     CrossPythonMigrator(),
                     NoCondaInspectMigrator(),
                     MPIPinRunAsBuildCleanup(),
