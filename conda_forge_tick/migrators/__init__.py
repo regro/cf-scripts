@@ -15,6 +15,7 @@ from .cross_compile import (
     CrossCompilationForARMAndPower,
     CrossPythonMigrator,
     CrossRBaseMigrator,
+    CrossRBaseWinMigrator,
     GuardTestingMigrator,
     GuardTestingWinMigrator,
     NoCondaInspectMigrator,

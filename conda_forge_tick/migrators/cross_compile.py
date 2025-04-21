@@ -408,6 +408,12 @@ ${R} CMD INSTALL --build . ${R_ARGS}
 """
 
 
+CRAN_BLD_BAT = """\
+"%R%" CMD INSTALL --build . %R_ARGS%
+IF %ERRORLEVEL% NEQ 0 exit 1
+"""
+
+
 class CrossRBaseMigrator(MiniMigrator):
     allowed_schema_versions = {0, 1}
     post_migration = True
@@ -482,6 +488,17 @@ class CrossRBaseMigrator(MiniMigrator):
             if os.path.exists("build.sh"):
                 with open("build.sh", "w") as f:
                     f.write(CRAN_BUILD_SH)
+
+
+class CrossRBaseWinMigrator(CrossRBaseMigrator):
+    allowed_schema_versions = {0, 1}
+    post_migration = True
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with pushd(recipe_dir):
+            if os.path.exists("bld.bat"):
+                with open("bld.bat", "w") as f:
+                    f.write(CRAN_BLD_BAT)
 
 
 class CrossCompilationForARMAndPower(MiniMigrator):
