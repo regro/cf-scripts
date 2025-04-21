@@ -866,40 +866,43 @@ package:
     url: https://conda.anaconda.org/conda-forge/osx-arm64/c-ares-1.34.5-h5505292_0.conda
     version: 1.34.5
   - category: main
-    dependencies: {}
+    dependencies:
+      __unix: ''
     hash:
-      md5: 19f3a56f68d2fd06c516076bff482c52
-      sha256: bf832198976d559ab44d6cdb315642655547e26d826e34da67cbee6624cda189
+      md5: e74273d9fc5ab633d613cde474b55157
+      sha256: 43878eddf8eb46e3ba7fcbe77a2f8d00aab9a66d9ff63bc4d072b7af17481197
     manager: conda
     name: ca-certificates
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2025.1.31-hbcca054_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.1.31-hbd8a1cb_1.conda
     version: 2025.1.31
   - category: main
-    dependencies: {}
+    dependencies:
+      __unix: ''
     hash:
-      md5: 3418b6c8cac3e71c0bc089fc5ea53042
-      sha256: 42e911ee2d8808eacedbec46d99b03200a6138b8e8a120bd8acabe1cac41c63b
+      md5: e74273d9fc5ab633d613cde474b55157
+      sha256: 43878eddf8eb46e3ba7fcbe77a2f8d00aab9a66d9ff63bc4d072b7af17481197
     manager: conda
     name: ca-certificates
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/ca-certificates-2025.1.31-h8857fd0_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.1.31-hbd8a1cb_1.conda
     version: 2025.1.31
   - category: main
-    dependencies: {}
+    dependencies:
+      __unix: ''
     hash:
-      md5: 3569d6a9141adc64d2fe4797f3289e06
-      sha256: 7e12816618173fe70f5c638b72adf4bfd4ddabf27794369bb17871c5bb75b9f9
+      md5: e74273d9fc5ab633d613cde474b55157
+      sha256: 43878eddf8eb46e3ba7fcbe77a2f8d00aab9a66d9ff63bc4d072b7af17481197
     manager: conda
     name: ca-certificates
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/ca-certificates-2025.1.31-hf0a4a13_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.1.31-hbd8a1cb_1.conda
     version: 2025.1.31
   - category: main
     dependencies:
@@ -1745,15 +1748,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 14517918b345951df14e3bd67bf81d78
-      sha256: fd6d2ccf451cdd4cfbc55565b79fb68ba134d1e14652dcb8b3c84353e3988266
+      md5: 76d402f2e804ba52c0107f9dd912b09a
+      sha256: 14a91107e7400d12351cb99fd608feac2971841673afa04499d4c55467708e98
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.4.1-py311h38be061_0.conda
-    version: 25.4.1
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.4.2-py311h38be061_0.conda
+    version: 25.4.2
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1782,15 +1785,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: e5feacb28a2f288c5fd9e032c79a3c47
-      sha256: 10941c96ec5f2e1cf5b701b61ae0fa88e13fe8c0f3280352446afb7c59986a57
+      md5: ef4d68ccec07cbd2698391240c207c73
+      sha256: 669447b0a3bb946534ba81857cc72655e4789d1fbe1352f6932c4cfc4f38a952
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.4.1-py311h6eed73b_0.conda
-    version: 25.4.1
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.4.2-py311h6eed73b_0.conda
+    version: 25.4.2
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1819,15 +1822,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: e9411a174641ee862950116cefaed2f4
-      sha256: 5e7c996b8ad24f19ec4dd72f661f8583517d6b051fababb08e63c8ff29a43c07
+      md5: 9ac08f1c880a001fdeb2b94f633f86f3
+      sha256: 2ca0c1faede43b63afdca0e30dd471c3965bd8e26ba7180cceb86c16a1c49eb8
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.4.1-py311h267d04e_0.conda
-    version: 25.4.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.4.2-py311h267d04e_0.conda
+    version: 25.4.2
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -6251,40 +6254,43 @@ package:
     version: '2.43'
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
-      libstdcxx-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      libstdcxx: '>=13'
     hash:
-      md5: 76bbff344f0134279f225174e9064c8f
-      sha256: cb55f36dcd898203927133280ae1dc643368af041a48bcf7c026acb7c47b0c12
+      md5: 9344155d33912347b37f0ae6c410a835
+      sha256: 412381a43d5ff9bbed82cd52a0bbca5b90623f62e41007c9c42d3870c60945ff
     manager: conda
     name: lerc
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.0.0-h27087fc_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
     version: 4.0.0
   - category: main
     dependencies:
-      libcxx: '>=13.0.1'
+      __osx: '>=10.13'
+      libcxx: '>=18'
     hash:
-      md5: f9d6a4c82889d5ecedec1d90eb673c55
-      sha256: e41790fc0f4089726369b3c7f813117bbc14b533e0ed8b94cf75aba252e82497
+      md5: 21f765ced1a0ef4070df53cb425e1967
+      sha256: cc1f1d7c30aa29da4474ec84026ec1032a8df1d7ec93f4af3b98bb793d01184e
     manager: conda
     name: lerc
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/lerc-4.0.0-hb486fe8_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/osx-64/lerc-4.0.0-hcca01a6_1.conda
     version: 4.0.0
   - category: main
     dependencies:
-      libcxx: '>=13.0.1'
+      __osx: '>=11.0'
+      libcxx: '>=18'
     hash:
-      md5: de462d5aacda3b30721b512c5da4e742
-      sha256: 6f068bb53dfb6147d3147d981bb851bb5477e769407ad4e6a68edf482fdcb958
+      md5: a74332d9b60b62905e3d30709df08bf1
+      sha256: 12361697f8ffc9968907d1a7b5830e34c670e4a59b638117a2cdfed8f63a38f8
     manager: conda
     name: lerc
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.0.0-h9a09cb3_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.0.0-hd64df32_1.conda
     version: 4.0.0
   - category: main
     dependencies:
@@ -6571,38 +6577,38 @@ package:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=13'
     hash:
-      md5: 8dfae1d2e74767e9ce36d5fa0d8605db
-      sha256: 511d801626d02f4247a04fff957cc6e9ec4cc7e8622bd9acd076bcdc5de5fe66
+      md5: 27fe770decaf469a53f3e3a6d593067f
+      sha256: 4db2f70a1441317d964e84c268e388110ad9cf75ca98994d1336d670e62e6f07
     manager: conda
     name: libdeflate
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libdeflate-1.23-h4ddbbb0_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libdeflate-1.23-h86f0d12_0.conda
     version: '1.23'
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 120f8f7ba6a8defb59f4253447db4bb4
-      sha256: 20c1e685e7409bb82c819ba55b9f7d9a654e8e6d597081581493badb7464520e
+      md5: 5d3507f22dda24f7d9a79325ad313e44
+      sha256: 9105bb8656649f9676008f95b0f058d2b8ef598e058190dcae1678d6ebc1f9b3
     manager: conda
     name: libdeflate
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libdeflate-1.23-he65b83e_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/libdeflate-1.23-hcc1b750_0.conda
     version: '1.23'
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 1d8b9588be14e71df38c525767a1ac30
-      sha256: 887c02deaed6d583459eba6367023e36d8761085b2f7126e389424f57155da53
+      md5: 4dc332b504166d7f89e4b3b18ab5e6ea
+      sha256: ebc06154e9a2085e8c9edf81f8f5196b73a1698e18ac6386c9b43fb426103327
     manager: conda
     name: libdeflate
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libdeflate-1.23-hec38601_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/libdeflate-1.23-h5773f1b_0.conda
     version: '1.23'
   - category: main
     dependencies:
@@ -7203,41 +7209,44 @@ package:
     version: 0.23.1
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
     hash:
-      md5: ea25936bb4080d843790b586850f82b8
-      sha256: b954e09b7e49c2f2433d6f3bb73868eda5e378278b0f8c1dd10a7ef090e14f2f
+      md5: 9fa334557db9f63da6c9285fd2a48638
+      sha256: 98b399287e27768bf79d48faba8a99a2289748c65cd342ca21033fab1860d4a4
     manager: conda
     name: libjpeg-turbo
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.0.0-hd590300_1.conda
-    version: 3.0.0
+      https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.1.0-hb9d3cd8_0.conda
+    version: 3.1.0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=10.13'
     hash:
-      md5: 72507f8e3961bc968af17435060b6dd6
-      sha256: d9572fd1024adc374aae7c247d0f29fdf4b122f1e3586fe62acc18067f40d02f
+      md5: 87537967e6de2f885a9fcebd42b7cb10
+      sha256: 9c0009389c1439ec96a08e3bf7731ac6f0eab794e0a133096556a9ae10be9c27
     manager: conda
     name: libjpeg-turbo
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libjpeg-turbo-3.0.0-h0dc2134_1.conda
-    version: 3.0.0
+      https://conda.anaconda.org/conda-forge/osx-64/libjpeg-turbo-3.1.0-h6e16a3a_0.conda
+    version: 3.1.0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=11.0'
     hash:
-      md5: 3ff1e053dc3a2b8e36b9bfa4256a58d1
-      sha256: a42054eaa38e84fc1e5ab443facac4bbc9d1b6b6f23f54b7bf4f1eb687e1d993
+      md5: 01caa4fbcaf0e6b08b3aef1151e91745
+      sha256: 78df2574fa6aa5b6f5fc367c03192f8ddf8e27dc23641468d54e031ff560b9d4
     manager: conda
     name: libjpeg-turbo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.0.0-hb547adb_1.conda
-    version: 3.0.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.1.0-h5505292_0.conda
+    version: 3.1.0
   - category: main
     dependencies:
       libblas: 3.9.0
