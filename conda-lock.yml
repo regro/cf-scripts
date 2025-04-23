@@ -11967,15 +11967,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 5ad2099087b60aeb6288e154cb636fa6
-      sha256: 52a08e295cba0cdb40b6ff688f88d783b61818d33cfa18c87a9d405a995c4e45
+      md5: aaae12cdd0b6fda94de6be5d57a90686
+      sha256: 53d28953f0a2f93e489b6c4873710799b89f77ab466de546c39e5492506e1db8
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.2-pyhd8ed1ab_0.conda
-    version: 1.4.2
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.3-pyhd8ed1ab_0.conda
+    version: 1.4.3
   - category: main
     dependencies:
       conda-build: ''
@@ -11986,15 +11986,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 5ad2099087b60aeb6288e154cb636fa6
-      sha256: 52a08e295cba0cdb40b6ff688f88d783b61818d33cfa18c87a9d405a995c4e45
+      md5: aaae12cdd0b6fda94de6be5d57a90686
+      sha256: 53d28953f0a2f93e489b6c4873710799b89f77ab466de546c39e5492506e1db8
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.2-pyhd8ed1ab_0.conda
-    version: 1.4.2
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.3-pyhd8ed1ab_0.conda
+    version: 1.4.3
   - category: main
     dependencies:
       conda-build: ''
@@ -12005,15 +12005,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 5ad2099087b60aeb6288e154cb636fa6
-      sha256: 52a08e295cba0cdb40b6ff688f88d783b61818d33cfa18c87a9d405a995c4e45
+      md5: aaae12cdd0b6fda94de6be5d57a90686
+      sha256: 53d28953f0a2f93e489b6c4873710799b89f77ab466de546c39e5492506e1db8
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.2-pyhd8ed1ab_0.conda
-    version: 1.4.2
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.3-pyhd8ed1ab_0.conda
+    version: 1.4.3
   - category: main
     dependencies:
       libgcc: '>=13'
