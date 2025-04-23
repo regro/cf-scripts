@@ -18,7 +18,7 @@ These are split across our workflows as follows:
 - `bot-update-nodes` - 3 runners
 - `bot-versions` - 6 runners
 - `docker` (on demand) - 1 runner
-- `keepalive` - 1 runner
+- `bot-keepalive` (periodic) - 1 runner
 - `relock` - 1 runner
 - `test-model` (daily for ~4 minutes, on demand) - 1 runner
 - `tests` (on demand) - 1 runner
