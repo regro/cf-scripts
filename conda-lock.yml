@@ -12802,41 +12802,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 36c8697843eb7573fe3dde0e36193a06
-      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
+      md5: fa6669cc21abd4b7b6c5393b7bc71914
+      sha256: 5ebc4bb71fbdc8048b08848519150c8d44b8eb18445711d3258c9d402ba87a2c
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
-    version: 79.0.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.1-pyhff2d567_0.conda
+    version: 79.0.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 36c8697843eb7573fe3dde0e36193a06
-      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
+      md5: fa6669cc21abd4b7b6c5393b7bc71914
+      sha256: 5ebc4bb71fbdc8048b08848519150c8d44b8eb18445711d3258c9d402ba87a2c
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
-    version: 79.0.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.1-pyhff2d567_0.conda
+    version: 79.0.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 36c8697843eb7573fe3dde0e36193a06
-      sha256: b0415e169a4b39ebe4fbbbb224a45607dcceb77162761dfd8bb94533a6ff9f97
+      md5: fa6669cc21abd4b7b6c5393b7bc71914
+      sha256: 5ebc4bb71fbdc8048b08848519150c8d44b8eb18445711d3258c9d402ba87a2c
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.0-pyhff2d567_0.conda
-    version: 79.0.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-79.0.1-pyhff2d567_0.conda
+    version: 79.0.1
   - category: main
     dependencies:
       importlib-metadata: ''
