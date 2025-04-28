@@ -171,7 +171,7 @@ def test_cmake(tmp_path):
     ]
     expected_win = [
         "cmake %CMAKE_ARGS% ..\n",
-        "if not %CONDA_BUILD_SKIP_TESTS%==1 (\n",
+        'if not "%CONDA_BUILD_SKIP_TESTS%"=="1" (\n',
         "ctest\n",
         ")\n",
     ]
