@@ -24,6 +24,22 @@ from .migration_yaml import all_noarch
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
+MIGRATION_SUPPORT_DIRS = [
+    os.path.join(
+        os.environ["CONDA_PREFIX"],
+        "share",
+        "conda-forge",
+        "migration_support",
+    ),
+    # Deprecated
+    os.path.join(
+        os.environ["CONDA_PREFIX"],
+        "share",
+        "conda-forge",
+        "migrations",
+    ),
+]
+
 
 def _filter_excluded_deps(graph, excluded_dependencies):
     """filter out excluded dependencies from the graph
@@ -113,15 +129,13 @@ class ArchRebuild(GraphMigrator):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                with open(
-                    os.path.join(
-                        os.environ["CONDA_PREFIX"],
-                        "share",
-                        "conda-forge",
-                        "migrations",
-                        "arch_rebuild.txt",
-                    )
-                ) as f:
+                fname = None
+                for d in MIGRATION_SUPPORT_DIRS:
+                    fname = os.path.join(d, "arch_rebuild.txt")
+                    if os.path.exists(fname):
+                        break
+
+                with open(fname) as f:
                     target_packages = set(f.read().split())
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
@@ -255,15 +269,13 @@ class _CrossCompileRebuild(GraphMigrator):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                with open(
-                    os.path.join(
-                        os.environ["CONDA_PREFIX"],
-                        "share",
-                        "conda-forge",
-                        "migrations",
-                        self.pkg_list_filename,
-                    )
-                ) as f:
+                fname = None
+                for d in MIGRATION_SUPPORT_DIRS:
+                    fname = os.path.join(d, self.pkg_list_filename)
+                    if os.path.exists(fname):
+                        break
+
+                with open(fname) as f:
                     target_packages = set(f.read().split())
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
