@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 36e7aa2d17330a514ea56098b889decc
-      sha256: e490ebbbfc479a833b34949a5b397c0264218f0a5a87a9c2c58ca9cb2156cea9
+      md5: f2a72de1111878454ab59b1652dde1db
+      sha256: aa435ecbde80567b436b1cfa2f5587078ade908f87bfd7b0b0d30203ae89daf4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.11.52.10-hd8ed1ab_0.conda
-    version: 2025.04.29.11.52.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.16.56.15-hd8ed1ab_0.conda
+    version: 2025.04.29.16.56.15
   - category: main
     dependencies: {}
     hash:
-      md5: 36e7aa2d17330a514ea56098b889decc
-      sha256: e490ebbbfc479a833b34949a5b397c0264218f0a5a87a9c2c58ca9cb2156cea9
+      md5: f2a72de1111878454ab59b1652dde1db
+      sha256: aa435ecbde80567b436b1cfa2f5587078ade908f87bfd7b0b0d30203ae89daf4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.11.52.10-hd8ed1ab_0.conda
-    version: 2025.04.29.11.52.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.16.56.15-hd8ed1ab_0.conda
+    version: 2025.04.29.16.56.15
   - category: main
     dependencies: {}
     hash:
-      md5: 36e7aa2d17330a514ea56098b889decc
-      sha256: e490ebbbfc479a833b34949a5b397c0264218f0a5a87a9c2c58ca9cb2156cea9
+      md5: f2a72de1111878454ab59b1652dde1db
+      sha256: aa435ecbde80567b436b1cfa2f5587078ade908f87bfd7b0b0d30203ae89daf4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.11.52.10-hd8ed1ab_0.conda
-    version: 2025.04.29.11.52.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.29.16.56.15-hd8ed1ab_0.conda
+    version: 2025.04.29.16.56.15
   - category: main
     dependencies:
       click: '>=8'
@@ -9602,16 +9602,16 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       bzip2: '>=1.0.8,<2.0a0'
-      libgcc-ng: '>=12'
+      libgcc: '>=13'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: df359c09c41cd186fffb93a2d87aa6f5
-      sha256: 1087716b399dab91cc9511d6499036ccdc53eb29a288bebcb19cf465c51d7c0d
+      md5: 31614c73d7b103ef76faa4d83d261d34
+      sha256: 09717569649d89caafbf32f6cda1e65aef86e5a86c053d30e4ce77fca8d27b68
     manager: conda
     name: pcre2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.44-hba22ea6_2.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.44-hc749103_2.conda
     version: '10.44'
   - category: main
     dependencies:
@@ -9619,13 +9619,13 @@ package:
       bzip2: '>=1.0.8,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 58cde0663f487778bcd7a0c8daf50293
-      sha256: 336057fce69d45e1059f138beb38d60eb87ba858c3ad729ed49d9ecafd23669f
+      md5: c6873588a8175130eb931e91e80416c2
+      sha256: 93c625933bb47149e250b3c530c7305e7c1dd6c39d8358da8e3e04806545a26b
     manager: conda
     name: pcre2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pcre2-10.44-h7634a1b_2.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/pcre2-10.44-hf733adb_2.conda
     version: '10.44'
   - category: main
     dependencies:
@@ -9633,13 +9633,13 @@ package:
       bzip2: '>=1.0.8,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 147c83e5e44780c7492998acbacddf52
-      sha256: 83153c7d8fd99cab33c92ce820aa7bfed0f1c94fc57010cf227b6e3c50cb7796
+      md5: 1a3f7708de0b393e6665c9f7494b055e
+      sha256: 797411a2d748c11374b84329002f3c65db032cbf012b20d9b14dba9b6ac52d06
     manager: conda
     name: pcre2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.44-h297a79d_2.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.44-ha881caa_2.conda
     version: '10.44'
   - category: main
     dependencies:
@@ -14328,39 +14328,39 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: 61dba281fedf26132226e0f3db60892b
-      sha256: 0fcb5c997a70685f0021424222818ddbdf19dcc8e28a6bd19a6e4a71d4243494
+      md5: 90c0c5e1d35f0664f0ccdc36b9de32ed
+      sha256: 59bcb1f5d865f91878acecb853f5b01f6130a755307dbf1c98391179d34a03e3
     manager: conda
     name: uv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.6.17-h0f3a69f_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.6.17-h3b53078_1.conda
     version: 0.6.17
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
     hash:
-      md5: debf43344840ce06131407d78696088c
-      sha256: 4c0b3be4732fd8330746a41413981605ad9afcc6cfc8bffe247846ec453ace4e
+      md5: b5fc927d3442301be275ba883e99df08
+      sha256: f7bb06bfa0a1acf4d215d1fb596fd95211201e2142531463e19d94da90d5c87b
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.6.17-h8de1528_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.6.17-h08e7fc3_1.conda
     version: 0.6.17
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: d404a1569fa7d8ba5cd36f9acbea5f04
-      sha256: 5dc1ca9501124dbd13be7e2d45e019888f24b830ae6fd679d95968727c13d941
+      md5: bbfe8c53e67b480735dcfabb016f2698
+      sha256: 6577e7e66717cd0b8eadb1e39f3e884288b2a8c0082ed02b2380551f035c5796
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.6.17-h668ec48_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.6.17-hd4c9240_1.conda
     version: 0.6.17
   - category: main
     dependencies:
