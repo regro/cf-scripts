@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: c5c4e068ebac58289c57eccaf9863179
-      sha256: 1b87ac56bddb578a8a739971825120ea4e3fd4907dcc19de01d2b79790c3662e
+      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
+      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.05.53.19-hd8ed1ab_0.conda
-    version: 2025.04.30.05.53.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
+    version: 2025.04.30.10.56.10
   - category: main
     dependencies: {}
     hash:
-      md5: c5c4e068ebac58289c57eccaf9863179
-      sha256: 1b87ac56bddb578a8a739971825120ea4e3fd4907dcc19de01d2b79790c3662e
+      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
+      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.05.53.19-hd8ed1ab_0.conda
-    version: 2025.04.30.05.53.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
+    version: 2025.04.30.10.56.10
   - category: main
     dependencies: {}
     hash:
-      md5: c5c4e068ebac58289c57eccaf9863179
-      sha256: 1b87ac56bddb578a8a739971825120ea4e3fd4907dcc19de01d2b79790c3662e
+      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
+      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.05.53.19-hd8ed1ab_0.conda
-    version: 2025.04.30.05.53.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
+    version: 2025.04.30.10.56.10
   - category: main
     dependencies:
       click: '>=8'
@@ -7438,14 +7438,14 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       zstd: '>=1.5.7,<1.6.0a0'
     hash:
-      md5: cbd05b3b8531f99720d59de5fc4f630b
-      sha256: 9d5aa21cf01656a1902015e8ee2edaa18394209c308ad7016d917eb3a9bc32a5
+      md5: 23566673d16f39ca62de06ad56ce274d
+      sha256: a4eed2f705efee1d8ae3bedaa459fdd24607026de0d8c0ef381d4aaa0379281e
     manager: conda
     name: libllvm20
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libllvm20-20.1.3-h29c3a6c_0.conda
-    version: 20.1.3
+    url: https://conda.anaconda.org/conda-forge/osx-64/libllvm20-20.1.4-h29c3a6c_0.conda
+    version: 20.1.4
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -8382,17 +8382,17 @@ package:
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libllvm20: 20.1.3
-      llvm-tools-20: 20.1.3
+      libllvm20: 20.1.4
+      llvm-tools-20: 20.1.4
     hash:
-      md5: fd9e84f45e0dc765421867a33ef7b9e1
-      sha256: 84a6c53a5cac45a2df5fdb5c7088da1387221fe8e79df263b2eab2dfb337dce0
+      md5: c75fc40eef1522d73f9e03a3831fa87b
+      sha256: 13c8797fed64b658ba4327a57037007f5c20185f7f44905d952a61412f91f95a
     manager: conda
     name: llvm-tools
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20.1.3-h3fe3016_0.conda
-    version: 20.1.3
+    url: https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20.1.4-h3fe3016_0.conda
+    version: 20.1.4
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -8432,19 +8432,19 @@ package:
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
-      libllvm20: 20.1.3
+      libllvm20: 20.1.4
       libzlib: '>=1.3.1,<2.0a0'
       zstd: '>=1.5.7,<1.6.0a0'
     hash:
-      md5: fb76cd14c7c55f2ad28767867d1baabf
-      sha256: 879bac7eccd2003da188b934f3812cf7780758c2edc01f20dfba31fa0857334d
+      md5: 451971d90b8bf33267da68dd68dbdb32
+      sha256: 0e1029d433cf901f3fe62173aa7948bbb04b88943a7fc893f670adbafd2d5540
     manager: conda
     name: llvm-tools-20
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20-20.1.3-he90a8e3_0.conda
-    version: 20.1.3
+      https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20-20.1.4-he90a8e3_0.conda
+    version: 20.1.4
   - category: main
     dependencies:
       python: '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*'
