@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
-      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
+      md5: 77b0ce10a0f14a6ac5158e31d2eb32b7
+      sha256: 9301835330d92a36703ccad0a05cb26aa5bc3da6a0a26ba23efc0dc10c54fe44
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
-    version: 2025.04.30.10.56.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.12.18.08-hd8ed1ab_0.conda
+    version: 2025.04.30.12.18.08
   - category: main
     dependencies: {}
     hash:
-      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
-      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
+      md5: 77b0ce10a0f14a6ac5158e31d2eb32b7
+      sha256: 9301835330d92a36703ccad0a05cb26aa5bc3da6a0a26ba23efc0dc10c54fe44
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
-    version: 2025.04.30.10.56.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.12.18.08-hd8ed1ab_0.conda
+    version: 2025.04.30.12.18.08
   - category: main
     dependencies: {}
     hash:
-      md5: 863f6df0eb3b2e6155bf9b64fe0c99f2
-      sha256: 5483c47248c72126190c1746e8d57090df0b0143673ee0eeabe92cd0d32a6882
+      md5: 77b0ce10a0f14a6ac5158e31d2eb32b7
+      sha256: 9301835330d92a36703ccad0a05cb26aa5bc3da6a0a26ba23efc0dc10c54fe44
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.10.56.10-hd8ed1ab_0.conda
-    version: 2025.04.30.10.56.10
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.04.30.12.18.08-hd8ed1ab_0.conda
+    version: 2025.04.30.12.18.08
   - category: main
     dependencies:
       click: '>=8'
@@ -9765,40 +9765,40 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: 5e2a7acfa2c24188af39e7944e1b3604
-      sha256: 747c58db800d5583fee78e76240bf89cbaeedf7ab1ef339c2990602332b9c4be
+      md5: d2f1c87d4416d1e7344cf92b1aaee1c4
+      sha256: 1330c3fd424fa2deec6a30678f235049c0ed1b0fad8d2d81ef995c9322d5e49a
     manager: conda
     name: pixman
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/pixman-0.44.2-h29eaf8c_0.conda
-    version: 0.44.2
+    url: https://conda.anaconda.org/conda-forge/linux-64/pixman-0.46.0-h29eaf8c_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
     hash:
-      md5: 9d3ed4c1a6e21051bf4ce53851acdc96
-      sha256: 7e5a9823e7e759355b954037f97d4aa53c26db1d73408571e749f8375b363743
+      md5: 808d70603573b87f3427b61501fa376d
+      sha256: 4d8184a8d453e8218017ed2fe024496b6ccf5ba05b994d3a60a8871022ec7a76
     manager: conda
     name: pixman
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pixman-0.44.2-h1fd1274_0.conda
-    version: 0.44.2
+    url: https://conda.anaconda.org/conda-forge/osx-64/pixman-0.46.0-h1fd1274_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: fa8e429fdb9e5b757281f69b8cc4330b
-      sha256: 28855d4cb2d9fc9a6bd9196dadbaecd6868ec706394cec2f88824a61ba4b1bc0
+      md5: d098a1cca9d588cd4d258d06a08a454e
+      sha256: ed22ffec308e798d50066286e5b184c64bb47a3787840883249377ae4e6d684b
     manager: conda
     name: pixman
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/pixman-0.44.2-h2f9eb0b_0.conda
-    version: 0.44.2
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/pixman-0.46.0-h2f9eb0b_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       python: '>=3.9'
