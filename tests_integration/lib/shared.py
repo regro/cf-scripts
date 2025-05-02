@@ -96,6 +96,7 @@ def get_transparent_urls() -> set[str]:
         # this is to protect against mistakes and typos, adjust if it ever becomes too strict
         raise ValueError("All URLs in transparent_urls must start with https://")
 
+    # silence the PyCharm warning about using http instead of https
     # noinspection HttpUrlsUsage
     http_urls = {url.replace("https://", "http://", 1) for url in transparent_urls}
 
