@@ -8,6 +8,10 @@ from tests_integration.lib.integration_test_helper import IntegrationTestHelper
 class TestCase(ABC):
     """
     Abstract base class for a single test case in a scenario.
+    Per test case, there is exactly one instance of this class statically created
+    in the definition of the ALL_TEST_CASES list of the feedstock module.
+    Note that a test case (i.e. an instance of this class) might be run multiple times,
+    so be careful with state you keep in the instance.
     """
 
     def get_router(self) -> APIRouter:
