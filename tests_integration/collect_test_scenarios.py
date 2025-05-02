@@ -48,13 +48,10 @@ def get_test_scenario(scenario_id: int) -> dict[str, TestCase]:
         # in-place
         random.shuffle(test_cases)
 
-    def pop_test_scenario():
-        scenario: dict[str, TestCase] = {}
-        for feedstock in test_cases_extended:
-            scenario[feedstock] = test_cases_extended[feedstock].pop()
-        return scenario
-
-    for _ in range(scenario_id):
-        pop_test_scenario()
-
-    return pop_test_scenario()
+    # At this point, test_cases_extended[feedstock][i] is the test case for
+    # feedstock "feedstock" in the i-th test scenario.
+    # We need to return the i-th test scenario, so we set i to scenario_id.
+    return {
+        feedstock: test_cases_extended[feedstock][scenario_id]
+        for feedstock in test_cases_extended
+    }
