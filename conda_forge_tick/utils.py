@@ -686,6 +686,39 @@ def _remove_none_values(d):
     return {k: _remove_none_values(v) for k, v in d.items() if v is not None}
 
 
+def get_recipe_schema_version(feedstock_attrs: Mapping[str, Any]) -> int:
+    """
+    Get the recipe schema version from the feedstock attributes.
+
+    Parameters
+    ----------
+    feedstock_attrs : Mapping[str, Any]
+        The feedstock attributes.
+
+    Returns
+    -------
+    int
+        The recipe version. If it does not exist in the feedstock attributes,
+        it defaults to 0.
+
+    Raises
+    ------
+    ValueError
+        If the recipe version is not an integer, i.e. the attributes are invalid.
+    """
+    version = get_keys_default(
+        feedstock_attrs,
+        ["meta_yaml", "schema_version"],
+        {},
+        0,
+    )
+
+    if not isinstance(version, int):
+        raise ValueError("Recipe version is not an integer")
+
+    return version
+
+
 def parse_meta_yaml(
     text: str,
     for_pinning=False,
@@ -1376,7 +1409,15 @@ def extract_section_from_yaml_text(
         A list of strings for the extracted sections.
     """
     # normalize the indents etc.
-    yaml_text = CondaMetaYAML(yaml_text).dumps()
+    try:
+        yaml_text = CondaMetaYAML(yaml_text).dumps()
+    except Exception as e:
+        logger.debug(
+            "Failed to normalize the YAML text due to error %s. We will try to parse anyways!",
+            repr(e),
+        )
+        pass
+
     lines = yaml_text.splitlines()
 
     in_requirements = False

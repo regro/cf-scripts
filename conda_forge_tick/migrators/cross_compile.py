@@ -148,6 +148,38 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 f.write("".join(lines))
 
 
+class GuardTestingWinMigrator(CrossCompilationMigratorBase):
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with pushd(recipe_dir):
+            if not os.path.exists("bld.bat"):
+                return
+            with open("bld.bat") as f:
+                lines = list(f.readlines())
+
+            for i, line in enumerate(lines):
+                if "CONDA_BUILD_CROSS_COMPILATION" in line:
+                    return
+                if (
+                    line.strip().startswith("make check")
+                    or line.strip().startswith("ctest")
+                    or line.strip().startswith("make test")
+                ):
+                    lines.insert(i, 'if not "%CONDA_BUILD_SKIP_TESTS%"=="1" (\n')
+                    insert_after = i + 1
+                    while len(lines) > insert_after and lines[insert_after].endswith(
+                        "\\\n",
+                    ):
+                        insert_after += 1
+                    if lines[insert_after][-1] != "\n":
+                        lines[insert_after] += "\n"
+                    lines.insert(insert_after + 1, ")\n")
+                    break
+            else:
+                return
+            with open("bld.bat", "w") as f:
+                f.write("".join(lines))
+
+
 class CrossPythonMigrator(MiniMigrator):
     allowed_schema_versions = {0, 1}
     post_migration = True
@@ -171,6 +203,8 @@ class CrossPythonMigrator(MiniMigrator):
             with open(recipe_file) as f:
                 lines = f.readlines()
             in_reqs = False
+            if any("cross-python" in line for line in lines):
+                return
             for i, line in enumerate(lines):
                 if line.strip().startswith("requirements:"):
                     in_reqs = True
@@ -256,6 +290,35 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
                 return
 
             with open("build.sh", "w") as f:
+                f.write("".join(lines))
+
+
+class UpdateCMakeArgsWinMigrator(CrossCompilationMigratorBase):
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        build_reqs = attrs.get("requirements", {}).get("build", set())
+        return "cmake" not in build_reqs or skip_migrator_due_to_schema(
+            attrs, self.allowed_schema_versions
+        )
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with pushd(recipe_dir):
+            if not os.path.exists("bld.bat"):
+                return
+            with open("bld.bat") as f:
+                lines = list(f.readlines())
+
+            for i, line in enumerate(lines):
+                if "%CMAKE_ARGS%" in line:
+                    return
+
+            for i, line in enumerate(lines):
+                if line.startswith("cmake "):
+                    lines[i] = "cmake %CMAKE_ARGS% " + line[len("cmake ") :]
+                    break
+            else:
+                return
+
+            with open("bld.bat", "w") as f:
                 f.write("".join(lines))
 
 
@@ -345,6 +408,12 @@ ${R} CMD INSTALL --build . ${R_ARGS}
 """
 
 
+CRAN_BLD_BAT = """\
+"%R%" CMD INSTALL --build . %R_ARGS%
+IF %ERRORLEVEL% NEQ 0 exit 1
+"""
+
+
 class CrossRBaseMigrator(MiniMigrator):
     allowed_schema_versions = {0, 1}
     post_migration = True
@@ -419,6 +488,17 @@ class CrossRBaseMigrator(MiniMigrator):
             if os.path.exists("build.sh"):
                 with open("build.sh", "w") as f:
                     f.write(CRAN_BUILD_SH)
+
+
+class CrossRBaseWinMigrator(CrossRBaseMigrator):
+    allowed_schema_versions = {0, 1}
+    post_migration = True
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with pushd(recipe_dir):
+            if os.path.exists("bld.bat"):
+                with open("bld.bat", "w") as f:
+                    f.write(CRAN_BLD_BAT)
 
 
 class CrossCompilationForARMAndPower(MiniMigrator):

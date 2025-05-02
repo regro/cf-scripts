@@ -36,6 +36,8 @@ def test_parsing_ml_jinja2():
 {% set build = build + 100 %}
 {% endif %}
 
+{# this is a comment #}
+
 package:
   name: {{ name|lower }}
 
@@ -97,6 +99,8 @@ build:
 {% if False %}
 {% set build = build + 100 %}
 {% endif %}
+
+# this is a comment
 
 package:
   name: {{ name|lower }}
@@ -234,6 +238,8 @@ build:
 {% if False %}
 {% set build = build + 100 %}
 {% endif %}
+
+# this is a comment
 
 package:
   name: {{ name|lower }}

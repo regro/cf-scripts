@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import re
@@ -25,6 +26,7 @@ from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
     get_migrator_name,
+    get_recipe_schema_version,
 )
 
 if typing.TYPE_CHECKING:
@@ -402,16 +404,17 @@ class StaticLibMigrator(GraphMigrator):
 
     def __init__(
         self,
-        graph: nx.DiGraph = None,
+        graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
         max_solver_attempts=3,
-        effective_graph: nx.DiGraph = None,
+        effective_graph: nx.DiGraph | None = None,
         force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
+        total_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -428,7 +431,20 @@ class StaticLibMigrator(GraphMigrator):
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
                 "paused": paused,
+                "total_graph": total_graph,
             }
+
+        self.top_level = set()
+        self.cycles = set()
+        self.bump_number = bump_number
+        self.max_solver_attempts = max_solver_attempts
+        self.longterm = longterm
+        self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
+        self.paused = paused
+
+        if total_graph is not None:
+            total_graph = copy.deepcopy(total_graph)
+            total_graph.clear_edges()
 
         super().__init__(
             graph=graph,
@@ -438,16 +454,8 @@ class StaticLibMigrator(GraphMigrator):
             check_solvable=check_solvable,
             effective_graph=effective_graph,
             name="static_lib_migrator",
+            total_graph=total_graph,
         )
-        self.top_level = set()
-        self.cycles = set()
-        self.bump_number = bump_number
-        self.max_solver_attempts = max_solver_attempts
-        self.longterm = longterm
-        self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
-        self.paused = paused
-
-        self._reset_effective_graph()
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
@@ -475,12 +483,10 @@ class StaticLibMigrator(GraphMigrator):
 
         return False
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """Determine whether feedstock needs to be filtered out.
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-        Return True to skip ("filter") the feedstock from the migration.
-        Return False to include the feedstock in the migration.
-        """
         update_static_libs = get_keys_default(
             attrs,
             ["conda-forge.yml", "bot", "update_static_libs"],
@@ -493,31 +499,24 @@ class StaticLibMigrator(GraphMigrator):
                 "filter %s: static lib updates not enabled",
                 attrs.get("name") or "",
             )
-            return True
 
-        platform_arches = tuple(attrs.get("platforms") or [])
-        static_libs_out_of_date, slrep = any_static_libs_out_of_date(
-            platform_arches=platform_arches,
-            raw_meta_yaml=attrs.get("raw_meta_yaml") or "",
-        )
-        if not static_libs_out_of_date:
-            logger.debug(
-                "filter %s: no static libs out of date\nmapping: %s",
-                attrs.get("name") or "",
-                static_libs_out_of_date,
-                slrep,
+        if update_static_libs:
+            platform_arches = tuple(attrs.get("platforms") or [])
+            static_libs_out_of_date, slrep = any_static_libs_out_of_date(
+                platform_arches=platform_arches,
+                raw_meta_yaml=attrs.get("raw_meta_yaml") or "",
             )
+            if not static_libs_out_of_date:
+                logger.debug(
+                    "filter %s: no static libs out of date\nmapping: %s",
+                    attrs.get("name") or "",
+                    slrep,
+                )
+            _read_repodata.cache_clear()
+        else:
+            static_libs_out_of_date = False
 
-        retval = (
-            (not update_static_libs)
-            or (not static_libs_out_of_date)
-            or super().filter(
-                attrs=attrs,
-                not_bad_str_start=not_bad_str_start,
-            )
-        )
-        _read_repodata.cache_clear()
-        return retval
+        return (not update_static_libs) or (not static_libs_out_of_date)
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -534,12 +533,7 @@ class StaticLibMigrator(GraphMigrator):
                 with open("meta.yaml") as f:
                     raw_meta_yaml = f.read()
 
-        schema_version = get_keys_default(
-            attrs,
-            ["meta_yaml", "schema_version"],
-            {},
-            0,
-        )
+        schema_version = get_recipe_schema_version(attrs)
 
         needs_update, static_lib_replacements = any_static_libs_out_of_date(
             platform_arches=platform_arches,

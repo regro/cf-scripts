@@ -733,20 +733,14 @@ def _run_migrator_on_feedstock_branch(
     sync_version_pr_info = False
     is_version = isinstance(migrator, Version)
     try:
-        try:
-            fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get(
-                "new_version", None
-            )
-            migrator_uid, pr_json = run_with_tmpdir(
-                context=fctx,
-                migrator=migrator,
-                git_backend=git_backend,
-                rerender=migrator.rerender,
-                base_branch=base_branch,
-                hash_type=attrs.get("hash_type", "sha256"),
-            )
-        finally:
-            fctx.attrs.pop("new_version", None)
+        migrator_uid, pr_json = run_with_tmpdir(
+            context=fctx,
+            migrator=migrator,
+            git_backend=git_backend,
+            rerender=migrator.rerender,
+            base_branch=base_branch,
+            hash_type=attrs.get("hash_type", "sha256"),
+        )
 
         # if migration successful
         if migrator_uid:

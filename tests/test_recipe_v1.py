@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -17,9 +18,12 @@ from conda_forge_tick.migrators.recipe_v1 import (
 
 YAML_PATH = Path(__file__).parent / "test_v1_yaml"
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 combine_conditions_migrator = Version(
     set(),
     piggy_back_migrations=[CombineV1ConditionsMigrator()],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -95,19 +99,18 @@ def test_not_is_negated_condition(a, b):
         ),
         ("a and b", "a", "b"),
         ("a and b", "b", "a"),
-        ("(a or b) and c", "c", "(a or b)"),
+        ("(a or b) and c", "c", "a or b"),
         ("(a or b) and c", "(a or b)", "c"),
-        ("(a or b) and (c or d)", "(a or b)", "(c or d)"),
-        ("(a or b) and (c or d)", "(c or d)", "(a or b)"),
-        # we can't handle extra parentheses in sub_cond right now
-        ("(a or b) and c", "a or b", None),
-        ("(a or b) and (c or d)", "a or b", None),
-        ("(a or b) and (c or d)", "c or d", None),
+        ("(a or b) and (c or d)", "(a or b)", "c or d"),
+        ("(a or b) and (c or d)", "(c or d)", "a or b"),
+        ("(a or b) and c", "a or b", "c"),
+        ("(a or b) and (c or d)", "a or b", "c or d"),
+        ("(a or b) and (c or d)", "c or d", "a or b"),
         ("a and b and c", "a and b", "c"),
         ("a and b and c", "c", "a and b"),
-        ("a and (b and c)", "a", "(b and c)"),
+        ("a and (b and c)", "a", "b and c"),
         ("a and (b and c)", "(b and c)", "a"),
-        ("a and (b and c)", "b and c", None),
+        ("a and (b and c)", "b and c", "a"),
     ],
 )
 def test_sub_condition(sub_cond, super_cond, new_sub):

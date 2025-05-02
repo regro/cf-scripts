@@ -21,7 +21,11 @@ def delay_rerun(*args):
             "http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.6p1.tar.gz",
             True,
         ),
-        ("https://eups.lsst.codes/stack/src/tags/w_2021_07.list", True),
+        pytest.param(
+            "https://eups.lsst.codes/stack/src/tags/w_2021_07.list",
+            True,
+            marks=pytest.mark.xfail(reason="expired HTTPS certificate"),
+        ),
         pytest.param(
             "https://downloads.sourceforge.net/project/healpix/Healpix_3.31/Healpix_3.31_2016Aug26.tar.gz",  # noqa
             True,

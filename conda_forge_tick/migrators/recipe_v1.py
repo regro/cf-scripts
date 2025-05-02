@@ -1,4 +1,5 @@
 import logging
+import re
 import typing
 from pathlib import Path
 from typing import Any
@@ -69,14 +70,28 @@ def is_sub_condition(sub_node: Node, super_node: Node) -> bool:
 
 
 def get_new_sub_condition(sub_cond: str, super_cond: str) -> str | None:
-    if sub_cond.startswith(super_cond):
-        strip_cond = sub_cond.removeprefix(super_cond).lstrip()
-        if strip_cond.startswith("and"):
-            return strip_cond.removeprefix("and").lstrip()
-    elif sub_cond.endswith(super_cond):
-        strip_cond = sub_cond.removesuffix(super_cond).rstrip()
-        if strip_cond.endswith("and"):
-            return strip_cond.removesuffix("and").rstrip()
+    l_cond_re = re.compile(
+        r"^\s* (?P<p1> \( )? \s*"  # optional "("
+        + re.escape(super_cond)  # super_cond
+        + r"\s* (?(p1) \) ) \s*"  # matching ")"
+        r"and \s* (?P<p2> \( )? \s*"  # "and", optional "("
+        r"(?P<new_cond>.*?)"  # new_cond
+        r"\s* (?(p2) \) ) \s*$",  # matching ")"
+        re.VERBOSE,
+    )
+    r_cond_re = re.compile(
+        r"^\s* (?P<p1> \( )? \s*"  # optional "("
+        r"(?P<new_cond>.*?)"  # new_cond
+        r"\s* (?(p1) \) ) \s*"  # matching ")"
+        r"and \s* (?P<p2> \( )? \s*"  # "and", optional "("
+        + re.escape(super_cond)  # super_cond
+        + r"\s* (?(p2) \) ) \s*$",  # matching ")"
+        re.VERBOSE,
+    )
+    if match := l_cond_re.match(sub_cond):
+        return match.group("new_cond")
+    if match := r_cond_re.match(sub_cond):
+        return match.group("new_cond")
     return None
 
 
@@ -118,7 +133,7 @@ def combine_conditions(node: Any):
 
             if is_sub_condition(sub_node=node_cond, super_node=prev_cond):
                 new_cond = get_new_sub_condition(
-                    sub_cond=node[i]["if"].strip(), super_cond=node[i - 1]["if"].strip()
+                    sub_cond=node[i]["if"], super_cond=node[i - 1]["if"]
                 )
                 if new_cond is not None:
                     node[i]["if"] = new_cond
@@ -128,7 +143,7 @@ def combine_conditions(node: Any):
                     del node[i]
             elif is_sub_condition(sub_node=prev_cond, super_node=node_cond):
                 new_cond = get_new_sub_condition(
-                    sub_cond=node[i - 1]["if"].strip(), super_cond=node[i]["if"].strip()
+                    sub_cond=node[i - 1]["if"], super_cond=node[i]["if"]
                 )
                 if new_cond is not None:
                     node[i - 1]["if"] = new_cond

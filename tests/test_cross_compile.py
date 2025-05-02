@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import networkx as nx
 import pytest
 from flaky import flaky
 from test_migrators import run_test_migration
@@ -10,8 +11,10 @@ from conda_forge_tick.migrators import (
     CrossPythonMigrator,
     CrossRBaseMigrator,
     GuardTestingMigrator,
+    GuardTestingWinMigrator,
     NoCondaInspectMigrator,
     UpdateCMakeArgsMigrator,
+    UpdateCMakeArgsWinMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
 )
@@ -22,9 +25,14 @@ YAML_PATHS = [
 ]
 YAML_PATH = YAML_PATHS[0]
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
+guard_testing_win_migrator = GuardTestingWinMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
+cmake_win_migrator = UpdateCMakeArgsWinMigrator()
 cross_python_migrator = CrossPythonMigrator()
 cross_rbase_migrator = CrossRBaseMigrator()
 b2h_migrator = Build2HostMigrator()
@@ -33,36 +41,51 @@ arm_and_power_migrator = CrossCompilationForARMAndPower()
 
 version_migrator_autoconf = Version(
     set(),
-    piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator],
+    piggy_back_migrations=[
+        config_migrator,
+        cmake_migrator,
+        cmake_win_migrator,
+        guard_testing_migrator,
+        guard_testing_win_migrator,
+    ],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_cmake = Version(
     set(),
     piggy_back_migrations=[
         cmake_migrator,
+        cmake_win_migrator,
         guard_testing_migrator,
+        guard_testing_win_migrator,
         cross_rbase_migrator,
         cross_python_migrator,
     ],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_python = Version(
     set(),
     piggy_back_migrations=[cross_python_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_rbase = Version(
     set(),
     piggy_back_migrations=[cross_rbase_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_b2h = Version(
     set(),
     piggy_back_migrations=[b2h_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_nci = Version(
     set(),
     piggy_back_migrations=[nci_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 version_migrator_arm_and_power = Version(
     set(),
     piggy_back_migrations=[arm_and_power_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -124,6 +147,8 @@ def test_cmake(tmp_path):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\ncmake ..\nctest")
+    with open(tmp_path / "recipe/bld.bat", "w") as f:
+        f.write("cmake ..\nctest")
     run_test_migration(
         m=version_migrator_cmake,
         inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
@@ -137,16 +162,25 @@ def test_cmake(tmp_path):
         },
         tmp_path=tmp_path,
     )
-    expected = [
+    expected_unix = [
         "#!/bin/bash\n",
         "cmake ${CMAKE_ARGS} ..\n",
         'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
         "ctest\n",
         "fi\n",
     ]
+    expected_win = [
+        "cmake %CMAKE_ARGS% ..\n",
+        'if not "%CONDA_BUILD_SKIP_TESTS%"=="1" (\n',
+        "ctest\n",
+        ")\n",
+    ]
     with open(tmp_path / "recipe/build.sh") as f:
         lines = f.readlines()
-        assert lines == expected
+        assert lines == expected_unix
+    with open(tmp_path / "recipe/bld.bat") as f:
+        lines = f.readlines()
+        assert lines == expected_win
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
