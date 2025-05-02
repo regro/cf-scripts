@@ -35,7 +35,7 @@ MITMPROXY_CERT_BUNDLE_FILE = MITMPROXY_CONFDIR / "mitmproxy-cert-bundle.pem"
 
 
 @pytest.fixture(scope="module", autouse=True)
-def global_environment_setup(monkeypatch):
+def global_environment_setup():
     """
     Set up the global environment variables for the tests.
     """
@@ -43,24 +43,22 @@ def global_environment_setup(monkeypatch):
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
 
     # In Python 3.13, this might break. https://stackoverflow.com/a/79124282
-    monkeypatch.setenv("MITMPROXY_CONFDIR", str(MITMPROXY_CONFDIR.resolve()))
-    monkeypatch.setenv("SSL_CERT_FILE", str(MITMPROXY_CERT_BUNDLE_FILE.resolve()))
-    monkeypatch.setenv("REQUESTS_CA_BUNDLE", str(MITMPROXY_CERT_BUNDLE_FILE.resolve()))
-    monkeypatch.setenv("GIT_SSL_CAINFO", str(MITMPROXY_CERT_BUNDLE_FILE.resolve()))
+    os.environ["MITMPROXY_CONFDIR"] = str(MITMPROXY_CONFDIR.resolve())
+    os.environ["SSL_CERT_FILE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
+    os.environ["REQUESTS_CA_BUNDLE"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
+    os.environ["GIT_SSL_CAINFO"] = str(MITMPROXY_CERT_BUNDLE_FILE.resolve())
 
     github_run_id = os.environ.get("GITHUB_RUN_ID", "GITHUB_RUN_ID_NOT_SET")
-    monkeypatch.setenv(
-        "RUN_URL", f"https://github.com/regro/cf-scripts/actions/runs/{github_run_id}"
+    os.environ["RUN_URL"] = (
+        f"https://github.com/regro/cf-scripts/actions/runs/{github_run_id}"
     )
 
     # by default, we enable container mode because it is the default in the bot
-    monkeypatch.setenv("CF_FEEDSTOCK_OPS_IN_CONTAINER", "false")
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "false"
 
-    if not os.environ.get("CF_FEEDSTOCK_OPS_CONTAINER_NAME"):
-        monkeypatch.setenv("CF_FEEDSTOCK_OPS_CONTAINER_NAME", "conda-forge-tick")
-
-    if not os.environ.get("CF_FEEDSTOCK_OPS_CONTAINER_TAG"):
-        monkeypatch.setenv("CF_FEEDSTOCK_OPS_CONTAINER_TAG", "test")
+    # set if not set
+    os.environ.setdefault("CF_FEEDSTOCK_OPS_CONTAINER_NAME", "conda-forge-tick")
+    os.environ.setdefault("CF_FEEDSTOCK_OPS_CONTAINER_TAG", "test")
 
     new_settings = settings()
 
