@@ -81,7 +81,7 @@ A test scenario assigns one test case to every feedstock and runs them in parall
 Thus, test cases of different feedstocks can run simultaneously, but the different test cases for the same feedstock
 are always run sequentially.
 
-The generation of test scenarios is done in [collect_test_scenarios.py](collect_test_scenarios.py). It is pseudo-random,
+The generation of test scenarios is done in [_collect_test_scenarios.py](lib/_collect_test_scenarios.py). It is pseudo-random,
 ensuring that faulty interactions between test cases are detected eventually.
 
 In detail, the process of collecting test scenarios is as follows:

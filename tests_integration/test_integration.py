@@ -16,19 +16,17 @@ import pytest
 from xprocess import ProcessStarter, XProcess
 
 from conda_forge_tick.settings import settings, use_settings
-from tests_integration import setup_repositories
-from tests_integration.collect_test_scenarios import (
+from tests_integration.lib import (
+    TestCase,
+    close_all_open_pull_requests,
     get_all_test_scenario_ids,
     get_test_scenario,
-)
-from tests_integration.lib.shared import setup_logging
-from tests_integration.lib.test_case import TestCase
-from tests_integration.step_prepare import (
-    close_all_open_pull_requests,
+    prepare_all_accounts,
     reset_cf_graph,
     run_all_prepare_functions,
+    run_all_validate_functions,
+    setup_logging,
 )
-from tests_integration.step_validate import run_all_validate_functions
 
 TESTS_INTEGRATION_DIR = Path(__file__).parent
 CF_SCRIPTS_ROOT_DIR = TESTS_INTEGRATION_DIR.parent
@@ -89,7 +87,7 @@ def repositories_setup():
     """
     Set up the repositories for the tests.
     """
-    setup_repositories.prepare_all_accounts()
+    prepare_all_accounts()
 
 
 @pytest.fixture(params=get_all_test_scenario_ids())

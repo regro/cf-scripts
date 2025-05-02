@@ -6,8 +6,6 @@ We do not *create* any repositories within the bot's user account here. This is 
 test cases themselves because tests could purposefully rely on the actual bot itself to create repositories.
 
 However, we do delete unnecessary feedstocks from the bot's user account.
-
-After the repositories are set up, we write a list of all test scenario ids to be run to $GITHUB_OUTPUT.
 """
 
 import logging
@@ -19,7 +17,8 @@ from github import Github
 from github.Repository import Repository
 
 from tests_integration.definitions import TEST_CASE_MAPPING
-from tests_integration.lib.shared import (
+
+from ._shared import (
     FEEDSTOCK_SUFFIX,
     REGRO_ACCOUNT_REPOS,
     GitHubAccount,
@@ -28,10 +27,6 @@ from tests_integration.lib.shared import (
 )
 
 LOGGER = logging.getLogger(__name__)
-
-IGNORE_FEEDSTOCK_NAMES = {
-    "__pycache__",
-}
 
 
 @dataclass(frozen=True)

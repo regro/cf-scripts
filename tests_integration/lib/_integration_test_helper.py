@@ -11,7 +11,8 @@ from conda_forge_tick.git_utils import GitCli
 from conda_forge_tick.utils import (
     run_command_hiding_token,
 )
-from tests_integration.lib.shared import (
+
+from ._shared import (
     FEEDSTOCK_SUFFIX,
     GitHubAccount,
     get_github_token,

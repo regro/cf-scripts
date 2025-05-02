@@ -1,7 +1,6 @@
 import logging
 import os
 from enum import StrEnum
-from pathlib import Path
 
 from fastapi import APIRouter
 
@@ -28,19 +27,11 @@ IS_USER_ACCOUNT: dict[GitHubAccount, bool] = {
 
 REGRO_ACCOUNT_REPOS = {"cf-graph-countyfair"}
 
-ENV_GITHUB_OUTPUT = "GITHUB_OUTPUT"
 ENV_GITHUB_RUN_ID = "GITHUB_RUN_ID"
 """
 Used as a random seed for the integration tests.
 """
 ENV_TEST_SCENARIO_ID = "SCENARIO_ID"
-
-GITHUB_OUTPUT_KEY_SCENARIO_IDS = "scenario_ids"
-
-TESTS_INTEGRATION_DIR_NAME = "tests_integration"
-DEFINITIONS_DIR_NAME = "definitions"
-
-DEFINITIONS_DIR = Path(__file__).parents[1] / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 

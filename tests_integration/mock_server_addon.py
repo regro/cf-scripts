@@ -16,12 +16,12 @@ from fastapi import FastAPI
 from mitmproxy.addons import asgiapp
 from mitmproxy.http import HTTPFlow
 
-from tests_integration.collect_test_scenarios import get_test_scenario
-from tests_integration.lib.shared import (
+from tests_integration.lib import (
     ENV_TEST_SCENARIO_ID,
     VIRTUAL_PROXY_HOSTNAME,
     VIRTUAL_PROXY_PORT,
     get_global_router,
+    get_test_scenario,
     get_transparent_urls,
 )
 

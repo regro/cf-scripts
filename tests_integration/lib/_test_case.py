@@ -2,7 +2,7 @@ from abc import ABC
 
 from fastapi import APIRouter
 
-from tests_integration.lib.integration_test_helper import IntegrationTestHelper
+from ._integration_test_helper import IntegrationTestHelper
 
 
 class TestCase(ABC):

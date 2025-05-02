@@ -2,8 +2,9 @@ import os
 import random
 
 from tests_integration.definitions import TEST_CASE_MAPPING
-from tests_integration.lib.shared import ENV_GITHUB_RUN_ID
-from tests_integration.lib.test_case import TestCase
+
+from ._shared import ENV_GITHUB_RUN_ID
+from ._test_case import TestCase
 
 
 def get_number_of_test_scenarios() -> int:
