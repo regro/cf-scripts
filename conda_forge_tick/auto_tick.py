@@ -955,7 +955,7 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, tried_prs):
 
 def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
     _mg_start = time.time()
-    home_directory = os.getcwd()
+    initial_working_dir = os.getcwd()
 
     migrator_name = get_migrator_name(migrator)
 
@@ -1099,7 +1099,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                 gc.collect()
 
                 # sometimes we get weird directory issues so make sure we reset
-                os.chdir(home_directory)
+                os.chdir(initial_working_dir)
 
                 # Write graph partially through
                 dump_graph(mctx.graph)
