@@ -47,14 +47,14 @@ in the cf-graph. See the [pytest test definition](test_integration.py) for more 
 Also, a test case is always bound to one specific feedstock.
 
 ### Test Case Definition
-To define a test case, create a subclass of `tests_integration.lib.test_case.TestCase` in the `__init__.py` file of
+To define a test case, create a subclass of `tests_integration.lib.TestCase` in the `__init__.py` file of
 your feedstock. You can name it arbitrarily.
 Referring to the minimal `VersionUpdate` test case in the
 [pydantic module](definitions/pydantic/__init__.py),
 your class has to implement three methods:
 
 1. `get_router()` should return an `APIRouter` object to define mock responses for specific HTTP requests. All web requests are intercepted by an HTTP proxy.
-Refer to `tests_integration.lib.shared.get_transparent_urls` to define URLs that should not be intercepted.
+Refer to `tests_integration.lib.get_transparent_urls` to define URLs that should not be intercepted.
 
 2. `prepare(helper: IntegrationTestHelper)` for setting up your test case. Usually, you will want to
 overwrite the feedstock repository in the test environment. The `IntegrationTestHelper` provides methods to interact
