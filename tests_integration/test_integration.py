@@ -254,6 +254,22 @@ def test_scenario(
     mitmproxy,
     request: pytest.FixtureRequest,
 ):
+    """
+    Execute the test scenario given by the scenario fixture (note that the fixture is
+    parameterized and therefore we run this for all scenarios).
+    All steps of the bot are executed in sequence to test its end-to-end functionality.
+
+    A test scenario assigns one test case to each feedstock. For details on
+    the testing setup, please refer to the README.md in the tests_integration
+    (i.e., parent) directory.
+
+    :param use_containers: Whether container mode is enabled or not.
+    :param scenario: The test scenario to run. This is a tuple of (scenario_id, scenario),
+        where scenario is a dictionary with the feedstock name as key and the test case name as value.
+    :param repositories_setup: The fixture that sets up the repositories.
+    :param mitmproxy: The fixture that sets up the mitmproxy.
+    :param request: The pytest fixture request object.
+    """
     _, scenario = scenario
 
     if not use_containers:
