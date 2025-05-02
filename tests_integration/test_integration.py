@@ -1,3 +1,9 @@
+"""
+Pytest entry point for the integration tests.
+Please refer to the README.md in the tests_integration (i.e., parent) directory
+for more information.
+"""
+
 import contextlib
 import logging
 import os
