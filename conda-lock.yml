@@ -2504,15 +2504,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: af56dc8db493796c742436aeb21360ec
-      sha256: 37b6ca214e29dc2a40abcf1234eec8d9f21cd011571e076d052b00c31fac479f
+      md5: e8d4f0d7bfbe1ac3ddee5cb877e82187
+      sha256: 58d71b52ce655eec981f58c2d37de3a8d01be06036c33bf03de77153b53585b4
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.0-unix_pyhd81877a_0.conda
-    version: 3.48.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.1-unix_pyhd81877a_0.conda
+    version: 3.48.1
   - category: main
     dependencies:
       __unix: ''
@@ -2542,15 +2542,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: af56dc8db493796c742436aeb21360ec
-      sha256: 37b6ca214e29dc2a40abcf1234eec8d9f21cd011571e076d052b00c31fac479f
+      md5: e8d4f0d7bfbe1ac3ddee5cb877e82187
+      sha256: 58d71b52ce655eec981f58c2d37de3a8d01be06036c33bf03de77153b53585b4
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.0-unix_pyhd81877a_0.conda
-    version: 3.48.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.1-unix_pyhd81877a_0.conda
+    version: 3.48.1
   - category: main
     dependencies:
       __unix: ''
@@ -2580,15 +2580,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: af56dc8db493796c742436aeb21360ec
-      sha256: 37b6ca214e29dc2a40abcf1234eec8d9f21cd011571e076d052b00c31fac479f
+      md5: e8d4f0d7bfbe1ac3ddee5cb877e82187
+      sha256: 58d71b52ce655eec981f58c2d37de3a8d01be06036c33bf03de77153b53585b4
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.0-unix_pyhd81877a_0.conda
-    version: 3.48.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.48.1-unix_pyhd81877a_0.conda
+    version: 3.48.1
   - category: main
     dependencies:
       python: '>=3.8'
@@ -9329,45 +9329,45 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: a0b45a3ae748e3cce6409cb12664bf2b
-      sha256: 20ecfaf61224ea92dadb543ee5ca3757e4feff4524c9d6633de908d11f4c5cd4
+      md5: 368f6c74d0d754586a8cc6228e675dd7
+      sha256: 917b6379005215e88b8aefe08d657bc0c15fa19344cf514f492f0766d72e5ebb
     manager: conda
     name: orjson
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.16-py311h9e33e62_0.conda
-    version: 3.10.16
+      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.18-py311h9e33e62_0.conda
+    version: 3.10.18
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: cb8506609560dbdc5dfc31be0a11f3b5
-      sha256: 02b79f1ab9a745a542fd9fa361890ea1b99764fb91a1637d7a64e5bd9c699c96
+      md5: 3617c8ee191eeea4573d30ee22a29a3e
+      sha256: 2257cd9a2ade3fd241f43371597e539e0855cfbdb6ae1efafdaec65c9011debe
     manager: conda
     name: orjson
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.16-py311h3b9c2be_0.conda
-    version: 3.10.16
+      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.18-py311h3b9c2be_0.conda
+    version: 3.10.18
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8d735e647d8e06b1e33ecd296070de34
-      sha256: 2f9f6d2541a903ce91f5af8bf31b39d678d7e569c802e73f7c2e2ca91eb763f2
+      md5: 0565767906525520f2e11ab1cec1ef85
+      sha256: 0b2f6b2fa6c93d83266b04cd455ae079488fb765acaf5f406304791b545ea3f7
     manager: conda
     name: orjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.16-py311h3ff9189_0.conda
-    version: 3.10.16
+      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.18-py311h3ff9189_0.conda
+    version: 3.10.18
   - category: main
     dependencies:
       python: ''
