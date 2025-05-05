@@ -16,12 +16,10 @@ from typing import Protocol
 from github import Github
 from github.Repository import Repository
 
-from tests_integration.definitions import TEST_CASE_MAPPING
-
+from ._definitions import TEST_CASE_MAPPING, GitHubAccount
 from ._shared import (
     FEEDSTOCK_SUFFIX,
     REGRO_ACCOUNT_REPOS,
-    GitHubAccount,
     get_github_token,
     is_user_account,
 )

@@ -1,4 +1,5 @@
 from ._collect_test_scenarios import get_all_test_scenario_ids, get_test_scenario
+from ._definitions.base_classes import AbstractIntegrationTestHelper, TestCase
 from ._integration_test_helper import IntegrationTestHelper
 from ._run_test_cases import (
     close_all_open_pull_requests,
@@ -15,7 +16,6 @@ from ._shared import (
     get_transparent_urls,
     setup_logging,
 )
-from ._test_case import TestCase
 
 __all__ = [
     "get_all_test_scenario_ids",
@@ -32,5 +32,6 @@ __all__ = [
     "ENV_TEST_SCENARIO_ID",
     "VIRTUAL_PROXY_HOSTNAME",
     "VIRTUAL_PROXY_PORT",
+    "AbstractIntegrationTestHelper",
     "TestCase",
 ]

@@ -4,10 +4,10 @@ from pathlib import Path
 from github import Github
 
 from conda_forge_tick.settings import settings
-from tests_integration.lib import IntegrationTestHelper
 
-from ._shared import FEEDSTOCK_SUFFIX, GitHubAccount, get_github_token
-from ._test_case import TestCase
+from ._definitions import GitHubAccount, TestCase
+from ._integration_test_helper import IntegrationTestHelper
+from ._shared import FEEDSTOCK_SUFFIX, get_github_token
 
 LOGGER = logging.getLogger(__name__)
 

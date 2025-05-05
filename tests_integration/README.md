@@ -18,7 +18,7 @@ account) contains a special version of the [cf-graph-countyfair](https://github.
 the bot uses during testing.
 
 ## Test Cases Definition
-The integration tests are defined in the [definitions](definitions) directory. The following directory structure is
+The integration tests are defined in the [lib/_definitions](lib/_definitions) directory. The following directory structure is
 used (using `pydantic` and `llvmdev` as example feedstocks):
 
 ```text
@@ -50,18 +50,18 @@ Also, a test case is always bound to one specific feedstock.
 To define a test case, create a subclass of `tests_integration.lib.TestCase` in the `__init__.py` file of
 your feedstock. You can name it arbitrarily.
 Referring to the minimal `VersionUpdate` test case in the
-[pydantic module](definitions/pydantic/__init__.py),
+[pydantic module](lib/_definitions/pydantic/__init__.py),
 your class has to implement three methods:
 
 1. `get_router()` should return an `APIRouter` object to define mock responses for specific HTTP requests. All web requests are intercepted by an HTTP proxy.
 Refer to `tests_integration.lib.get_transparent_urls` to define URLs that should not be intercepted.
 
-2. `prepare(helper: IntegrationTestHelper)` for setting up your test case. Usually, you will want to
-overwrite the feedstock repository in the test environment. The `IntegrationTestHelper` provides methods to interact
+2. `prepare(helper: AbstractIntegrationTestHelper)` for setting up your test case. Usually, you will want to
+overwrite the feedstock repository in the test environment. The `AbstractIntegrationTestHelper` provides methods to interact
 with the test environment.
 
-3. A function `validate(helper: IntegrationTestHelper)` for validating the state after the bot has run.
-The `IntegrationTestHelper` provides convenience methods such as `assert_version_pr_present` to check for the presence
+3. A function `validate(helper: AbstractIntegrationTestHelper)` for validating the state after the bot has run.
+The `AbstractIntegrationTestHelper` provides convenience methods such as `assert_version_pr_present` to check for the presence
 of a version update PR.
 
 The creation of GitHub repositories in the test environment is done automatically based on the directory structure.

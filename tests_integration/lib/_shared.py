@@ -1,17 +1,11 @@
 import logging
 import os
-from enum import StrEnum
 
 from fastapi import APIRouter
 
 from conda_forge_tick.settings import settings
 
-
-class GitHubAccount(StrEnum):
-    CONDA_FORGE_ORG = "conda-forge-bot-staging"
-    BOT_USER = "regro-cf-autotick-bot-staging"
-    REGRO_ORG = "regro-staging"
-
+from ._definitions import GitHubAccount
 
 GITHUB_TOKEN_ENV_VARS: dict[GitHubAccount, str] = {
     GitHubAccount.CONDA_FORGE_ORG: "TEST_SETUP_TOKEN",

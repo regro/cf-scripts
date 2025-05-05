@@ -12,56 +12,37 @@ from conda_forge_tick.utils import (
     run_command_hiding_token,
 )
 
+from ._definitions import AbstractIntegrationTestHelper, GitHubAccount
 from ._shared import (
     FEEDSTOCK_SUFFIX,
-    GitHubAccount,
     get_github_token,
 )
 
 LOGGER = logging.getLogger(__name__)
 
 
-class IntegrationTestHelper:
-    @classmethod
+class IntegrationTestHelper(AbstractIntegrationTestHelper):
     def overwrite_feedstock_contents(
-        cls, feedstock_name: str, source_dir: Path, branch: str = "main"
+        self, feedstock_name: str, source_dir: Path, branch: str = "main"
     ):
-        """
-        Overwrite the contents of the feedstock with the contents of the source directory.
-        This prunes the entire git history.
-
-        :param feedstock_name: The name of the feedstock repository, without the "-feedstock" suffix.
-        :param source_dir: The directory containing the new contents of the feedstock.
-        :param branch: The branch to overwrite.
-        """
-        cls.overwrite_github_repository(
+        self.overwrite_github_repository(
             GitHubAccount.CONDA_FORGE_ORG,
             feedstock_name + FEEDSTOCK_SUFFIX,
             source_dir,
             branch,
         )
 
-    @classmethod
     def overwrite_github_repository(
-        cls,
+        self,
         owner_account: GitHubAccount,
         repo_name: str,
         source_dir: Path,
         branch: str = "main",
     ):
-        """
-        Overwrite the contents of the repository with the contents of the source directory.
-        This prunes the entire git history.
-
-        :param owner_account: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param source_dir: The directory containing the new contents of the repository.
-        :param branch: The branch to overwrite.
-        """
         # We execute all git operations in a separate temporary directory to avoid side effects.
         with TemporaryDirectory(repo_name) as tmpdir_str:
             tmpdir = Path(tmpdir_str)
-            cls._overwrite_github_repository_with_tmpdir(
+            self._overwrite_github_repository_with_tmpdir(
                 owner_account, repo_name, source_dir, tmpdir, branch
             )
 
@@ -113,21 +94,14 @@ class IntegrationTestHelper:
             f"Repository contents of {repo_name} have been overwritten successfully."
         )
 
-    @staticmethod
     def assert_version_pr_present(
-        feedstock: str, new_version: str, new_hash: str, old_version: str, old_hash: str
+        self,
+        feedstock: str,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
     ):
-        """
-        Asserts that the bot has opened a version update PR.
-
-        :param feedstock: The feedstock we expect the PR for, without the -feedstock suffix.
-        :param new_version: The new version that is expected.
-        :param new_hash: The new SHA-256 source artifact hash.
-        :param old_version: The old version of the feedstock, to check that it no longer appears in the recipe.
-        :param old_hash: The old SHA-256 source artifact hash, to check that it no longer appears in the recipe.
-
-        :raises AssertionError: if the assertion fails
-        """
         gh = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
 
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX

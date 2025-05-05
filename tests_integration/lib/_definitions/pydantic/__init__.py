@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi import APIRouter
 
-from tests_integration.lib import IntegrationTestHelper, TestCase
+from ..base_classes import AbstractIntegrationTestHelper, TestCase
 
 PYPI_SIMPLE_API_RESPONSE = json.loads(
     Path(__file__)
@@ -25,14 +25,14 @@ class VersionUpdate(TestCase):
 
         return router
 
-    def prepare(self, helper: IntegrationTestHelper):
+    def prepare(self, helper: AbstractIntegrationTestHelper):
         feedstock_dir = Path(__file__).parent / "resources" / "feedstock"
         helper.overwrite_feedstock_contents("pydantic", feedstock_dir)
 
         feedstock_v1_dir = Path(__file__).parent / "resources" / "feedstock_v1"
         helper.overwrite_feedstock_contents("pydantic", feedstock_v1_dir, branch="1.x")
 
-    def validate(self, helper: IntegrationTestHelper):
+    def validate(self, helper: AbstractIntegrationTestHelper):
         helper.assert_version_pr_present(
             "pydantic",
             new_version="2.10.2",
