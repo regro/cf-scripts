@@ -1,7 +1,7 @@
 import logging
-from pathlib import Path
 
 from github import Github
+from importlib_resources import as_file, files
 
 from conda_forge_tick.settings import settings
 
@@ -10,6 +10,7 @@ from ._integration_test_helper import IntegrationTestHelper
 from ._shared import FEEDSTOCK_SUFFIX, get_github_token
 
 LOGGER = logging.getLogger(__name__)
+EMPTY_GRAPH_DIR = files("tests_integration.resources").joinpath("empty-graph").name
 
 
 def close_all_open_pull_requests():
@@ -27,12 +28,13 @@ def close_all_open_pull_requests():
 
 
 def reset_cf_graph():
-    IntegrationTestHelper().overwrite_github_repository(
-        GitHubAccount.REGRO_ORG,
-        "cf-graph-countyfair",
-        Path(__file__).parent / "resources" / "empty-graph",
-        branch=settings().graph_repo_default_branch,
-    )
+    with as_file(EMPTY_GRAPH_DIR) as empty_graph_dir:
+        IntegrationTestHelper().overwrite_github_repository(
+            GitHubAccount.REGRO_ORG,
+            "cf-graph-countyfair",
+            empty_graph_dir,
+            branch=settings().graph_repo_default_branch,
+        )
 
 
 def run_all_prepare_functions(scenario: dict[str, TestCase]):
