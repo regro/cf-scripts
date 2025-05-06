@@ -27,7 +27,7 @@ def close_all_open_pull_requests():
 
 
 def reset_cf_graph():
-    IntegrationTestHelper.overwrite_github_repository(
+    IntegrationTestHelper().overwrite_github_repository(
         GitHubAccount.REGRO_ORG,
         "cf-graph-countyfair",
         Path(__file__).parent / "resources" / "empty-graph",
