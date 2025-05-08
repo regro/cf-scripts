@@ -9884,41 +9884,41 @@ package:
     dependencies:
       python: ''
     hash:
-      md5: e57da6fe54bb3a5556cf36d199ff07d8
-      sha256: ae7d3e58224d53d6b59e1f5ac5809803bb1972f0ac4fb10cd9b8c87d4122d3e0
+      md5: 424844562f5d337077b445ec6b1398a7
+      sha256: 0f48999a28019c329cd3f6fd2f01f09fc32cc832f7d6bbe38087ddac858feaa3
     manager: conda
     name: platformdirs
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.7-pyh29332c3_0.conda
-    version: 4.3.7
+      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
+    version: 4.3.8
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: e57da6fe54bb3a5556cf36d199ff07d8
-      sha256: ae7d3e58224d53d6b59e1f5ac5809803bb1972f0ac4fb10cd9b8c87d4122d3e0
+      md5: 424844562f5d337077b445ec6b1398a7
+      sha256: 0f48999a28019c329cd3f6fd2f01f09fc32cc832f7d6bbe38087ddac858feaa3
     manager: conda
     name: platformdirs
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.7-pyh29332c3_0.conda
-    version: 4.3.7
+      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
+    version: 4.3.8
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: e57da6fe54bb3a5556cf36d199ff07d8
-      sha256: ae7d3e58224d53d6b59e1f5ac5809803bb1972f0ac4fb10cd9b8c87d4122d3e0
+      md5: 424844562f5d337077b445ec6b1398a7
+      sha256: 0f48999a28019c329cd3f6fd2f01f09fc32cc832f7d6bbe38087ddac858feaa3
     manager: conda
     name: platformdirs
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.7-pyh29332c3_0.conda
-    version: 4.3.7
+      https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
+    version: 4.3.8
   - category: main
     dependencies:
       python: '>=3.9'
@@ -11935,15 +11935,15 @@ package:
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 2407e943204dc8d720bb90775697c9ec
-      sha256: c46716f33ec0c1541806d2c37b8d07f858814c16c8c93dc507a0d3920d471120
+      md5: c280d2a291bcc434c0e717f5d9980bbf
+      sha256: eea3f45a62c982b4c027655323a87f676400d44fe7ce77c72c7891b84903203a
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.41.0-h05de357_0.conda
-    version: 0.41.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.40.0-h05de357_0.conda
+    version: 0.40.0
   - category: main
     dependencies:
       __osx: '>=11.0'
