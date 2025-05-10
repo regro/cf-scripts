@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 31ab7f9a9172fc69f9dff334cf70be9b
-      sha256: e9824551328e4adb2311049041c1dd866c6a18ff6e20482747606bec4d329820
+      md5: 49ff9f18bae0645b3bb8d455ae6e3333
+      sha256: 173f5962d3b819a6c2a0643e1d3c1699da5eac94cee47d9d44b90166454fc202
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.05.53.06-hd8ed1ab_0.conda
-    version: 2025.05.10.05.53.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.16.35.31-hd8ed1ab_0.conda
+    version: 2025.05.10.16.35.31
   - category: main
     dependencies: {}
     hash:
-      md5: 31ab7f9a9172fc69f9dff334cf70be9b
-      sha256: e9824551328e4adb2311049041c1dd866c6a18ff6e20482747606bec4d329820
+      md5: 49ff9f18bae0645b3bb8d455ae6e3333
+      sha256: 173f5962d3b819a6c2a0643e1d3c1699da5eac94cee47d9d44b90166454fc202
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.05.53.06-hd8ed1ab_0.conda
-    version: 2025.05.10.05.53.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.16.35.31-hd8ed1ab_0.conda
+    version: 2025.05.10.16.35.31
   - category: main
     dependencies: {}
     hash:
-      md5: 31ab7f9a9172fc69f9dff334cf70be9b
-      sha256: e9824551328e4adb2311049041c1dd866c6a18ff6e20482747606bec4d329820
+      md5: 49ff9f18bae0645b3bb8d455ae6e3333
+      sha256: 173f5962d3b819a6c2a0643e1d3c1699da5eac94cee47d9d44b90166454fc202
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.05.53.06-hd8ed1ab_0.conda
-    version: 2025.05.10.05.53.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.10.16.35.31-hd8ed1ab_0.conda
+    version: 2025.05.10.16.35.31
   - category: main
     dependencies:
       click: '>=8'
@@ -9329,47 +9329,47 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=13'
-      python: '>=3.11,<3.12.0a0'
+      python: ''
       python_abi: 3.11.*
     hash:
-      md5: 368f6c74d0d754586a8cc6228e675dd7
-      sha256: 917b6379005215e88b8aefe08d657bc0c15fa19344cf514f492f0766d72e5ebb
+      md5: 23fd932a9f391aaa6f4db0797f3c6b05
+      sha256: 32b1ef80ec8e92820a0c9c61fd327c3426806a7ab7d2928f98c6566b3f4fa609
     manager: conda
     name: orjson
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.18-py311h9e33e62_0.conda
+      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.18-py311hdae7d1d_1.conda
     version: 3.10.18
   - category: main
     dependencies:
       __osx: '>=10.13'
-      python: '>=3.11,<3.12.0a0'
+      python: ''
       python_abi: 3.11.*
     hash:
-      md5: 3617c8ee191eeea4573d30ee22a29a3e
-      sha256: 2257cd9a2ade3fd241f43371597e539e0855cfbdb6ae1efafdaec65c9011debe
+      md5: 29d1e4a4747de09fc608b8b20221a63a
+      sha256: 7950969c0df7f19bdc0c0f1d84da15257a270c1b1804829bda51897d70ac070a
     manager: conda
     name: orjson
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.18-py311h3b9c2be_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.18-py311hab9d7c2_1.conda
     version: 3.10.18
   - category: main
     dependencies:
       __osx: '>=11.0'
-      python: '>=3.11,<3.12.0a0'
+      python: 3.11.*
       python_abi: 3.11.*
     hash:
-      md5: 0565767906525520f2e11ab1cec1ef85
-      sha256: 0b2f6b2fa6c93d83266b04cd455ae079488fb765acaf5f406304791b545ea3f7
+      md5: 11832289b6a104f1ec72937afaadc784
+      sha256: 443e23a42020377dcd37c88b73b167e012018c32ef57f9ee4fa3643d5344f7e2
     manager: conda
     name: orjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.18-py311h3ff9189_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.18-py311hc9d6b66_1.conda
     version: 3.10.18
   - category: main
     dependencies:
@@ -12412,37 +12412,37 @@ package:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=13'
     hash:
-      md5: d214df5d083a659f75e7cdafd9500383
-      sha256: fd9d568112a6cf6dfa00828a70c730289fa046a86b641899e298c5ed3fd50ca6
+      md5: 845d9730024ab628f55d384631ceb499
+      sha256: b8c3e26a804077fde11fc3579207c7a60db32c5367c2330fe6d620f8e49a6dc4
     manager: conda
     name: ripgrep
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.1-h8fae777_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.1-h8fae777_1.conda
     version: 14.1.1
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 8457bf2f3a39b5ad494e4aa93594204c
-      sha256: 7c2539a29a163e96c9aa43079b09f92a52b51984309c528188591f9eb35a904d
+      md5: 4a5968c29202574e4ba15b0e17b65150
+      sha256: 2619c551a09bbdd4659c846998aa115bccfe0c807fc88e51280da849552293c6
     manager: conda
     name: ripgrep
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.1-h926acf8_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.1-h926acf8_1.conda
     version: 14.1.1
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: a5ac0a2bfc92f3cb9b6cfc9caf9de5c9
-      sha256: bea65d7f355ac3db84b046e2db3b203d78ac261451bf5dd7a5719fc8102fa73e
+      md5: 44d5815da71c4facfaed2f7d2d88f160
+      sha256: 754c4a8ac866deb3372f97a54254e9bcc01b20d4be2f432c08de798ba6d12df8
     manager: conda
     name: ripgrep
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.1-h0ef69ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.1-h0ef69ab_1.conda
     version: 14.1.1
   - category: main
     dependencies:
