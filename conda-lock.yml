@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 85ad9f5a3d878acb0d1a594df2906439
-      sha256: 3e4e0460b54c6debd0cd9014953159a769db554950ac8a68a52c2392fb90beb0
+      md5: 44d988a87d33450546742fab0b3751d6
+      sha256: 7cad009c873a450eecc85401ac402b5672367c1e204c3c7744f732b8e809756f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.13.09.46.09-hd8ed1ab_0.conda
-    version: 2025.05.13.09.46.09
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.14.14.39.58-hd8ed1ab_0.conda
+    version: 2025.05.14.14.39.58
   - category: main
     dependencies: {}
     hash:
-      md5: 85ad9f5a3d878acb0d1a594df2906439
-      sha256: 3e4e0460b54c6debd0cd9014953159a769db554950ac8a68a52c2392fb90beb0
+      md5: 44d988a87d33450546742fab0b3751d6
+      sha256: 7cad009c873a450eecc85401ac402b5672367c1e204c3c7744f732b8e809756f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.13.09.46.09-hd8ed1ab_0.conda
-    version: 2025.05.13.09.46.09
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.14.14.39.58-hd8ed1ab_0.conda
+    version: 2025.05.14.14.39.58
   - category: main
     dependencies: {}
     hash:
-      md5: 85ad9f5a3d878acb0d1a594df2906439
-      sha256: 3e4e0460b54c6debd0cd9014953159a769db554950ac8a68a52c2392fb90beb0
+      md5: 44d988a87d33450546742fab0b3751d6
+      sha256: 7cad009c873a450eecc85401ac402b5672367c1e204c3c7744f732b8e809756f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.13.09.46.09-hd8ed1ab_0.conda
-    version: 2025.05.13.09.46.09
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.14.14.39.58-hd8ed1ab_0.conda
+    version: 2025.05.14.14.39.58
   - category: main
     dependencies:
       click: '>=8'
@@ -2201,7 +2201,7 @@ package:
       platformdirs: '>=3.10.0,<5.0.0'
       pydantic: '>=2'
       pyproject_hooks: '>=1.0.0,<2.0.0'
-      python: '>=3.9'
+      python: ''
       python-build: '>=1.2.1,<2.0.0'
       python-fastjsonschema: '>=2.18.0,<3.0.0'
       python-installer: '>=0.7.0,<0.8.0'
@@ -2209,7 +2209,6 @@ package:
       requests: '>=2.26,<3.0'
       requests-toolbelt: '>=1.0.0,<2.0.0'
       ruamel.yaml: ''
-      ruamel_yaml: ''
       semver: '>=3,<4'
       setuptools: ''
       shellingham: '>=1.5,<2.0'
@@ -2220,14 +2219,14 @@ package:
       virtualenv: '>=20.26.6,<21.0.0'
       zstandard: '>=0.15'
     hash:
-      md5: 76f9f01da0b39101769e4cd6126aa63a
-      sha256: 60ddab0cc946877ba148bc665ca9979528bfdf242f7980b119e4bfa26c616a6d
+      md5: 46593a7284f6080fc1635a1b5dca021d
+      sha256: ac964b41b7c66371ffff23be3bce607a75463ffc7204f42c605ce0c9cf3579c4
     manager: conda
     name: conda-lock
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyha804496_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyh367d9c9_1.conda
     version: 3.0.1
   - category: main
     dependencies:
@@ -2259,7 +2258,6 @@ package:
       requests: '>=2.26,<3.0'
       requests-toolbelt: '>=1.0.0,<2.0.0'
       ruamel.yaml: ''
-      ruamel_yaml: ''
       semver: '>=3,<4'
       setuptools: ''
       shellingham: '>=1.5,<2.0'
@@ -2271,14 +2269,14 @@ package:
       xattr: '>=1.0.0,<2.0.0'
       zstandard: '>=0.15'
     hash:
-      md5: b5fa76fea299a0956693e3d092acd0d2
-      sha256: c9be41c197482b2e02556d58b7ad75d55e10a352f7688ee3a7872edaa7da39e3
+      md5: d22c7c2e7c4e677d27c296d80314ca26
+      sha256: 408154f59239580b358371c406d157474d945ee51feab552adf438733ce88625
     manager: conda
     name: conda-lock
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyh534df25_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyh3eb8d45_1.conda
     version: 3.0.1
   - category: main
     dependencies:
@@ -2310,7 +2308,6 @@ package:
       requests: '>=2.26,<3.0'
       requests-toolbelt: '>=1.0.0,<2.0.0'
       ruamel.yaml: ''
-      ruamel_yaml: ''
       semver: '>=3,<4'
       setuptools: ''
       shellingham: '>=1.5,<2.0'
@@ -2322,14 +2319,14 @@ package:
       xattr: '>=1.0.0,<2.0.0'
       zstandard: '>=0.15'
     hash:
-      md5: b5fa76fea299a0956693e3d092acd0d2
-      sha256: c9be41c197482b2e02556d58b7ad75d55e10a352f7688ee3a7872edaa7da39e3
+      md5: d22c7c2e7c4e677d27c296d80314ca26
+      sha256: 408154f59239580b358371c406d157474d945ee51feab552adf438733ce88625
     manager: conda
     name: conda-lock
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyh534df25_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.1-pyh3eb8d45_1.conda
     version: 3.0.1
   - category: main
     dependencies:
@@ -12632,52 +12629,6 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.7-pyhd8ed1ab_1.conda
     version: 0.2.7
-  - category: main
-    dependencies:
-      libgcc-ng: '>=12'
-      python: '>=3.11,<3.12.0a0'
-      python_abi: 3.11.*
-      yaml: '>=0.2.5,<0.3.0a0'
-    hash:
-      md5: 799197f6c21be0b366d1a593d1015a5c
-      sha256: 3bc1ee8e536710a4c4cb38dee98923ade62def7dc92fb646de6df01b913c1ae8
-    manager: conda
-    name: ruamel_yaml
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/linux-64/ruamel_yaml-0.15.80-py311h459d7ec_1009.conda
-    version: 0.15.80
-  - category: main
-    dependencies:
-      python: '>=3.11,<3.12.0a0'
-      python_abi: 3.11.*
-      yaml: '>=0.2.5,<0.3.0a0'
-    hash:
-      md5: 73f2352190b9b03c0f77ba2bf9b33cba
-      sha256: ed860931a99adb4e38efd33702f06bce0423fa0bbce6605f222b4d8347f650f6
-    manager: conda
-    name: ruamel_yaml
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/ruamel_yaml-0.15.80-py311h2725bcf_1009.conda
-    version: 0.15.80
-  - category: main
-    dependencies:
-      python: '>=3.11,<3.12.0a0'
-      python_abi: 3.11.*
-      yaml: '>=0.2.5,<0.3.0a0'
-    hash:
-      md5: 25c86bb2591db0ef24978f9da81d6004
-      sha256: aa3343d295b15ef8adba9418b58ea9faa3567744d3a628c4aa5417f1e542d665
-    manager: conda
-    name: ruamel_yaml
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/ruamel_yaml-0.15.80-py311heffc1b2_1009.conda
-    version: 0.15.80
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
