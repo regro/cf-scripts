@@ -14,7 +14,7 @@ dependencies:
   - conda
   - conda-lock
   - conda-forge-feedstock-check-solvable >=0.8.0
-  - conda-forge-feedstock-ops >=0.9.0
+  - conda-forge-feedstock-ops >=0.12.0
   - conda-forge-pinning
   - conda-libmamba-solver
   - conda-forge-metadata >=0.3.0
@@ -24,6 +24,7 @@ dependencies:
   - curl
   - depfinder
   - distributed
+  - fastapi
   - feedparser
   - frozendict
   - git
@@ -32,6 +33,7 @@ dependencies:
   - jinja2
   - lockfile
   - mamba >=0.23
+  - mitmproxy
   - msgpack-python
   - networkx !=2.8.1
   - numpy
@@ -63,6 +65,7 @@ dependencies:
   - yaml
   - pip
   - pytest <8.1.0
+  - pytest-xprocess
   - codecov
   - requests-mock
   - pre-commit

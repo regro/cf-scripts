@@ -43,6 +43,7 @@ done
 if [[ "${clone_graph}" == "true" ]]; then
   cf_graph_repo=${CF_TICK_GRAPH_GITHUB_BACKEND_REPO:-"regro/cf-graph-countyfair"}
   cf_graph_remote="https://github.com/${cf_graph_repo}.git"
+  # please make sure the cloning depth is always identical to the one used in the integration tests (test_integration.py)
   git clone --depth=5 "${cf_graph_remote}" cf-graph
 else
   echo "Skipping cloning of cf-graph"

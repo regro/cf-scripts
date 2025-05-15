@@ -201,6 +201,7 @@ def _get_pth_commit_message(pth):
 def _reset_and_restore_file(pth):
     subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
     subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
 
 
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
