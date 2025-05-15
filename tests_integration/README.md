@@ -89,22 +89,30 @@ In detail, the process of collecting test scenarios is as follows:
 #### 1. Collect Test Cases
 For each feedstock, collect the available test cases in lexically sorted order.
 
-![
-Table with two columns: "Feedstock A" and "Feedstock B". Feedstock A has 5 test cases: `test_case_1.py` to
-`test_case_5.py`. Feedstock B has two test cases: `test_case_1.py` and `test_case_2.py`.
-](../docs/assets/integration-tests/scenarios-definition-1-light.svg#gh-light-mode-only)
-![Description available in light mode.](../docs/assets/integration-tests/scenarios-definition-1-dark.svg#gh-dark-mode-only)
+| Feedstock A | Feedstock B |
+|-------------|-------------|
+| Test Case 1 | Test Case 1 |
+| Test Case 2 | Test Case 2 |
+| Test Case 3 |             |
+| Test Case 4 |             |
+| Test Case 5 |             |
+
 
 #### 2. Fill Test Scenarios
 The number of test scenarios is equal to the maximum number of test cases for a feedstock.
 Feedstocks that have fewer test cases repeat their test cases to supply exactly one test case per scenario.
 In the example below, the last instance of `test_case_2.py` for Feedstock B is not needed and thus discarded.
 
-![
-The same image as above, but the rows under Feedstock B are filled with the following alternating test cases: 1, 2, 1, 2, 1, 2.
-The last instance of test case 2 is marked grey to indicate that it is not needed, because it overhangs as compared to Feedstock A.
-](../docs/assets/integration-tests/scenarios-extension-2-light.svg#gh-light-mode-only)
-![Description available in light mode.](../docs/assets/integration-tests/scenarios-extension-2-dark.svg#gh-dark-mode-only)
+
+| Feedstock A                  | Feedstock B                  |
+|------------------------------|------------------------------|
+| Test Case 1                  | Test Case 1                  |
+| Test Case 2                  | Test Case 2                  |
+| Test Case 3                  | Test Case 1                  |
+| Test Case 4                  | Test Case 2                  |
+| Test Case 5                  | Test Case 1                  |
+| ✂️ everything is cut here ✂️ | ✂️ everything is cut here ✂️ |
+|                              | Test Case 2 (discarded 🗑️)  |
 
 #### 3. Shuffle Test Scenarios
 For each feedstock, we shuffle the test cases (rows) individually to ensure a random combination of test cases.
@@ -113,15 +121,14 @@ The shuffling is done pseudo-randomly based on `GITHUB_RUN_ID` (which persists f
 Finally, we get the test scenarios as the rows of the table below.
 Each test scenario executes exactly one test case per feedstock, in parallel.
 
-![
-Feedstock A has the following test cases: 3, 1, 4, 2, 5 (shuffled).
-Feedstock B has the following test cases: 2, 1, 1, 2, 1 (shuffled).
-Each row represents a test scenario.
-For example, scenario 1 uses `test_case_3.py` from Feedstock A and `test_case_2.py` from Feedstock B.
-](../docs/assets/integration-tests/scenarios-shuffle-3-light.svg#gh-light-mode-only)
-![Description available in light mode.](../docs/assets/integration-tests/scenarios-shuffle-3-dark.svg#gh-dark-mode-only)
+|            | Feedstock A | Feedstock B |
+|------------|-------------|-------------|
+| Scenario 1 | Test Case 3 | Test Case 2 |
+| Scenario 2 | Test Case 1 | Test Case 1 |
+| Scenario 3 | Test Case 4 | Test Case 1 |
+| Scenario 4 | Test Case 2 | Test Case 2 |
+| Scenario 5 | Test Case 5 | Test Case 1 |
 
-<sup>The images have been generated with draw.io from the source file present in [docs/assets](../docs/assets).</sup>
 
 ## Environment Variables
 The tests expect the following environment variables:
