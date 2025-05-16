@@ -166,12 +166,14 @@ def _prepare_feedstock_repository(
         backend.fork(context.git_repo_owner, context.git_repo_name)
     except RepositoryNotFoundError:
         logger.warning(
-            f"Could not fork {context.git_repo_owner}/{context.git_repo_name}: Not Found"
+            "Could not fork %s/%s: Not Found",
+            context.git_repo_owner,
+            context.git_repo_name,
         )
 
         error_message = f"{context.feedstock_name}: Git repository not found."
         logger.critical(
-            f"Failed to migrate {context.feedstock_name}, {error_message}",
+            "Failed to migrate %s, %s", context.feedstock_name, error_message
         )
 
         with context.attrs["pr_info"] as pri:
@@ -635,8 +637,11 @@ def run(
         except DuplicatePullRequestError:
             # This shouldn't happen too often anymore since we won't double PR
             logger.warning(
-                f"Attempted to create a duplicate PR for merging {git_backend.user}:{branch_name} "
-                f"into {context.git_repo_owner}:{base_branch}. Ignoring."
+                "Attempted to create a duplicate PR for merging %s:%s into %s:%s. Ignoring.",
+                git_backend.user,
+                branch_name,
+                context.git_repo_owner,
+                base_branch,
             )
             # Don't update the PR data
             pr_data = None
@@ -791,7 +796,7 @@ def _run_migrator_on_feedstock_branch(
 
             if is_github_api_limit_reached():
                 logger.warning("GitHub API error", exc_info=e)
-                break_loop = True
+                break_loop
 
     except VersionMigrationError as e:
         logger.exception("VERSION MIGRATION ERROR", exc_info=e)
@@ -1150,7 +1155,9 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                             # maybe add a pass check info here ? (if using DEBUG)
                         except Exception as e:
                             logger.error(
-                                f"BOT-RERUN : could not proceed check with {node}, {e}",
+                                "BOT-RERUN : could not proceed check with %s, %s",
+                                node,
+                                e,
                             )
                             raise e
                         # if there is a valid PR and it isn't currently listed as rerun

@@ -204,7 +204,7 @@ def _fetch_static_repo(name, dest):
 
     if r.status_code != 200:
         logger.error(
-            f"Something odd happened when fetching feedstock {name}: {r.status_code}",
+            "Something odd happened when fetching feedstock %s: %s", name, r.status_code
         )
         return r
 
@@ -318,7 +318,7 @@ def populate_feedstock_attributes(
             variant_yamls = []
             plat_archs = []
             for cbc_path in ci_support_files:
-                logger.debug(f"parsing conda-build config: {cbc_path}")
+                logger.debug("parsing conda-build config: %s", cbc_path)
                 cbc_name = cbc_path.name
                 cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
                 plat = cbc_name_parts[0]
@@ -369,7 +369,7 @@ def populate_feedstock_attributes(
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
-                logger.debug(f"getting reqs for config: {cbc_path}")
+                logger.debug("getting reqs for config: %s", cbc_path)
                 if "requirements" in variant_yamls[-1]:
                     variant_yamls[-1]["requirements"] = _clean_req_nones(
                         variant_yamls[-1]["requirements"],
@@ -384,7 +384,7 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
-                logger.debug(f"collapsing reqs for {name}")
+                logger.debug("collapsing reqs for %s", name)
                 final_cfgs = {}
                 for plat_arch, varyml in zip(plat_archs, variant_yamls):
                     if plat_arch not in final_cfgs:
@@ -430,7 +430,7 @@ def populate_feedstock_attributes(
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
-        logger.error(f"Something odd happened when parsing recipe {name}")
+        logger.error("Something odd happened when parsing recipe %s", name)
         node_attrs["parsing_error"] = (
             "feedstock parsing error: could not combine metadata dicts across platforms"
         )
