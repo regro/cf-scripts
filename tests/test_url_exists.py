@@ -2,7 +2,6 @@ import random
 import time
 
 import pytest
-from flaky import flaky
 
 from conda_forge_tick.update_sources import url_exists
 

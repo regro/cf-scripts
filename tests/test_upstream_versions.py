@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, Mock, patch
 import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
-from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
