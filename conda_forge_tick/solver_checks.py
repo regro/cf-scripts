@@ -71,7 +71,7 @@ def is_recipe_solvable(
             str(logging.getLevelName(logger.getEffectiveLevel())).upper()
         )
         logger.debug(
-            "is_recipe_solver log-level=%i -> verbosity=%i",
+            "is_recipe_solver log-level=%d -> verbosity=%d",
             logging.getLevelName(logger.getEffectiveLevel()),
             verbosity,
         )

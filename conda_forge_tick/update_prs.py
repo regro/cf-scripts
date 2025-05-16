@@ -127,13 +127,11 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 logger.error("GITHUB ERROR ON FEEDSTOCK: %s", name)
                 failed_refresh += 1
             except Exception:
-                import traceback
-
                 logger.critical(
-                    "ERROR ON FEEDSTOCK: %s: %s - %s",
+                    "ERROR ON FEEDSTOCK: %s: %s",
                     name,
                     gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
-                    traceback.format_exc(),
+                    exc_info=True,
                 )
                 raise
 
@@ -150,8 +148,8 @@ def update_pr_combined(
         _combined_update_function, dry_run, gx, job, n_jobs
     )
 
-    logger.info("JSON Refresh failed for %i PRs", failed_refresh)
-    logger.info("JSON Refresh succeed for %i PRs", succeeded_refresh)
+    logger.info("JSON Refresh failed for %d PRs", failed_refresh)
+    logger.info("JSON Refresh succeed for %d PRs", succeeded_refresh)
     return gx
 
 

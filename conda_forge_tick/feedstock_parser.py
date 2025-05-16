@@ -204,7 +204,7 @@ def _fetch_static_repo(name, dest):
 
     if r.status_code != 200:
         logger.error(
-            "Something odd happened when fetching feedstock %s: %s", name, r.status_code
+            "Something odd happened when fetching feedstock %s: %d", name, r.status_code
         )
         return r
 

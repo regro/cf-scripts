@@ -796,7 +796,7 @@ def _run_migrator_on_feedstock_branch(
 
             if is_github_api_limit_reached():
                 logger.warning("GitHub API error", exc_info=e)
-                break_loop
+                break_loop = True
 
     except VersionMigrationError as e:
         logger.exception("VERSION MIGRATION ERROR", exc_info=e)
@@ -1155,9 +1155,9 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                             # maybe add a pass check info here ? (if using DEBUG)
                         except Exception as e:
                             logger.error(
-                                "BOT-RERUN : could not proceed check with %s, %s",
+                                "BOT-RERUN : could not proceed check with %s",
                                 node,
-                                e,
+                                exc_info=e,
                             )
                             raise e
                         # if there is a valid PR and it isn't currently listed as rerun

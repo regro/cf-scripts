@@ -482,7 +482,7 @@ def update_upstream_versions(
     job_nodes = filter_nodes_for_job(all_nodes, job, n_jobs)
 
     if not job_nodes:
-        logger.info("No packages to update for job %i", job)
+        logger.info("No packages to update for job %d", job)
         return
 
     def extract_payload(node: Tuple[str, Mapping[str, Mapping]]) -> Tuple[str, Mapping]:
