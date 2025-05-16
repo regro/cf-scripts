@@ -549,7 +549,7 @@ def test_latest_version_skip_error_success(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -580,7 +580,7 @@ def test_latest_version_error_and_no_new_version(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text

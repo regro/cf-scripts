@@ -215,7 +215,9 @@ class GitCli:
             )
         except subprocess.CalledProcessError as e:
             logger.info(
-                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout or '<None>'}\nend of stdout"
+                "Command '%s' failed.\nstdout:\n%s\nend of stdout",
+                " ".join(map(str, git_command)),
+                e.stdout or "<None>",
             )
             raise GitCliError(f"Error running git command: {repr(e)}")
 
@@ -494,9 +496,9 @@ class GitCli:
                     f"Could not clone {origin_url} - does the remote exist?"
                 )
             logger.info(
-                f"Cloning {origin_url} into {target_dir} was not successful - "
-                f"trying to reset hard since the directory already exists. This will fail if the target directory is "
-                f"not a git repository."
+                "Cloning %s into %s was not successful - trying to reset hard since the directory already exists. This will fail if the target directory is not a git repository.",
+                origin_url,
+                target_dir,
             )
             self.reset_hard(target_dir)
 
@@ -533,13 +535,11 @@ class GitCli:
 
         try:
             logger.info(
-                f"Trying to checkout branch {new_branch} without creating a new branch"
+                "Trying to checkout branch %s without creating a new branch", new_branch
             )
             self.checkout_branch(target_dir, new_branch)
         except GitCliError:
-            logger.info(
-                f"It seems branch {new_branch} does not exist. Creating it.",
-            )
+            logger.info("It seems branch %s does not exist. Creating it.", new_branch)
             self.checkout_new_branch(target_dir, new_branch, start_point=base_branch)
 
 
@@ -809,8 +809,7 @@ class GitHubBackend(GitPlatformBackend):
             )
         except Exception as e:
             logger.warning(
-                f"GitHub API error fetching repo {owner}/{repo_name}.",
-                exc_info=e,
+                "GitHub API error fetching repo %s/%s.", owner, repo_name, exc_info=e
             )
             raise e
 
@@ -849,7 +848,7 @@ class GitHubBackend(GitPlatformBackend):
 
         repo = self._get_repo(owner, repo_name)
 
-        logger.debug(f"Forking {owner}/{repo_name}.")
+        logger.debug("Forking %s/%s.", owner, repo_name)
         repo.create_fork()
 
         # Sleep to make sure the fork is created before we go after it
@@ -866,7 +865,11 @@ class GitHubBackend(GitPlatformBackend):
             return
 
         logger.info(
-            f"Syncing default branch of {fork_owner}/{repo_name} with {upstream_owner}/{repo_name}..."
+            "Syncing default branch of %s/%s with %s/%s...",
+            fork_owner,
+            repo_name,
+            upstream_owner,
+            repo_name,
         )
 
         fork.rename_branch(fork.default_branch, upstream_repo.default_branch)
@@ -906,8 +909,8 @@ class GitHubBackend(GitPlatformBackend):
             return remaining_limit
 
         logger.info(
-            "GitHub API limit reached, will reset at "
-            f"{datetime.utcfromtimestamp(reset_timestamp).strftime('%Y-%m-%dT%H:%M:%SZ')}"
+            "GitHub API limit reached, will reset at %s",
+            datetime.utcfromtimestamp(reset_timestamp).strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
 
         return remaining_limit
@@ -1031,12 +1034,16 @@ class DryRunBackend(GitPlatformBackend):
         self, owner: str, repo_name: str, git_dir: Path, branch: str
     ):
         logger.debug(
-            f"Dry Run: Pushing changes from {git_dir} to {owner}/{repo_name} on branch {branch}."
+            "Dry Run: Pushing changes from %s to %s/%s on branch %s.",
+            git_dir,
+            owner,
+            repo_name,
+            branch,
         )
 
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
-            logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
+            logger.debug("Fork of %s already exists. Doing nothing.", repo_name)
             return
 
         if not self.does_repository_exist(owner, repo_name):
@@ -1045,13 +1052,13 @@ class DryRunBackend(GitPlatformBackend):
             )
 
         logger.debug(
-            f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
+            "Dry Run: Creating fork of %s/%s for user %s.", owner, repo_name, self._USER
         )
         self._repos[repo_name] = owner
 
     def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
         logger.debug(
-            f"Dry Run: Syncing default branch of {upstream_owner}/{upstream_repo}."
+            "Dry Run: Syncing default branch of %s/%s.", upstream_owner, upstream_repo
         )
 
     @property

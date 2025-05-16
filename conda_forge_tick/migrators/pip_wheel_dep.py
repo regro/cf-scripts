@@ -71,7 +71,7 @@ class PipWheelMigrator(MiniMigrator):
             return True
 
         version: str = self._get_version(attrs)
-        logger.debug(f"Checking if PyPI has a wheel for {version}")
+        logger.debug("Checking if PyPI has a wheel for %s", version)
         wheel_url, _ = self.determine_wheel(source_url, version)
 
         if wheel_url is None:
