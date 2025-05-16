@@ -46,9 +46,7 @@ After that, this type can be removed.
 
 
 class MigratorName(StrEnum):
-    """
-    Each value here corresponds to a subclass of migrators.core.Migrator in the codebase.
-    """
+    """Each value here corresponds to a subclass of migrators.core.Migrator in the codebase."""
 
     VERSION = "Version"
     ARCH_REBUILD = "ArchRebuild"
@@ -93,9 +91,7 @@ class MigratorName(StrEnum):
 
 
 class MigrationPullRequestData(StrictBaseModel):
-    """
-    Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code.
-    """
+    """Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code."""
 
     bot_rerun: bool | datetime
     """
@@ -230,9 +226,7 @@ class MigrationPullRequest(StrictBaseModel):
 
 
 class ExceptionInfo(StrictBaseModel):
-    """
-    Information about an exception that occurred while performing migrations.
-    """
+    """Information about an exception that occurred while performing migrations."""
 
     exception: str
     """

@@ -84,7 +84,7 @@ def _get_requirements(
     run: bool = True,
     outputs_to_keep: Optional[Set["PackageName"]] = None,
 ) -> "Set[PackageName]":
-    """Get the list of recipe requirements from a meta.yaml dict
+    """Get the list of recipe requirements from a meta.yaml dict.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def _parse_requirements(
     host: bool = True,
     run: bool = True,
 ) -> typing.MutableSet["PackageName"]:
-    """Flatten a YAML requirements section into a list of names"""
+    """Flatten a YAML requirements section into a list of names."""
     if not req:  # handle None as empty
         return set()
     if isinstance(req, list):  # simple list goes to both host and run

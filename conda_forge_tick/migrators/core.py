@@ -1,4 +1,4 @@
-"""Base classes for migrating repos"""
+"""Base classes for migrating repos."""
 
 import contextlib
 import copy
@@ -127,7 +127,7 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
 
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
-    """Overlook some bad entries"""
+    """Overlook some bad entries."""
     bad = attrs.get("pr_info", {}).get("bad", False)
     if isinstance(bad, str):
         bad_bool = not bad.startswith(not_bad_str_start)
@@ -217,7 +217,7 @@ class MiniMigrator:
             self._init_kwargs = {}
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """If true don't act upon node
+        """If true don't act upon node.
 
         Parameters
         ----------
@@ -232,7 +232,7 @@ class MiniMigrator:
         return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -261,7 +261,7 @@ class MiniMigrator:
 
 
 class Migrator:
-    """Base class for Migrators
+    """Base class for Migrators.
 
     Initialization of Instances
     ---------------------------
@@ -397,7 +397,7 @@ class Migrator:
         feedstock_ctx: FeedstockContext,
         limit: int = 5,
     ) -> List["PackageName"]:
-        """Utility method for getting a list of follow on packages"""
+        """Utility method for getting a list of follow on packages."""
         return [
             a[1]
             for a in list(
@@ -556,7 +556,7 @@ class Migrator:
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -575,7 +575,7 @@ class Migrator:
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
-        """Create a PR message body
+        """Create a PR message body.
 
         Returns
         -------
@@ -627,7 +627,7 @@ class Migrator:
         return "bot-pr"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
-        """Make a unique id for this migrator and node attrs
+        """Make a unique id for this migrator and node attrs.
 
         Parameters
         ----------
@@ -660,7 +660,7 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name."""
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")

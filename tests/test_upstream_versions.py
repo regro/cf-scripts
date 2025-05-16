@@ -1764,9 +1764,7 @@ def test_github_releases(tmpdir, url, feedstock_version):
 def test_github_releases_unusual_version(
     tmp_path: Path, url: str, feedstock_version: str, regex: str
 ):
-    """
-    Tests that the GitHubReleases source can handle unusual version strings such as timestamps.
-    """
+    """Tests that the GitHubReleases source can handle unusual version strings such as timestamps."""
     meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
     with meta_yaml as _meta_yaml:
         _meta_yaml.update(

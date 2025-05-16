@@ -191,9 +191,7 @@ def _process_section(output_index, attrs, lines):
 
 
 def _replacer(lines, from_this, to_that, max_times=None):
-    """
-    Replaces one pattern with a string in a set of lines, up to max_times
-    """
+    """Replaces one pattern with a string in a set of lines, up to max_times."""
     i = 0
     new_lines = []
     pat = re.compile(from_this)

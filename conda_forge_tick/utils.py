@@ -183,12 +183,12 @@ def fold_log_lines(title):
 
 
 def yaml_safe_load(stream):
-    """Load a yaml doc safely"""
+    """Load a yaml doc safely."""
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
 
 
 def yaml_safe_dump(data, stream=None):
-    """Dump a yaml object"""
+    """Dump a yaml object."""
     yaml = ruamel.yaml.YAML(typ="safe", pure=True)
     yaml.default_flow_style = False
     return yaml.dump(data, stream=stream)
@@ -512,7 +512,7 @@ def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str,
 def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
-    """Parses validated recipes and transform them to fit `RecipeTypedDict`
+    """Parses validated recipes and transform them to fit `RecipeTypedDict`.
 
     Parameters
     ----------
@@ -630,7 +630,7 @@ def _parse_recipes(
 
 
 def _parse_recipe_yaml_requirements(requirements) -> None:
-    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
+    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`.
 
     When rendering the recipe by rattler build,
     `requirements["run_exports"]["weak"]` gives a list looking like:
@@ -1383,7 +1383,7 @@ def extract_section_from_yaml_text(
     section_name: str,
     exclude_requirements: bool = False,
 ) -> list[str]:
-    """Extract a section from YAML as text
+    """Extract a section from YAML as text.
 
     Parameters
     ----------

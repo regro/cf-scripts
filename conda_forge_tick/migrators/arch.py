@@ -42,7 +42,7 @@ MIGRATION_SUPPORT_DIRS = [
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
-    """Filter out excluded dependencies from the graph
+    """Filter out excluded dependencies from the graph.
 
     This function removes any node that descends from an excluded dependency
     in addition to removing the excluded dependency itself.
@@ -59,7 +59,7 @@ def _filter_excluded_deps(graph, excluded_dependencies):
 
 
 def _cut_to_target_packages(graph, target_packages):
-    """Cut the graph to only the target packages
+    """Cut the graph to only the target packages.
 
     **operates in place**
     """
@@ -75,7 +75,7 @@ def _cut_to_target_packages(graph, target_packages):
 
 
 def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
-    """Remove any stub packages and ignored packages from the graph
+    """Remove any stub packages and ignored packages from the graph.
 
     **operates in place**
     """
@@ -96,9 +96,7 @@ def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
 
 
 class ArchRebuild(GraphMigrator):
-    """
-    A Migrator that add aarch64 and ppc64le builds to feedstocks
-    """
+    """A Migrator that add aarch64 and ppc64le builds to feedstocks."""
 
     migrator_version = 1
     rerender = True
@@ -238,9 +236,7 @@ class ArchRebuild(GraphMigrator):
 
 
 class _CrossCompileRebuild(GraphMigrator):
-    """
-    A Migrator that adds arch platform builds to feedstocks
-    """
+    """A Migrator that adds arch platform builds to feedstocks."""
 
     rerender = True
     # We purposefully don't want to bump build number for this migrator
@@ -385,9 +381,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
 
 class OSXArm(_CrossCompileRebuild):
-    """
-    A Migrator that add osx-arm64 builds to feedstocks
-    """
+    """A Migrator that add osx-arm64 builds to feedstocks."""
 
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
@@ -419,9 +413,7 @@ class OSXArm(_CrossCompileRebuild):
 
 
 class WinArm64(_CrossCompileRebuild):
-    """
-    A Migrator that add win-arm64 builds to feedstocks
-    """
+    """A Migrator that add win-arm64 builds to feedstocks."""
 
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}

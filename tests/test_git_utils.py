@@ -86,9 +86,7 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
 def test_git_cli_run_git_command_mock(
     subprocess_run_mock: MagicMock, check_error: bool, suppress_all_output: bool
 ):
-    """
-    This test checks if all parameters are passed correctly to the subprocess.run function.
-    """
+    """This test checks if all parameters are passed correctly to the subprocess.run function."""
     cli = GitCli()
 
     working_directory = Path("TEST_DIR")
@@ -116,9 +114,7 @@ def test_git_cli_run_git_command_mock(
 
 @pytest.mark.parametrize("check_error", [True, False])
 def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
-    """
-    Verify that the stdout of the git command is captured and not printed to the console.
-    """
+    """Verify that the stdout of the git command is captured and not printed to the console."""
     cli = GitCli()
 
     p = cli._run_git_command(["version"], check_error=check_error)
@@ -130,9 +126,7 @@ def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
 
 
 def test_git_cli_run_git_command_stderr_not_captured(capfd):
-    """
-    Verify that the stderr of the git command is not captured if no token is hidden.
-    """
+    """Verify that the stderr of the git command is not captured if no token is hidden."""
     cli = GitCli()
 
     p = cli._run_git_command(["non-existing-command"], check_error=False)
@@ -1398,9 +1392,7 @@ def test_github_backend_create_pull_request_validation_error(
     github_response_get_repo: dict,
     github_response_create_pull_validation_error: dict,
 ):
-    """
-    Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError.
-    """
+    """Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError."""
 
     def request_side_effect(method, _url, **_kwargs):
         response = requests.Response()

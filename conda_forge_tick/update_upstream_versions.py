@@ -61,7 +61,7 @@ def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
     Check if a version should be ignored based on the `conda-forge.yml` file.
     :param attrs: The node attributes
     :param version: The version to check
-    :return: True if the version should be ignored, False otherwise
+    :return: True if the version should be ignored, False otherwise.
     """
     versions_to_ignore = get_keys_default(
         attrs,

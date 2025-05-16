@@ -42,7 +42,7 @@ def sample_yaml_rebuild() -> str:
 
 
 def test_yaml_migration_rebuild(tmp_path):
-    """Test that the build number is bumped"""
+    """Test that the build number is bumped."""
     sample = sample_yaml_rebuild()
     updated_yaml_rebuild = sample.replace("number: 0", "number: 1")
 

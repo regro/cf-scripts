@@ -224,9 +224,7 @@ def _commit_migration(
 
 @dataclass(frozen=True)
 class _RerenderInfo:
-    """
-    Additional information about a rerender operation.
-    """
+    """Additional information about a rerender operation."""
 
     nontrivial_changes: bool
     """
@@ -484,7 +482,7 @@ def run(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
-    """For a given feedstock and migration run the migration
+    """For a given feedstock and migration run the migration.
 
     Parameters
     ----------
@@ -1125,7 +1123,7 @@ def _setup_limits():
 
 
 def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
-    """Go through all the open PRs and check if they are rerun"""
+    """Go through all the open PRs and check if they are rerun."""
     print("processing bot-rerun labels", flush=True)
 
     for i, (name, node) in enumerate(gx.nodes.items()):
@@ -1185,7 +1183,7 @@ def _filter_ignored_versions(attrs, version):
 
 
 def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
+    """Updates every node with it's new version (when available)."""
     print("updating nodes with new versions", flush=True)
 
     version_nodes = get_all_keys_for_hashmap("versions")

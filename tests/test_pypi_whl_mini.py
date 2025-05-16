@@ -138,7 +138,7 @@ def test_migrate_non_python(tmp_dir_with_conf, package):
 
 @flaky
 def test_migrate_thrift(tmp_dir_with_conf):
-    """Packages without a wheel should be filtered out"""
+    """Packages without a wheel should be filtered out."""
     url = (
         "https://raw.githubusercontent.com/conda-forge/thrift-feedstock/"
         "e0327f2a8b75151428e22c722b311a4ac9fccf41/recipe/meta.yaml"
@@ -157,7 +157,7 @@ def test_migrate_thrift(tmp_dir_with_conf):
 
 @flaky
 def test_migrate_psutil(tmp_dir_with_conf):
-    """Packages with many wheels should be filtered out"""
+    """Packages with many wheels should be filtered out."""
     url = (
         "https://raw.githubusercontent.com/conda-forge/psutil-feedstock/"
         "0cfe57ff0dd639ed872e6e1d220a297ddc3b9100/recipe/meta.yaml"
@@ -176,7 +176,7 @@ def test_migrate_psutil(tmp_dir_with_conf):
 
 @flaky
 def test_migrate_black(tmp_dir_with_conf):
-    """Black has a wheel so this minimigrator should attempt to run"""
+    """Black has a wheel so this minimigrator should attempt to run."""
     url = (
         "https://raw.githubusercontent.com/conda-forge/black-feedstock/"
         "fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"
@@ -196,7 +196,7 @@ def test_migrate_black(tmp_dir_with_conf):
 
 @flaky
 def test_migrate_black_no_conf(tmp_path):
-    """Without enabling the feature, don't run for black"""
+    """Without enabling the feature, don't run for black."""
     url = (
         "https://raw.githubusercontent.com/conda-forge/black-feedstock/"
         "fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"

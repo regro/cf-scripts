@@ -102,7 +102,7 @@ class AddNVIDIATools(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
     ) -> MigrationUidTypedDict:
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -186,7 +186,7 @@ class AddNVIDIATools(Migrator):
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
-        """Create a PR message body
+        """Create a PR message body.
 
         Returns
         -------

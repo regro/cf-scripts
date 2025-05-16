@@ -48,7 +48,7 @@ class BotConfigVersionUpdatesSourcesChoice(StrEnum):
 class BotConfigVersionUpdates(BaseModel):
     """
     This dictates the behavior of the conda-forge auto-tick bot for version
-    updates
+    updates.
     """
 
     model_config: ConfigDict = ConfigDict(extra="forbid")

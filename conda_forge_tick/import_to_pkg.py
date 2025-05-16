@@ -169,7 +169,7 @@ def map_import_to_package(import_name: str) -> str:
 
 def extract_pkg_from_import(name):
     """Provide the name of the package that matches with the import provided,
-    with the maps between the imports and artifacts and packages that matches
+    with the maps between the imports and artifacts and packages that matches.
 
     Parameters
     ----------

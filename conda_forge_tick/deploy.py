@@ -204,7 +204,7 @@ def _reset_and_restore_file(pth):
 
 
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
-    """Deploy the graph to GitHub"""
+    """Deploy the graph to GitHub."""
     if ctx.dry_run:
         print("(dry run) deploying")
         return

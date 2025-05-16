@@ -76,17 +76,13 @@ class LocalPathSource(BaseSource):
 
 
 class PatchesOnlySource(BaseSource, StrictBaseModel):
-    """
-    This case happens due to selectors and rendering of the `source` field.
-    """
+    """This case happens due to selectors and rendering of the `source` field."""
 
     pass
 
 
 class FilenameOnlySource(BaseSource, StrictBaseModel):
-    """
-    This case happens due to selectors and rendering of the `source` field.
-    """
+    """This case happens due to selectors and rendering of the `source` field."""
 
     filename: str | None = Field(None, alias="fn")
 

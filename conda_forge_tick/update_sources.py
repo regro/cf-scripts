@@ -377,7 +377,7 @@ def url_exists(url: str, timeout=5) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
-     - requests cannot handle ftp
+     - requests cannot handle ftp.
     """
     if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
         try:
@@ -757,7 +757,7 @@ class CratesIO(AbstractSource):
     def _tier_directory(package: str) -> str:
         """Depending on the length of the package name, the tier directory structure
         will differ.
-        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files
+        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files.
         """
         if not package:
             raise ValueError("Package name cannot be empty")

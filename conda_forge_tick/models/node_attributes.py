@@ -174,9 +174,7 @@ class NodeAttributesValid(StrictBaseModel):
 
     @model_validator(mode="after")
     def check_all_platform_infos_present(self) -> Self:
-        """
-        Ensure that the `platform_info` field is present for all build platforms in the `platforms` field.
-        """
+        """Ensure that the `platform_info` field is present for all build platforms in the `platforms` field."""
         if set(self.platform_info.keys()) != self.platforms:
             raise ValueError(
                 "The `platform_info` field must contain all build platforms in the `platforms` field."
@@ -187,9 +185,7 @@ class NodeAttributesValid(StrictBaseModel):
     def serialize_platform_info(
         self, wrapped_serializer: SerializerFunctionWrapHandler
     ) -> dict[str, Any]:
-        """
-        Serialize the `platform_info` field into the old model.
-        """
+        """Serialize the `platform_info` field into the old model."""
         serialized_model: dict[str, Any] = wrapped_serializer(self)
 
         serialized_model.update(
@@ -323,9 +319,7 @@ class NodeAttributesValid(StrictBaseModel):
 
 
 class NodeAttributesError(ValidatedBaseModel):
-    """
-    If a parsing error occurred, any number of fields can be missing.
-    """
+    """If a parsing error occurred, any number of fields can be missing."""
 
     parsing_error: str
     """

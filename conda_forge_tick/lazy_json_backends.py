@@ -940,7 +940,7 @@ def sync_lazy_json_object(
 
 
 class LazyJson(MutableMapping):
-    """Lazy load a dict from a json file and save it when updated"""
+    """Lazy load a dict from a json file and save it when updated."""
 
     def __init__(self, file_name: str):
         self.file_name = file_name
@@ -1142,7 +1142,7 @@ def _call_object_hook(
 
 
 def loads(s: str, object_hook: "Callable[[dict], Any]" = object_hook) -> dict:
-    """Loads a string as JSON, with appropriate object hooks"""
+    """Loads a string as JSON, with appropriate object hooks."""
     data = orjson.loads(s)
     if object_hook is not None:
         data = _call_object_hook(data, object_hook)

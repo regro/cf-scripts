@@ -79,7 +79,7 @@ def _init_dask(lock):
 
 @contextlib.contextmanager
 def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
-    """General purpose utility to get an executor with its as_completed handler
+    """General purpose utility to get an executor with its as_completed handler.
 
     This allows us to easily use other executors as needed.
     """

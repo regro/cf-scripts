@@ -1,7 +1,4 @@
-"""
-Functions to find the longest paths between nodes in a graph.
-
-"""
+"""Functions to find the longest paths between nodes in a graph."""
 
 from collections import defaultdict
 from copy import deepcopy

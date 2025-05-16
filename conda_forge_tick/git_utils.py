@@ -1,4 +1,4 @@
-"""Utilities for managing github repos"""
+"""Utilities for managing github repos."""
 
 import base64
 import copy
@@ -90,18 +90,14 @@ def get_bot_token():
 
 
 def github3_client() -> github3.GitHub:
-    """
-    This will be removed in the future, use the GitHubBackend class instead.
-    """
+    """This will be removed in the future, use the GitHubBackend class instead."""
     if not hasattr(GITHUB3_CLIENT, "client"):
         GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
     return GITHUB3_CLIENT.client
 
 
 def github_client() -> github.Github:
-    """
-    This will be removed in the future, use the GitHubBackend class instead.
-    """
+    """This will be removed in the future, use the GitHubBackend class instead."""
     if not hasattr(GITHUB_CLIENT, "client"):
         GITHUB_CLIENT.client = github.Github(
             auth=github.Auth.Token(get_bot_token()),
@@ -130,33 +126,25 @@ class GitConnectionMode(enum.StrEnum):
 
 
 class GitCliError(Exception):
-    """
-    A generic error that occurred while running a git CLI command.
-    """
+    """A generic error that occurred while running a git CLI command."""
 
     pass
 
 
 class GitPlatformError(Exception):
-    """
-    A generic error that occurred while interacting with a git platform.
-    """
+    """A generic error that occurred while interacting with a git platform."""
 
     pass
 
 
 class DuplicatePullRequestError(GitPlatformError):
-    """
-    Raised if a pull request already exists.
-    """
+    """Raised if a pull request already exists."""
 
     pass
 
 
 class RepositoryNotFoundError(Exception):
-    """
-    Raised when a repository is not found.
-    """
+    """Raised when a repository is not found."""
 
     pass
 
@@ -307,7 +295,7 @@ class GitCli:
         :param remote_url: The URL of the remote.
         :param git_dir: The directory of the git repository.
         :raises GitCliError: If the git command fails (e.g., the remote already exists).
-        :raises FileNotFoundError: If git_dir does not exist
+        :raises FileNotFoundError: If git_dir does not exist.
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
 
@@ -318,7 +306,7 @@ class GitCli:
         Internally, this sets the `http.<origin>/.extraheader` git configuration key to
         `AUTHORIZATION: basic <base64-encoded HTTP basic token>`.
         This is similar to how the GitHub Checkout action does it:
-        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT
+        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT.
 
         The CLI outputs of this command are suppressed to avoid leaking the token.
         :param git_dir: The directory of the git repository.
@@ -361,7 +349,7 @@ class GitCli:
         Fetch all changes from all remotes.
         :param git_dir: The directory of the git repository.
         :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
+        :raises FileNotFoundError: If git_dir does not exist.
         """
         self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
 
@@ -375,7 +363,7 @@ class GitCli:
         :param git_dir: The directory of the git repository.
         :return: True if the branch exists, False otherwise.
         :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
+        :raises FileNotFoundError: If git_dir does not exist.
         """
         ret = self._run_git_command(
             ["show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
@@ -412,7 +400,7 @@ class GitCli:
         A new local branch will be created with the name inferred from branch.
         For example, if branch is "upstream/main", the new branch will be "main".
         :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
+        :raises FileNotFoundError: If git_dir does not exist.
         """
         track_flag = ["--track"] if track else []
         self._run_git_command(
@@ -429,7 +417,7 @@ class GitCli:
         :param git_dir: The directory of the git repository.
         :param branch: The name of the new branch.
         :param start_point: The name of the branch to branch from, or None to branch from the current branch.
-        :raises FileNotFoundError: If git_dir does not exist
+        :raises FileNotFoundError: If git_dir does not exist.
         """
         start_point_option = [start_point] if start_point else []
 
@@ -651,9 +639,7 @@ class GitPlatformBackend(ABC):
     @property
     @abstractmethod
     def user(self) -> str:
-        """
-        The username of the logged-in user, i.e. the owner of forked repositories.
-        """
+        """The username of the logged-in user, i.e. the owner of forked repositories."""
         pass
 
     @abstractmethod
@@ -729,9 +715,7 @@ class GitPlatformBackend(ABC):
 
 
 class _Github3SessionWrapper:
-    """
-    This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers.
-    """
+    """This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers."""
 
     def __init__(self, session: GitHubSession):
         super().__init__()
@@ -1137,9 +1121,7 @@ class DryRunBackend(GitPlatformBackend):
 
 
 def github_backend() -> GitHubBackend:
-    """
-    This helper method will be removed in the future, use the GitHubBackend class directly.
-    """
+    """This helper method will be removed in the future, use the GitHubBackend class directly."""
     return GitHubBackend.from_token(get_bot_token())
 
 

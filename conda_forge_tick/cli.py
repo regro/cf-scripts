@@ -238,9 +238,7 @@ def make_import_to_package_mapping(
     ctx: CliContext,
     max_artifacts: int,
 ) -> None:
-    """
-    Make the import to package mapping.
-    """
+    """Make the import to package mapping."""
     from . import import_to_pkg
 
     import_to_pkg.main(ctx, max_artifacts)
@@ -251,9 +249,7 @@ def make_import_to_package_mapping(
 def make_migrators(
     ctx: CliContext,
 ) -> None:
-    """
-    Make the migrators.
-    """
+    """Make the migrators."""
     from . import make_migrators as _make_migrators
 
     _make_migrators.main(ctx)
@@ -281,9 +277,7 @@ def react_to_event(
     event: str,
     uid: str,
 ) -> None:
-    """
-    React to an event.
-    """
+    """React to an event."""
     from .events import react_to_event
 
     react_to_event(ctx, event, uid)
@@ -292,9 +286,7 @@ def react_to_event(
 @main.command(name="clean-disk-space")
 @click.option("--ci-service", required=True, type=click.Choice(["github-actions"]))
 def clean_disk_space(ci_service) -> None:
-    """
-    Clean up disk space on CI services.
-    """
+    """Clean up disk space on CI services."""
     from .os_utils import clean_disk_space
 
     clean_disk_space(ci_service)
