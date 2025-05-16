@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 74c077e18c441cde2b97c223bddfc286
-      sha256: 7409b43ce5324f31d60ddb6de56a4a8569d27ea9e153b46a6ebc0a8010ab50f3
+      md5: 9388526cf7ac8d553cd9c0aeda53c90a
+      sha256: e070da707accd5772c5ee636c584e9f280fef22a7d4ea4be0c585c8f239b0d97
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.15.21.23.01-hd8ed1ab_0.conda
-    version: 2025.05.15.21.23.01
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.16.01.54.41-hd8ed1ab_0.conda
+    version: 2025.05.16.01.54.41
   - category: main
     dependencies: {}
     hash:
-      md5: 74c077e18c441cde2b97c223bddfc286
-      sha256: 7409b43ce5324f31d60ddb6de56a4a8569d27ea9e153b46a6ebc0a8010ab50f3
+      md5: 9388526cf7ac8d553cd9c0aeda53c90a
+      sha256: e070da707accd5772c5ee636c584e9f280fef22a7d4ea4be0c585c8f239b0d97
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.15.21.23.01-hd8ed1ab_0.conda
-    version: 2025.05.15.21.23.01
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.16.01.54.41-hd8ed1ab_0.conda
+    version: 2025.05.16.01.54.41
   - category: main
     dependencies: {}
     hash:
-      md5: 74c077e18c441cde2b97c223bddfc286
-      sha256: 7409b43ce5324f31d60ddb6de56a4a8569d27ea9e153b46a6ebc0a8010ab50f3
+      md5: 9388526cf7ac8d553cd9c0aeda53c90a
+      sha256: e070da707accd5772c5ee636c584e9f280fef22a7d4ea4be0c585c8f239b0d97
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.15.21.23.01-hd8ed1ab_0.conda
-    version: 2025.05.15.21.23.01
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.16.01.54.41-hd8ed1ab_0.conda
+    version: 2025.05.16.01.54.41
   - category: main
     dependencies:
       click: '>=8'
@@ -14337,40 +14337,40 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: 11e7b5335fecf52323d8120677644b34
-      sha256: 89765e550eed3328f1aadd2945aa66d5df66c06d71e0938f7c1012c57ff4c266
+      md5: 76487142e327c1c077f71a6ea252c0d6
+      sha256: 2d1f1db85276f370fddf1181c7fd57d7830b8e2aa246883f3b151b044a514e74
     manager: conda
     name: uv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.7.3-h2f11bb8_0.conda
-    version: 0.7.3
+    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.7.4-h2f11bb8_0.conda
+    version: 0.7.4
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
     hash:
-      md5: 310f0fdc95f00d199aea9e978cc12b43
-      sha256: acfad17c66493e864117225975e2d4bf3ded076b57898878ddcb56ff0a8302d5
+      md5: 04d0553b2b511ffed1704cf82b5e78bd
+      sha256: 1e88210b34a0cd98fc198309a236e6da24c6be4ec0e162c4aab156774da7088a
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.7.3-h6914f18_0.conda
-    version: 0.7.3
+    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.7.4-h08e7fc3_0.conda
+    version: 0.7.4
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: 09f2dfb5f180acf3beb4b20324080eac
-      sha256: 23b7e227af3780fe2e3a742aa4c4ce2bbcfea2604341aa66ff374fe04578108f
+      md5: 80d49063ee309a549a95be347d9e711d
+      sha256: 23a37fa6286fb47f224067535d4e134d151c9261e9c65df1202e7c8b55d24f3c
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.3-hb4c02be_0.conda
-    version: 0.7.3
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.4-hd4c9240_0.conda
+    version: 0.7.4
   - category: main
     dependencies:
       distlib: '>=0.3.7,<1'
