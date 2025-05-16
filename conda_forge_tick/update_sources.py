@@ -247,7 +247,7 @@ class CRAN(AbstractSource):
                 CRAN_INDEX = self._get_cran_index(session)
                 logger.debug("Cran source initialized")
             except Exception:
-                logger.error("Cran initialization failed", exc_info=True)
+                logger.exception("Cran initialization failed")
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
@@ -332,7 +332,7 @@ class ROSDistro(AbstractSource):
                 ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
             except Exception:
-                logger.error("ROS Distro initialization failed", exc_info=True)
+                logger.exception("ROS Distro initialization failed")
                 ROS_DISTRO_INDEX = {}
 
     def get_url(self, meta_yaml: "RecipeTypedDict") -> Optional[str]:
@@ -565,7 +565,7 @@ class Github(VersionFromFeed):
         self.version_prefix = self.get_version_prefix(version, split_url)
         if self.version_prefix is None:
             return
-        logger.debug(f"Found version prefix from url: {self.version_prefix}")
+        logger.debug("Found version prefix from url: %s", self.version_prefix)
         self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):

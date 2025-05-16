@@ -71,8 +71,9 @@ def is_recipe_solvable(
             str(logging.getLevelName(logger.getEffectiveLevel())).upper()
         )
         logger.debug(
-            f"is_recipe_solver log-level={logging.getLevelName(logger.getEffectiveLevel())}"
-            f" -> verbosity={verbosity}"
+            "is_recipe_solver log-level=%d -> verbosity=%d",
+            logging.getLevelName(logger.getEffectiveLevel()),
+            verbosity,
         )
 
     if should_use_container(use_container=use_container):
@@ -133,9 +134,13 @@ def _is_recipe_solvable_containerized(
             feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
         )
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         data = run_container_operation(

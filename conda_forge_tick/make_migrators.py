@@ -1033,7 +1033,7 @@ def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) 
                     lzj.update(data)
 
             except Exception as e:
-                logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)
+                logger.error("Error dumping migrator %s to JSON!", migrator, exc_info=e)
 
         migrators_to_remove = old_migrators - new_migrators
         for migrator in migrators_to_remove:

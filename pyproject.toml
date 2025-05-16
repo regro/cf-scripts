@@ -39,7 +39,7 @@ write_to_template = "__version__ = '{version}'\n"
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W"]
+select = ["E", "F", "I", "W", "LOG", "G"]
 ignore = ["E501"]
 preview = true
 
