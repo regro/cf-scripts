@@ -144,7 +144,7 @@ jobs:
             --splitting-algorithm least_duration \
             --clean-durations \
             --reruns 5 \
-            --reruns-delay 1 \            
+            --reruns-delay 1 \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
