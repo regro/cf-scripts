@@ -990,12 +990,10 @@ def _parse_meta_yaml_impl(
 
             def _run_parsing():
                 logger.debug(
-                    "parsing for platform %s with cbc %s and arch %s"
-                    % (
-                        platform,
-                        cbc_path,
-                        arch,
-                    ),
+                    "parsing for platform %s with cbc %s and arch %s",
+                    platform,
+                    cbc_path,
+                    arch,
                 )
                 config = conda_build.config.get_or_merge_config(
                     None,

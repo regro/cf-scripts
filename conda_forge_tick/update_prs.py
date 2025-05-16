@@ -118,23 +118,22 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                     with pr_json as attrs:
                         attrs.update(**res)
             except (github3.GitHubError, github.GithubException) as e:
-                logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
+                logger.error("GITHUB ERROR ON FEEDSTOCK: %s", name)
                 failed_refresh += 1
                 if is_github_api_limit_reached():
                     logger.warning("GitHub API error", exc_info=e)
                     break
             except (github3.exceptions.ConnectionError, github.GithubException):
-                logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
+                logger.error("GITHUB ERROR ON FEEDSTOCK: %s", name)
                 failed_refresh += 1
             except Exception:
                 import traceback
 
                 logger.critical(
-                    "ERROR ON FEEDSTOCK: {}: {} - {}".format(
-                        name,
-                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
-                        traceback.format_exc(),
-                    ),
+                    "ERROR ON FEEDSTOCK: %s: %s - %s",
+                    name,
+                    gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
+                    traceback.format_exc(),
                 )
                 raise
 
@@ -151,8 +150,8 @@ def update_pr_combined(
         _combined_update_function, dry_run, gx, job, n_jobs
     )
 
-    logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
-    logger.info(f"JSON Refresh succeed for {succeeded_refresh} PRs")
+    logger.info("JSON Refresh failed for %i PRs", failed_refresh)
+    logger.info("JSON Refresh succeed for %i PRs", succeeded_refresh)
     return gx
 
 

@@ -75,9 +75,11 @@ def provide_source_code_containerized(recipe_dir):
 
         chmod_plus_rwX(tmpdir)
 
-        logger.debug(f"host recipe dir {recipe_dir}: {os.listdir(recipe_dir)}")
+        logger.debug("host recipe dir %s: %s", recipe_dir, os.listdir(recipe_dir))
         logger.debug(
-            f"copied host recipe dir {tmp_recipe_dir}: {os.listdir(tmp_recipe_dir)}"
+            "copied host recipe dir %s: %s",
+            tmp_recipe_dir,
+            os.listdir(tmp_recipe_dir),
         )
 
         tmp_source_dir = os.path.join(tmpdir, "source_dir")
