@@ -63,7 +63,7 @@ def delay_rerun(*args):
         ),
     ],
 )
-@flaky(max_runs=4, rerun_filter=delay_rerun)
+@pytest.mark.flaky(reruns=2)(max_runs=4, rerun_filter=delay_rerun)
 def test_url_exists(url, exists):
     # sourceforge seems slow enough to time out in our tests?
     if "sourceforge" in url:

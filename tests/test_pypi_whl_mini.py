@@ -3,7 +3,6 @@ import os
 import networkx as nx
 import pytest
 import requests
-from flaky import flaky
 from test_migrators import run_minimigrator, run_test_migration
 
 from conda_forge_tick.migrators import PipWheelMigrator, Version
@@ -100,7 +99,7 @@ bot:
     return tmp_path
 
 
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_opentelemetry(tmp_dir_with_conf):
     run_test_migration(
         m=version_migrator_whl,
@@ -118,7 +117,7 @@ def test_migrate_opentelemetry(tmp_dir_with_conf):
 
 
 @pytest.mark.parametrize("package", ["icu", "pipcheck_simple"])
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_non_python(tmp_dir_with_conf, package):
     """Shouldn't run for non-python recipes or recipes that
     have not opted in to the wheel migrator.
@@ -136,7 +135,7 @@ def test_migrate_non_python(tmp_dir_with_conf, package):
     )
 
 
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_thrift(tmp_dir_with_conf):
     """Packages without a wheel should be filtered out"""
     url = (
@@ -155,7 +154,7 @@ def test_migrate_thrift(tmp_dir_with_conf):
     )
 
 
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_psutil(tmp_dir_with_conf):
     """Packages with many wheels should be filtered out"""
     url = (
@@ -174,7 +173,7 @@ def test_migrate_psutil(tmp_dir_with_conf):
     )
 
 
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_black(tmp_dir_with_conf):
     """Black has a wheel so this minimigrator should attempt to run"""
     url = (
@@ -194,7 +193,7 @@ def test_migrate_black(tmp_dir_with_conf):
     )
 
 
-@flaky
+@pytest.mark.flaky(reruns=2)
 def test_migrate_black_no_conf(tmp_path):
     """Without enabling the feature, don't run for black"""
     url = (

@@ -145,6 +145,7 @@ jobs:
             --clean-durations \
             --reruns 5 \
             --reruns-delay 1 \
+            -r aR \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
@@ -294,6 +295,7 @@ jobs:
             --clean-durations \
             --reruns 5 \
             --reruns-delay 1 \
+            -r aR \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
