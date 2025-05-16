@@ -208,7 +208,6 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         The text of the meta.yaml with Jinja2 variables replaced.
 
     """
-
     cfg = dict(**kwargs)
 
     env = jinja2.sandbox.SandboxedEnvironment(undefined=NullUndefined)
@@ -408,7 +407,6 @@ def parse_recipe_yaml_local(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-
     rendered_recipes = _render_recipe_yaml(
         text, cbc_path=cbc_path, platform_arch=platform_arch
     )
@@ -633,7 +631,6 @@ def _parse_recipes(
 
 def _parse_recipe_yaml_requirements(requirements) -> None:
     """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
-
 
     When rendering the recipe by rattler build,
     `requirements["run_exports"]["weak"]` gives a list looking like:
@@ -1257,15 +1254,18 @@ def as_iterable(x: T) -> Tuple[T]: ...
 @typing.no_type_check
 def as_iterable(iterable_or_scalar):
     """Utility for converting an object to an iterable.
+
     Parameters
     ----------
     iterable_or_scalar : anything
+
     Returns
     -------
     l : iterable
         If `obj` was None, return the empty tuple.
         If `obj` was not iterable returns a 1-tuple containing `obj`.
         Otherwise return `obj`
+
     Notes
     -----
     Although both string types and dictionaries are iterable in Python, we are
@@ -1273,7 +1273,7 @@ def as_iterable(iterable_or_scalar):
     returns (dict, ) and as_iterable(string) returns (string, )
 
     Examples
-    ---------
+    --------
     >>> as_iterable(1)
     (1,)
     >>> as_iterable([1, 2, 3])
@@ -1283,7 +1283,6 @@ def as_iterable(iterable_or_scalar):
     >>> as_iterable({'a': 1})
     ({'a': 1}, )
     """
-
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):

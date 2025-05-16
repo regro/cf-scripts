@@ -80,7 +80,7 @@ def replace_in_file(pattern, new, fname, leading_whitespace=True):
 
 def _to_spdx(lic):
     """
-    we are munging this stuff from conda-build
+    We are munging this stuff from conda-build
 
     d_license = {'agpl3': ['AGPL-3', 'AGPL (>= 3)', 'AGPL',
                            'GNU Affero General Public License'],

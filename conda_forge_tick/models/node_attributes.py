@@ -190,7 +190,6 @@ class NodeAttributesValid(StrictBaseModel):
         """
         Serialize the `platform_info` field into the old model.
         """
-
         serialized_model: dict[str, Any] = wrapped_serializer(self)
 
         serialized_model.update(

@@ -720,7 +720,6 @@ def load_feedstock(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
-
     if should_use_container(use_container=use_container):
         return load_feedstock_containerized(
             name,

@@ -28,7 +28,6 @@ def lock_git_operation():
     and once per dask worker.
     Note that this is a reentrant lock, so it can be acquired multiple times by the same thread/process/worker.
     """
-
     with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
         yield
 

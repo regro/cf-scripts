@@ -45,7 +45,7 @@ log_level_option = click.option(
 
 @contextmanager
 def _setenv(name, value):
-    """set an environment variable temporarily"""
+    """Set an environment variable temporarily"""
     old = os.environ.get(name)
     try:
         os.environ[name] = value

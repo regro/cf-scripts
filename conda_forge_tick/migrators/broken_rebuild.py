@@ -298,7 +298,7 @@ linux-ppc64le/zfpy-0.5.5-py39h6474468_6.tar.bz2
 
 
 def split_pkg(pkg):
-    """nice little code snippet from isuru and CJ"""
+    """Nice little code snippet from isuru and CJ"""
     if not pkg.endswith(".tar.bz2"):
         raise RuntimeError("Can only process packages that end in .tar.bz2")
     pkg = pkg[:-8]

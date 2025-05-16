@@ -42,7 +42,7 @@ MIGRATION_SUPPORT_DIRS = [
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
-    """filter out excluded dependencies from the graph
+    """Filter out excluded dependencies from the graph
 
     This function removes any node that descends from an excluded dependency
     in addition to removing the excluded dependency itself.
@@ -59,7 +59,7 @@ def _filter_excluded_deps(graph, excluded_dependencies):
 
 
 def _cut_to_target_packages(graph, target_packages):
-    """cut the graph to only the target packages
+    """Cut the graph to only the target packages
 
     **operates in place**
     """
@@ -75,7 +75,7 @@ def _cut_to_target_packages(graph, target_packages):
 
 
 def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
-    """remove any stub packages and ignored packages from the graph
+    """Remove any stub packages and ignored packages from the graph
 
     **operates in place**
     """

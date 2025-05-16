@@ -228,7 +228,6 @@ def run_migration_local(
           - pr_title: The PR title for the migration.
           - pr_body: The PR body for the migration.
     """
-
     # it would be better if we don't re-instantiate ClonedFeedstockContext ourselves and let
     # FeedstockContext.reserve_clone_directory be the only way to create a ClonedFeedstockContext
     feedstock_ctx = ClonedFeedstockContext(

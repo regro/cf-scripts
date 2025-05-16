@@ -190,7 +190,8 @@ def convert_to_grayskull_style_yaml(
     best_imports: Dict[str, Mapping],
 ) -> Dict[PypiName, Mapping]:
     """Convert our list style mapping to the pypi-centric version
-    required by grayskull by reindexing on the PyPI name"""
+    required by grayskull by reindexing on the PyPI name
+    """
     package_mappings = best_imports.values()
     sorted_mappings = sorted(package_mappings, key=lambda mapping: mapping["pypi_name"])
 

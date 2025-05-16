@@ -110,7 +110,6 @@ def _is_recipe_solvable_containerized(
 
     See the docstring of `is_recipe_solvable` for inputs and outputs.
     """
-
     args = [
         "conda-forge-tick-container",
         "check-solvable",

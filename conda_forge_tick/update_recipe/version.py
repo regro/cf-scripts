@@ -168,7 +168,6 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
     new_hash : str or None
         The new hash if found.
     """
-
     if "version" not in context:
         return None, None
 

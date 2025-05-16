@@ -48,7 +48,7 @@ BAD_JINJA2_SET_STATEMENT = re.compile(
 
 
 def _get_yaml_parser(typ="jinja2"):
-    """yaml parser that is jinja2 aware"""
+    """Yaml parser that is jinja2 aware"""
     # using a function here so settings are always the same
 
     def represent_none(self, data):
@@ -164,7 +164,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
 
 
 def _munge_line(line: str) -> str:
-    """turn lines like
+    """Turn lines like
 
         key: val  # [sel]
 
@@ -194,7 +194,7 @@ def _munge_line(line: str) -> str:
 
 
 def _unmunge_line(line: str) -> str:
-    """turn lines like
+    """Turn lines like
 
         key__###conda-selector###__sel: val
 
@@ -249,7 +249,7 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
 
 
 def _munge_multiline_jinja2(lines):
-    """puts a comment slug in front of any multiline jinja2 statements"""
+    """Puts a comment slug in front of any multiline jinja2 statements"""
     in_statement = False
     special_end_slug_re = []
     new_lines = []
@@ -285,7 +285,7 @@ def _munge_multiline_jinja2(lines):
 
 
 def _unmunge_multiline_jinja2(lines):
-    """removes a comment slug in front of any multiline jinja2 statements"""
+    """Removes a comment slug in front of any multiline jinja2 statements"""
     start_slug = "# {# " + JINJA2_ML_SLUG
     start = len(start_slug)
     stop = len(" #}\n")
@@ -299,7 +299,7 @@ def _unmunge_multiline_jinja2(lines):
 
 
 def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
-    """recursively iterate through dictionary / list and replace any instance
+    """Recursively iterate through dictionary / list and replace any instance
     in any string of `<{` with '{{'
     """
     if isinstance(meta, collections.abc.MutableMapping):
@@ -317,7 +317,7 @@ def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, 
 
 
 def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
-    """recursively iterate through dictionary / list and replace any instance
+    """Recursively iterate through dictionary / list and replace any instance
     in any string of `{{` with '<{'
     """
     if isinstance(meta, collections.abc.MutableMapping):
@@ -518,7 +518,6 @@ def _remove_bad_jinja2_set_statements(lines):
 
 def _munge_jinj2_comments(lines):
     """Turn any jinja2 comments: `{# #}` into yaml comments."""
-
     new_lines = []
     for line in lines:
         if line.lstrip().startswith("{#") and line.rstrip().endswith("#}"):

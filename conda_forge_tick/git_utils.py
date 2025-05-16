@@ -297,7 +297,6 @@ class GitCli:
         :param branch: The branch to push to.
         :raises GitCliError: If the git command fails.
         """
-
         self._run_git_command(["push", remote_url, branch], git_dir)
 
     @lock_git_operation()
@@ -449,7 +448,6 @@ class GitCli:
         :param commit_b: The second commit.
         :return: An iterator over the files that are different between the two commits.
         """
-
         # --relative ensures that we do not assemble invalid paths below if git_dir is a subdirectory
         ret = self._run_git_command(
             ["diff", "--name-only", "--relative", commit_a, commit_b],

@@ -31,7 +31,8 @@ class SensitiveEnv:
     @contextmanager
     def sensitive_env(self):
         """Add sensitive keys to environ if needed, when ctx is finished remove keys and update the sensitive env
-        in case any were updated inside the ctx"""
+        in case any were updated inside the ctx
+        """
         self.reveal_env_vars()
         yield os.environ
         self.hide_env_vars()

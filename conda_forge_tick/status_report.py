@@ -65,8 +65,7 @@ def _ok_version(ver):
 
 
 def write_version_migrator_status(migrator, mctx):
-    """write the status of the version migrator"""
-
+    """Write the status of the version migrator"""
     out: Dict[str, Dict[str, str]] = {
         "queued": {},  # name -> pending version
         "errors": {},  # name -> error
@@ -161,7 +160,6 @@ def graph_migrator_status(
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator"""
-
     migrator_name = get_migrator_name(migrator)
 
     num_viz = 0

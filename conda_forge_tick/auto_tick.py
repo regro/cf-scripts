@@ -508,7 +508,6 @@ def run(
     pr_json: dict
         The PR json object for recreating the PR as needed
     """
-
     # sometimes we get weird directory issues so make sure we reset
     os.chdir(BOT_HOME_DIR)
 
@@ -1127,7 +1126,6 @@ def _setup_limits():
 
 def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
     """Go through all the open PRs and check if they are rerun"""
-
     print("processing bot-rerun labels", flush=True)
 
     for i, (name, node) in enumerate(gx.nodes.items()):
@@ -1188,7 +1186,6 @@ def _filter_ignored_versions(attrs, version):
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
-
     print("updating nodes with new versions", flush=True)
 
     version_nodes = get_all_keys_for_hashmap("versions")

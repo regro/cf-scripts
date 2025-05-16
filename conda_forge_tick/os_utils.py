@@ -34,7 +34,7 @@ def override_env(name, value):
 
 
 def eval_cmd(cmd: list[str], **kwargs) -> str:
-    """run a command capturing stdout
+    """Run a command capturing stdout
 
     stderr is printed for debugging
     any kwargs are added to the env

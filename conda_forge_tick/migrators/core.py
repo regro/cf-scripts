@@ -362,7 +362,6 @@ class Migrator:
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
-
         kwargs = copy.deepcopy(self._init_kwargs)
         if (
             "piggy_back_migrations" in kwargs
@@ -662,7 +661,6 @@ class Migrator:
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
-
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")

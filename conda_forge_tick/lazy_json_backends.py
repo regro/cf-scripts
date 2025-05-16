@@ -61,7 +61,7 @@ CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 
 def get_sharded_path(file_path, n_dirs=CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS):
-    """computed a sharded location for the LazyJson file."""
+    """Computed a sharded location for the LazyJson file."""
     top_dir, file_name = os.path.split(file_path)
 
     if len(top_dir) == 0 or top_dir == "lazy_json":
