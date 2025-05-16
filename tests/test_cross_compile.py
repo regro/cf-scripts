@@ -88,7 +88,6 @@ version_migrator_arm_and_power = Version(
 )
 
 
-@pytest.mark.flaky(reruns=2)
 def test_correct_config_sub(tmp_path):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
@@ -110,7 +109,6 @@ def test_correct_config_sub(tmp_path):
         assert len(f.readlines()) == 4
 
 
-@pytest.mark.flaky(reruns=2)
 def test_make_check(tmp_path):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
@@ -141,7 +139,6 @@ def test_make_check(tmp_path):
         assert lines == expected
 
 
-@pytest.mark.flaky(reruns=2)
 def test_cmake(tmp_path):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
@@ -183,7 +180,6 @@ def test_cmake(tmp_path):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_cross_rbase(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_rbase,
@@ -204,7 +200,6 @@ def test_cross_rbase(tmp_path, recipe_version: int):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_cross_rbase_build_sh(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
@@ -239,7 +234,6 @@ def test_cross_rbase_build_sh(tmp_path, recipe_version: int):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_cross_python(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_python,
@@ -260,7 +254,6 @@ def test_cross_python(tmp_path, recipe_version: int):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_cross_python_no_build(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_python,
@@ -283,7 +276,6 @@ def test_cross_python_no_build(tmp_path, recipe_version: int):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_build2host(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
@@ -304,7 +296,6 @@ def test_build2host(recipe_version, tmp_path):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_build2host_buildok(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
@@ -327,7 +318,6 @@ def test_build2host_buildok(recipe_version, tmp_path):
 
 
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_build2host_bhskip(recipe_version, tmp_path):
     run_test_migration(
         m=version_migrator_b2h,
@@ -349,7 +339,6 @@ def test_build2host_bhskip(recipe_version, tmp_path):
     )
 
 
-@pytest.mark.flaky(reruns=2)
 def test_nocondainspect(tmp_path):
     run_test_migration(
         m=version_migrator_nci,
@@ -368,7 +357,6 @@ def test_nocondainspect(tmp_path):
 
 @pytest.mark.parametrize("build_sh", [False, True])
 @pytest.mark.parametrize("recipe_version", [0, 1])
-@pytest.mark.flaky(reruns=2)
 def test_cross_compilation_for_arm_and_power(
     tmp_path, build_sh: bool, recipe_version: int
 ):

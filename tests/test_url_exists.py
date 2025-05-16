@@ -1,14 +1,6 @@
-import random
-import time
-
 import pytest
 
 from conda_forge_tick.update_sources import url_exists
-
-
-def delay_rerun(*args):
-    time.sleep(random.random() * 2)
-    return True
 
 
 @pytest.mark.parametrize(
@@ -62,7 +54,6 @@ def delay_rerun(*args):
         ),
     ],
 )
-@pytest.mark.flaky(reruns=2)(max_runs=4, rerun_filter=delay_rerun)
 def test_url_exists(url, exists):
     # sourceforge seems slow enough to time out in our tests?
     if "sourceforge" in url:

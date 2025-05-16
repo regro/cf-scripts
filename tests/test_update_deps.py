@@ -159,7 +159,6 @@ def test_update_run_deps():
     assert "python >=3.7" in recipe.dumps()
 
 
-@pytest.mark.flaky(reruns=2)
 def test_get_depfinder_comparison():
     with open(
         os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"),
@@ -417,7 +416,6 @@ extra:
 """
 
 
-@pytest.mark.flaky(reruns=2)
 @pytest.mark.parametrize(
     "update_kind,out_yml",
     [

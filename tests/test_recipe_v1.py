@@ -141,7 +141,6 @@ def test_not_sub_condition(sub_cond, super_cond):
     assert not is_sub_condition(sub_node=super_node, super_node=sub_node)
 
 
-@pytest.mark.flaky(reruns=2)
 def test_combine_v1_conditions(tmp_path):
     run_test_migration(
         m=combine_conditions_migrator,

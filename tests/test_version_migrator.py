@@ -90,7 +90,6 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
         # ("cb3multi", "6.0.0"),
     ],
 )
-@pytest.mark.flaky(reruns=2)
 def test_version_up(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
@@ -134,7 +133,6 @@ def test_version_up(case, new_ver, tmp_path, caplog):
         ("polars", "1.20.0"),
     ],
 )
-@pytest.mark.flaky(reruns=2)
 def test_version_up_v1(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
