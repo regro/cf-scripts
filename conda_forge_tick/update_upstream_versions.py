@@ -123,19 +123,25 @@ def get_latest_version_local(
                     break
             else:
                 logger.warning(
-                    f"Package {name} requests version source '{vs}' which is not available. Skipping.",
+                    "Package %s requests version source '%s' which is not available. Skipping.",
+                    name,
+                    vs,
                 )
 
         sources_to_use = sources_to_use_list
 
         logger.debug(
-            f"{name} defines the following custom version sources: {[source.name for source in sources_to_use]}",
+            "%s defines the following custom version sources: %s",
+            name,
+            [source.name for source in sources_to_use],
         )
         skipped_sources = [
             source.name for source in sources if source not in sources_to_use
         ]
         if skipped_sources:
-            logger.debug(f"Therefore, we skip the following sources: {skipped_sources}")
+            logger.debug(
+                "Therefore, we skip the following sources: %s", skipped_sources
+            )
         else:
             logger.debug("No sources are skipped.")
 
@@ -145,21 +151,24 @@ def get_latest_version_local(
     exceptions = []
     for source in sources_to_use:
         try:
-            logger.debug(f"Fetching latest version for {name} from {source.name}...")
+            logger.debug("Fetching latest version for %s from %s...", name, source.name)
             url = source.get_url(attrs)
             if url is None:
                 continue
-            logger.debug(f"Using URL {url}")
+            logger.debug("Using URL %s", url)
             ver = source.get_version(url)
             if not ver:
-                logger.debug(f"Upstream: Could not find version on {source.name}")
+                logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
-            logger.debug(f"Found version {ver} on {source.name}")
+            logger.debug("Found version %s on %s", ver, source.name)
             version_data["new_version"] = ver
             break
         except Exception as e:
             logger.error(
-                f"An exception occurred while fetching {name} from {source.name}: {e}",
+                "An exception occurred while fetching %s from %s.",
+                name,
+                source.name,
+                exc_info=e,
             )
             exceptions.append(e)
 
@@ -177,7 +186,7 @@ def get_latest_version_local(
 
     if ignore_version(attrs, new_version):
         logger.debug(
-            f"Ignoring version {new_version} because it is in the exclude list.",
+            "Ignoring version %s because it is in the exclude list.", new_version
         )
         version_data["new_version"] = False
 
@@ -290,30 +299,31 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
     if payload_attrs.get("parsing_error"):
         logger.debug(
-            f"Skipping {package_name} because it is marked as having a parsing error. The error is printed below.\n"
-            f"{payload_attrs['parsing_error']}",
+            "Skipping %s because it is marked as having a parsing error. The error is printed below.\n%s",
+            package_name,
+            payload_attrs["parsing_error"],
         )
         return False
 
     if payload_attrs.get("archived"):
-        logger.debug(
-            f"Skipping {package_name} because it is marked as archived.",
-        )
+        logger.debug("Skipping %s because it is marked as archived.", package_name)
         return False
 
     if pr_info.get("bad") and "Upstream" not in pr_info.get("bad"):
         logger.debug(
-            f"Skipping {package_name} because its corresponding Pull Request is "
-            f"marked as bad with a non-upstream issue. The error is printed below.\n"
-            f"{pr_info['bad']}",
+            "Skipping %s because its corresponding Pull Request is "
+            "marked as bad with a non-upstream issue. The error is printed below.\n%s",
+            package_name,
+            pr_info["bad"],
         )
         return False
 
     if pr_info.get("bad"):
         logger.debug(
-            f"Note: {package_name} has a bad Pull Request, but this is marked as an upstream issue. "
-            f"Therefore, it will be included in the update process. The error is printed below.\n"
-            f"{pr_info['bad']}",
+            "Note: %s has a bad Pull Request, but this is marked as an upstream issue. "
+            "Therefore, it will be included in the update process. The error is printed below.\n%s",
+            package_name,
+            pr_info["bad"],
         )
         # no return here
 
@@ -338,12 +348,17 @@ def _update_upstream_versions_sequential(
                 se = repr(e)
             except Exception as ee:
                 se = f"Bad exception string: {ee}"
-            logger.warning(f"Warning: Error getting upstream version of {node}: {se}")
+            logger.warning(
+                "Warning: Error getting upstream version of %s: %s", node, se
+            )
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
-                f"# {node_count:<5} - {node} - {attrs.get('version')} "
-                f"-> {version_data.get('new_version')}",
+                "# %-5s - %s - %s -> %s",
+                node_count,
+                node,
+                attrs.get("version"),
+                version_data.get("new_version"),
             )
 
         logger.debug("writing out file")
@@ -399,21 +414,21 @@ def _update_upstream_versions_process_pool(
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
                 logger.error(
-                    "itr % 5d - eta % 5ds: "
-                    "Error getting upstream version of %s: %s"
-                    % (n_left, eta, node, se),
+                    "itr % 5d - eta % 5ds: Error getting upstream version of %s: %s",
+                    n_left,
+                    eta,
+                    node,
+                    se,
                 )
                 version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "itr % 5d - eta % 5ds: %s - %s -> %s"
-                    % (
-                        n_left,
-                        eta,
-                        node,
-                        attrs.get("version", "<no-version>"),
-                        version_data["new_version"],
-                    ),
+                    "itr % 5d - eta % 5ds: %s - %s -> %s",
+                    n_left,
+                    eta,
+                    node,
+                    attrs.get("version", "<no-version>"),
+                    version_data["new_version"],
                 )
             # writing out file
             lazyjson = LazyJson(f"versions/{node}.json")
@@ -456,7 +471,7 @@ def update_upstream_versions(
     :param package: The package to update. If None, update all packages.
     """
     if package and package not in gx.nodes:
-        logger.error(f"Package {package} not found in graph. Exiting.")
+        logger.error("Package %s not found in graph. Exiting.", package)
         return
 
     # In the future, we should have some sort of typed graph structure
@@ -467,7 +482,7 @@ def update_upstream_versions(
     job_nodes = filter_nodes_for_job(all_nodes, job, n_jobs)
 
     if not job_nodes:
-        logger.info(f"No packages to update for job {job}")
+        logger.info("No packages to update for job %d", job)
         return
 
     def extract_payload(node: Tuple[str, Mapping[str, Mapping]]) -> Tuple[str, Mapping]:

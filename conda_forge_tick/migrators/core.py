@@ -436,7 +436,7 @@ class Migrator:
         __name = attrs.get("name", "")
 
         if attrs.get("archived", False):
-            logger.debug("%s: archived" % __name)
+            logger.debug("%s: archived", __name)
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
@@ -467,7 +467,7 @@ class Migrator:
         already_pred = migrator_uid in already_migrated_uids
         if already_pred:
             ind = already_migrated_uids.index(migrator_uid)
-            logger.debug(f"{__name}: already PRed: uid: {migrator_uid}")
+            logger.debug("%s: already PRed: uid: %s", __name, migrator_uid)
             if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
                 if isinstance(
                     attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
@@ -477,14 +477,12 @@ class Migrator:
                         "PR"
                     ] as mg_attrs:
                         logger.debug(
-                            "{}: already PRed: PR file: {}".format(
-                                __name, mg_attrs.file_name
-                            ),
+                            "%s: already PRed: PR file: %s", __name, mg_attrs.file_name
                         )
 
                         html_url = mg_attrs.get("html_url", "no url")
 
-                        logger.debug(f"{__name}: already PRed: url: {html_url}")
+                        logger.debug("%s: already PRed: url: %s", __name, html_url)
 
         return already_pred
 
@@ -511,7 +509,7 @@ class Migrator:
                 [],
             )
         except Exception:
-            logger.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")
+            logger.exception("Invalid value for %r", attrs.get("conda-forge.yml", {}))
         # make sure this is always a string
         return [str(b) for b in branches]
 
@@ -842,7 +840,7 @@ class GraphMigrator(Migrator):
             if muid not in _sanitized_muids(
                 payload.get("pr_info", {}).get("PRed", []),
             ):
-                logger.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s", node)
                 return True
 
             # This is due to some PRed_json loss due to bad graph deploy outage
@@ -858,7 +856,7 @@ class GraphMigrator(Migrator):
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                logger.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s", node)
                 return True
 
         return False

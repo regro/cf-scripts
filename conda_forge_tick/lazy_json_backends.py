@@ -228,7 +228,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         cls._n_requests += 1
         if cls._n_requests % 20 == 0:
             logger.info(
-                f"Made {cls._n_requests} requests to the GitHub online backend.",
+                "Made %d requests to the GitHub online backend.", cls._n_requests
             )
         if cls._n_requests == 20:
             logger.warning(

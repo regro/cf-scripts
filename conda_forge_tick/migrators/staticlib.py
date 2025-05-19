@@ -479,7 +479,7 @@ class StaticLibMigrator(GraphMigrator):
                 platform_arches=platform_arches,
                 raw_meta_yaml=payload.get("raw_meta_yaml") or "",
             )[0]:
-                logger.debug("not yet built for new static libs: %s" % node)
+                logger.debug("not yet built for new static libs: %s", node)
                 return True
 
         return False
