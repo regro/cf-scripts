@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def replace_in_file(pattern, new, fname, leading_whitespace=True):
-    """Replaces a given pattern in a file. If leading whitespace is True,
+    """Replace a given pattern in a file. If leading whitespace is True,
     whitespace at the beginning of a line will be captured and preserved.
     Otherwise, the pattern itself must contain all leading whitespace.
 

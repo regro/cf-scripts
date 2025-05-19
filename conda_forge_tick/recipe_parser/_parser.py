@@ -249,7 +249,7 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
 
 
 def _munge_multiline_jinja2(lines):
-    """Puts a comment slug in front of any multiline jinja2 statements."""
+    """Put a comment slug in front of any multiline jinja2 statements."""
     in_statement = False
     special_end_slug_re = []
     new_lines = []
@@ -285,7 +285,7 @@ def _munge_multiline_jinja2(lines):
 
 
 def _unmunge_multiline_jinja2(lines):
-    """Removes a comment slug in front of any multiline jinja2 statements."""
+    """Remove a comment slug in front of any multiline jinja2 statements."""
     start_slug = "# {# " + JINJA2_ML_SLUG
     start = len(start_slug)
     stop = len(" #}\n")
@@ -620,8 +620,8 @@ class CondaMetaYAML:
         self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)
 
     def eval_jinja2_exprs(self, jinja2_vars):
-        """Using a set of values for the jinja2 vars, evaluate the
-        jinja2 template to get any jinja2 expression values.
+        """Evaluate the jinja2 template to get any jinja2 expression values,
+        using a set of values for the jinja2 vars.
 
         Parameters
         ----------

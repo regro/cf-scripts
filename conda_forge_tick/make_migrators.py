@@ -189,7 +189,7 @@ def add_replacement_migrator(
     rationale: str,
     alt_migrator: Union[Migrator, None] = None,
 ) -> None:
-    """Adds a migrator to replace one package with another.
+    """Add a migrator to replace one package with another.
 
     Parameters
     ----------
@@ -238,7 +238,7 @@ def add_replacement_migrator(
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
-    """Adds rebuild migrators.
+    """Add rebuild migrators.
 
     Parameters
     ----------
@@ -303,7 +303,7 @@ def add_rebuild_migration_yaml(
     force_pr_after_solver_attempts: int = FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     paused: bool = False,
 ) -> None:
-    """Adds rebuild migrator.
+    """Add rebuild migrator.
 
     Parameters
     ----------
@@ -491,6 +491,11 @@ def _get_max_pin_from_pinning_dict(
     format of a pinning spec and is not a hard-coded version string.
 
     :return: the value for max_pin, or an empty string if not defined or not a pinning spec.
+
+    Raises
+    ------
+    ValueError
+        If the schema version of the recipe is neither 0 nor 1.
     """
     pinning_spec_regex = re.compile(r"^(x\.)*x$")
 
@@ -529,6 +534,11 @@ def _extract_most_stringent_pin_from_recipe(
     that were found in the recipe, in the format returned by parse_munged_run_export.
     If the package is not found in the recipe, pin_spec is an empty string and
     possible_p_dicts still contains all the run_exports dictionaries.
+
+    Raises
+    ------
+    ValueError
+        If the schema version of the recipe is neither 0 nor 1.
     """
     schema_version = get_recipe_schema_version(feedstock_attrs)
     # we need a special parsing for pinning stuff
@@ -946,7 +956,7 @@ def _load(name):
 
 
 def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
-    """Loads all current migrators.
+    """Load all current migrators.
 
     Parameters
     ----------
@@ -957,6 +967,11 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     -------
     migrators : list of Migrator
         The list of migrators to run in the correct randomized order.
+
+    Raises
+    ------
+    RuntimeError
+        If no version migrator is found in the migrators directory.
     """
     migrators = []
     version_migrator = None
@@ -997,7 +1012,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
 
 
 def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) -> None:
-    """Dumps the current migrators to JSON.
+    """Dump the current migrators to JSON.
 
     Parameters
     ----------
@@ -1005,6 +1020,11 @@ def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) 
         The list of migrators to dump.
     dry_run : bool, optional
         Whether to perform a dry run, defaults to False. If True, no changes will be made.
+
+    Raises
+    ------
+    RuntimeError
+        If a duplicate migrator name is found.
     """
     if dry_run:
         print("dry run: dumping migrators to json", flush=True)

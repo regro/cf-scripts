@@ -90,14 +90,20 @@ def get_bot_token():
 
 
 def github3_client() -> github3.GitHub:
-    """This will be removed in the future, use the GitHubBackend class instead."""
+    """
+    Get the github3 client.
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
     if not hasattr(GITHUB3_CLIENT, "client"):
         GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
     return GITHUB3_CLIENT.client
 
 
 def github_client() -> github.Github:
-    """This will be removed in the future, use the GitHubBackend class instead."""
+    """
+    Get the PyGithub client.
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
     if not hasattr(GITHUB_CLIENT, "client"):
         GITHUB_CLIENT.client = github.Github(
             auth=github.Auth.Token(get_bot_token()),
@@ -176,9 +182,18 @@ class GitCli:
         :param suppress_all_output: If True, suppress all output (stdout and stderr). Also, the returned
         CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
         :return: The result of the git command.
-        :raises GitCliError: If the git command fails and check_error is True.
-        :raises FileNotFoundError: If the working directory does not exist.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails and check_error is True.
+        FileNotFoundError
+            If the working directory does not exist.
         """
+        if working_directory is not None and not working_directory.exists():
+            raise FileNotFoundError(
+                f"Working directory {working_directory} does not exist."
+            )
         git_command = ["git"] + cmd
 
         if not suppress_all_output:
@@ -219,15 +234,23 @@ class GitCli:
         :param pathspec: The files to add.
         :param all_: If True, not only add the files in pathspec, but also where the index already has an entry.
         If all_ is set with empty pathspec, all files in the entire working tree are updated.
-        :raises ValueError: If pathspec is empty and all_ is False.
-        :raises GitCliError: If the git command fails.
+
+        Raises
+        ------
+        ValueError
+            If pathspec is empty and all_ is False.
+        GitCliError
+            If the git command fails.
         """
         if not pathspec and not all_:
             raise ValueError("Either pathspec or all_ must be set.")
 
         all_arg = ["--all"] if all_ else []
 
-        self._run_git_command(["add", *all_arg, *pathspec], git_dir)
+        try:
+            self._run_git_command(["add", *all_arg, *pathspec], git_dir)
+        except GitCliError as e:
+            raise GitCliError("Adding files to git failed.") from e
 
     @lock_git_operation()
     def commit(
@@ -268,8 +291,12 @@ class GitCli:
         If target_dir does not exist, it will work.
         :param target_dir: The directory to clone the repository into.
         :param origin_url: The URL of the repository to clone.
-        :raises GitCliError: If the git command fails (e.g. because origin_url does not point to valid remote or
-        target_dir is not empty).
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails (e.g. because origin_url does not point to valid
+            remote or target_dir is not empty).
         """
         try:
             self._run_git_command(["clone", "--quiet", origin_url, target_dir])
@@ -304,7 +331,7 @@ class GitCli:
     @lock_git_operation()
     def add_token(self, git_dir: Path, origin: str, token: str):
         """
-        Configures git with a local configuration to use the given token for the given origin.
+        Configure git with a local configuration to use the given token for the given origin.
         Internally, this sets the `http.<origin>/.extraheader` git configuration key to
         `AUTHORIZATION: basic <base64-encoded HTTP basic token>`.
         This is similar to how the GitHub Checkout action does it:
@@ -456,7 +483,7 @@ class GitCli:
         base_branch: str = "main",
     ):
         """
-        Convenience method to do the following:
+        Do the following:
         1. Clone the repository at origin_url into target_dir (resetting the directory if it already exists).
         2. Add a remote named "upstream" with the URL upstream_url (ignoring if it already exists).
         3. Fetch all changes from all remotes.
@@ -472,7 +499,10 @@ class GitCli:
         :param new_branch: The name of the branch to create.
         :param base_branch: The name of the base branch to branch from.
 
-        :raises GitCliError: If a git command fails.
+        Raises
+        ------
+        GitCliError
+            If a git command fails.
         """
         try:
             self.clone_repo(origin_url, target_dir)
@@ -572,10 +602,15 @@ class GitPlatformBackend(ABC):
         :param owner: The owner of the repository.
         :param repo_name: The name of the repository.
         :param connection_mode: The connection mode to use.
-        :raises ValueError: If the connection mode is not supported.
-        :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
-        the repository existing to generate the URL.
-        """
+
+        Raises
+        ------
+        ValueError
+            If the connection mode is not supported.
+        RepositoryNotFoundError
+            If the repository does not exist. This is only raised if the backend relies
+            on the repository existing to generate the URL.
+        """  # noqa: DOC502
         match connection_mode:
             case GitConnectionMode.HTTPS:
                 return f"{self.GIT_PLATFORM_ORIGIN}/{owner}/{repo_name}.git"
@@ -664,7 +699,7 @@ class GitPlatformBackend(ABC):
 
     def is_api_limit_reached(self) -> bool:
         """
-        Returns True if the API limit has been reached, False otherwise.
+        Return True if the API limit has been reached, False otherwise.
 
         If an exception occurred while getting the rate limit, this method returns True, assuming the limit has
         been reached.
@@ -715,7 +750,7 @@ class GitPlatformBackend(ABC):
 
 
 class _Github3SessionWrapper:
-    """This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers."""
+    """Wrapper around the github3.session.GitHubSession that allows us to intercept the response headers."""
 
     def __init__(self, session: GitHubSession):
         super().__init__()
@@ -1128,7 +1163,11 @@ class DryRunBackend(GitPlatformBackend):
 
 
 def github_backend() -> GitHubBackend:
-    """This helper method will be removed in the future, use the GitHubBackend class directly."""
+    """
+    Return the GitHub backend.
+
+    This helper method will be removed in the future, use the GitHubBackend class directly.
+    """
     return GitHubBackend.from_token(get_bot_token())
 
 

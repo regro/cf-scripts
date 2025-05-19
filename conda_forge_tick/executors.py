@@ -24,7 +24,7 @@ GIT_LOCK_DASK = DummyLock()
 @contextlib.contextmanager
 def lock_git_operation():
     """
-    A context manager to lock git operations - it can be acquired once per thread, once per process,
+    Get a context manager to lock git operations - it can be acquired once per thread, once per process,
     and once per dask worker.
     Note that this is a reentrant lock, so it can be acquired multiple times by the same thread/process/worker.
     """

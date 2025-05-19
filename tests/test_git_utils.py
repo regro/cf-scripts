@@ -86,7 +86,7 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
 def test_git_cli_run_git_command_mock(
     subprocess_run_mock: MagicMock, check_error: bool, suppress_all_output: bool
 ):
-    """This test checks if all parameters are passed correctly to the subprocess.run function."""
+    """Check if all parameters are passed correctly to the subprocess.run function."""
     cli = GitCli()
 
     working_directory = Path("TEST_DIR")

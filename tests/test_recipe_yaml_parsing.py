@@ -184,6 +184,11 @@ class RecipeEnvironment:
         Args:
             recipe_path: Path to the recipe YAML file
             ci_support_files: Optional sequence of CI support configuration files
+
+        Raises
+        ------
+        FileNotFoundError
+            If the recipe file or CI support files are not found
         """
         if not recipe_path.is_file():
             raise FileNotFoundError(f"Recipe file not found: {recipe_path}")
@@ -202,14 +207,28 @@ class RecipeEnvironment:
         (self.root / ".ci_support").mkdir(parents=True, exist_ok=True)
 
     def _setup_recipe(self) -> None:
-        """Copy recipe file to temporary directory."""
+        """Copy recipe file to temporary directory.
+
+        Raises
+        ------
+        OSError
+            If copying the recipe file fails.
+        """
         try:
             shutil.copy2(self.recipe_path, self.root / "recipe" / "recipe.yaml")
         except OSError as e:
             raise OSError(f"Failed to copy recipe file: {e}")
 
     def _setup_ci_support(self, ci_support_files: list[Path] | None) -> None:
-        """Setup CI support configuration files."""
+        """Set up CI support configuration files.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the CI support file is not found.
+        OSError
+            If copying the CI support files fails.
+        """
         if ci_support_files:
             for file in ci_support_files:
                 if not file.is_file():

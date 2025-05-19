@@ -255,6 +255,12 @@ def populate_feedstock_attributes(
     :param feedstock_dir: The directory where the feedstock is located. If None, some information will not be available.
 
     :return: A dictionary with the new node_attrs of the feedstock, with only some fields populated.
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided.
     """
     from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
 
@@ -554,6 +560,13 @@ def load_feedstock_local(
     -------
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided and no file is present in
+        the feedstock.
     """
     new_sub_graph = {key: value for key, value in sub_graph.items()}
 

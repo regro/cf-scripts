@@ -120,9 +120,8 @@ def test_migrate_opentelemetry(tmp_dir_with_conf):
 @pytest.mark.parametrize("package", ["icu", "pipcheck_simple"])
 @flaky
 def test_migrate_non_python(tmp_dir_with_conf, package):
-    """Shouldn't run for non-python recipes or recipes that
-    have not opted in to the wheel migrator.
-    """
+    # the migrator shouldn't run for non-python recipes or recipes that
+    # have not opted in to the wheel migrator.
     with open(os.path.join(YAML_PATH, f"version_{package}.yaml")) as fp:
         in_yaml = fp.read()
 

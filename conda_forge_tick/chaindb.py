@@ -1,6 +1,7 @@
 """
-The code in this module is from xonsh (https://github.com/xonsh/xonsh/blob/main/xonsh/lib/collections.py)
-under the folloiwing license:
+The code in this module is from xonsh (https://github.com/xonsh/xonsh/blob/main/xonsh/lib/collections.py).
+
+License:
 
 Copyright 2015-2016, the xonsh developers. All rights reserved.
 

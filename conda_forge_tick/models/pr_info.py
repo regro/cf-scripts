@@ -198,9 +198,17 @@ class MigrationPullRequest(StrictBaseModel):
     @classmethod
     def validate_keys(cls, input_data: Any) -> Any:
         """
+        Validate the keys field against the data field.
+
         The current implementation uses a field "keys" which is a list of all keys present in the
         MigrationPullRequestData object, duplicating them. This list is redundant and should be removed.
         The consistency of this field is validated here, after which it is removed.
+
+        Raises
+        ------
+        ValueError
+            If the keys field or the data field is missing, has the wrong type
+            or the keys field does not exactly match the keys of the data field.
         """
         input_data = before_validator_ensure_dict(input_data)
 

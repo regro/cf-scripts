@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This file runs specific tasks for the bot.
+"""Run specific tasks for the bot.
 
 All imports from the bot need to be guarded by putting them in the subcommands.
 This ensures that we can set important environment variables before any imports,

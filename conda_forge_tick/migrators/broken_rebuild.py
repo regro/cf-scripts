@@ -297,8 +297,25 @@ linux-ppc64le/zfpy-0.5.5-py39h6474468_6.tar.bz2
 """.splitlines()
 
 
-def split_pkg(pkg):
-    """Nice little code snippet from isuru and CJ."""
+def split_pkg(pkg: str):
+    """Split a package filename into its components.
+
+    Parameters
+    ----------
+    pkg : str
+        The package filename.
+
+    Returns
+    -------
+    tuple[str, str, str, str]
+        The platform, package name, version, and build string.
+
+
+    Raises
+    ------
+    RuntimeError
+        If the package filename does not end with ".tar.bz2".
+    """
     if not pkg.endswith(".tar.bz2"):
         raise RuntimeError("Can only process packages that end in .tar.bz2")
     pkg = pkg[:-8]

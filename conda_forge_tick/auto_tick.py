@@ -206,7 +206,11 @@ def _commit_migration(
     :param commit_message: The commit message to use.
     :param allow_empty_commits: Whether the migrator allows empty commits.
     :param raise_commit_errors: Whether to raise an exception if an error occurs during the commit.
-    :raises GitCliError: If an error occurs during the commit and raise_commit_errors is True.
+
+    Raises
+    ------
+    GitCliError
+        If an error occurs during the commit and raise_commit_errors is True.
     """
     cli.add(
         context.local_clone_dir,
@@ -1190,7 +1194,7 @@ def _filter_ignored_versions(attrs, version):
 
 
 def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)."""
+    """Update every node with it's new version (when available)."""
     print("updating nodes with new versions", flush=True)
 
     version_nodes = get_all_keys_for_hashmap("versions")

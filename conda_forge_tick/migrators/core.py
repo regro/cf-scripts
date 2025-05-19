@@ -240,11 +240,6 @@ class MiniMigrator:
             The directory of the recipe
         attrs : dict
             The node attributes
-
-        Returns
-        -------
-        namedtuple or bool:
-            If namedtuple continue with PR, if False scrap local folder
         """
         return
 
@@ -397,7 +392,7 @@ class Migrator:
         feedstock_ctx: FeedstockContext,
         limit: int = 5,
     ) -> List["PackageName"]:
-        """Utility method for getting a list of follow on packages."""
+        """Get a list of follow on packages."""
         return [
             a[1]
             for a in list(
@@ -406,7 +401,7 @@ class Migrator:
         ][:limit]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """ "If True don't act upon a node.
+        """If True don't act upon a node.
 
         Parameters
         ----------
@@ -607,21 +602,15 @@ class Migrator:
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        """Create a commit message
-        :param feedstock_ctx:
-        """
+        """Create a commit message."""
         return f"migration: {self.__class__.__name__}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        """Title for PR
-        :param feedstock_ctx:
-        """
+        """Get the PR title."""
         return "PR from Regro-cf-autotick-bot"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        """Branch to use on local and remote
-        :param feedstock_context:
-        """
+        """Get branch to use on local and remote."""
         return "bot-pr"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":

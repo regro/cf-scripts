@@ -54,7 +54,15 @@ GH_MERGE_STATE_STATUS = [
 
 
 def _sorted_set_json(obj: Any) -> Any:
-    """For custom object serialization."""
+    """If obj is a set, return sorted(obj). Else, raise TypeError.
+
+    Used for custom object serialization.
+
+    Raises
+    ------
+    TypeError
+        If obj is not a set.
+    """
     if isinstance(obj, Set):
         return sorted(obj)
     raise TypeError(repr(obj) + " is not JSON serializable")
@@ -159,7 +167,7 @@ def graph_migrator_status(
     migrator: Migrator,
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
-    """Gets the migrator progress for a given migrator."""
+    """Get the migrator progress for a given migrator."""
     migrator_name = get_migrator_name(migrator)
 
     num_viz = 0

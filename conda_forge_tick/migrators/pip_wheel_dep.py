@@ -21,9 +21,12 @@ logger = logging.getLogger(__name__)
 
 @functools.lru_cache()
 def pypi_conda_mapping() -> Dict[str, str]:
-    """Retrieves the most recent version of the pypi-conda name mapping dictionary.
+    """Retrieve the most recent version of the pypi-conda name mapping dictionary.
 
-    Result is a dictionary {pypi_name: conda_name}
+    Returns
+    -------
+    Dict[str, str]
+        Format: {pypi_name: conda_name}
     """
     yaml = YAML()
     content = requests.get(

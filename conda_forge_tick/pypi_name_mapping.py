@@ -245,6 +245,11 @@ def resolve_collisions(collisions: List[Mapping]) -> Mapping:
     """Given a list of colliding mappings, try to resolve the collision
     by picking out the unique mapping whose source is from the static mappings file.
     If there is a problem, then make a guess, print a warning, and continue.
+
+    Raises
+    ------
+    ValueError
+        If there are no collisions to resolve.
     """
     if len(collisions) == 0:
         raise ValueError("No collisions to resolve!")
@@ -348,7 +353,9 @@ def determine_best_matches_for_pypi_import(
     }
 
     def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
-        """A higher score means less preferred."""
+        """Get the score.
+        A higher score means less preferred.
+        """
         mapping_src = map_by_conda_name.get(conda_name, {}).get(
             "mapping_source",
             "other",
@@ -368,7 +375,7 @@ def determine_best_matches_for_pypi_import(
         )
 
     def score(pkg_name):
-        """Base the score on.
+        """Score a package name.
 
         Packages that are hubs are preferred.
         In the event of ties, fall back to the one with the lower authority score

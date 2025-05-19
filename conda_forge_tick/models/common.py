@@ -30,7 +30,13 @@ class ValidatedBaseModel(BaseModel):
 
 
 def before_validator_ensure_dict(value: Any) -> dict:
-    """Ensure that a value is a dictionary. If it is not, raise a ValueError."""
+    """Ensure that a value is a dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the value is not a dictionary.
+    """
     if not isinstance(value, dict):
         raise ValueError(
             "We only support validating dicts. Pydantic supports calling model_validate with some "
@@ -92,7 +98,13 @@ A generic list type that converts a single value to a list. Union with list[T] t
 
 
 def empty_string_to_none(value: Any) -> None:
-    """Convert an empty string to `None`. None is kept as is."""
+    """Convert an empty string to `None`. None is kept as is.
+
+    Raises
+    ------
+    ValueError
+        If the value is neither an empty string nor `None`.
+    """
     if value is None or value == "":
         return None
     raise ValueError("value must be an empty string or None")
@@ -107,7 +119,13 @@ This should not be needed if a proper data model is used in production.
 
 
 def split_string_newline(value: Any) -> list[str]:
-    """Split a string by newlines."""
+    """Split a string by newlines.
+
+    Raises
+    ------
+    ValueError
+        If the value is not a string.
+    """
     if not isinstance(value, str):
         raise ValueError("value must be a string")
     return value.split("\n")
@@ -120,7 +138,13 @@ A generic list type that splits a string at newlines before validation.
 
 
 def false_to_none(value: Any) -> None:
-    """Convert `False` to `None`. Keep `None` as is."""
+    """Convert `False` to `None`. Keep `None` as is.
+
+    Raises
+    ------
+    ValueError
+        If the value is not `False` or `None`.
+    """
     if value is False or value is None:
         return None
     raise ValueError("value must be False or None")

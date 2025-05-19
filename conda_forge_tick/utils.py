@@ -406,6 +406,11 @@ def parse_recipe_yaml_local(
     dict :
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
+
+    Raises
+    ------
+    RuntimeError
+        If the recipe YAML rendering fails or no output recipes are found.
     """
     rendered_recipes = _render_recipe_yaml(
         text, cbc_path=cbc_path, platform_arch=platform_arch
@@ -449,7 +454,7 @@ def _render_recipe_yaml(
     cbc_path: str | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Renders the given recipe YAML text using the `rattler-build` command-line tool.
+    Render the given recipe YAML text using the `rattler-build` command-line tool.
 
     Parameters
     ----------
@@ -512,7 +517,7 @@ def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str,
 def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
-    """Parses validated recipes and transform them to fit `RecipeTypedDict`.
+    """Parse validated recipes and transform them to fit `RecipeTypedDict`.
 
     Parameters
     ----------
@@ -902,6 +907,11 @@ def parse_meta_yaml_local(
     dict :
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
+
+    Raises
+    ------
+    RuntimeError
+        If parsing fails.
     """
 
     def _run(*, use_orig_cbc_path):
@@ -1177,8 +1187,15 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     If empty JSON is encountered, a ValueError is raised.
     If you expect the graph to be possibly empty JSON (i.e. not initialized), use load_graph.
 
-    :return: the graph
-    :raises ValueError if the file contains empty JSON (or did not exist before)
+    Returns
+    -------
+    nx.DiGraph
+        The graph loaded from the file.
+
+    Raises
+    ------
+    ValueError
+        If the file contains empty JSON.
     """
     gx = load_graph(filename)
     if gx is None:
@@ -1251,7 +1268,7 @@ def as_iterable(x: T) -> Tuple[T]: ...
 
 @typing.no_type_check
 def as_iterable(iterable_or_scalar):
-    """Utility for converting an object to an iterable.
+    """Convert an object into an iterable.
 
     Parameters
     ----------

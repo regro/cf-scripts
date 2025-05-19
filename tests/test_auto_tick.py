@@ -100,7 +100,7 @@ def test_prepare_feedstock_repository_repository_not_found(caplog):
 
 
 def test_prepare_feedstock_repository_complete_dry_run():
-    """This test really clones the repository using the DryRunBackend."""
+    """Really clones the repository using the DryRunBackend."""
     backend = DryRunBackend()
 
     context = FeedstockContext(
@@ -127,7 +127,7 @@ def test_prepare_feedstock_repository_complete_dry_run():
 
 
 def test_prepare_feedstock_repository_complete_fail():
-    """This test really clones the repository using the DryRunBackend."""
+    """Really clones the repository using the DryRunBackend."""
     backend = DryRunBackend()
 
     context = FeedstockContext(

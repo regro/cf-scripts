@@ -33,6 +33,11 @@ def _process_section(output_index, attrs, lines):
     - where there's no host-section, add it
 
     If we find `sysroot_linux-64 2.17`, remove those lines and write the spec to CBC.
+
+    Raises
+    ------
+    RuntimeError
+        If the output given by output_index could not be found in attrs.
     """
     write_stdlib_to_cbc = False
     # remove occurrences of __osx due to MACOSX_DEPLOYMENT_TARGET (see migrate() below)
@@ -188,8 +193,7 @@ def _process_section(output_index, attrs, lines):
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 
-    if not line_compiler:
-        raise RuntimeError("This shouldn't be possible!")
+    assert not line_compiler, "This shouldn't be possible!"
 
     # by default, we insert directly after the compiler
     line_insert = line_compiler + 1

@@ -519,7 +519,9 @@ def main(
     package: Optional[str] = None,
 ) -> None:
     """
-    Main function for updating the upstream versions of packages.
+    Update the upstream version of packages.
+
+    This is the main entry point for the update function.
     :param ctx: The CLI context.
     :param job: The job number.
     :param n_jobs: The total number of jobs.
