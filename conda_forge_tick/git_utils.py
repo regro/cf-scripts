@@ -240,10 +240,17 @@ class GitCli:
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
         """
         Add files to the git index with `git add`.
-        :param git_dir: The directory of the git repository.
-        :param pathspec: The files to add.
-        :param all_: If True, not only add the files in pathspec, but also where the index already has an entry.
-        If all_ is set with empty pathspec, all files in the entire working tree are updated.
+
+        Parameters
+        ----------
+        git_dir : str
+            The directory of the git repository.
+        pathspec : str
+            The files to add.
+        all_ : bool, optional
+            If True, not only add the files in pathspec, but also where the index
+            already has an entry. If all_ is set with empty pathspec, all files
+            in the entire working tree are updated.
 
         Raises
         ------
@@ -268,39 +275,75 @@ class GitCli:
     ):
         """
         Commit changes to the git repository with `git commit`.
-        :param git_dir: The directory of the git repository.
-        :param message: The commit message.
-        :param allow_empty: If True, allow an empty commit.
-        :param all_: Automatically stage files that have been modified and deleted, but new files are not affected.
-        :raises GitCliError: If the git command fails.
+
+        Parameters
+        ----------
+        git_dir : Path
+            The directory of the git repository.
+        message : str
+            The commit message.
+        allow_empty : bool, optional
+            If True, allow an empty commit.
+        all_ : bool, optional
+            Automatically stage files that have been modified and deleted, but new
+            files are not affected.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
         """
         all_arg = ["-a"] if all_ else []
         allow_empty_arg = ["--allow-empty"] if allow_empty else []
 
-        self._run_git_command(
-            ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
-        )
+        try:
+            self._run_git_command(
+                ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
+            )
+        except GitCliError as e:
+            raise GitCliError("Could not commit.") from e
 
     @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
         """
         Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
-        :param git_dir: The directory to reset.
-        :param to_treeish: The treeish to reset to. Defaults to "HEAD".
-        :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If the git_dir does not exist.
+
+        Parameters
+        ----------
+        git_dir : Path
+            The directory to reset.
+        to_treeish : str, optional
+            The treeish to reset to. Defaults to "HEAD".
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        FileNotFoundError
+            If the git_dir does not exist.
         """
-        self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
+        if not git_dir.exists():
+            raise FileNotFoundError(f"git_dir {git_dir} does not exist.")
+
+        try:
+            self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
+        except GitCliError as e:
+            raise GitCliError("git reset failed") from e
 
     @lock_git_operation()
     def clone_repo(self, origin_url: str, target_dir: Path):
         """
         Clone a Git repository.
-        If target_dir exists and is non-empty, this method will fail with GitCliError.
-        If target_dir exists and is empty, it will work.
-        If target_dir does not exist, it will work.
-        :param target_dir: The directory to clone the repository into.
-        :param origin_url: The URL of the repository to clone.
+
+        Parameters
+        ----------
+        target_dir : Path
+            The directory to clone the repository into.
+            If the directory exists and is non-empty, this method will fail.
+            If the directory exists and is empty, it will work.
+            If the directory does not exist, it will work.
+        origin_url : str
+            The URL of the repository to clone.
 
         Raises
         ------

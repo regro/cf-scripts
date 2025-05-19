@@ -246,15 +246,30 @@ def populate_feedstock_attributes(
     """
     Parse the various configuration information into the node_attrs of a feedstock.
 
-    :param name: The name of the feedstock
-    :param existing_node_attrs: The existing node_attrs of the feedstock. Pass an empty dict if none.
-    :param meta_yaml: The meta.yaml file as a string
-    :param recipe_yaml: The recipe.yaml file as a string
-    :param conda_forge_yaml: The conda-forge.yaml file as a string
-    :param mark_not_archived: If True, forcibly mark the feedstock as not archived in the node attrs, even if it is archived.
-    :param feedstock_dir: The directory where the feedstock is located. If None, some information will not be available.
+    Parameters
+    ----------
+    name : str
+        The name of the feedstock.
+    existing_node_attrs : MutableMapping[str, Any]
+        The existing node_attrs of the feedstock. Pass an empty dict if none.
+    meta_yaml : str or None, optional
+        The meta.yaml file as a string.
+    recipe_yaml : str or None, optional
+        The recipe.yaml file as a string.
+    conda_forge_yaml : str or None, optional
+        The conda-forge.yaml file as a string.
+    mark_not_archived : bool, optional
+        If True, forcibly mark the feedstock as not archived in the node attrs,
+        even if it is archived.
+    feedstock_dir : str or Path or None, optional
+        The directory where the feedstock is located. If None, some information
+        will not be available.
 
-    :return: A dictionary with the new node_attrs of the feedstock, with only some fields populated.
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary with the new node_attrs of the feedstock, with only some
+        fields populated.
 
     Raises
     ------
