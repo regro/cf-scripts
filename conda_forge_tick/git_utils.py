@@ -175,13 +175,23 @@ class GitCli:
         Run a git command. stdout is by default only printed if the command fails. stderr is always printed by default.
         stdout is, by default, always available in the returned CompletedProcess, stderr is never.
 
-        :param cmd: The command to run, as a list of strings.
-        :param working_directory: The directory to run the command in. If None, the command will be run in the current
-        working directory.
-        :param check_error: If True, raise a GitCliError if the git command fails.
-        :param suppress_all_output: If True, suppress all output (stdout and stderr). Also, the returned
-        CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
-        :return: The result of the git command.
+        Parameters
+        ----------
+        cmd
+            The command to run, as a list of strings.
+        working_directory
+            The directory to run the command in. If None, the command will be run in the current
+            working directory.
+        check_error
+            If True, raise a GitCliError if the git command fails.
+        suppress_all_output
+            If True, suppress all output (stdout and stderr). Also, the returned
+            CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
+
+        Returns
+        -------
+        subprocess.CompletedProcess
+            The result of the git command.
 
         Raises
         ------
@@ -599,9 +609,15 @@ class GitPlatformBackend(ABC):
     ) -> str:
         """
         Get the URL of a remote repository.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param connection_mode: The connection mode to use.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+        connection_mode
+            The connection mode to use.
 
         Raises
         ------

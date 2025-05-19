@@ -156,11 +156,21 @@ def _prepare_feedstock_repository(
 
     Any errors are written to the pr_info attribute of the feedstock context and logged.
 
-    :param backend: The GitPlatformBackend instance to use.
-    :param context: The current context
-    :param branch: The branch to create in the forked repository.
-    :param base_branch: The base branch to branch from.
-    :return: True if the repository was successfully prepared, False otherwise.
+    Parameters
+    ----------
+    backend
+        The GitPlatformBackend instance to use.
+    context
+        The current context
+    branch
+        The branch to create in the forked repository.
+    base_branch
+        The base branch to branch from.
+
+    Returns
+    -------
+    bool
+        True if the repository was successfully prepared, False otherwise.
     """
     try:
         backend.fork(context.git_repo_owner, context.git_repo_name)
@@ -201,11 +211,19 @@ def _commit_migration(
     """
     Commit a migration that has been run in the local clone of a feedstock repository.
     If an error occurs during the commit, it is logged.
-    :param cli: The GitCli instance to use.
-    :param context: The FeedstockContext instance.
-    :param commit_message: The commit message to use.
-    :param allow_empty_commits: Whether the migrator allows empty commits.
-    :param raise_commit_errors: Whether to raise an exception if an error occurs during the commit.
+
+    Parameters
+    ----------
+    cli
+        The GitCli instance to use.
+    context
+        The FeedstockContext instance.
+    commit_message
+        The commit message to use.
+    allow_empty_commits
+        Whether the migrator allows empty commits.
+    raise_commit_errors
+        Whether to raise an exception if an error occurs during the commit.
 
     Raises
     ------
@@ -294,10 +312,17 @@ def _should_automerge(migrator: Migrator, context: FeedstockContext) -> bool:
     """
     Determine if a migration should be auto merged based on the feedstock and migrator settings.
 
-    :param migrator: The migrator to check.
-    :param context: The feedstock context.
+    Parameters
+    ----------
+    migrator
+        The migrator to check.
+    context
+        The feedstock context.
 
-    :return: True if the migrator should be auto merged, False otherwise.
+    Returns
+    -------
+    bool
+        True if the migrator should be auto merged, False otherwise.
     """
     if isinstance(migrator, Version):
         return context.automerge in [True, "version"]
@@ -398,12 +423,20 @@ def _check_and_process_solvability(
     by setting the corresponding fields in the feedstock attributes.
     If the recipe is solvable, reset the fields that track the solvability check status.
 
-    :param migrator: The migrator that was run
-    :param context: The current FeedstockContext of the feedstock that was migrated
-    :param base_branch: The branch of the feedstock repository that is the migration target
+    Parameters
+    ----------
+    migrator
+        The migrator that was run
+    context
+        The current FeedstockContext of the feedstock that was migrated
+    base_branch
+        The branch of the feedstock repository that is the migration target
 
-    :returns: True if the migration can proceed normally, False if a required solvability check failed and the migration
-    needs to be aborted
+    Returns
+    -------
+    bool
+        True if the migration can proceed normally, False if a required solvability check failed and the migration
+        needs to be aborted
     """
     if not _is_solvability_check_needed(migrator, context, base_branch):
         return True
