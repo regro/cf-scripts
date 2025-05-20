@@ -1212,14 +1212,7 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
     -------
     nx.DiGraph or None
         The graph, or None if the file is empty JSON
-
-    Raises
-    ------
-    FileNotFoundError
-        If the file does not exist
     """
-    if not os.path.isfile(filename):
-        raise FileNotFoundError(f"graph file not found: {filename}")
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
         return nx.node_link_graph(dta, edges="links")
