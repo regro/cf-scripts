@@ -38,6 +38,7 @@ def _process_section(output_index, attrs, lines):
     ------
     RuntimeError
         If the output given by output_index could not be found in attrs.
+        Also, if an assertion fails.
     """
     write_stdlib_to_cbc = False
     # remove occurrences of __osx due to MACOSX_DEPLOYMENT_TARGET (see migrate() below)
@@ -193,7 +194,8 @@ def _process_section(output_index, attrs, lines):
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 
-    assert line_compiler, "This shouldn't be possible!"
+    if not line_compiler:
+        raise RuntimeError("This shouldn't be possible!")
 
     # by default, we insert directly after the compiler
     line_insert = line_compiler + 1
