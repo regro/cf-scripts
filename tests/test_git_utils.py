@@ -1670,7 +1670,7 @@ def test_dry_run_backend_push_to_repository(caplog, tmp_path: Path):
     backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
 
     assert (
-        "Dry Run: Pushing changes from GIT_DIR to OWNER/REPO on branch BRANCH_NAME"
+        f"Dry Run: Pushing changes from {git_dir} to OWNER/REPO on branch BRANCH_NAME"
         in caplog.text
     )
 
