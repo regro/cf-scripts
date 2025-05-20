@@ -522,7 +522,7 @@ class GitCli:
             If git_dir does not exist.
         """
         if not git_dir.is_dir():
-            raise FileNotFoundError("git directory {git_dir} does not exist")
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
 
         ret = self._run_git_command(
             ["show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
