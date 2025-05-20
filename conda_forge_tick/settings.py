@@ -104,8 +104,11 @@ def use_settings(s: BotSettings | None):
     DO NOT call this function within multithreading contexts, as it will override the settings for all threads,
     and lead to unpredictable behavior.
 
-    :param s: The settings object to use. None stands for the default settings behavior. The default settings
-    behavior reads the environment variables every time the settings are accessed.
+    Parameters
+    ----------
+    s
+        The settings object to use. None stands for the default settings behavior. The default settings
+        behavior reads the environment variables every time the settings are accessed.
     """
     global _use_settings_override
 

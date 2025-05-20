@@ -1204,14 +1204,22 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
 
 
 def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
-    """
-    Load the graph from a file using the lazy json backend.
+    """Load the graph from a file using the lazy json backend.
     If the file does not exist, it is initialized with empty JSON.
     If you expect the graph to be non-empty JSON, use load_existing_graph.
 
-    :return: the graph, or None if the file is empty JSON (or
-    :raises FileNotFoundError if the file does not exist
+    Returns
+    -------
+    nx.DiGraph or None
+        The graph, or None if the file is empty JSON
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file does not exist
     """
+    if not os.path.isfile(filename):
+        raise FileNotFoundError(f"graph file not found: {filename}")
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
         return nx.node_link_graph(dta, edges="links")
@@ -1362,17 +1370,24 @@ def change_log_level(logger, new_level):
 
 
 def run_command_hiding_token(args: list[str], token: str) -> int:
-    """
-    Run a command and hide the token in the output.
+    """Run a command and hide the token in the output.
 
     Prints the outputs (stdout and stderr) of the subprocess.CompletedProcess object.
     The token or tokens will be replaced with a string of asterisks of the same length.
 
     If stdout or stderr is None, it will not be printed.
 
-    :param args: The command to run.
-    :param token: The token to hide in the output.
-    :return: The return code of the command.
+    Parameters
+    ----------
+    args
+        The command to run.
+    token
+        The token to hide in the output.
+
+    Returns
+    -------
+    int
+        The return code of the command.
     """
     p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

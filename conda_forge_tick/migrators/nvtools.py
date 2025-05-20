@@ -190,9 +190,10 @@ class AddNVIDIATools(Migrator):
 
         Returns
         -------
-        body: str
+        body
             The body of the PR message
-            :param feedstock_ctx:
+        feedstock_ctx
+            The current ClonedFeedstockContext
         """
         body = """\
 In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged

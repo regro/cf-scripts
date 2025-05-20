@@ -572,9 +572,10 @@ class Migrator:
 
         Returns
         -------
-        body: str
+        body
             The body of the PR message
-            :param feedstock_ctx:
+        feedstock_ctx
+            The current ClonedFeedstockContext.
         """
         body = "{}\n\n"
 

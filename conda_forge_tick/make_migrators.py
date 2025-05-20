@@ -482,15 +482,17 @@ def migration_factory(
 def _get_max_pin_from_pinning_dict(
     pinning_dict: Mapping[str, Any], recipe_version: int
 ):
-    """
-    Given a pinning dictionary in the format returned by parse_munged_run_export,
+    """Given a pinning dictionary in the format returned by parse_munged_run_export,
     return the value for max_pin.
 
     In recipe v0, this is the value of the key "max_pin".
     In recipe v1, this is the value of the key "upper_bound", but only if it has the
     format of a pinning spec and is not a hard-coded version string.
 
-    :return: the value for max_pin, or an empty string if not defined or not a pinning spec.
+    Returns
+    -------
+    str
+        The value for max_pin, or an empty string if not defined or not a pinning spec.
 
     Raises
     ------
@@ -517,23 +519,31 @@ def _extract_most_stringent_pin_from_recipe(
     feedstock_attrs: Mapping[str, Any],
     gx: nx.DiGraph,
 ) -> tuple[str, list[dict]]:
-    """
-    Given the name of a package that is specified in the run_exports in a feedstock,
+    """Given the name of a package that is specified in the run_exports in a feedstock,
     find the run_exports pinning specification that is most stringent for that package
     in the feedstock recipe.
     We do that by considering all run_exports sections from outputs of the feedstock.
     The package must also be an output of the feedstock.
 
-    :param feedstock_name: name of the feedstock to analyze
-    :param package_name: name of the package that is specified as run_exports
-    :param feedstock_attrs: the node attributes of the feedstock
-    :param gx: an instance of the global cf-graph
+    Parameters
+    ----------
+    feedstock_name
+        Name of the feedstock to analyze.
+    package_name
+        Name of the package that is specified as run_exports.
+    feedstock_attrs
+        Node attributes of the feedstock.
+    gx
+        Instance of the global cf-graph.
 
-    :return: a tuple (pin_spec, possible_p_dicts) where pin_spec is the most stringent
-    pinning spec found and possible_p_dicts is a list of all the run_exports dictionaries
-    that were found in the recipe, in the format returned by parse_munged_run_export.
-    If the package is not found in the recipe, pin_spec is an empty string and
-    possible_p_dicts still contains all the run_exports dictionaries.
+    Returns
+    -------
+    tuple[str, list[dict]]
+        A tuple containing:
+        - The most stringent pinning spec found. If the package is not found in the recipe,
+          this will be an empty string.
+        - A list of all run_exports dictionaries found in the recipe, in the format
+          returned by parse_munged_run_export.
 
     Raises
     ------

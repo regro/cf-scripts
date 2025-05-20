@@ -57,11 +57,19 @@ RNG = secrets.SystemRandom()
 
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
-    """
-    Check if a version should be ignored based on the `conda-forge.yml` file.
-    :param attrs: The node attributes
-    :param version: The version to check
-    :return: True if the version should be ignored, False otherwise.
+    """Check if a version should be ignored based on the `conda-forge.yml` file.
+
+    Parameters
+    ----------
+    attrs
+        The node attributes.
+    version
+        The version to check.
+
+    Returns
+    -------
+    bool
+        True if the version should be ignored, False otherwise.
     """
     versions_to_ignore = get_keys_default(
         attrs,
@@ -79,8 +87,7 @@ def get_latest_version_local(
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
     ----------
@@ -93,7 +100,7 @@ def get_latest_version_local(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     version_data: Dict[str, Union[Literal[False], str]] = {"new_version": False}
@@ -198,8 +205,7 @@ def get_latest_version_containerized(
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     **This function runs the version parsing in a container.**
 
@@ -214,7 +220,7 @@ def get_latest_version_containerized(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     if "feedstock_name" not in attrs:
@@ -244,8 +250,7 @@ def get_latest_version(
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
     ----------
@@ -263,7 +268,7 @@ def get_latest_version(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     if should_use_container(use_container=use_container):
@@ -273,6 +278,20 @@ def get_latest_version(
 
 
 def get_job_number_for_package(name: str, n_jobs: int):
+    """Get the job number for a package.
+
+    Parameters
+    ----------
+    name
+        The name of the package.
+    n_jobs
+        The total number of jobs.
+
+    Returns
+    -------
+    int
+        The job number for the package.
+    """
     return abs(int(hashlib.sha1(name.encode("utf-8")).hexdigest(), 16)) % n_jobs + 1
 
 
@@ -281,19 +300,42 @@ def filter_nodes_for_job(
     job: int,
     n_jobs: int,
 ) -> Iterator[Tuple[str, T]]:
+    """Filter nodes for a specific job.
+
+    Parameters
+    ----------
+    all_nodes
+        All nodes to filter.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+
+    Returns
+    -------
+    Iterator[Tuple[str, T]]
+        The filtered nodes.
+    """
     return (t for t in all_nodes if get_job_number_for_package(t[0], n_jobs) == job)
 
 
 def include_node(package_name: str, payload_attrs: Mapping) -> bool:
-    """
-    Given a package name and its node attributes, determine whether
+    """Given a package name and its node attributes, determine whether
     the package should be included in the update process.
 
     Also log the reason why a package is not included.
 
-    :param package_name: The name of the package
-    :param payload_attrs: The cf-graph node payload attributes for the package
-    :return: True if the package should be included, False otherwise
+    Parameters
+    ----------
+    package_name
+        The name of the package.
+    payload_attrs
+        The cf-graph node payload attributes for the package.
+
+    Returns
+    -------
+    bool
+        True if the package should be included, False otherwise.
     """
     pr_info = payload_attrs.get("pr_info", {})
 
@@ -461,14 +503,22 @@ def update_upstream_versions(
     n_jobs=1,
     package: Optional[str] = None,
 ) -> None:
-    """
-    Update the upstream versions of packages.
-    :param gx: The conda forge graph
-    :param sources: The sources to use for fetching the upstream versions
-    :param debug: Whether to run in debug mode
-    :param job: The job number
-    :param n_jobs: The total number of jobs
-    :param package: The package to update. If None, update all packages.
+    """Update the upstream versions of packages.
+
+    Parameters
+    ----------
+    gx
+        The conda forge graph.
+    sources
+        The sources to use for fetching the upstream versions.
+    debug
+        Whether to run in debug mode.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+    package
+        The package to update. If None, update all packages.
     """
     if package and package not in gx.nodes:
         logger.error("Package %s not found in graph. Exiting.", package)
@@ -518,14 +568,20 @@ def main(
     n_jobs: int = 1,
     package: Optional[str] = None,
 ) -> None:
-    """
-    Update the upstream version of packages.
+    """Update the upstream version of packages.
 
     This is the main entry point for the update function.
-    :param ctx: The CLI context.
-    :param job: The job number.
-    :param n_jobs: The total number of jobs.
-    :param package: The package to update. If None, update all packages.
+
+    Parameters
+    ----------
+    ctx
+        The CLI context.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+    package
+        The package to update. If None, update all packages.
     """
     logger.info("Reading graph")
     # Graph enabled for inspection
