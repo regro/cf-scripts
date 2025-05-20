@@ -34,7 +34,7 @@ def override_env(name, value):
 
 
 def eval_cmd(cmd: list[str], **kwargs) -> str:
-    """run a command capturing stdout
+    """Run a command capturing stdout.
 
     stderr is printed for debugging
     any kwargs are added to the env
@@ -63,6 +63,11 @@ def clean_disk_space(ci_service: str = "github-actions") -> None:
     ci_service : str, optional
         The CI service to clean up disk space for. Currently only "github-actions" is supported.
         Default is "github-actions".
+
+    Raises
+    ------
+    ValueError
+        If the provided ci_service is not recognized.
     """
     with tempfile.TemporaryDirectory() as tempdir, pushd(tempdir):
         with open("clean_disk.sh", "w") as f:

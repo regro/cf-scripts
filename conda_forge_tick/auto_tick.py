@@ -156,11 +156,21 @@ def _prepare_feedstock_repository(
 
     Any errors are written to the pr_info attribute of the feedstock context and logged.
 
-    :param backend: The GitPlatformBackend instance to use.
-    :param context: The current context
-    :param branch: The branch to create in the forked repository.
-    :param base_branch: The base branch to branch from.
-    :return: True if the repository was successfully prepared, False otherwise.
+    Parameters
+    ----------
+    backend
+        The GitPlatformBackend instance to use.
+    context
+        The current context
+    branch
+        The branch to create in the forked repository.
+    base_branch
+        The base branch to branch from.
+
+    Returns
+    -------
+    bool
+        True if the repository was successfully prepared, False otherwise.
     """
     try:
         backend.fork(context.git_repo_owner, context.git_repo_name)
@@ -201,12 +211,24 @@ def _commit_migration(
     """
     Commit a migration that has been run in the local clone of a feedstock repository.
     If an error occurs during the commit, it is logged.
-    :param cli: The GitCli instance to use.
-    :param context: The FeedstockContext instance.
-    :param commit_message: The commit message to use.
-    :param allow_empty_commits: Whether the migrator allows empty commits.
-    :param raise_commit_errors: Whether to raise an exception if an error occurs during the commit.
-    :raises GitCliError: If an error occurs during the commit and raise_commit_errors is True.
+
+    Parameters
+    ----------
+    cli
+        The GitCli instance to use.
+    context
+        The FeedstockContext instance.
+    commit_message
+        The commit message to use.
+    allow_empty_commits
+        Whether the migrator allows empty commits.
+    raise_commit_errors
+        Whether to raise an exception if an error occurs during the commit.
+
+    Raises
+    ------
+    GitCliError
+        If an error occurs during the commit and raise_commit_errors is True.
     """
     cli.add(
         context.local_clone_dir,
@@ -226,9 +248,7 @@ def _commit_migration(
 
 @dataclass(frozen=True)
 class _RerenderInfo:
-    """
-    Additional information about a rerender operation.
-    """
+    """Additional information about a rerender operation."""
 
     nontrivial_changes: bool
     """
@@ -292,10 +312,17 @@ def _should_automerge(migrator: Migrator, context: FeedstockContext) -> bool:
     """
     Determine if a migration should be auto merged based on the feedstock and migrator settings.
 
-    :param migrator: The migrator to check.
-    :param context: The feedstock context.
+    Parameters
+    ----------
+    migrator
+        The migrator to check.
+    context
+        The feedstock context.
 
-    :return: True if the migrator should be auto merged, False otherwise.
+    Returns
+    -------
+    bool
+        True if the migrator should be auto merged, False otherwise.
     """
     if isinstance(migrator, Version):
         return context.automerge in [True, "version"]
@@ -396,12 +423,20 @@ def _check_and_process_solvability(
     by setting the corresponding fields in the feedstock attributes.
     If the recipe is solvable, reset the fields that track the solvability check status.
 
-    :param migrator: The migrator that was run
-    :param context: The current FeedstockContext of the feedstock that was migrated
-    :param base_branch: The branch of the feedstock repository that is the migration target
+    Parameters
+    ----------
+    migrator
+        The migrator that was run
+    context
+        The current FeedstockContext of the feedstock that was migrated
+    base_branch
+        The branch of the feedstock repository that is the migration target
 
-    :returns: True if the migration can proceed normally, False if a required solvability check failed and the migration
-    needs to be aborted
+    Returns
+    -------
+    bool
+        True if the migration can proceed normally, False if a required solvability check failed and the migration
+        needs to be aborted
     """
     if not _is_solvability_check_needed(migrator, context, base_branch):
         return True
@@ -486,7 +521,7 @@ def run(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
-    """For a given feedstock and migration run the migration
+    """For a given feedstock and migration run the migration.
 
     Parameters
     ----------
@@ -510,7 +545,6 @@ def run(
     pr_json: dict
         The PR json object for recreating the PR as needed
     """
-
     # sometimes we get weird directory issues so make sure we reset
     os.chdir(BOT_HOME_DIR)
 
@@ -1131,8 +1165,7 @@ def _setup_limits():
 
 
 def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
-    """Go through all the open PRs and check if they are rerun"""
-
+    """Go through all the open PRs and check if they are rerun."""
     print("processing bot-rerun labels", flush=True)
 
     for i, (name, node) in enumerate(gx.nodes.items()):
@@ -1194,8 +1227,7 @@ def _filter_ignored_versions(attrs, version):
 
 
 def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
-
+    """Update every node with it's new version (when available)."""
     print("updating nodes with new versions", flush=True)
 
     version_nodes = get_all_keys_for_hashmap("versions")

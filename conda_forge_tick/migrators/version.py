@@ -60,7 +60,7 @@ def _fmt_error_message(errors, version):
 
 
 class Version(Migrator):
-    """Migrator for version bumping of packages"""
+    """Migrator for version bumping of packages."""
 
     max_num_prs = 3
     migrator_version = 0

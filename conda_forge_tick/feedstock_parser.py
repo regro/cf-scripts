@@ -84,7 +84,7 @@ def _get_requirements(
     run: bool = True,
     outputs_to_keep: Optional[Set["PackageName"]] = None,
 ) -> "Set[PackageName]":
-    """Get the list of recipe requirements from a meta.yaml dict
+    """Get the list of recipe requirements from a meta.yaml dict.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def _parse_requirements(
     host: bool = True,
     run: bool = True,
 ) -> typing.MutableSet["PackageName"]:
-    """Flatten a YAML requirements section into a list of names"""
+    """Flatten a YAML requirements section into a list of names."""
     if not req:  # handle None as empty
         return set()
     if isinstance(req, list):  # simple list goes to both host and run
@@ -246,15 +246,36 @@ def populate_feedstock_attributes(
     """
     Parse the various configuration information into the node_attrs of a feedstock.
 
-    :param name: The name of the feedstock
-    :param existing_node_attrs: The existing node_attrs of the feedstock. Pass an empty dict if none.
-    :param meta_yaml: The meta.yaml file as a string
-    :param recipe_yaml: The recipe.yaml file as a string
-    :param conda_forge_yaml: The conda-forge.yaml file as a string
-    :param mark_not_archived: If True, forcibly mark the feedstock as not archived in the node attrs, even if it is archived.
-    :param feedstock_dir: The directory where the feedstock is located. If None, some information will not be available.
+    Parameters
+    ----------
+    name
+        The name of the feedstock.
+    existing_node_attrs
+        The existing node_attrs of the feedstock. Pass an empty dict if none.
+    meta_yaml
+        The meta.yaml file as a string.
+    recipe_yaml
+        The recipe.yaml file as a string.
+    conda_forge_yaml
+        The conda-forge.yaml file as a string.
+    mark_not_archived
+        If True, forcibly mark the feedstock as not archived in the node attrs,
+        even if it is archived.
+    feedstock_dir
+        The directory where the feedstock is located. If None, some information
+        will not be available.
 
-    :return: A dictionary with the new node_attrs of the feedstock, with only some fields populated.
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary with the new node_attrs of the feedstock, with only some
+        fields populated.
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided.
     """
     from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
 
@@ -554,6 +575,13 @@ def load_feedstock_local(
     -------
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided and no file is present in
+        the feedstock.
     """
     new_sub_graph = {key: value for key, value in sub_graph.items()}
 
@@ -720,7 +748,6 @@ def load_feedstock(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
-
     if should_use_container(use_container=use_container):
         return load_feedstock_containerized(
             name,

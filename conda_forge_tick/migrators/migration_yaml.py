@@ -86,7 +86,7 @@ def _patch_dict(cfg, patches):
 
 
 def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
-    """Merge a migrator_yaml with the conda_build_config_yaml"""
+    """Merge a migrator_yaml with the conda_build_config_yaml."""
     migrator_keys = defaultdict(list)
     current_key = None
     regex = re.compile(r"\w")
@@ -765,7 +765,7 @@ class MigrationYamlCreator(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name."""
         return sorted(
             list(graph.nodes),
             key=lambda x: (len(nx.descendants(total_graph, x)), RNG.random()),

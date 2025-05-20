@@ -104,7 +104,7 @@ class AddNVIDIATools(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
     ) -> MigrationUidTypedDict:
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -186,13 +186,14 @@ class AddNVIDIATools(Migrator):
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
-        """Create a PR message body
+        """Create a PR message body.
 
         Returns
         -------
-        body: str
+        body
             The body of the PR message
-            :param feedstock_ctx:
+        feedstock_ctx
+            The current ClonedFeedstockContext
         """
         body = """\
 In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
@@ -253,13 +254,9 @@ Please ping carterbox for questions.
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        """Create a commit message
-        :param feedstock_ctx:
-        """
+        """Create a commit message."""
         return "BLD: Try to automatically add cf-nvidia-tols and check glibc"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        """Branch to use on local and remote
-        :param feedstock_context:
-        """
+        """Branch to use on local and remote."""
         return "add-cf-nvidia-tools"

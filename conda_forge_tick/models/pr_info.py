@@ -46,9 +46,7 @@ After that, this type can be removed.
 
 
 class MigratorName(StrEnum):
-    """
-    Each value here corresponds to a subclass of migrators.core.Migrator in the codebase.
-    """
+    """Each value here corresponds to a subclass of migrators.core.Migrator in the codebase."""
 
     VERSION = "Version"
     ARCH_REBUILD = "ArchRebuild"
@@ -93,9 +91,7 @@ class MigratorName(StrEnum):
 
 
 class MigrationPullRequestData(StrictBaseModel):
-    """
-    Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code.
-    """
+    """Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code."""
 
     bot_rerun: bool | datetime
     """
@@ -202,9 +198,17 @@ class MigrationPullRequest(StrictBaseModel):
     @classmethod
     def validate_keys(cls, input_data: Any) -> Any:
         """
+        Validate the keys field against the data field.
+
         The current implementation uses a field "keys" which is a list of all keys present in the
         MigrationPullRequestData object, duplicating them. This list is redundant and should be removed.
         The consistency of this field is validated here, after which it is removed.
+
+        Raises
+        ------
+        ValueError
+            If the keys field or the data field is missing, has the wrong type
+            or the keys field does not exactly match the keys of the data field.
         """
         input_data = before_validator_ensure_dict(input_data)
 
@@ -230,9 +234,7 @@ class MigrationPullRequest(StrictBaseModel):
 
 
 class ExceptionInfo(StrictBaseModel):
-    """
-    Information about an exception that occurred while performing migrations.
-    """
+    """Information about an exception that occurred while performing migrations."""
 
     exception: str
     """

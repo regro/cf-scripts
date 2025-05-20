@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This file runs specific tasks for the bot.
+"""Run specific tasks for the bot.
 
 All imports from the bot need to be guarded by putting them in the subcommands.
 This ensures that we can set important environment variables before any imports,
@@ -45,7 +45,7 @@ log_level_option = click.option(
 
 @contextmanager
 def _setenv(name, value):
-    """set an environment variable temporarily"""
+    """Set an environment variable temporarily."""
     old = os.environ.get(name)
     try:
         os.environ[name] = value

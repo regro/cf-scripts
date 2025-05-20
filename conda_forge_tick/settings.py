@@ -56,7 +56,7 @@ class BotSettings(BaseSettings):
     def graph_github_backend_raw_base_url(self) -> str:
         """
         The base URL for the GitHub raw view of the graph_github_backend_repo repository.
-        Example: https://github.com/regro/cf-graph-countyfair/raw/master
+        Example: https://github.com/regro/cf-graph-countyfair/raw/master.
         """
         return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}"
 
@@ -88,9 +88,7 @@ If not None, the application should use this settings object instead of generati
 
 
 def settings() -> BotSettings:
-    """
-    Get the current settings object.
-    """
+    """Get the current settings object."""
     if _use_settings_override:
         return _use_settings_override.model_copy()  # prevent side-effects
     return BotSettings()
@@ -106,8 +104,11 @@ def use_settings(s: BotSettings | None):
     DO NOT call this function within multithreading contexts, as it will override the settings for all threads,
     and lead to unpredictable behavior.
 
-    :param s: The settings object to use. None stands for the default settings behavior. The default settings
-    behavior reads the environment variables every time the settings are accessed.
+    Parameters
+    ----------
+    s
+        The settings object to use. None stands for the default settings behavior. The default settings
+        behavior reads the environment variables every time the settings are accessed.
     """
     global _use_settings_override
 

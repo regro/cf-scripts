@@ -377,7 +377,7 @@ def url_exists(url: str, timeout=5) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
-     - requests cannot handle ftp
+     - requests cannot handle ftp.
     """
     if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
         try:
@@ -569,8 +569,9 @@ class Github(VersionFromFeed):
         self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):
-        """Returns prefix for the first split that contains version. If prefix
-        is empty - returns None."""
+        """Return prefix for the first split that contains version. If prefix
+        is empty - returns None.
+        """
         r = re.compile(rf"^(.*){version}")
         for split in split_url:
             match = r.match(split)
@@ -756,7 +757,12 @@ class CratesIO(AbstractSource):
     def _tier_directory(package: str) -> str:
         """Depending on the length of the package name, the tier directory structure
         will differ.
-        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files
+        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files.
+
+        Raises
+        ------
+        ValueError
+            If the package name is empty.
         """
         if not package:
             raise ValueError("Package name cannot be empty")

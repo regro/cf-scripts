@@ -61,7 +61,7 @@ CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 
 def get_sharded_path(file_path, n_dirs=CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS):
-    """computed a sharded location for the LazyJson file."""
+    """Compute a sharded location for the LazyJson file."""
     top_dir, file_name = os.path.split(file_path)
 
     if len(top_dir) == 0 or top_dir == "lazy_json":
@@ -940,7 +940,7 @@ def sync_lazy_json_object(
 
 
 class LazyJson(MutableMapping):
-    """Lazy load a dict from a json file and save it when updated"""
+    """Lazy load a dict from a json file and save it when updated."""
 
     def __init__(self, file_name: str):
         self.file_name = file_name
@@ -1080,7 +1080,13 @@ class LazyJson(MutableMapping):
 
 
 def default(obj: Any) -> Any:
-    """For custom object serialization."""
+    """For custom object serialization.
+
+    Raises
+    ------
+    TypeError
+        If the object is not JSON serializable.
+    """
     if isinstance(obj, LazyJson):
         return {"__lazy_json__": obj.file_name}
     elif isinstance(obj, Set):
@@ -1109,7 +1115,7 @@ def dumps(
     obj: Any,
     default: "Callable[[Any], Any]" = default,
 ) -> str:
-    """Returns a JSON string from a Python object."""
+    """Return a JSON string from a Python object."""
     return orjson.dumps(
         obj,
         option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2,
@@ -1122,7 +1128,7 @@ def dump(
     fp: IO[str],
     default: "Callable[[Any], Any]" = default,
 ) -> None:
-    """Returns a JSON string from a Python object."""
+    """Return a JSON string from a Python object."""
     return fp.write(dumps(obj, default=default))
 
 
@@ -1142,7 +1148,7 @@ def _call_object_hook(
 
 
 def loads(s: str, object_hook: "Callable[[dict], Any]" = object_hook) -> dict:
-    """Loads a string as JSON, with appropriate object hooks"""
+    """Load a string as JSON, with appropriate object hooks."""
     data = orjson.loads(s)
     if object_hook is not None:
         data = _call_object_hook(data, object_hook)
@@ -1153,7 +1159,7 @@ def load(
     fp: IO[str],
     object_hook: "Callable[[dict], Any]" = object_hook,
 ) -> dict:
-    """Loads a file object as JSON, with appropriate object hooks."""
+    """Load a file object as JSON, with appropriate object hooks."""
     return loads(fp.read())
 
 

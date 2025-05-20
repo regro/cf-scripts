@@ -122,7 +122,9 @@ def test_load_graph_file_does_not_exist(exists_mock: MagicMock):
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME, "w")])
 
 
-def test_load_existing_graph():
+@mock.patch("os.path.isfile")
+def test_load_existing_graph(isfile_mock: MagicMock):
+    isfile_mock.return_value = True
     with mock.patch("builtins.open", mock_open(read_data=DEMO_GRAPH)) as mock_file:
         gx = load_existing_graph()
 

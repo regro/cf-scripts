@@ -147,7 +147,7 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
 
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """run pip check if we see python in any host sections"""
+        """Run pip check if we see python in any host sections."""
         build_host = (
             attrs["requirements"].get("host", set())
             or attrs["requirements"].get("build", set())

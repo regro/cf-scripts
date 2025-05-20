@@ -13,6 +13,11 @@ def react_to_event(ctx: CliContext, event: str, uid: str) -> None:
     uid : str
         The unique identifier of the event. It is the PR id for PR events or
         the feedstock name for push events.
+
+    Raises
+    ------
+    RuntimeError
+        If the event is not recognized.
     """
     if event == "pr":
         from .pr_events import react_to_pr
