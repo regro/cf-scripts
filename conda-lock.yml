@@ -11928,41 +11928,41 @@ package:
       openssl: '>=3.5.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: 65cb2d12fe849b15c1d4f94cb7b8b335
-      sha256: ee1fb9a3cf8969ae54a093ac2275401560bf23b42e64bb845e0cb1c5767d8012
+      md5: 6be167e42bced9d1e4255fe25ec95ed7
+      sha256: 3d1657518776ea7af56cd65cbf975155efab170ed657953a1d7211f145a638e4
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.41.0-h159367c_0.conda
-    version: 0.41.0
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.42.1-h2d22210_0.conda
+    version: 0.42.1
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: c280d2a291bcc434c0e717f5d9980bbf
-      sha256: eea3f45a62c982b4c027655323a87f676400d44fe7ce77c72c7891b84903203a
+      md5: 5ed3e1eb9c7dca7b5e07b0340c6f6a23
+      sha256: dd5998ad7bca41966a1bbb7a93b0c1749f0b8dc033e4de3d245530e9574a9b9d
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.40.0-h05de357_0.conda
-    version: 0.40.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.42.1-h05de357_0.conda
+    version: 0.42.1
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 52ba9f0c0c2f74e7fca80b089685ebea
-      sha256: de701ec656fb9fe7bef966e227e7e95d395b37e51d8864f648c6530e66c04eab
+      md5: 31f97984064ff852c3724d6cc9541e71
+      sha256: f3cf289e05295dc14d3027d9f61c56269afccc7410ad7e59522254791f519620
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.41.0-h8dba533_0.conda
-    version: 0.41.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.42.1-h8dba533_0.conda
+    version: 0.42.1
   - category: main
     dependencies:
       conda-build: ''
@@ -14362,14 +14362,14 @@ package:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: 4718f9661122f19fce27c48b778b7a2e
-      sha256: 6267cda68fbeab4c718732d94a1499c7d862ee2d3650f72312f4b578746d8c4f
+      md5: f5b3c30f49c387fe0511bb5a7e619464
+      sha256: 228c86bddf1bbd67e5dc050c0a0084dc0d90ed602ff3ee710f2f9fa267ebba98
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.5-hd4c9240_0.conda
-    version: 0.7.5
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.6-hd4c9240_0.conda
+    version: 0.7.6
   - category: main
     dependencies:
       distlib: '>=0.3.7,<1'
