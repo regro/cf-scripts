@@ -96,7 +96,7 @@ def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
 
 
 class ArchRebuild(GraphMigrator):
-    """A Migrator that add aarch64 and ppc64le builds to feedstocks."""
+    """A Migrator that adds aarch64 and ppc64le builds to feedstocks."""
 
     migrator_version = 1
     rerender = True
@@ -381,7 +381,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
 
 class OSXArm(_CrossCompileRebuild):
-    """A Migrator that add osx-arm64 builds to feedstocks."""
+    """A Migrator that adds osx-arm64 builds to feedstocks."""
 
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
@@ -413,7 +413,7 @@ class OSXArm(_CrossCompileRebuild):
 
 
 class WinArm64(_CrossCompileRebuild):
-    """A Migrator that add win-arm64 builds to feedstocks."""
+    """A Migrator that adds win-arm64 builds to feedstocks."""
 
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}
