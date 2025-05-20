@@ -51,7 +51,7 @@ def test_git_cli_run_git_command_no_error(
 ):
     cli = GitCli()
 
-    working_directory = Path("TEST_DIR")
+    working_directory = Path(".")
 
     cli._run_git_command(
         ["GIT_COMMAND", "ARG1", "ARG2"], working_directory, check_error
@@ -89,7 +89,7 @@ def test_git_cli_run_git_command_mock(
     """Check if all parameters are passed correctly to the subprocess.run function."""
     cli = GitCli()
 
-    working_directory = Path("TEST_DIR")
+    working_directory = Path(".")
 
     cli._run_git_command(
         ["COMMAND", "ARG1", "ARG2"], working_directory, check_error, suppress_all_output

@@ -193,7 +193,7 @@ def _process_section(output_index, attrs, lines):
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 
-    assert not line_compiler, "This shouldn't be possible!"
+    assert line_compiler, "This shouldn't be possible!"
 
     # by default, we insert directly after the compiler
     line_insert = line_compiler + 1
