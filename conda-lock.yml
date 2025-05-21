@@ -2035,39 +2035,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: cc44d71e8400a09e70511dcfcf97bdd9
-      sha256: 9fab65327d490a36bf937952bb91048e98dcbc8526f83d48620224843b9d384c
+      md5: 10dd1cc8ca882cddf60e56b0bda8044b
+      sha256: 06ffb6bb78c17287e87b78e615e4cdbaafc2219405afe308c3af685ab9193b3c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.20.06.20.57-hd8ed1ab_0.conda
-    version: 2025.05.20.06.20.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.21.12.06.26-hd8ed1ab_0.conda
+    version: 2025.05.21.12.06.26
   - category: main
     dependencies: {}
     hash:
-      md5: cc44d71e8400a09e70511dcfcf97bdd9
-      sha256: 9fab65327d490a36bf937952bb91048e98dcbc8526f83d48620224843b9d384c
+      md5: 10dd1cc8ca882cddf60e56b0bda8044b
+      sha256: 06ffb6bb78c17287e87b78e615e4cdbaafc2219405afe308c3af685ab9193b3c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.20.06.20.57-hd8ed1ab_0.conda
-    version: 2025.05.20.06.20.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.21.12.06.26-hd8ed1ab_0.conda
+    version: 2025.05.21.12.06.26
   - category: main
     dependencies: {}
     hash:
-      md5: cc44d71e8400a09e70511dcfcf97bdd9
-      sha256: 9fab65327d490a36bf937952bb91048e98dcbc8526f83d48620224843b9d384c
+      md5: 10dd1cc8ca882cddf60e56b0bda8044b
+      sha256: 06ffb6bb78c17287e87b78e615e4cdbaafc2219405afe308c3af685ab9193b3c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.20.06.20.57-hd8ed1ab_0.conda
-    version: 2025.05.20.06.20.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.21.12.06.26-hd8ed1ab_0.conda
+    version: 2025.05.21.12.06.26
   - category: main
     dependencies:
       click: '>=8'
@@ -4166,38 +4166,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 9c40692c3d24c7aaf335f673ac09d308
-      sha256: 2040d4640708bd6ab9ed6cb9901267441798c44974bc63c9b6c1cb4c1891d825
+      md5: 7ac28047cd73cf02a294a64f036b2b02
+      sha256: 6c907128b6464b8f4d5cba3160c7ec1505d10a86c188b1356ecddfd662285fcd
     manager: conda
     name: fsspec
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.3.2-pyhd8ed1ab_0.conda
-    version: 2025.3.2
+    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.0-pyhd8ed1ab_0.conda
+    version: 2025.5.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 9c40692c3d24c7aaf335f673ac09d308
-      sha256: 2040d4640708bd6ab9ed6cb9901267441798c44974bc63c9b6c1cb4c1891d825
+      md5: 7ac28047cd73cf02a294a64f036b2b02
+      sha256: 6c907128b6464b8f4d5cba3160c7ec1505d10a86c188b1356ecddfd662285fcd
     manager: conda
     name: fsspec
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.3.2-pyhd8ed1ab_0.conda
-    version: 2025.3.2
+    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.0-pyhd8ed1ab_0.conda
+    version: 2025.5.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 9c40692c3d24c7aaf335f673ac09d308
-      sha256: 2040d4640708bd6ab9ed6cb9901267441798c44974bc63c9b6c1cb4c1891d825
+      md5: 7ac28047cd73cf02a294a64f036b2b02
+      sha256: 6c907128b6464b8f4d5cba3160c7ec1505d10a86c188b1356ecddfd662285fcd
     manager: conda
     name: fsspec
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.3.2-pyhd8ed1ab_0.conda
-    version: 2025.3.2
+    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.0-pyhd8ed1ab_0.conda
+    version: 2025.5.0
   - category: main
     dependencies:
       libgcc-ng: '>=12'
