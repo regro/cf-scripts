@@ -12808,41 +12808,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: f6f72d0837c79eaec77661be43e8a691
-      sha256: 777d34ed359cedd5a5004c930077c101bb3b70e5fbb04d29da5058d75b0ba487
+      md5: ea075e94dc0106c7212128b6a25bbc4c
+      sha256: 56ce31d15786e1df2f1105076f3650cd7c1892e0afeeb9aa92a08d2551af2e34
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
-    version: 80.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.8.0-pyhff2d567_0.conda
+    version: 80.8.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: f6f72d0837c79eaec77661be43e8a691
-      sha256: 777d34ed359cedd5a5004c930077c101bb3b70e5fbb04d29da5058d75b0ba487
+      md5: ea075e94dc0106c7212128b6a25bbc4c
+      sha256: 56ce31d15786e1df2f1105076f3650cd7c1892e0afeeb9aa92a08d2551af2e34
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
-    version: 80.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.8.0-pyhff2d567_0.conda
+    version: 80.8.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: f6f72d0837c79eaec77661be43e8a691
-      sha256: 777d34ed359cedd5a5004c930077c101bb3b70e5fbb04d29da5058d75b0ba487
+      md5: ea075e94dc0106c7212128b6a25bbc4c
+      sha256: 56ce31d15786e1df2f1105076f3650cd7c1892e0afeeb9aa92a08d2551af2e34
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
-    version: 80.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-80.8.0-pyhff2d567_0.conda
+    version: 80.8.0
   - category: main
     dependencies:
       importlib-metadata: ''
