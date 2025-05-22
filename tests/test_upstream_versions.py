@@ -549,7 +549,7 @@ def test_latest_version_skip_error_success(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -580,7 +580,7 @@ def test_latest_version_error_and_no_new_version(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -1764,9 +1764,7 @@ def test_github_releases(tmpdir, url, feedstock_version):
 def test_github_releases_unusual_version(
     tmp_path: Path, url: str, feedstock_version: str, regex: str
 ):
-    """
-    Tests that the GitHubReleases source can handle unusual version strings such as timestamps.
-    """
+    """Tests that the GitHubReleases source can handle unusual version strings such as timestamps."""
     meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
     with meta_yaml as _meta_yaml:
         _meta_yaml.update(

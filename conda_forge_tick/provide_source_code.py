@@ -39,8 +39,8 @@ def provide_source_code(recipe_dir, use_container=None):
         variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
-    Returns
-    -------
+    Yields
+    ------
     str
         The path to the source code directory.
     """
@@ -64,8 +64,8 @@ def provide_source_code_containerized(recipe_dir):
     recipe_dir : str
         The path to the recipe directory.
 
-    Returns
-    -------
+    Yields
+    ------
     str
         The path to the source code directory.
     """
@@ -75,9 +75,11 @@ def provide_source_code_containerized(recipe_dir):
 
         chmod_plus_rwX(tmpdir)
 
-        logger.debug(f"host recipe dir {recipe_dir}: {os.listdir(recipe_dir)}")
+        logger.debug("host recipe dir %s: %s", recipe_dir, os.listdir(recipe_dir))
         logger.debug(
-            f"copied host recipe dir {tmp_recipe_dir}: {os.listdir(tmp_recipe_dir)}"
+            "copied host recipe dir %s: %s",
+            tmp_recipe_dir,
+            os.listdir(tmp_recipe_dir),
         )
 
         tmp_source_dir = os.path.join(tmpdir, "source_dir")
@@ -116,6 +118,11 @@ def provide_source_code_local(recipe_dir):
     -------
     str
         The path to the source code directory.
+
+    Raises
+    ------
+    RuntimeError
+        If there is an error in getting the conda build source code or printing it.
     """
     out = None
 

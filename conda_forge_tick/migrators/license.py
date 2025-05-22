@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def replace_in_file(pattern, new, fname, leading_whitespace=True):
-    """Replaces a given pattern in a file. If leading whitespace is True,
+    """Replace a given pattern in a file. If leading whitespace is True,
     whitespace at the beginning of a line will be captured and preserved.
     Otherwise, the pattern itself must contain all leading whitespace.
 
@@ -80,7 +80,7 @@ def replace_in_file(pattern, new, fname, leading_whitespace=True):
 
 def _to_spdx(lic):
     """
-    we are munging this stuff from conda-build
+    We are munging this stuff from conda-build.
 
     d_license = {'agpl3': ['AGPL-3', 'AGPL (>= 3)', 'AGPL',
                            'GNU Affero General Public License'],
@@ -184,7 +184,7 @@ def _scrape_license_string(pkg):
     if pkg.startswith("r-"):
         pkg = pkg[2:]
 
-    logger.info("LICENSE running cran skeleton for pkg %s" % pkg)
+    logger.info("LICENSE running cran skeleton for pkg %s", pkg)
 
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
@@ -242,7 +242,7 @@ def _scrape_license_string(pkg):
 def _do_r_license_munging(pkg, recipe_dir):
     try:
         d = _scrape_license_string(pkg)
-        logger.info("LICENSE R package license data: %s" % d)
+        logger.info("LICENSE R package license data: %s", d)
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             cmeta = CondaMetaYAML(fp.read())
@@ -259,7 +259,7 @@ def _do_r_license_munging(pkg, recipe_dir):
             cmeta.dump(fp)
 
     except Exception as e:
-        logger.info("LICENSE R license ERROR: %s" % repr(e))
+        logger.info("LICENSE R license ERROR: %s", repr(e))
         pass
 
 

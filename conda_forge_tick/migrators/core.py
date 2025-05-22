@@ -1,4 +1,4 @@
-"""Base classes for migrating repos"""
+"""Base classes for migrating repos."""
 
 import contextlib
 import copy
@@ -127,7 +127,7 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
 
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
-    """Overlook some bad entries"""
+    """Overlook some bad entries."""
     bad = attrs.get("pr_info", {}).get("bad", False)
     if isinstance(bad, str):
         bad_bool = not bad.startswith(not_bad_str_start)
@@ -217,7 +217,7 @@ class MiniMigrator:
             self._init_kwargs = {}
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """If true don't act upon node
+        """If true don't act upon node.
 
         Parameters
         ----------
@@ -232,7 +232,7 @@ class MiniMigrator:
         return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -240,11 +240,6 @@ class MiniMigrator:
             The directory of the recipe
         attrs : dict
             The node attributes
-
-        Returns
-        -------
-        namedtuple or bool:
-            If namedtuple continue with PR, if False scrap local folder
         """
         return
 
@@ -261,7 +256,7 @@ class MiniMigrator:
 
 
 class Migrator:
-    """Base class for Migrators
+    """Base class for Migrators.
 
     Initialization of Instances
     ---------------------------
@@ -362,7 +357,6 @@ class Migrator:
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
-
         kwargs = copy.deepcopy(self._init_kwargs)
         if (
             "piggy_back_migrations" in kwargs
@@ -398,7 +392,7 @@ class Migrator:
         feedstock_ctx: FeedstockContext,
         limit: int = 5,
     ) -> List["PackageName"]:
-        """Utility method for getting a list of follow on packages"""
+        """Get a list of follow on packages."""
         return [
             a[1]
             for a in list(
@@ -407,7 +401,7 @@ class Migrator:
         ][:limit]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """ "If True don't act upon a node.
+        """If True don't act upon a node.
 
         Parameters
         ----------
@@ -437,7 +431,7 @@ class Migrator:
         __name = attrs.get("name", "")
 
         if attrs.get("archived", False):
-            logger.debug("%s: archived" % __name)
+            logger.debug("%s: archived", __name)
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
@@ -468,7 +462,7 @@ class Migrator:
         already_pred = migrator_uid in already_migrated_uids
         if already_pred:
             ind = already_migrated_uids.index(migrator_uid)
-            logger.debug(f"{__name}: already PRed: uid: {migrator_uid}")
+            logger.debug("%s: already PRed: uid: %s", __name, migrator_uid)
             if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
                 if isinstance(
                     attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
@@ -478,14 +472,12 @@ class Migrator:
                         "PR"
                     ] as mg_attrs:
                         logger.debug(
-                            "{}: already PRed: PR file: {}".format(
-                                __name, mg_attrs.file_name
-                            ),
+                            "%s: already PRed: PR file: %s", __name, mg_attrs.file_name
                         )
 
                         html_url = mg_attrs.get("html_url", "no url")
 
-                        logger.debug(f"{__name}: already PRed: url: {html_url}")
+                        logger.debug("%s: already PRed: url: %s", __name, html_url)
 
         return already_pred
 
@@ -512,7 +504,7 @@ class Migrator:
                 [],
             )
         except Exception:
-            logger.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")
+            logger.exception("Invalid value for %r", attrs.get("conda-forge.yml", {}))
         # make sure this is always a string
         return [str(b) for b in branches]
 
@@ -557,7 +549,7 @@ class Migrator:
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -576,13 +568,14 @@ class Migrator:
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
-        """Create a PR message body
+        """Create a PR message body.
 
         Returns
         -------
-        body: str
+        body
             The body of the PR message
-            :param feedstock_ctx:
+        feedstock_ctx
+            The current ClonedFeedstockContext.
         """
         body = "{}\n\n"
 
@@ -610,25 +603,19 @@ class Migrator:
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        """Create a commit message
-        :param feedstock_ctx:
-        """
+        """Create a commit message."""
         return f"migration: {self.__class__.__name__}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        """Title for PR
-        :param feedstock_ctx:
-        """
+        """Get the PR title."""
         return "PR from Regro-cf-autotick-bot"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        """Branch to use on local and remote
-        :param feedstock_context:
-        """
+        """Get branch to use on local and remote."""
         return "bot-pr"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
-        """Make a unique id for this migrator and node attrs
+        """Make a unique id for this migrator and node attrs.
 
         Parameters
         ----------
@@ -661,8 +648,7 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
-
+        """Run the order by number of decedents, ties are resolved by package name."""
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")
@@ -844,7 +830,7 @@ class GraphMigrator(Migrator):
             if muid not in _sanitized_muids(
                 payload.get("pr_info", {}).get("PRed", []),
             ):
-                logger.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s", node)
                 return True
 
             # This is due to some PRed_json loss due to bad graph deploy outage
@@ -860,7 +846,7 @@ class GraphMigrator(Migrator):
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                logger.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s", node)
                 return True
 
         return False

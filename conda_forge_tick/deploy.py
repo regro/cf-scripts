@@ -186,7 +186,7 @@ def _get_files_to_delete():
 
 
 def _get_pth_commit_message(pth):
-    """make a nice message for stuff managed via LazyJson."""
+    """Make a nice message for stuff managed via LazyJson."""
     step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
     msg_pth = pth
     parts = pth.split("/")
@@ -205,7 +205,7 @@ def _reset_and_restore_file(pth):
 
 
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
-    """Deploy the graph to GitHub"""
+    """Deploy the graph to GitHub."""
     if ctx.dry_run:
         print("(dry run) deploying")
         return

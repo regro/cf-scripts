@@ -115,8 +115,7 @@ def fold_branch(source: Any, dest: Any, branch: str, dest_branch: str) -> None:
 
 
 def combine_conditions(node: Any):
-    """Breadth first recursive call to combine list conditions"""
-
+    """Breadth first recursive call to combine list conditions."""
     # recursion is breadth first because we go through each element here
     # before calling `combine_conditions` on any element in the node
     if isinstance(node, list):

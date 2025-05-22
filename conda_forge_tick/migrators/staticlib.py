@@ -41,7 +41,8 @@ logger = logging.getLogger(__name__)
 
 def _left_gt_right_rec(lrec, rrec):
     """Compare two records, declaring the left one bigger if
-    the version and/or build number is bigger."""
+    the version and/or build number is bigger.
+    """
     lver = VersionOrder(lrec.version)
     lbuild = lrec.build_number
     rver = VersionOrder(rrec.version)
@@ -240,7 +241,7 @@ def any_static_libs_out_of_date(
     raw_meta_yaml: str,
     schema_version: int = 0,
 ) -> (bool, dict[str, dict[str, str]]):
-    """check if any static libs are out of date for a given recipe and set of platforms.
+    """Check if any static libs are out of date for a given recipe and set of platforms.
 
     Parameters
     ----------
@@ -478,7 +479,7 @@ class StaticLibMigrator(GraphMigrator):
                 platform_arches=platform_arches,
                 raw_meta_yaml=payload.get("raw_meta_yaml") or "",
             )[0]:
-                logger.debug("not yet built for new static libs: %s" % node)
+                logger.debug("not yet built for new static libs: %s", node)
                 return True
 
         return False

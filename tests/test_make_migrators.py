@@ -49,8 +49,8 @@ class TestCreateMigrationYamlCreator:
     @pytest.fixture
     def prepared_graph(self, request: pytest.FixtureRequest):
         """
-        Pass the node attrs files that should be present in the graph as
-        indirect fixture parameters.
+        Get the graph with the node attrs files that should be present in the
+        graph as indirect fixture parameters.
         """
         node_attrs_files: list[str] = request.param
 

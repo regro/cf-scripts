@@ -247,7 +247,7 @@ class CRAN(AbstractSource):
                 CRAN_INDEX = self._get_cran_index(session)
                 logger.debug("Cran source initialized")
             except Exception:
-                logger.error("Cran initialization failed", exc_info=True)
+                logger.exception("Cran initialization failed")
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
@@ -332,7 +332,7 @@ class ROSDistro(AbstractSource):
                 ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
             except Exception:
-                logger.error("ROS Distro initialization failed", exc_info=True)
+                logger.exception("ROS Distro initialization failed")
                 ROS_DISTRO_INDEX = {}
 
     def get_url(self, meta_yaml: "RecipeTypedDict") -> Optional[str]:
@@ -377,7 +377,7 @@ def url_exists(url: str, timeout=5) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
-     - requests cannot handle ftp
+     - requests cannot handle ftp.
     """
     if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
         try:
@@ -565,12 +565,13 @@ class Github(VersionFromFeed):
         self.version_prefix = self.get_version_prefix(version, split_url)
         if self.version_prefix is None:
             return
-        logger.debug(f"Found version prefix from url: {self.version_prefix}")
+        logger.debug("Found version prefix from url: %s", self.version_prefix)
         self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):
-        """Returns prefix for the first split that contains version. If prefix
-        is empty - returns None."""
+        """Return prefix for the first split that contains version. If prefix
+        is empty - returns None.
+        """
         r = re.compile(rf"^(.*){version}")
         for split in split_url:
             match = r.match(split)
@@ -756,7 +757,12 @@ class CratesIO(AbstractSource):
     def _tier_directory(package: str) -> str:
         """Depending on the length of the package name, the tier directory structure
         will differ.
-        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files
+        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files.
+
+        Raises
+        ------
+        ValueError
+            If the package name is empty.
         """
         if not package:
             raise ValueError("Package name cannot be empty")

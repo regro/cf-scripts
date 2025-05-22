@@ -138,9 +138,13 @@ def run_migration_containerized(
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         mfile = os.path.join(tmpdir, "migrator.json")
@@ -228,7 +232,6 @@ def run_migration_local(
           - pr_title: The PR title for the migration.
           - pr_body: The PR body for the migration.
     """
-
     # Instead of mimicking the ClonedFeedstockContext which is already available in the call hierarchy of this function,
     # we should instead pass the ClonedFeedstockContext object to this function. This would allow the following issue.
     # POSSIBLE BUG: The feedstock_ctx object is mimicked and any attributes not listed here might have incorrect

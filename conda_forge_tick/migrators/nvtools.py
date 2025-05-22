@@ -13,6 +13,8 @@ from conda_forge_tick.utils import (
 
 from .core import Migrator
 
+logger = logging.getLogger(__name__)
+
 
 def _file_contains(filename: str, string: str) -> bool:
     """Return whether the given file contains the given string."""
@@ -102,7 +104,7 @@ class AddNVIDIATools(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
     ) -> MigrationUidTypedDict:
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
         ----------
@@ -123,17 +125,17 @@ class AddNVIDIATools(Migrator):
 
         # STEP 1: Add cf-nvidia-tools to build requirements
         if _file_contains(meta, "cf-nvidia-tools"):
-            logging.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
+            logger.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
         else:
             if _insert_subsection(
                 meta,
                 "requirements",
                 "build",
-                "    - cf-nvidia-tools 1  # [linux]\n",
+                ["    - cf-nvidia-tools 1  # [linux]\n"],
             ):
-                logging.debug("cf-nvidia-tools added to meta.yaml.")
+                logger.debug("cf-nvidia-tools added to meta.yaml.")
             else:
-                logging.warning(
+                logger.warning(
                     "cf-nvidia-tools migration failed to add cf-nvidia-tools to meta.yaml. Manual migration required."
                 )
 
@@ -141,30 +143,28 @@ class AddNVIDIATools(Migrator):
         build = os.path.join(recipe_dir, "build.sh")
         if os.path.isfile(build):
             if _file_contains(build, "check-glibc"):
-                logging.debug(
-                    "build.sh already contains check-glibc; not adding again."
-                )
+                logger.debug("build.sh already contains check-glibc; not adding again.")
             else:
                 with open(build, "a") as file:
                     file.write(
                         '\ncheck-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*\n'
                     )
-                logging.debug("Added check-glibc to build.sh")
+                logger.debug("Added check-glibc to build.sh")
         else:
             if _file_contains(meta, "check-glibc"):
-                logging.debug(
+                logger.debug(
                     "meta.yaml already contains check-glibc; not adding again."
                 )
             else:
                 if _insert_subsection(
                     meta,
+                    "requirements",
                     "build",
-                    "script",
-                    '    - check-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*  # [linux]\n',
+                    ["    - check-glibc  # [linux]\n"],
                 ):
-                    logging.debug("Added check-glibc to meta.yaml")
+                    logger.debug("Added check-glibc to meta.yaml")
                 else:
-                    logging.warning(
+                    logger.warning(
                         "cf-nvidia-tools migration failed to add check-glibc to meta.yaml. Manual migration required."
                     )
 
@@ -186,13 +186,14 @@ class AddNVIDIATools(Migrator):
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
     ) -> str:
-        """Create a PR message body
+        """Create a PR message body.
 
         Returns
         -------
-        body: str
+        body
             The body of the PR message
-            :param feedstock_ctx:
+        feedstock_ctx
+            The current ClonedFeedstockContext
         """
         body = """\
 In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
@@ -253,13 +254,9 @@ Please ping carterbox for questions.
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        """Create a commit message
-        :param feedstock_ctx:
-        """
+        """Create a commit message."""
         return "BLD: Try to automatically add cf-nvidia-tols and check glibc"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        """Branch to use on local and remote
-        :param feedstock_context:
-        """
+        """Branch to use on local and remote."""
         return "add-cf-nvidia-tools"

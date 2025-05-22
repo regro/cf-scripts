@@ -168,7 +168,6 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
     new_hash : str or None
         The new hash if found.
     """
-
     if "version" not in context:
         return None, None
 
@@ -642,9 +641,13 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         args = [

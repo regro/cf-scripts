@@ -216,11 +216,14 @@ def _build_graph_process_pool(
                 f.result()
                 if n_left % 100 == 0:
                     logger.info(
-                        f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: finished {name}"
+                        "nodes left %5d - eta %5ds: finished %s", n_left, int(eta), name
                     )
             except Exception as e:
                 logger.error(
-                    f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: error adding {name} to the graph",
+                    "nodes left %5d - eta %5ds: error adding %s to the graph",
+                    n_left,
+                    int(eta),
+                    name,
                     exc_info=e,
                 )
 
@@ -237,7 +240,7 @@ def _build_graph_sequential(
         try:
             get_attrs(name, mark_not_archived=mark_not_archived)
         except Exception as e:
-            logger.error(f"Error updating node {name}", exc_info=e)
+            logger.error("Error updating node %s", name, exc_info=e)
 
 
 def _get_all_deps_for_node(attrs, outputs_lut):
@@ -333,7 +336,7 @@ def _update_graph_nodes(
         mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
-    logger.info(f"memory usage: {psutil.virtual_memory()}")
+    logger.info("memory usage: %s", psutil.virtual_memory())
 
 
 def _update_nodes_with_archived(names):
@@ -366,9 +369,9 @@ def main(
     tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
     names_for_this_job = _get_names_for_job(names, job, n_jobs)
     archived_names_for_this_job = _get_names_for_job(archived_names, job, n_jobs)
-    logger.info(f"total # of nodes across all backends: {len(tot_names)}")
-    logger.info(f"active nodes: {len(names)}")
-    logger.info(f"archived nodes: {len(archived_names)}")
+    logger.info("total # of nodes across all backends: %d", len(tot_names))
+    logger.info("active nodes: %d", len(names))
+    logger.info("archived nodes: %d", len(archived_names))
 
     if update_nodes_and_edges:
         gx = load_graph()

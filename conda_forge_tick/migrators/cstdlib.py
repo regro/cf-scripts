@@ -33,6 +33,12 @@ def _process_section(output_index, attrs, lines):
     - where there's no host-section, add it
 
     If we find `sysroot_linux-64 2.17`, remove those lines and write the spec to CBC.
+
+    Raises
+    ------
+    RuntimeError
+        If the output given by output_index could not be found in attrs.
+        Also, if an assertion fails.
     """
     write_stdlib_to_cbc = False
     # remove occurrences of __osx due to MACOSX_DEPLOYMENT_TARGET (see migrate() below)

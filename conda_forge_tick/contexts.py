@@ -22,7 +22,7 @@ else:
 
 @dataclass
 class MigratorSessionContext:
-    """Singleton session context. There should generally only be one of these"""
+    """Singleton session context. There should generally only be one of these."""
 
     graph: DiGraph = None
     smithy_version: str = ""
@@ -56,9 +56,7 @@ class FeedstockContext:
 
     @property
     def git_http_ref(self) -> str:
-        """
-        A link to the feedstock's GitHub repository.
-        """
+        """A link to the feedstock's GitHub repository."""
         return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
 
     @property

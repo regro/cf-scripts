@@ -57,11 +57,19 @@ RNG = secrets.SystemRandom()
 
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
-    """
-    Check if a version should be ignored based on the `conda-forge.yml` file.
-    :param attrs: The node attributes
-    :param version: The version to check
-    :return: True if the version should be ignored, False otherwise
+    """Check if a version should be ignored based on the `conda-forge.yml` file.
+
+    Parameters
+    ----------
+    attrs
+        The node attributes.
+    version
+        The version to check.
+
+    Returns
+    -------
+    bool
+        True if the version should be ignored, False otherwise.
     """
     versions_to_ignore = get_keys_default(
         attrs,
@@ -79,8 +87,7 @@ def get_latest_version_local(
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
     ----------
@@ -93,7 +100,7 @@ def get_latest_version_local(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     version_data: Dict[str, Union[Literal[False], str]] = {"new_version": False}
@@ -123,19 +130,25 @@ def get_latest_version_local(
                     break
             else:
                 logger.warning(
-                    f"Package {name} requests version source '{vs}' which is not available. Skipping.",
+                    "Package %s requests version source '%s' which is not available. Skipping.",
+                    name,
+                    vs,
                 )
 
         sources_to_use = sources_to_use_list
 
         logger.debug(
-            f"{name} defines the following custom version sources: {[source.name for source in sources_to_use]}",
+            "%s defines the following custom version sources: %s",
+            name,
+            [source.name for source in sources_to_use],
         )
         skipped_sources = [
             source.name for source in sources if source not in sources_to_use
         ]
         if skipped_sources:
-            logger.debug(f"Therefore, we skip the following sources: {skipped_sources}")
+            logger.debug(
+                "Therefore, we skip the following sources: %s", skipped_sources
+            )
         else:
             logger.debug("No sources are skipped.")
 
@@ -145,21 +158,24 @@ def get_latest_version_local(
     exceptions = []
     for source in sources_to_use:
         try:
-            logger.debug(f"Fetching latest version for {name} from {source.name}...")
+            logger.debug("Fetching latest version for %s from %s...", name, source.name)
             url = source.get_url(attrs)
             if url is None:
                 continue
-            logger.debug(f"Using URL {url}")
+            logger.debug("Using URL %s", url)
             ver = source.get_version(url)
             if not ver:
-                logger.debug(f"Upstream: Could not find version on {source.name}")
+                logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
-            logger.debug(f"Found version {ver} on {source.name}")
+            logger.debug("Found version %s on %s", ver, source.name)
             version_data["new_version"] = ver
             break
         except Exception as e:
             logger.error(
-                f"An exception occurred while fetching {name} from {source.name}: {e}",
+                "An exception occurred while fetching %s from %s.",
+                name,
+                source.name,
+                exc_info=e,
             )
             exceptions.append(e)
 
@@ -177,7 +193,7 @@ def get_latest_version_local(
 
     if ignore_version(attrs, new_version):
         logger.debug(
-            f"Ignoring version {new_version} because it is in the exclude list.",
+            "Ignoring version %s because it is in the exclude list.", new_version
         )
         version_data["new_version"] = False
 
@@ -189,8 +205,7 @@ def get_latest_version_containerized(
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     **This function runs the version parsing in a container.**
 
@@ -205,7 +220,7 @@ def get_latest_version_containerized(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     if "feedstock_name" not in attrs:
@@ -235,8 +250,7 @@ def get_latest_version(
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
 ) -> Dict[str, Union[Literal[False], str]]:
-    """
-    Given a package, return the new version information to be written into the cf-graph.
+    """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
     ----------
@@ -254,7 +268,7 @@ def get_latest_version(
 
     Returns
     -------
-    version_data : dict
+    dict
         The new version information.
     """
     if should_use_container(use_container=use_container):
@@ -264,6 +278,20 @@ def get_latest_version(
 
 
 def get_job_number_for_package(name: str, n_jobs: int):
+    """Get the job number for a package.
+
+    Parameters
+    ----------
+    name
+        The name of the package.
+    n_jobs
+        The total number of jobs.
+
+    Returns
+    -------
+    int
+        The job number for the package.
+    """
     return abs(int(hashlib.sha1(name.encode("utf-8")).hexdigest(), 16)) % n_jobs + 1
 
 
@@ -272,48 +300,72 @@ def filter_nodes_for_job(
     job: int,
     n_jobs: int,
 ) -> Iterator[Tuple[str, T]]:
+    """Filter nodes for a specific job.
+
+    Parameters
+    ----------
+    all_nodes
+        All nodes to filter.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+
+    Returns
+    -------
+    Iterator[Tuple[str, T]]
+        The filtered nodes.
+    """
     return (t for t in all_nodes if get_job_number_for_package(t[0], n_jobs) == job)
 
 
 def include_node(package_name: str, payload_attrs: Mapping) -> bool:
-    """
-    Given a package name and its node attributes, determine whether
+    """Given a package name and its node attributes, determine whether
     the package should be included in the update process.
 
     Also log the reason why a package is not included.
 
-    :param package_name: The name of the package
-    :param payload_attrs: The cf-graph node payload attributes for the package
-    :return: True if the package should be included, False otherwise
+    Parameters
+    ----------
+    package_name
+        The name of the package.
+    payload_attrs
+        The cf-graph node payload attributes for the package.
+
+    Returns
+    -------
+    bool
+        True if the package should be included, False otherwise.
     """
     pr_info = payload_attrs.get("pr_info", {})
 
     if payload_attrs.get("parsing_error"):
         logger.debug(
-            f"Skipping {package_name} because it is marked as having a parsing error. The error is printed below.\n"
-            f"{payload_attrs['parsing_error']}",
+            "Skipping %s because it is marked as having a parsing error. The error is printed below.\n%s",
+            package_name,
+            payload_attrs["parsing_error"],
         )
         return False
 
     if payload_attrs.get("archived"):
-        logger.debug(
-            f"Skipping {package_name} because it is marked as archived.",
-        )
+        logger.debug("Skipping %s because it is marked as archived.", package_name)
         return False
 
     if pr_info.get("bad") and "Upstream" not in pr_info.get("bad"):
         logger.debug(
-            f"Skipping {package_name} because its corresponding Pull Request is "
-            f"marked as bad with a non-upstream issue. The error is printed below.\n"
-            f"{pr_info['bad']}",
+            "Skipping %s because its corresponding Pull Request is "
+            "marked as bad with a non-upstream issue. The error is printed below.\n%s",
+            package_name,
+            pr_info["bad"],
         )
         return False
 
     if pr_info.get("bad"):
         logger.debug(
-            f"Note: {package_name} has a bad Pull Request, but this is marked as an upstream issue. "
-            f"Therefore, it will be included in the update process. The error is printed below.\n"
-            f"{pr_info['bad']}",
+            "Note: %s has a bad Pull Request, but this is marked as an upstream issue. "
+            "Therefore, it will be included in the update process. The error is printed below.\n%s",
+            package_name,
+            pr_info["bad"],
         )
         # no return here
 
@@ -338,12 +390,17 @@ def _update_upstream_versions_sequential(
                 se = repr(e)
             except Exception as ee:
                 se = f"Bad exception string: {ee}"
-            logger.warning(f"Warning: Error getting upstream version of {node}: {se}")
+            logger.warning(
+                "Warning: Error getting upstream version of %s: %s", node, se
+            )
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
-                f"# {node_count:<5} - {node} - {attrs.get('version')} "
-                f"-> {version_data.get('new_version')}",
+                "# %-5s - %s - %s -> %s",
+                node_count,
+                node,
+                attrs.get("version"),
+                version_data.get("new_version"),
             )
 
         logger.debug("writing out file")
@@ -399,21 +456,21 @@ def _update_upstream_versions_process_pool(
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
                 logger.error(
-                    "itr % 5d - eta % 5ds: "
-                    "Error getting upstream version of %s: %s"
-                    % (n_left, eta, node, se),
+                    "itr % 5d - eta % 5ds: Error getting upstream version of %s: %s",
+                    n_left,
+                    eta,
+                    node,
+                    se,
                 )
                 version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "itr % 5d - eta % 5ds: %s - %s -> %s"
-                    % (
-                        n_left,
-                        eta,
-                        node,
-                        attrs.get("version", "<no-version>"),
-                        version_data["new_version"],
-                    ),
+                    "itr % 5d - eta % 5ds: %s - %s -> %s",
+                    n_left,
+                    eta,
+                    node,
+                    attrs.get("version", "<no-version>"),
+                    version_data["new_version"],
                 )
             # writing out file
             lazyjson = LazyJson(f"versions/{node}.json")
@@ -446,17 +503,25 @@ def update_upstream_versions(
     n_jobs=1,
     package: Optional[str] = None,
 ) -> None:
-    """
-    Update the upstream versions of packages.
-    :param gx: The conda forge graph
-    :param sources: The sources to use for fetching the upstream versions
-    :param debug: Whether to run in debug mode
-    :param job: The job number
-    :param n_jobs: The total number of jobs
-    :param package: The package to update. If None, update all packages.
+    """Update the upstream versions of packages.
+
+    Parameters
+    ----------
+    gx
+        The conda forge graph.
+    sources
+        The sources to use for fetching the upstream versions.
+    debug
+        Whether to run in debug mode.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+    package
+        The package to update. If None, update all packages.
     """
     if package and package not in gx.nodes:
-        logger.error(f"Package {package} not found in graph. Exiting.")
+        logger.error("Package %s not found in graph. Exiting.", package)
         return
 
     # In the future, we should have some sort of typed graph structure
@@ -467,7 +532,7 @@ def update_upstream_versions(
     job_nodes = filter_nodes_for_job(all_nodes, job, n_jobs)
 
     if not job_nodes:
-        logger.info(f"No packages to update for job {job}")
+        logger.info("No packages to update for job %d", job)
         return
 
     def extract_payload(node: Tuple[str, Mapping[str, Mapping]]) -> Tuple[str, Mapping]:
@@ -503,12 +568,20 @@ def main(
     n_jobs: int = 1,
     package: Optional[str] = None,
 ) -> None:
-    """
-    Main function for updating the upstream versions of packages.
-    :param ctx: The CLI context.
-    :param job: The job number.
-    :param n_jobs: The total number of jobs.
-    :param package: The package to update. If None, update all packages.
+    """Update the upstream version of packages.
+
+    This is the main entry point for the update function.
+
+    Parameters
+    ----------
+    ctx
+        The CLI context.
+    job
+        The job number.
+    n_jobs
+        The total number of jobs.
+    package
+        The package to update. If None, update all packages.
     """
     logger.info("Reading graph")
     # Graph enabled for inspection

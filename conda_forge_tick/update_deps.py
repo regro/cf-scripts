@@ -198,6 +198,12 @@ def get_dep_updates_and_hints(
         to understand its contents.
     hint : str
         The dependency update hint.
+
+
+    Raises
+    ------
+    ValueError
+        If the update kind is not supported.
     """
     if update_deps == "disabled":
         # no dependency updates or hinting

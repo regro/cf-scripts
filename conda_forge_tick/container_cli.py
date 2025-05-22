@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This file runs specific tasks for the bot.
+"""Run specific tasks for the bot.
 
 All imports from the bot need to be guarded by putting them in the subcommands.
 This ensures that we can set important environment variables before any imports,
@@ -45,7 +45,7 @@ log_level_option = click.option(
 
 @contextmanager
 def _setenv(name, value):
-    """set an environment variable temporarily"""
+    """Set an environment variable temporarily."""
     old = os.environ.get(name)
     try:
         os.environ[name] = value
@@ -141,13 +141,15 @@ def _provide_source_code():
     with tempfile.TemporaryDirectory() as tmpdir:
         input_recipe_dir = "/cf_feedstock_ops_dir/recipe_dir"
         logger.debug(
-            f"input container recipe dir {input_recipe_dir}: {os.listdir(input_recipe_dir)}"
+            "input container recipe dir %s: %s",
+            input_recipe_dir,
+            os.listdir(input_recipe_dir),
         )
 
         recipe_dir = os.path.join(tmpdir, os.path.basename(input_recipe_dir))
         sync_dirs(input_recipe_dir, recipe_dir, ignore_dot_git=True, update_git=False)
         logger.debug(
-            f"copied container recipe dir {recipe_dir}: {os.listdir(recipe_dir)}"
+            "copied container recipe dir %s: %s", recipe_dir, os.listdir(recipe_dir)
         )
 
         output_source_code = "/cf_feedstock_ops_dir/source_dir"
@@ -180,7 +182,7 @@ def _execute_git_cmds_and_report(*, cmds, cwd, msg):
             _output += gitret.stdout
             gitret.check_returncode()
     except Exception as e:
-        logger.error(f"{msg}\noutput: {_output}", exc_info=e)
+        logger.error("%s\noutput: %s", msg, _output, exc_info=e)
         raise e
 
 
@@ -203,7 +205,9 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
         assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
         input_fs_dir = input_fs_dir[0]
         logger.debug(
-            f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
+            "input container feedstock dir %s: %s",
+            input_fs_dir,
+            os.listdir(input_fs_dir),
         )
         input_permissions = os.path.join(
             "/cf_feedstock_ops_dir",
@@ -214,7 +218,9 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
 
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
-        logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
+        logger.debug(
+            "copied container feedstock dir %s: %s", fs_dir, os.listdir(fs_dir)
+        )
 
         reset_permissions_with_user_execute(fs_dir, input_permissions)
 
@@ -257,7 +263,9 @@ def _update_version(*, version, hash_type):
         assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
         input_fs_dir = input_fs_dir[0]
         logger.debug(
-            f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
+            "input container feedstock dir %s: %s",
+            input_fs_dir,
+            os.listdir(input_fs_dir),
         )
         input_permissions = os.path.join(
             "/cf_feedstock_ops_dir",
@@ -268,7 +276,9 @@ def _update_version(*, version, hash_type):
 
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
-        logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
+        logger.debug(
+            "copied container feedstock dir %s: %s", fs_dir, os.listdir(fs_dir)
+        )
 
         reset_permissions_with_user_execute(fs_dir, input_permissions)
 
@@ -382,7 +392,8 @@ def _check_solvable(
     logger = logging.getLogger("conda_forge_tick.container")
 
     logger.debug(
-        f"input container feedstock dir /cf_feedstock_ops_dir: {os.listdir('/cf_feedstock_ops_dir')}"
+        "input container feedstock dir /cf_feedstock_ops_dir: %s",
+        os.listdir("/cf_feedstock_ops_dir"),
     )
 
     data = {}

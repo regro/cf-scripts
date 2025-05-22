@@ -189,7 +189,7 @@ def add_replacement_migrator(
     rationale: str,
     alt_migrator: Union[Migrator, None] = None,
 ) -> None:
-    """Adds a migrator to replace one package with another.
+    """Add a migrator to replace one package with another.
 
     Parameters
     ----------
@@ -238,7 +238,7 @@ def add_replacement_migrator(
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
-    """Adds rebuild migrators.
+    """Add rebuild migrators.
 
     Parameters
     ----------
@@ -303,7 +303,7 @@ def add_rebuild_migration_yaml(
     force_pr_after_solver_attempts: int = FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     paused: bool = False,
 ) -> None:
-    """Adds rebuild migrator.
+    """Add rebuild migrator.
 
     Parameters
     ----------
@@ -482,15 +482,22 @@ def migration_factory(
 def _get_max_pin_from_pinning_dict(
     pinning_dict: Mapping[str, Any], recipe_version: int
 ):
-    """
-    Given a pinning dictionary in the format returned by parse_munged_run_export,
+    """Given a pinning dictionary in the format returned by parse_munged_run_export,
     return the value for max_pin.
 
     In recipe v0, this is the value of the key "max_pin".
     In recipe v1, this is the value of the key "upper_bound", but only if it has the
     format of a pinning spec and is not a hard-coded version string.
 
-    :return: the value for max_pin, or an empty string if not defined or not a pinning spec.
+    Returns
+    -------
+    str
+        The value for max_pin, or an empty string if not defined or not a pinning spec.
+
+    Raises
+    ------
+    ValueError
+        If the schema version of the recipe is neither 0 nor 1.
     """
     pinning_spec_regex = re.compile(r"^(x\.)*x$")
 
@@ -512,23 +519,36 @@ def _extract_most_stringent_pin_from_recipe(
     feedstock_attrs: Mapping[str, Any],
     gx: nx.DiGraph,
 ) -> tuple[str, list[dict]]:
-    """
-    Given the name of a package that is specified in the run_exports in a feedstock,
+    """Given the name of a package that is specified in the run_exports in a feedstock,
     find the run_exports pinning specification that is most stringent for that package
     in the feedstock recipe.
     We do that by considering all run_exports sections from outputs of the feedstock.
     The package must also be an output of the feedstock.
 
-    :param feedstock_name: name of the feedstock to analyze
-    :param package_name: name of the package that is specified as run_exports
-    :param feedstock_attrs: the node attributes of the feedstock
-    :param gx: an instance of the global cf-graph
+    Parameters
+    ----------
+    feedstock_name
+        Name of the feedstock to analyze.
+    package_name
+        Name of the package that is specified as run_exports.
+    feedstock_attrs
+        Node attributes of the feedstock.
+    gx
+        Instance of the global cf-graph.
 
-    :return: a tuple (pin_spec, possible_p_dicts) where pin_spec is the most stringent
-    pinning spec found and possible_p_dicts is a list of all the run_exports dictionaries
-    that were found in the recipe, in the format returned by parse_munged_run_export.
-    If the package is not found in the recipe, pin_spec is an empty string and
-    possible_p_dicts still contains all the run_exports dictionaries.
+    Returns
+    -------
+    tuple[str, list[dict]]
+        A tuple containing:
+        - The most stringent pinning spec found. If the package is not found in the recipe,
+          this will be an empty string.
+        - A list of all run_exports dictionaries found in the recipe, in the format
+          returned by parse_munged_run_export.
+
+    Raises
+    ------
+    ValueError
+        If the schema version of the recipe is neither 0 nor 1.
     """
     schema_version = get_recipe_schema_version(feedstock_attrs)
     # we need a special parsing for pinning stuff
@@ -946,7 +966,7 @@ def _load(name):
 
 
 def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
-    """Loads all current migrators.
+    """Load all current migrators.
 
     Parameters
     ----------
@@ -957,6 +977,11 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     -------
     migrators : list of Migrator
         The list of migrators to run in the correct randomized order.
+
+    Raises
+    ------
+    RuntimeError
+        If no version migrator is found in the migrators directory.
     """
     migrators = []
     version_migrator = None
@@ -997,7 +1022,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
 
 
 def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) -> None:
-    """Dumps the current migrators to JSON.
+    """Dump the current migrators to JSON.
 
     Parameters
     ----------
@@ -1005,6 +1030,11 @@ def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) 
         The list of migrators to dump.
     dry_run : bool, optional
         Whether to perform a dry run, defaults to False. If True, no changes will be made.
+
+    Raises
+    ------
+    RuntimeError
+        If a duplicate migrator name is found.
     """
     if dry_run:
         print("dry run: dumping migrators to json", flush=True)
@@ -1033,7 +1063,7 @@ def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) 
                     lzj.update(data)
 
             except Exception as e:
-                logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)
+                logger.error("Error dumping migrator %s to JSON!", migrator, exc_info=e)
 
         migrators_to_remove = old_migrators - new_migrators
         for migrator in migrators_to_remove:

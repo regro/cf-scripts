@@ -147,10 +147,17 @@ class NodeAttributesValid(StrictBaseModel):
     @classmethod
     def validate_platform_info(cls, data: Any) -> Any:
         """
+        Validate the `platform_info` field.
+
         The current autotick-bot implementation makes use of `PLATFORM_meta_yaml` and `PLATFORM_requirements` fields
         that are present in this model, where PLATFORM is a build platform present in `platforms`.
         This data model is a bit too complex for what it does, so we transform it into a simpler model that is easier to
         work with. See platform_info above for the new model.
+
+        Raises
+        ------
+        ValueError
+            If the `platform_info` field is present in the old model.
         """
         data = before_validator_ensure_dict(data)
 
@@ -174,8 +181,12 @@ class NodeAttributesValid(StrictBaseModel):
 
     @model_validator(mode="after")
     def check_all_platform_infos_present(self) -> Self:
-        """
-        Ensure that the `platform_info` field is present for all build platforms in the `platforms` field.
+        """Ensure that the `platform_info` field is present for all build platforms in the `platforms` field.
+
+        Raises
+        ------
+        ValueError
+            If the condition is violated.
         """
         if set(self.platform_info.keys()) != self.platforms:
             raise ValueError(
@@ -187,10 +198,7 @@ class NodeAttributesValid(StrictBaseModel):
     def serialize_platform_info(
         self, wrapped_serializer: SerializerFunctionWrapHandler
     ) -> dict[str, Any]:
-        """
-        Serialize the `platform_info` field into the old model.
-        """
-
+        """Serialize the `platform_info` field into the old model."""
         serialized_model: dict[str, Any] = wrapped_serializer(self)
 
         serialized_model.update(
@@ -288,8 +296,14 @@ class NodeAttributesValid(StrictBaseModel):
         Ensure that the version field matches the version field in the meta_yaml field.
 
         If the top-level version is None, all outputs must specify their own versions.
-
         The top-level version should match at least one of the outputs, but may not match all of them.
+
+        Raises
+        ------
+        ValueError
+            If the top-level version is None, but not all outputs specify their own versions.
+            If the top-level version is None, but does not match at least one of the outputs.
+            If the version field does not match the package.version field in the meta_yaml field.
         """
         if self.meta_yaml.package.version is None:
             output_versions = set()
@@ -324,9 +338,7 @@ class NodeAttributesValid(StrictBaseModel):
 
 
 class NodeAttributesError(ValidatedBaseModel):
-    """
-    If a parsing error occurred, any number of fields can be missing.
-    """
+    """If a parsing error occurred, any number of fields can be missing."""
 
     parsing_error: str
     """
