@@ -624,7 +624,7 @@ def test_lazy_json_backends_hashmap(tmpdir):
 
 def test_github_base_url() -> None:
     github_backend = GithubLazyJsonBackend()
-    assert github_backend.base_url == settings().graph_github_backend_raw_base_url + "/"
+    assert github_backend.base_url == settings().graph_github_backend_raw_base_url
     github_backend.base_url = "https://github.com/lorem/ipsum"
     assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 

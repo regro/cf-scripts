@@ -65,7 +65,7 @@ class BotSettings(BaseSettings):
         The base URL for the GitHub raw view of the graph_github_backend_repo repository.
         Example: https://github.com/regro/cf-graph-countyfair/raw/master.
         """
-        return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}"
+        return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}/"
 
     github_runner_debug: bool = Field(False, alias="RUNNER_DEBUG")
     """
