@@ -2210,39 +2210,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 3ff56f8ee9fd519b52eec81954950ed3
-      sha256: 1853e6006d69b599e56c6cc7941206d8d2ff95bbbc2aa66a5228ad2bd5ea236a
+      md5: 7480ad7f9db475aca354ec604b0d1746
+      sha256: 10ace78d353a70c8137ef9c2b1d22a145677f175678e004af5ce4dfd0a077d7d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.08.14.14-hd8ed1ab_0.conda
-    version: 2025.05.22.08.14.14
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.11.10.44-hd8ed1ab_0.conda
+    version: 2025.05.22.11.10.44
   - category: main
     dependencies: {}
     hash:
-      md5: 3ff56f8ee9fd519b52eec81954950ed3
-      sha256: 1853e6006d69b599e56c6cc7941206d8d2ff95bbbc2aa66a5228ad2bd5ea236a
+      md5: 7480ad7f9db475aca354ec604b0d1746
+      sha256: 10ace78d353a70c8137ef9c2b1d22a145677f175678e004af5ce4dfd0a077d7d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.08.14.14-hd8ed1ab_0.conda
-    version: 2025.05.22.08.14.14
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.11.10.44-hd8ed1ab_0.conda
+    version: 2025.05.22.11.10.44
   - category: main
     dependencies: {}
     hash:
-      md5: 3ff56f8ee9fd519b52eec81954950ed3
-      sha256: 1853e6006d69b599e56c6cc7941206d8d2ff95bbbc2aa66a5228ad2bd5ea236a
+      md5: 7480ad7f9db475aca354ec604b0d1746
+      sha256: 10ace78d353a70c8137ef9c2b1d22a145677f175678e004af5ce4dfd0a077d7d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.08.14.14-hd8ed1ab_0.conda
-    version: 2025.05.22.08.14.14
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.22.11.10.44-hd8ed1ab_0.conda
+    version: 2025.05.22.11.10.44
   - category: main
     dependencies:
       click: '>=8'
@@ -8935,19 +8935,19 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
       libxcb: '>=1.17.0,<2.0a0'
-      libxml2: '>=2.13.7,<2.14.0a0'
+      libxml2: '>=2.13.8,<2.14.0a0'
       xkeyboard-config: ''
       xorg-libxau: '>=1.0.12,<2.0a0'
     hash:
-      md5: d045b1d878031eb497cab44e6392b1df
-      sha256: 49bbeb112b3242f49e4bb1ac8af2d08c447bf3929b475915d67f02628643ed55
+      md5: fedf6bfe5d21d21d2b1785ec00a8889a
+      sha256: a8043a46157511b3ceb6573a99952b5c0232313283f2d6a066cec7c8dcaed7d0
     manager: conda
     name: libxkbcommon
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libxkbcommon-1.9.2-h65c71a3_0.conda
-    version: 1.9.2
+      https://conda.anaconda.org/conda-forge/linux-64/libxkbcommon-1.10.0-h65c71a3_0.conda
+    version: 1.10.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
