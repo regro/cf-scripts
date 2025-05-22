@@ -204,7 +204,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     _n_requests = 0
 
     def __init__(self) -> None:
-        self.base_url = settings().graph_github_backend_raw_base_url
+        self._base_url = settings().graph_github_backend_raw_base_url
 
     @property
     def base_url(self) -> str:
