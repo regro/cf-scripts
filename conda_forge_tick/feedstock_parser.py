@@ -19,7 +19,11 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
-from conda_forge_tick.settings import ENV_CONDA_FORGE_ORG, settings
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
@@ -705,6 +709,8 @@ def load_feedstock_containerized(
         extra_container_args=[
             "-e",
             f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+            "-e",
+            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
         ],
     )
 

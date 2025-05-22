@@ -14,6 +14,12 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
 
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
+
 logger = logging.getLogger(__name__)
 
 CONDA_BUILD_SPECIAL_KEYS = (
@@ -94,6 +100,12 @@ def provide_source_code_containerized(recipe_dir):
             args,
             mount_readonly=False,
             mount_dir=tmpdir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         yield tmp_source_dir
