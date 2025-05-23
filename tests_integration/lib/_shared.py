@@ -53,11 +53,11 @@ def is_user_account(account: GitHubAccount) -> bool:
 
 def get_transparent_urls() -> set[str]:
     """
-    Returns URLs which should be forwarded to the actual upstream URLs in the tests.
+    Get URLs which should be forwarded to the actual upstream URLs in the tests.
+
     Unix filename patterns (provided by fnmatch) are used to specify wildcards:
     https://docs.python.org/3/library/fnmatch.html
     """
-
     # this is not a constant because the graph_repo_default_branch setting is dynamic
     graph_repo_default_branch = settings().graph_repo_default_branch
     transparent_urls = {
@@ -69,6 +69,9 @@ def get_transparent_urls() -> set[str]:
         "https://github.com/regro-staging/*",
         "https://github.com/conda-forge-bot-staging/*",
         "https://github.com/regro-cf-autotick-bot-staging/*",
+        "https://raw.githubusercontent.com/regro-staging/*",
+        "https://raw.githubusercontent.com/conda-forge-bot-staging/*",
+        "https://raw.githubusercontent.com/regro-cf-autotick-bot-staging/*",
         "https://pypi.io/packages/source/*",
         "https://pypi.org/packages/source/*",
         "https://files.pythonhosted.org/packages/*",
@@ -77,9 +80,8 @@ def get_transparent_urls() -> set[str]:
         "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
     }
 
-    if any(not url.startswith("https://") for url in transparent_urls):
-        # this is to protect against mistakes and typos, adjust if it ever becomes too strict
-        raise ValueError("All URLs in transparent_urls must start with https://")
+    # this is to protect against mistakes and typos, adjust if it ever becomes too strict
+    assert all(url.startswith("https://") for url in transparent_urls)
 
     # silence the PyCharm warning about using http instead of https
     # noinspection HttpUrlsUsage
@@ -89,9 +91,7 @@ def get_transparent_urls() -> set[str]:
 
 
 def get_global_router():
-    """
-    Returns the global FastAPI router to be included in all test scenarios.
-    """
+    """Return the global FastAPI router to be included in all test scenarios."""
     router = APIRouter()
 
     @router.get("/cran.r-project.org/src/contrib/")

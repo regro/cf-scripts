@@ -23,6 +23,11 @@ def get_test_scenario(scenario_id: int) -> dict[str, TestCase]:
     The scenario is a dictionary with the feedstock name as key and the test case name as value.
 
     Test scenarios are pseudo-randomly generated with the GitHub run ID as seed.
+
+    Raises
+    ------
+    ValueError
+        If the scenario ID is invalid (i.e. not between 0 and n_scenarios - 1).
     """
     init_random()
 

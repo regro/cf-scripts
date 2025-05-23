@@ -1,5 +1,5 @@
 """
-This module is used by the integration tests to set up the GitHub repositories
+Module used by the integration tests to set up the GitHub repositories
 that are needed for running the tests.
 
 We do not *create* any repositories within the bot's user account here. This is handled in the prepare function of the
@@ -29,9 +29,7 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class GitHubAccountSetup:
-    """
-    Information about the setup of a GitHub account for the integration tests.
-    """
+    """Information about the setup of a GitHub account for the integration tests."""
 
     account: GitHubAccount
     """
@@ -67,17 +65,15 @@ class RepositoryOwner(Protocol):
 
 
 def get_test_feedstock_names() -> set[str]:
-    """
-    Returns the list of feedstock names that are needed for the integration tests.
+    """Return the list of feedstock names that are needed for the integration tests.
+
     The names do not include the "-feedstock" suffix.
     """
     return set(TEST_CASE_MAPPING.keys())
 
 
 def _or_empty_set(value: set[str]) -> set[str] | str:
-    """
-    Logging helper function that returns "{}" if the given set is empty.
-    """
+    """Return "{}" if the given set is empty, otherwise return the set itself."""
     return value or "{}"
 
 
@@ -88,18 +84,25 @@ def prepare_repositories(
     target_names: Iterable[str],
     delete_only: bool,
     suffix: str | None = None,
-):
-    """
-    Prepares the repositories of a certain owner for the integration tests.
+) -> None:
+    """Prepare the repositories of a certain owner for the integration tests.
     Unnecessary repositories are deleted and missing repositories are created.
 
-    :param owner: The owner of the repositories.
-    :param owner_name: The name of the owner (for logging).
-    :param existing_repos: The existing repositories of the owner.
-    :param target_names: The names of the repositories that should exist after the preparation (excluding the suffix).
-    :param suffix: If given, only repositories with the given suffix are considered for deletion and the target names
-                   are extended with the suffix.
-    :param delete_only: If True, only delete unnecessary repositories and do not create any new ones.
+    Parameters
+    ----------
+    owner
+        The owner of the repositories.
+    owner_name
+        The name of the owner (for logging).
+    existing_repos
+        The existing repositories of the owner.
+    target_names
+        The names of the repositories that should exist after the preparation (excluding the suffix).
+    suffix
+        If given, only repositories with the given suffix are considered for deletion and the target names
+        are extended with the suffix.
+    delete_only
+        If True, only delete unnecessary repositories and do not create any new ones.
     """
     existing_names = {repo.name for repo in existing_repos}
     target_names = set(target_names)
@@ -132,8 +135,12 @@ def prepare_repositories(
 
 
 def prepare_accounts(setup_infos: Iterable[GitHubAccountSetup]):
-    """
-    Prepares the repositories of all GitHub accounts for the integration tests.
+    """Prepare the repositories of all GitHub accounts for the integration tests.
+
+    Raises
+    ------
+    ValueError
+        If a token is not for associated user.
     """
     for setup_info in setup_infos:
         # for each account, we need to create a separate GitHub instance because different tokens are needed

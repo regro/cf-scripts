@@ -36,9 +36,7 @@ MITMPROXY_CERT_BUNDLE_FILE = MITMPROXY_CONFDIR / "mitmproxy-cert-bundle.pem"
 
 @pytest.fixture(scope="module", autouse=True)
 def global_environment_setup():
-    """
-    Set up the global environment variables for the tests.
-    """
+    """Set up the global environment variables for the tests."""
     # Make sure to also set BOT_TOKEN, we cannot validate this here!
     assert os.environ.get("TEST_SETUP_TOKEN"), "TEST_SETUP_TOKEN must be set."
 
@@ -74,17 +72,13 @@ def global_environment_setup():
 
 @pytest.fixture
 def disable_container_mode(monkeypatch):
-    """
-    Disable container mode for the test.
-    """
+    """Disable container mode for the test."""
     monkeypatch.setenv("CF_FEEDSTOCK_OPS_IN_CONTAINER", "true")
 
 
 @pytest.fixture(scope="module")
 def repositories_setup():
-    """
-    Set up the repositories for the tests.
-    """
+    """Set up the repositories for the tests."""
     prepare_all_accounts()
 
 
@@ -109,13 +103,19 @@ def scenario(request) -> tuple[int, dict[str, TestCase]]:
 
 
 def is_proxy_running(port: int, timeout: float = 2.0) -> bool:
-    """
-    Returns if the proxy is running on localhost:port.
+    """Return if the proxy is running on localhost:port.
 
-    :param port: The port to check.
-    :param timeout: The timeout in seconds.
+    Parameters
+    ----------
+    port
+        The port to check.
+    timeout
+        The timeout in seconds.
 
-    :return: A function that returns True if the proxy is running, False otherwise.
+    Returns
+    -------
+    bool
+        True if the proxy is running, False otherwise.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(timeout)
@@ -220,9 +220,7 @@ def in_fresh_cf_graph():
 
 @contextlib.contextmanager
 def mitmproxy_env():
-    """
-    Set environment variables for bot steps that should be piped through mitmproxy.
-    """
+    """Set environment variables for bot steps that should be piped through mitmproxy."""
     old_env = os.environ.copy()
 
     os.environ["http_proxy"] = "http://127.0.0.1:8080"
@@ -236,9 +234,7 @@ def mitmproxy_env():
 
 
 def invoke_bot_command(args: list[str]):
-    """
-    Invoke the bot command with the given arguments.
-    """
+    """Invoke the bot command with the given arguments."""
     from conda_forge_tick import cli
 
     cli.main(args, standalone_mode=False)
@@ -254,19 +250,27 @@ def test_scenario(
 ):
     """
     Execute the test scenario given by the scenario fixture (note that the fixture is
-    parameterized and therefore we run this for all scenarios).
+    parameterized, and therefore we run this for all scenarios).
     All steps of the bot are executed in sequence to test its end-to-end functionality.
 
     A test scenario assigns one test case to each feedstock. For details on
     the testing setup, please refer to the README.md in the tests_integration
     (i.e., parent) directory.
 
-    :param use_containers: Whether container mode is enabled or not.
-    :param scenario: The test scenario to run. This is a tuple of (scenario_id, scenario),
-        where scenario is a dictionary with the feedstock name as key and the test case name as value.
-    :param repositories_setup: The fixture that sets up the repositories.
-    :param mitmproxy: The fixture that sets up the mitmproxy.
-    :param request: The pytest fixture request object.
+    Parameters
+    ----------
+    use_containers
+        Whether container mode is enabled or not.
+    scenario
+        The test scenario to run. This is a tuple of (scenario_id, scenario),
+        where scenario is a dictionary with the feedstock name as key and the test
+        case name as value.
+    repositories_setup
+        The fixture that sets up the repositories.
+    mitmproxy
+        The fixture that sets up the mitmproxy.
+    request
+        The pytest fixture request object.
     """
     _, scenario = scenario
 

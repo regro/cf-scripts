@@ -54,9 +54,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         tmpdir: Path,
         branch: str = "main",
     ):
-        """
-        See `overwrite_github_repository`.
-        """
+        """See `overwrite_github_repository`."""
         dest_dir = tmpdir / repo_name
         shutil.copytree(source_dir, dest_dir)
 
@@ -91,7 +89,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         )
 
         LOGGER.info(
-            f"Repository contents of {repo_name} have been overwritten successfully."
+            "Repository contents of %s have been overwritten successfully.", repo_name
         )
 
     def assert_version_pr_present(
@@ -137,5 +135,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         assert old_hash not in meta
 
         LOGGER.info(
-            f"Version PR for {feedstock} v{new_version} validated successfully."
+            "Version PR for %s v%s validated successfully.",
+            feedstock,
+            new_version,
         )
