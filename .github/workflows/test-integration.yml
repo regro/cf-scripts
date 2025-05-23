@@ -1,10 +1,10 @@
-name: Integration Tests
+name: tests-integration
 on:
   pull_request:
     branches:
       - main
   merge_group: null
-
+  workflow_dispatch: null
 
 # Integration tests interact with GitHub resources in the integration test infrastructure and therefore
 # cannot run concurrently with other integration tests.
