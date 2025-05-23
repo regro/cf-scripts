@@ -11,6 +11,12 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from conda_forge_feedstock_ops.os_utils import sync_dirs
 
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -146,6 +152,12 @@ def _is_recipe_solvable_containerized(
             args,
             mount_readonly=True,
             mount_dir=tmp_feedstock_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         # When tempfile removes tempdir, it tries to reset permissions on subdirs.

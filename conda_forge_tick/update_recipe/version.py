@@ -30,6 +30,11 @@ from conda_forge_feedstock_ops.os_utils import (
 from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.lazy_json_backends import loads
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.utils import sanitize_string
 
@@ -665,6 +670,12 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
             mount_readonly=False,
             mount_dir=tmpdir,
             json_loads=loads,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         sync_dirs(

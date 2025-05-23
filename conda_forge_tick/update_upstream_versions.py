@@ -31,6 +31,8 @@ from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
     settings,
 )
 from conda_forge_tick.update_sources import (
@@ -241,6 +243,12 @@ def get_latest_version_containerized(
     return run_container_operation(
         args,
         input=json_blob,
+        extra_container_args=[
+            "-e",
+            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+            "-e",
+            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+        ],
     )
 
 

@@ -1,0 +1,10 @@
+.github/workflows/test-integration.yml  @ytausch
+conda_forge_tick/contexts.py            @ytausch
+conda_forge_tick/git_utils.py           @ytausch
+conda_forge_tick/models/*               @ytausch
+tests/github_api/*                      @ytausch
+tests/conda_forge_tick/*                @ytausch
+tests/model/*                           @ytausch
+tests/test_contexts.py                  @ytausch
+tests/test_git_utils.py                 @ytausch
+tests_integration/*                     @ytausch

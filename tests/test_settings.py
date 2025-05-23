@@ -27,7 +27,7 @@ class TestBotSettings:
         assert bot_settings.graph_repo_default_branch == "mybranch"
         assert (
             bot_settings.graph_github_backend_raw_base_url
-            == "https://github.com/graph-owner/graph-repo/raw/mybranch"
+            == "https://github.com/graph-owner/graph-repo/raw/mybranch/"
         )
         assert bot_settings.github_runner_debug is True
         assert bot_settings.frac_update_upstream_versions == 0.5

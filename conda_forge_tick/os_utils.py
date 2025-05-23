@@ -72,7 +72,8 @@ def clean_disk_space(ci_service: str = "github-actions") -> None:
     with tempfile.TemporaryDirectory() as tempdir, pushd(tempdir):
         with open("clean_disk.sh", "w") as f:
             if ci_service == "github-actions":
-                f.write("""\
+                f.write(
+                    """\
   #!/bin/bash
 
   # clean disk space
@@ -89,14 +90,16 @@ def clean_disk_space(ci_service: str = "github-actions") -> None:
   ; do
     sudo rsync --stats -a --delete /opt/empty_dir/ $d || true
   done
-  sudo apt-get purge -y -f firefox \
+  # dpkg does not fail if the package is not installed
+  sudo dpkg --remove -y -f firefox \
                           google-chrome-stable \
                           microsoft-edge-stable
   sudo apt-get autoremove -y >& /dev/null
   sudo apt-get autoclean -y >& /dev/null
   sudo docker image prune --all --force
   df -h
-""")
+"""
+                )
             else:
                 raise ValueError(f"Unknown CI service: {ci_service}")
 

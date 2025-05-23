@@ -41,6 +41,7 @@ from conda_forge_feedstock_ops.container_utils import (
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
 from .recipe_parser import CondaMetaYAML
+from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
@@ -323,6 +324,12 @@ def parse_recipe_yaml_containerized(
         args,
         input=text,
         mount_readonly=True,
+        extra_container_args=[
+            "-e",
+            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+            "-e",
+            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+        ],
     )
 
 
@@ -846,6 +853,12 @@ def parse_meta_yaml_containerized(
             input=text,
             mount_readonly=True,
             mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
     if (cbc_path is not None and os.path.exists(cbc_path)) or (
@@ -1362,7 +1375,7 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
-def run_command_hiding_token(args: list[str], token: str) -> int:
+def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
     """Run a command and hide the token in the output.
 
     Prints the outputs (stdout and stderr) of the subprocess.CompletedProcess object.
@@ -1376,13 +1389,25 @@ def run_command_hiding_token(args: list[str], token: str) -> int:
         The command to run.
     token
         The token to hide in the output.
+    kwargs
+        additional arguments for subprocess.run
 
     Returns
     -------
     int
         The return code of the command.
+
+    Raises
+    ------
+    ValueError
+        If the kwargs contain 'text', 'stdout', or 'stderr'.
     """
-    p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if kwargs.keys() & {"text", "stdout", "stderr"}:
+        raise ValueError("text, stdout, and stderr are not allowed in kwargs")
+
+    p = subprocess.run(
+        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+    )
 
     out, err = p.stdout, p.stderr
 

@@ -15,6 +15,12 @@ The environment variable used to set the `conda_forge_org` setting.
 Note: This must match the field name in the `BotSettings` class.
 """
 
+ENV_GRAPH_GITHUB_BACKEND_REPO = ENVIRONMENT_PREFIX + "GRAPH_GITHUB_BACKEND_REPO"
+"""
+The environment variable used to set the `graph_github_backend_repo` setting.
+Note: This must match the field name in the `BotSettings` class.
+"""
+
 Fraction = Annotated[float, Field(ge=0.0, le=1.0)]
 
 
@@ -45,6 +51,7 @@ class BotSettings(BaseSettings):
     )
     """
     The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
+    If you change the field name, you must also update the `ENV_GRAPH_GITHUB_BACKEND_REPO` constant.
     """
 
     graph_repo_default_branch: str = "master"
@@ -58,7 +65,7 @@ class BotSettings(BaseSettings):
         The base URL for the GitHub raw view of the graph_github_backend_repo repository.
         Example: https://github.com/regro/cf-graph-countyfair/raw/master.
         """
-        return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}"
+        return f"https://github.com/{self.graph_github_backend_repo}/raw/{self.graph_repo_default_branch}/"
 
     github_runner_debug: bool = Field(False, alias="RUNNER_DEBUG")
     """
