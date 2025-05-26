@@ -24,33 +24,30 @@ for _issue in repo.get_issues():
         break
 
 if issue is None:
-    issue = repo.create_issue(
-        title=issue_title,
-        body=textwrap.dedent(
+    body = (
+        textwrap.dedent(
             """\
-            Hey @regro/auto-tick-triage!
-
-            It appears that the bot `%s` job failed! :(
-
-            I hope it is not too much work to fix but we all know that is never the case.
-
-            Have a great day!
-            """
-        )
-        % os.environ["ACTION_NAME"],
-    )
-
-issue.create_comment(
-    textwrap.dedent(
-        """\
         Hey @regro/auto-tick-triage!
 
-        There is (possibly another) failure of this bot job! :(
+        It appears that the bot `%s` job(s) below failed! :(
 
-        Check the logs for more details: %s
         """
-        % os.environ["ACTION_URL"]
+        )
+        % os.environ["ACTION_NAME"]
     )
+    issue = repo.create_issue(
+        title=issue_title,
+        body=body,
+    )
+else:
+    body = issue.body
+
+new_body = body + (
+    f"""\
+- [ ] {os.environ["ACTION_URL"]}
+"""
 )
+
+issue.edit(body=new_body)
 
 sys.exit(1)
