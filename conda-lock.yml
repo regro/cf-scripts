@@ -2210,39 +2210,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f75aea1a90c409980ae81617d74ce9c7
-      sha256: b6ef2dded119b5ca1d49bebbb5a1a45fcac06e280bfecd6063c602a74a8220c1
+      md5: b926a677ce7af78d0149462e94b2fc8d
+      sha256: 09f14b7eb03025e569e3ca2320909397f69351d2fb880411dd275ff7bbfc1d2e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.17.27.19-hd8ed1ab_0.conda
-    version: 2025.05.26.17.27.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.22.22.49-hd8ed1ab_0.conda
+    version: 2025.05.26.22.22.49
   - category: main
     dependencies: {}
     hash:
-      md5: f75aea1a90c409980ae81617d74ce9c7
-      sha256: b6ef2dded119b5ca1d49bebbb5a1a45fcac06e280bfecd6063c602a74a8220c1
+      md5: b926a677ce7af78d0149462e94b2fc8d
+      sha256: 09f14b7eb03025e569e3ca2320909397f69351d2fb880411dd275ff7bbfc1d2e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.17.27.19-hd8ed1ab_0.conda
-    version: 2025.05.26.17.27.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.22.22.49-hd8ed1ab_0.conda
+    version: 2025.05.26.22.22.49
   - category: main
     dependencies: {}
     hash:
-      md5: f75aea1a90c409980ae81617d74ce9c7
-      sha256: b6ef2dded119b5ca1d49bebbb5a1a45fcac06e280bfecd6063c602a74a8220c1
+      md5: b926a677ce7af78d0149462e94b2fc8d
+      sha256: 09f14b7eb03025e569e3ca2320909397f69351d2fb880411dd275ff7bbfc1d2e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.17.27.19-hd8ed1ab_0.conda
-    version: 2025.05.26.17.27.19
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.05.26.22.22.49-hd8ed1ab_0.conda
+    version: 2025.05.26.22.22.49
   - category: main
     dependencies:
       click: '>=8'
@@ -6491,15 +6491,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: a3cead9264b331b32fe8f0aabc967522
-      sha256: be992a99e589146f229c58fe5083e0b60551d774511c494f91fe011931bd7893
+      md5: 59220749abcd119d645e6879983497a1
+      sha256: 812134fabb49493a50f7f443dc0ffafd0f63766f403a0bd8e71119763e57456a
     manager: conda
     name: jsonschema
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.23.0-pyhd8ed1ab_1.conda
-    version: 4.23.0
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.24.0-pyhd8ed1ab_0.conda
+    version: 4.24.0
   - category: main
     dependencies:
       attrs: '>=22.2.0'
@@ -6510,15 +6510,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: a3cead9264b331b32fe8f0aabc967522
-      sha256: be992a99e589146f229c58fe5083e0b60551d774511c494f91fe011931bd7893
+      md5: 59220749abcd119d645e6879983497a1
+      sha256: 812134fabb49493a50f7f443dc0ffafd0f63766f403a0bd8e71119763e57456a
     manager: conda
     name: jsonschema
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.23.0-pyhd8ed1ab_1.conda
-    version: 4.23.0
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.24.0-pyhd8ed1ab_0.conda
+    version: 4.24.0
   - category: main
     dependencies:
       attrs: '>=22.2.0'
@@ -6529,15 +6529,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: a3cead9264b331b32fe8f0aabc967522
-      sha256: be992a99e589146f229c58fe5083e0b60551d774511c494f91fe011931bd7893
+      md5: 59220749abcd119d645e6879983497a1
+      sha256: 812134fabb49493a50f7f443dc0ffafd0f63766f403a0bd8e71119763e57456a
     manager: conda
     name: jsonschema
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.23.0-pyhd8ed1ab_1.conda
-    version: 4.23.0
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.24.0-pyhd8ed1ab_0.conda
+    version: 4.24.0
   - category: main
     dependencies:
       python: ''
