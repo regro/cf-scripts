@@ -12459,45 +12459,45 @@ package:
       pytest: '>=7.0.0'
       python: '>=3.9'
     hash:
-      md5: 59aad4fb37cabc0bacc73cf344612ddd
-      sha256: fb35da93084d653b86918c200abb2f0b88aceb3b0526c6aaa21b844f565ae237
+      md5: 15353a2a0ea6dfefaa52fc5ab5b98f41
+      sha256: 3cd4dabfaf17f207011f5c3fdb6068568aa71fea86ecd234a2bd0a6fd6fbc6b9
     manager: conda
     name: pytest-xdist
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_1.conda
-    version: 3.6.1
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.7.0-pyhd8ed1ab_0.conda
+    version: 3.7.0
   - category: main
     dependencies:
       execnet: '>=2.1'
       pytest: '>=7.0.0'
       python: '>=3.9'
     hash:
-      md5: 59aad4fb37cabc0bacc73cf344612ddd
-      sha256: fb35da93084d653b86918c200abb2f0b88aceb3b0526c6aaa21b844f565ae237
+      md5: 15353a2a0ea6dfefaa52fc5ab5b98f41
+      sha256: 3cd4dabfaf17f207011f5c3fdb6068568aa71fea86ecd234a2bd0a6fd6fbc6b9
     manager: conda
     name: pytest-xdist
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_1.conda
-    version: 3.6.1
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.7.0-pyhd8ed1ab_0.conda
+    version: 3.7.0
   - category: main
     dependencies:
       execnet: '>=2.1'
       pytest: '>=7.0.0'
       python: '>=3.9'
     hash:
-      md5: 59aad4fb37cabc0bacc73cf344612ddd
-      sha256: fb35da93084d653b86918c200abb2f0b88aceb3b0526c6aaa21b844f565ae237
+      md5: 15353a2a0ea6dfefaa52fc5ab5b98f41
+      sha256: 3cd4dabfaf17f207011f5c3fdb6068568aa71fea86ecd234a2bd0a6fd6fbc6b9
     manager: conda
     name: pytest-xdist
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_1.conda
-    version: 3.6.1
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.7.0-pyhd8ed1ab_0.conda
+    version: 3.7.0
   - category: main
     dependencies:
       psutil: ''
