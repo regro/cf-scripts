@@ -2024,15 +2024,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e00850372391a2d6dd24f80989769820
-      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
+      md5: e73c0857684ba77063e1f6232c9bcd3c
+      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
+    version: 0.10.1
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2051,15 +2051,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e00850372391a2d6dd24f80989769820
-      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
+      md5: e73c0857684ba77063e1f6232c9bcd3c
+      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
+    version: 0.10.1
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2078,15 +2078,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e00850372391a2d6dd24f80989769820
-      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
+      md5: e73c0857684ba77063e1f6232c9bcd3c
+      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
+    version: 0.10.1
   - category: main
     dependencies:
       click: ''
@@ -9080,28 +9080,28 @@ package:
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 7b6a67507141ea93541943f0c011a872
-      sha256: f858ef4cbc7f449da06e7e5cf62d6db0f8269e4e723144be35b0ef3531e28591
+      md5: c55751d61e1f8be539e0e4beffad3e5a
+      sha256: 75aa1b58b86a17aaa3b7882fe994d8f72440aa938d2d3c84e434b4104cfca096
     manager: conda
     name: llvm-openmp
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-20.1.5-ha54dae1_0.conda
-    version: 20.1.5
+      https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-20.1.6-ha54dae1_0.conda
+    version: 20.1.6
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 66771cb733ad80bd46b66f856601001a
-      sha256: 3515d520338a334c987ce2737dfba1ebd66eb1e360582c7511738ad3dc8a9145
+      md5: 7a3b28d59940a28e761e0a623241a832
+      sha256: 99c8aa89a77870d6ee16d62b858be67e30f2ad4fe13555570c7660cc38f9557b
     manager: conda
     name: llvm-openmp
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-20.1.5-hdb05f8b_0.conda
-    version: 20.1.5
+      https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-20.1.6-hdb05f8b_0.conda
+    version: 20.1.6
   - category: main
     dependencies:
       __osx: '>=10.13'
