@@ -13,6 +13,7 @@ from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
     close_out_labels,
+    get_keys_default,
     is_github_api_limit_reached,
     refresh_pr,
 )
@@ -30,7 +31,9 @@ NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 0.5
 
 
-def _combined_update_function(pr_json: dict, dry_run: bool) -> dict:
+def _combined_update_function(
+    pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
+) -> dict:
     return_it = False
 
     pr_data = refresh_pr(pr_json, dry_run=dry_run)
@@ -43,15 +46,16 @@ def _combined_update_function(pr_json: dict, dry_run: bool) -> dict:
         return_it = True
         pr_json.update(pr_data)
 
-    pr_data = refresh_pr(pr_json, dry_run=dry_run)
-    if pr_data is not None:
-        return_it = True
-        pr_json.update(pr_data)
+    if remake_prs_with_conflicts:
+        pr_data = refresh_pr(pr_json, dry_run=dry_run)
+        if pr_data is not None:
+            return_it = True
+            pr_json.update(pr_data)
 
-    pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
-    if pr_data is not None:
-        return_it = True
-        pr_json.update(pr_data)
+        pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
+        if pr_data is not None:
+            return_it = True
+            pr_json.update(pr_data)
 
     if return_it:
         return pr_json
@@ -83,8 +87,17 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
+
             if node.get("archived", False):
                 continue
+
+            remake_prs_with_conflicts = get_keys_default(
+                node,
+                ["conda-forge.yml", "bot", "remake_prs_with_conflicts"],
+                {},
+                True,
+            )
+
             prs = node.get("pr_info", {}).get("PRed", [])
             for i, migration in enumerate(prs):
                 if RNG.random() >= KEEP_PR_FRACTION:
@@ -94,7 +107,9 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
                 if pr_json and pr_json["state"] != "closed":
                     _pr_json = copy.deepcopy(pr_json.data)
-                    future = pool.submit(update_function, _pr_json, dry_run)
+                    future = pool.submit(
+                        update_function, _pr_json, dry_run, remake_prs_with_conflicts
+                    )
                     futures[future] = (node_id, i, pr_json)
 
         for f in tqdm.tqdm(
