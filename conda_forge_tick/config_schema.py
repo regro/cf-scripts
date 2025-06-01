@@ -192,6 +192,11 @@ class BotConfig(BaseModel):
         "latest package.",
     )
 
+    remake_prs_with_conflicts: Optional[bool] = Field(
+        default=True,
+        description="Automatically remake untouched bot PRs with conflicts.",
+    )
+
 
 if __name__ == "__main__":
     # This is used to generate the model dump for conda-smithy internal use
