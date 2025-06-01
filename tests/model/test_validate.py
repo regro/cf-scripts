@@ -49,10 +49,6 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "scheil",  # recipe/meta.yaml about.doc_url is not a valid URL
     "llspy-slm",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
-    "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
-    "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
     "bamnostic",  # unrecognized field `conda-forge.yml`.build
     "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
