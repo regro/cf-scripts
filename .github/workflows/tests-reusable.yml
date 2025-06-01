@@ -110,7 +110,7 @@ jobs:
         if: ${{ ! env.CI_SKIP }}
 
       - name: build docker image
-        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         if: ${{ ! env.CI_SKIP }}
         with:
           context: .
@@ -375,7 +375,7 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.1.8
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.1.8
         if: ${{ ! env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
