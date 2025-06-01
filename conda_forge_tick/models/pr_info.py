@@ -89,6 +89,8 @@ class MigratorName(StrEnum):
     This migrator is no longer present in the codebase but still appears in the graph.
     """
 
+    ADD_NVIDIA_TOOLS = "AddNVIDIATools"
+
 
 class MigrationPullRequestData(StrictBaseModel):
     """Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code."""
