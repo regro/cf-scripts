@@ -31,6 +31,8 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                     {},
                     True,
                 )
+            else:
+                remake_prs_with_conflicts = True
 
             if pr_json.get("state", None) != "closed":
                 pr_data = refresh_pr(copy.deepcopy(pr_json.data), dry_run=dry_run)
