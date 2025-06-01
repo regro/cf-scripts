@@ -13,10 +13,10 @@ from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
     close_out_labels,
-    get_keys_default,
     is_github_api_limit_reached,
     refresh_pr,
 )
+from conda_forge_tick.utils import get_keys_default
 
 from .executors import executor
 from .utils import load_existing_graph

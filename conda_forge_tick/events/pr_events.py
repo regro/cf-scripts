@@ -3,13 +3,13 @@ import copy
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
     close_out_labels,
-    get_keys_default,
     refresh_pr,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     lazy_json_override_backends,
 )
+from conda_forge_tick.utils import get_keys_default
 
 
 def _backout_node_from_html_url(html_url):
