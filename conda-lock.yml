@@ -11529,43 +11529,43 @@ package:
       pydantic: '>=2.5.2'
       python: '>=3.9'
     hash:
-      md5: f8619d04cf6a514db8581100e8f3ec8c
-      sha256: 93079a64ef21d64eceedab7fc9eeeb815f5b443ab5bf3af87bdbf99422c6e3ce
+      md5: 0c628c32458ba07d5b08499e4d001ad8
+      sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.4-pyh3cfb1c2_0.conda
-    version: 2.10.4
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    version: 2.10.5
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.9'
     hash:
-      md5: f8619d04cf6a514db8581100e8f3ec8c
-      sha256: 93079a64ef21d64eceedab7fc9eeeb815f5b443ab5bf3af87bdbf99422c6e3ce
+      md5: 0c628c32458ba07d5b08499e4d001ad8
+      sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.4-pyh3cfb1c2_0.conda
-    version: 2.10.4
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    version: 2.10.5
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.9'
     hash:
-      md5: f8619d04cf6a514db8581100e8f3ec8c
-      sha256: 93079a64ef21d64eceedab7fc9eeeb815f5b443ab5bf3af87bdbf99422c6e3ce
+      md5: 0c628c32458ba07d5b08499e4d001ad8
+      sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.4-pyh3cfb1c2_0.conda
-    version: 2.10.4
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    version: 2.10.5
   - category: main
     dependencies:
       pydantic: '>=2.7.0'
