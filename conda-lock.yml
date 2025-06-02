@@ -2210,39 +2210,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 1d7de7be5ec16b9162724dbb8bda3010
-      sha256: 18370f1ed3f354ff1d5bcabbfc560d394b2d7b019b5805424c363cb4a47f5369
+      md5: 2162bcf4f89f0bfc850b3509f4ed760a
+      sha256: 05e55b907daab955c73803980cd76a461ebf3b7bfd85c0c623e18b4675dc0244
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.10.06.20-hd8ed1ab_0.conda
-    version: 2025.06.02.10.06.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.19.41.08-hd8ed1ab_0.conda
+    version: 2025.06.02.19.41.08
   - category: main
     dependencies: {}
     hash:
-      md5: 1d7de7be5ec16b9162724dbb8bda3010
-      sha256: 18370f1ed3f354ff1d5bcabbfc560d394b2d7b019b5805424c363cb4a47f5369
+      md5: 2162bcf4f89f0bfc850b3509f4ed760a
+      sha256: 05e55b907daab955c73803980cd76a461ebf3b7bfd85c0c623e18b4675dc0244
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.10.06.20-hd8ed1ab_0.conda
-    version: 2025.06.02.10.06.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.19.41.08-hd8ed1ab_0.conda
+    version: 2025.06.02.19.41.08
   - category: main
     dependencies: {}
     hash:
-      md5: 1d7de7be5ec16b9162724dbb8bda3010
-      sha256: 18370f1ed3f354ff1d5bcabbfc560d394b2d7b019b5805424c363cb4a47f5369
+      md5: 2162bcf4f89f0bfc850b3509f4ed760a
+      sha256: 05e55b907daab955c73803980cd76a461ebf3b7bfd85c0c623e18b4675dc0244
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.10.06.20-hd8ed1ab_0.conda
-    version: 2025.06.02.10.06.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.02.19.41.08-hd8ed1ab_0.conda
+    version: 2025.06.02.19.41.08
   - category: main
     dependencies:
       click: '>=8'
@@ -15628,41 +15628,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 4313d1446ed45de876952850a7b37da6
-      sha256: 2891c1c8312a82bc2a183597b3f15ba53f08d5a33cfed06692b41ffa38686ffd
+      md5: 39224004f2b57cf7a7fb3d83610ab633
+      sha256: 6182ff04a7e3c84e3e5fb8e26e98606089df7d13ae89c3eace81571040dedd68
     manager: conda
     name: uritemplate
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.1.1-pyhd8ed1ab_1.conda
-    version: 4.1.1
+      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.2.0-pyhd8ed1ab_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 4313d1446ed45de876952850a7b37da6
-      sha256: 2891c1c8312a82bc2a183597b3f15ba53f08d5a33cfed06692b41ffa38686ffd
+      md5: 39224004f2b57cf7a7fb3d83610ab633
+      sha256: 6182ff04a7e3c84e3e5fb8e26e98606089df7d13ae89c3eace81571040dedd68
     manager: conda
     name: uritemplate
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.1.1-pyhd8ed1ab_1.conda
-    version: 4.1.1
+      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.2.0-pyhd8ed1ab_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 4313d1446ed45de876952850a7b37da6
-      sha256: 2891c1c8312a82bc2a183597b3f15ba53f08d5a33cfed06692b41ffa38686ffd
+      md5: 39224004f2b57cf7a7fb3d83610ab633
+      sha256: 6182ff04a7e3c84e3e5fb8e26e98606089df7d13ae89c3eace81571040dedd68
     manager: conda
     name: uritemplate
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.1.1-pyhd8ed1ab_1.conda
-    version: 4.1.1
+      https://conda.anaconda.org/conda-forge/noarch/uritemplate-4.2.0-pyhd8ed1ab_0.conda
+    version: 4.2.0
   - category: main
     dependencies:
       brotli-python: '>=1.0.9'
