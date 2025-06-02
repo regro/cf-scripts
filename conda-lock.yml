@@ -11956,14 +11956,14 @@ package:
       typing-extensions: '>=4'
       typing_extensions: '>=4'
     hash:
-      md5: 39faa6fea40e7c91f005f238e51e548b
-      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
+      md5: a9ef15c48f603c0e560cbad9cf4a9d2e
+      sha256: ac1cfc11fec9c7b58421e85e99f6a3f97e66808c74b7520f2e7e57cfb7d6a095
     manager: conda
     name: pynamodb
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
-    version: 6.0.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       botocore: '>=1.12.54'
@@ -11971,14 +11971,14 @@ package:
       typing-extensions: '>=4'
       typing_extensions: '>=4'
     hash:
-      md5: 39faa6fea40e7c91f005f238e51e548b
-      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
+      md5: a9ef15c48f603c0e560cbad9cf4a9d2e
+      sha256: ac1cfc11fec9c7b58421e85e99f6a3f97e66808c74b7520f2e7e57cfb7d6a095
     manager: conda
     name: pynamodb
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
-    version: 6.0.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       botocore: '>=1.12.54'
@@ -11986,14 +11986,14 @@ package:
       typing-extensions: '>=4'
       typing_extensions: '>=4'
     hash:
-      md5: 39faa6fea40e7c91f005f238e51e548b
-      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
+      md5: a9ef15c48f603c0e560cbad9cf4a9d2e
+      sha256: ac1cfc11fec9c7b58421e85e99f6a3f97e66808c74b7520f2e7e57cfb7d6a095
     manager: conda
     name: pynamodb
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
-    version: 6.0.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       __osx: '>=10.13'
