@@ -11853,15 +11853,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 7c6a81193753488aa77150613ec31d1a
-      sha256: d64b7fa2b303a5a2a5c62e00a2d9bd0dad21294df6e6a20f336e8cc6ce6c1fae
+      md5: 0e8c2c393a3e655b5c6fb8871e5c32b0
+      sha256: 2e049f35eb0416b2f591095533d7d014efc9c355628c05a78cf316b36cf56200
     manager: conda
     name: pymongo
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.11-py311hfdbb021_0.conda
-    version: '4.11'
+      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.13.0-py311hfdbb021_0.conda
+    version: 4.13.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -11870,14 +11870,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 7327478ebb66ce383ce6dcac69dcfa1a
-      sha256: 9018b960a244f93a02adb547e6729d828da870ce02d7e6d9c6f92f748c45cae7
+      md5: a14a09b0bbb55f7d58836dfbd303b382
+      sha256: 76ce49595481ed074cf5952462447fa1feb4bc7a61b9866a7e3853c5fa917973
     manager: conda
     name: pymongo
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.11-py311hc356e98_0.conda
-    version: '4.11'
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.13.0-py311hc356e98_0.conda
+    version: 4.13.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -11886,15 +11887,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: a4d3e09a78b047237c660d10343ce4b6
-      sha256: a01480c8a3db8dca3b039be38ba105f2caf2004bbfcdd2c1bf0b22908894e041
+      md5: f3135a8bbd64e34a6515a9e50e0974e2
+      sha256: c5849ba676fa50c6b7d12c8539e58fd7ed35116949acb124cd3e397200a0c9bd
     manager: conda
     name: pymongo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.11-py311h155a34a_0.conda
-    version: '4.11'
+      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.13.0-py311h155a34a_0.conda
+    version: 4.13.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
