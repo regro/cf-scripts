@@ -879,15 +879,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 393a233a958769852b4ab1c2487ffc10
-      sha256: 4073d88083907cf93a922c1756ade9fc0ade7fcad035a2d57d64b3c20315d581
+      md5: c61a1e845b696eae8410977c29ac87ac
+      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.30-pyge310_1234567_0.conda
-    version: 1.38.30
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
+    version: 1.38.31
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -895,15 +895,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 393a233a958769852b4ab1c2487ffc10
-      sha256: 4073d88083907cf93a922c1756ade9fc0ade7fcad035a2d57d64b3c20315d581
+      md5: c61a1e845b696eae8410977c29ac87ac
+      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.30-pyge310_1234567_0.conda
-    version: 1.38.30
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
+    version: 1.38.31
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -911,15 +911,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 393a233a958769852b4ab1c2487ffc10
-      sha256: 4073d88083907cf93a922c1756ade9fc0ade7fcad035a2d57d64b3c20315d581
+      md5: c61a1e845b696eae8410977c29ac87ac
+      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.30-pyge310_1234567_0.conda
-    version: 1.38.30
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
+    version: 1.38.31
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -1821,15 +1821,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 6637cd1ca7d78c0b2c31e1f8ba1cff11
-      sha256: e7455f1a845883a67739c80dac66a99491d7e1bf5db0635d0b0d9505dd8e3dda
+      md5: 1489bd8a9ff1f90a7c112977bfd97e9b
+      sha256: c85de17082fb2806670452538eb583a6a8f300cca85a08058783f733a6c3158b
     manager: conda
     name: conda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-25.5.0-py311h38be061_0.conda
-    version: 25.5.0
+      https://conda.anaconda.org/conda-forge/linux-64/conda-25.5.1-py311h38be061_0.conda
+    version: 25.5.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1854,14 +1854,14 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 5a1aac7952f53467d31b3f9cf371956c
-      sha256: 0cd479c835d1d0098ff0f0172aaf8305af81235e7a5f63653d68a50b5ca1fcf7
+      md5: 8512ff1070c84a8e4280638b457f8e9d
+      sha256: 9726add6cbbd9c930b749a4c6ffb155a9f3368b947e6b388237fed3d46da8c7a
     manager: conda
     name: conda
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.5.0-py311h6eed73b_0.conda
-    version: 25.5.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.5.1-py311h6eed73b_0.conda
+    version: 25.5.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1886,15 +1886,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 51f230929265464ee71e9da0975af257
-      sha256: 19b10e493d4ab9d6e7cd05694a66c3b9f669667024dd012d616427f13736eaa2
+      md5: 08f3d2f8278f7fc9f34239e82bd24b7e
+      sha256: 1a8bd0639e51730a5bc90e9cef9d527f3d3da0b0ab3b6bca0ba48b5899ae6610
     manager: conda
     name: conda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.5.0-py311h267d04e_0.conda
-    version: 25.5.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.5.1-py311h267d04e_0.conda
+    version: 25.5.1
   - category: main
     dependencies:
       beautifulsoup4: ''
