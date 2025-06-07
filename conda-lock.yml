@@ -36,7 +36,8 @@ package:
     name: _openmp_mutex
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-2_gnu.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-2_gnu.tar.bz2
     version: '4.5'
   - category: main
     dependencies:
@@ -167,7 +168,8 @@ package:
     name: anyio
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -183,7 +185,8 @@ package:
     name: anyio
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -199,7 +202,8 @@ package:
     name: anyio
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/anyio-4.9.0-pyh29332c3_0.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -211,7 +215,8 @@ package:
     name: appdirs
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
@@ -223,7 +228,8 @@ package:
     name: appdirs
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
@@ -235,7 +241,8 @@ package:
     name: appdirs
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
@@ -247,7 +254,8 @@ package:
     name: archspec
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
     version: 0.2.5
   - category: main
     dependencies:
@@ -259,7 +267,8 @@ package:
     name: archspec
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
     version: 0.2.5
   - category: main
     dependencies:
@@ -271,7 +280,8 @@ package:
     name: archspec
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
     version: 0.2.5
   - category: main
     dependencies:
@@ -378,7 +388,8 @@ package:
     name: asgiref
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
     version: 3.7.2
   - category: main
     dependencies:
@@ -391,7 +402,8 @@ package:
     name: asgiref
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
     version: 3.7.2
   - category: main
     dependencies:
@@ -404,7 +416,8 @@ package:
     name: asgiref
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/asgiref-3.7.2-pyhd8ed1ab_0.conda
     version: 3.7.2
   - category: main
     dependencies:
@@ -453,7 +466,8 @@ package:
     name: atk-1.0
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/atk-1.0-2.38.0-h04ea711_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/atk-1.0-2.38.0-h04ea711_2.conda
     version: 2.38.0
   - category: main
     dependencies:
@@ -468,7 +482,8 @@ package:
     name: atk-1.0
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/atk-1.0-2.38.0-h4bec284_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/atk-1.0-2.38.0-h4bec284_2.conda
     version: 2.38.0
   - category: main
     dependencies:
@@ -483,7 +498,8 @@ package:
     name: atk-1.0
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/atk-1.0-2.38.0-hd03087b_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/atk-1.0-2.38.0-hd03087b_2.conda
     version: 2.38.0
   - category: main
     dependencies:
@@ -495,7 +511,8 @@ package:
     name: attrs
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
     version: 25.3.0
   - category: main
     dependencies:
@@ -507,7 +524,8 @@ package:
     name: attrs
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
     version: 25.3.0
   - category: main
     dependencies:
@@ -519,7 +537,8 @@ package:
     name: attrs
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/attrs-25.3.0-pyh71513ae_0.conda
     version: 25.3.0
   - category: main
     dependencies:
@@ -531,7 +550,8 @@ package:
     name: backoff
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -543,7 +563,8 @@ package:
     name: backoff
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -555,7 +576,8 @@ package:
     name: backoff
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backoff-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -567,7 +589,8 @@ package:
     name: backports
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
     version: '1.0'
   - category: main
     dependencies:
@@ -579,7 +602,8 @@ package:
     name: backports
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
     version: '1.0'
   - category: main
     dependencies:
@@ -591,7 +615,8 @@ package:
     name: backports
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
     version: '1.0'
   - category: main
     dependencies:
@@ -702,7 +727,8 @@ package:
     name: bcrypt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/bcrypt-4.3.0-py311hd1a56c6_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/bcrypt-4.3.0-py311hd1a56c6_1.conda
     version: 4.3.0
   - category: main
     dependencies:
@@ -774,7 +800,8 @@ package:
     name: blinker
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -786,7 +813,8 @@ package:
     name: blinker
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -798,7 +826,8 @@ package:
     name: blinker
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/blinker-1.9.0-pyhff2d567_0.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -810,7 +839,8 @@ package:
     name: boltons
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
     version: 24.0.0
   - category: main
     dependencies:
@@ -822,7 +852,8 @@ package:
     name: boltons
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
     version: 24.0.0
   - category: main
     dependencies:
@@ -834,7 +865,8 @@ package:
     name: boltons
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boltons-24.0.0-pyhd8ed1ab_1.conda
     version: 24.0.0
   - category: main
     dependencies:
@@ -846,7 +878,8 @@ package:
     name: boolean.py
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
     version: '5.0'
   - category: main
     dependencies:
@@ -858,7 +891,8 @@ package:
     name: boolean.py
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
     version: '5.0'
   - category: main
     dependencies:
@@ -870,7 +904,8 @@ package:
     name: boolean.py
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/boolean.py-5.0-pyhd8ed1ab_0.conda
     version: '5.0'
   - category: main
     dependencies:
@@ -879,15 +914,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: c61a1e845b696eae8410977c29ac87ac
-      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
+      md5: 3e6f12b38654c44661f72dcad6818d7d
+      sha256: 4131fa369bff54c6880654c0b9dd110215e2a7a8a69bdfa6f3c49ac99880fded
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
-    version: 1.38.31
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.32-pyge310_1234567_0.conda
+    version: 1.38.32
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -895,15 +930,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: c61a1e845b696eae8410977c29ac87ac
-      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
+      md5: 3e6f12b38654c44661f72dcad6818d7d
+      sha256: 4131fa369bff54c6880654c0b9dd110215e2a7a8a69bdfa6f3c49ac99880fded
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
-    version: 1.38.31
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.32-pyge310_1234567_0.conda
+    version: 1.38.32
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -911,15 +946,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: c61a1e845b696eae8410977c29ac87ac
-      sha256: 11444254723223b9d108012b96480b4af2ee4b5e1f44c5182a6c1c568b90df5c
+      md5: 3e6f12b38654c44661f72dcad6818d7d
+      sha256: 4131fa369bff54c6880654c0b9dd110215e2a7a8a69bdfa6f3c49ac99880fded
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.31-pyge310_1234567_0.conda
-    version: 1.38.31
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.38.32-pyge310_1234567_0.conda
+    version: 1.38.32
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -977,7 +1012,8 @@ package:
     name: bzip2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
     version: 1.0.8
   - category: main
     dependencies:
@@ -989,7 +1025,8 @@ package:
     name: bzip2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-hfdf4475_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-hfdf4475_7.conda
     version: 1.0.8
   - category: main
     dependencies:
@@ -1001,7 +1038,8 @@ package:
     name: bzip2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h99b78c6_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h99b78c6_7.conda
     version: 1.0.8
   - category: main
     dependencies:
@@ -1014,7 +1052,8 @@ package:
     name: c-ares
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.34.5-hb9d3cd8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.34.5-hb9d3cd8_0.conda
     version: 1.34.5
   - category: main
     dependencies:
@@ -1026,7 +1065,8 @@ package:
     name: c-ares
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/c-ares-1.34.5-hf13058a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/c-ares-1.34.5-hf13058a_0.conda
     version: 1.34.5
   - category: main
     dependencies:
@@ -1038,7 +1078,8 @@ package:
     name: c-ares
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/c-ares-1.34.5-h5505292_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/c-ares-1.34.5-h5505292_0.conda
     version: 1.34.5
   - category: main
     dependencies:
@@ -1235,7 +1276,8 @@ package:
     name: cairo
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/cairo-1.18.4-h3394656_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/cairo-1.18.4-h3394656_0.conda
     version: 1.18.4
   - category: main
     dependencies:
@@ -1257,7 +1299,8 @@ package:
     name: cairo
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/cairo-1.18.4-h950ec3b_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/cairo-1.18.4-h950ec3b_0.conda
     version: 1.18.4
   - category: main
     dependencies:
@@ -1279,7 +1322,8 @@ package:
     name: cairo
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/cairo-1.18.4-h6a3b0d2_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/cairo-1.18.4-h6a3b0d2_0.conda
     version: 1.18.4
   - category: main
     dependencies:
@@ -1293,7 +1337,8 @@ package:
     name: cctools
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/cctools-1010.6-h8f84d09_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/cctools-1010.6-h8f84d09_6.conda
     version: '1010.6'
   - category: main
     dependencies:
@@ -1307,7 +1352,8 @@ package:
     name: cctools
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/cctools-1010.6-hb4fb6a3_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/cctools-1010.6-hb4fb6a3_6.conda
     version: '1010.6'
   - category: main
     dependencies:
@@ -1418,7 +1464,8 @@ package:
     name: cffi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/cffi-1.17.1-py311h137bacd_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/cffi-1.17.1-py311h137bacd_0.conda
     version: 1.17.1
   - category: main
     dependencies:
@@ -1447,7 +1494,8 @@ package:
     name: cfgv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
@@ -1459,7 +1507,8 @@ package:
     name: cfgv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
@@ -1471,7 +1520,8 @@ package:
     name: cfgv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
@@ -1483,7 +1533,8 @@ package:
     name: chardet
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
     version: 5.2.0
   - category: main
     dependencies:
@@ -1495,7 +1546,8 @@ package:
     name: chardet
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
     version: 5.2.0
   - category: main
     dependencies:
@@ -1507,7 +1559,8 @@ package:
     name: chardet
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
     version: 5.2.0
   - category: main
     dependencies:
@@ -1563,7 +1616,8 @@ package:
     name: cirun
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
     version: '0.30'
   - category: main
     dependencies:
@@ -1580,7 +1634,8 @@ package:
     name: cirun
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
     version: '0.30'
   - category: main
     dependencies:
@@ -1597,7 +1652,8 @@ package:
     name: cirun
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/cirun-0.30-pyhd8ed1ab_1.conda
     version: '0.30'
   - category: main
     dependencies:
@@ -1610,7 +1666,8 @@ package:
     name: click
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
     version: 8.2.1
   - category: main
     dependencies:
@@ -1623,7 +1680,8 @@ package:
     name: click
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
     version: 8.2.1
   - category: main
     dependencies:
@@ -1636,7 +1694,8 @@ package:
     name: click
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
     version: 8.2.1
   - category: main
     dependencies:
@@ -1731,7 +1790,8 @@ package:
     name: codecov
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
     version: 2.1.13
   - category: main
     dependencies:
@@ -1745,7 +1805,8 @@ package:
     name: codecov
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
     version: 2.1.13
   - category: main
     dependencies:
@@ -1759,7 +1820,8 @@ package:
     name: codecov
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/codecov-2.1.13-pyhd8ed1ab_1.conda
     version: 2.1.13
   - category: main
     dependencies:
@@ -1771,7 +1833,8 @@ package:
     name: colorama
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
     version: 0.4.6
   - category: main
     dependencies:
@@ -1783,7 +1846,8 @@ package:
     name: colorama
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
     version: 0.4.6
   - category: main
     dependencies:
@@ -1795,7 +1859,8 @@ package:
     name: colorama
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
     version: 0.4.6
   - category: main
     dependencies:
@@ -1860,7 +1925,8 @@ package:
     name: conda
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.5.1-py311h6eed73b_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/conda-25.5.1-py311h6eed73b_0.conda
     version: 25.5.1
   - category: main
     dependencies:
@@ -2210,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 6b9a4c7431c0a8f1476bec7f5b398f4a
-      sha256: 349dd34fb903cc99cd5ef5c9e8cd8dbfaa49fb9bc7a14ed962c99269b79da974
+      md5: 4270eced2409aaa78e2b63d15d514651
+      sha256: 1ed5f6ff446ff45fe0261acbcc08b7c8152858e779844ede6a82de8ea7bb88b7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.01.03.35-hd8ed1ab_0.conda
-    version: 2025.06.07.01.03.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.19.41.13-hd8ed1ab_0.conda
+    version: 2025.06.07.19.41.13
   - category: main
     dependencies: {}
     hash:
-      md5: 6b9a4c7431c0a8f1476bec7f5b398f4a
-      sha256: 349dd34fb903cc99cd5ef5c9e8cd8dbfaa49fb9bc7a14ed962c99269b79da974
+      md5: 4270eced2409aaa78e2b63d15d514651
+      sha256: 1ed5f6ff446ff45fe0261acbcc08b7c8152858e779844ede6a82de8ea7bb88b7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.01.03.35-hd8ed1ab_0.conda
-    version: 2025.06.07.01.03.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.19.41.13-hd8ed1ab_0.conda
+    version: 2025.06.07.19.41.13
   - category: main
     dependencies: {}
     hash:
-      md5: 6b9a4c7431c0a8f1476bec7f5b398f4a
-      sha256: 349dd34fb903cc99cd5ef5c9e8cd8dbfaa49fb9bc7a14ed962c99269b79da974
+      md5: 4270eced2409aaa78e2b63d15d514651
+      sha256: 1ed5f6ff446ff45fe0261acbcc08b7c8152858e779844ede6a82de8ea7bb88b7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.01.03.35-hd8ed1ab_0.conda
-    version: 2025.06.07.01.03.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.07.19.41.13-hd8ed1ab_0.conda
+    version: 2025.06.07.19.41.13
   - category: main
     dependencies:
       click: '>=8'
@@ -2939,7 +3005,8 @@ package:
     name: crashtest
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
     version: 0.4.1
   - category: main
     dependencies:
@@ -2951,7 +3018,8 @@ package:
     name: crashtest
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
     version: 0.4.1
   - category: main
     dependencies:
@@ -2963,7 +3031,8 @@ package:
     name: crashtest
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/crashtest-0.4.1-pyhd8ed1ab_1.conda
     version: 0.4.1
   - category: main
     dependencies:
@@ -3031,7 +3100,8 @@ package:
     name: curl
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/curl-8.14.1-h332b0f4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/curl-8.14.1-h332b0f4_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -3049,7 +3119,8 @@ package:
     name: curl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/curl-8.14.1-h5dec5d8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/curl-8.14.1-h5dec5d8_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -3067,7 +3138,8 @@ package:
     name: curl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/curl-8.14.1-h73640d1_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/curl-8.14.1-h73640d1_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -3196,7 +3268,8 @@ package:
     name: dbus
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/dbus-1.16.2-h3c4dab8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/dbus-1.16.2-h3c4dab8_0.conda
     version: 1.16.2
   - category: main
     dependencies:
@@ -3298,7 +3371,8 @@ package:
     name: distlib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
     version: 0.3.9
   - category: main
     dependencies:
@@ -3310,7 +3384,8 @@ package:
     name: distlib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
     version: 0.3.9
   - category: main
     dependencies:
@@ -3322,7 +3397,8 @@ package:
     name: distlib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
     version: 0.3.9
   - category: main
     dependencies:
@@ -3421,7 +3497,8 @@ package:
     name: distro
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -3433,7 +3510,8 @@ package:
     name: distro
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -3445,7 +3523,8 @@ package:
     name: distro
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
@@ -3461,7 +3540,8 @@ package:
     name: dnspython
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -3477,7 +3557,8 @@ package:
     name: dnspython
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -3493,7 +3574,8 @@ package:
     name: dnspython
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/dnspython-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -3554,7 +3636,8 @@ package:
     name: editables
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
     version: '0.5'
   - category: main
     dependencies:
@@ -3566,7 +3649,8 @@ package:
     name: editables
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
     version: '0.5'
   - category: main
     dependencies:
@@ -3578,7 +3662,8 @@ package:
     name: editables
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
     version: '0.5'
   - category: main
     dependencies:
@@ -3728,7 +3813,8 @@ package:
     name: epoxy
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/epoxy-1.5.10-h166bdaf_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/epoxy-1.5.10-h166bdaf_1.tar.bz2
     version: 1.5.10
   - category: main
     dependencies: {}
@@ -3739,7 +3825,8 @@ package:
     name: epoxy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/epoxy-1.5.10-h5eb16cf_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/epoxy-1.5.10-h5eb16cf_1.tar.bz2
     version: 1.5.10
   - category: main
     dependencies: {}
@@ -3750,7 +3837,8 @@ package:
     name: epoxy
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/epoxy-1.5.10-h1c322ee_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/epoxy-1.5.10-h1c322ee_1.tar.bz2
     version: 1.5.10
   - category: main
     dependencies:
@@ -3762,7 +3850,8 @@ package:
     name: evalidate
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
     version: 2.0.5
   - category: main
     dependencies:
@@ -3774,7 +3863,8 @@ package:
     name: evalidate
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
     version: 2.0.5
   - category: main
     dependencies:
@@ -3786,7 +3876,8 @@ package:
     name: evalidate
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/evalidate-2.0.5-pyhe01879c_0.conda
     version: 2.0.5
   - category: main
     dependencies:
@@ -3840,7 +3931,8 @@ package:
     name: execnet
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
     version: 2.1.1
   - category: main
     dependencies:
@@ -3852,7 +3944,8 @@ package:
     name: execnet
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
     version: 2.1.1
   - category: main
     dependencies:
@@ -3864,7 +3957,8 @@ package:
     name: execnet
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/execnet-2.1.1-pyhd8ed1ab_1.conda
     version: 2.1.1
   - category: main
     dependencies:
@@ -4032,7 +4126,8 @@ package:
     name: filelock
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
     version: 3.18.0
   - category: main
     dependencies:
@@ -4044,7 +4139,8 @@ package:
     name: filelock
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
     version: 3.18.0
   - category: main
     dependencies:
@@ -4056,7 +4152,8 @@ package:
     name: filelock
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
     version: 3.18.0
   - category: main
     dependencies:
@@ -4068,7 +4165,8 @@ package:
     name: flaky
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
     version: 3.8.1
   - category: main
     dependencies:
@@ -4080,7 +4178,8 @@ package:
     name: flaky
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
     version: 3.8.1
   - category: main
     dependencies:
@@ -4092,7 +4191,8 @@ package:
     name: flaky
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
     version: 3.8.1
   - category: main
     dependencies:
@@ -4110,7 +4210,8 @@ package:
     name: flask
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -4128,7 +4229,8 @@ package:
     name: flask
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -4146,7 +4248,8 @@ package:
     name: flask
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/flask-2.3.3-pyhd8ed1ab_0.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -4160,7 +4263,8 @@ package:
     name: fmt
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/fmt-11.1.4-h07f6e7f_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/fmt-11.1.4-h07f6e7f_1.conda
     version: 11.1.4
   - category: main
     dependencies:
@@ -4173,7 +4277,8 @@ package:
     name: fmt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/fmt-11.1.4-hbf61d64_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/fmt-11.1.4-hbf61d64_1.conda
     version: 11.1.4
   - category: main
     dependencies:
@@ -4186,7 +4291,8 @@ package:
     name: fmt
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/fmt-11.1.4-h440487c_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/fmt-11.1.4-h440487c_1.conda
     version: 11.1.4
   - category: main
     dependencies: {}
@@ -4363,7 +4469,8 @@ package:
     name: fontconfig
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/fontconfig-2.15.0-h37eeddb_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/fontconfig-2.15.0-h37eeddb_1.conda
     version: 2.15.0
   - category: main
     dependencies:
@@ -4391,7 +4498,8 @@ package:
     name: fonts-conda-ecosystem
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4403,7 +4511,8 @@ package:
     name: fonts-conda-ecosystem
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4415,7 +4524,8 @@ package:
     name: fonts-conda-ecosystem
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4430,7 +4540,8 @@ package:
     name: fonts-conda-forge
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4445,7 +4556,8 @@ package:
     name: fonts-conda-forge
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4460,7 +4572,8 @@ package:
     name: fonts-conda-forge
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
     version: '1'
   - category: main
     dependencies:
@@ -4473,7 +4586,8 @@ package:
     name: freetype
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/freetype-2.13.3-ha770c72_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/freetype-2.13.3-ha770c72_1.conda
     version: 2.13.3
   - category: main
     dependencies:
@@ -4486,7 +4600,8 @@ package:
     name: freetype
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/freetype-2.13.3-h694c41f_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/freetype-2.13.3-h694c41f_1.conda
     version: 2.13.3
   - category: main
     dependencies:
@@ -4524,7 +4639,8 @@ package:
     name: fribidi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.10-hbcb3906_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.10-hbcb3906_0.tar.bz2
     version: 1.0.10
   - category: main
     dependencies: {}
@@ -4594,7 +4710,8 @@ package:
     name: fsspec
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
     version: 2025.5.1
   - category: main
     dependencies:
@@ -4606,7 +4723,8 @@ package:
     name: fsspec
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
     version: 2025.5.1
   - category: main
     dependencies:
@@ -4618,7 +4736,8 @@ package:
     name: fsspec
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.5.1-pyhd8ed1ab_0.conda
     version: 2025.5.1
   - category: main
     dependencies:
@@ -4712,7 +4831,8 @@ package:
     name: git
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/git-2.49.0-pl5321h3bb66fe_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/git-2.49.0-pl5321h3bb66fe_1.conda
     version: 2.49.0
   - category: main
     dependencies:
@@ -4746,7 +4866,8 @@ package:
     name: gitdb
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
     version: 4.0.12
   - category: main
     dependencies:
@@ -4759,7 +4880,8 @@ package:
     name: gitdb
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
     version: 4.0.12
   - category: main
     dependencies:
@@ -4772,7 +4894,8 @@ package:
     name: gitdb
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda
     version: 4.0.12
   - category: main
     dependencies:
@@ -4897,7 +5020,8 @@ package:
     name: glib-tools
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/glib-tools-2.84.2-hf8faeaf_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/glib-tools-2.84.2-hf8faeaf_0.conda
     version: 2.84.2
   - category: main
     dependencies:
@@ -4925,7 +5049,8 @@ package:
     name: gmp
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/gmp-6.3.0-hac33072_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/gmp-6.3.0-hac33072_2.conda
     version: 6.3.0
   - category: main
     dependencies:
@@ -4938,7 +5063,8 @@ package:
     name: gmp
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/gmp-6.3.0-hf036a51_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/gmp-6.3.0-hf036a51_2.conda
     version: 6.3.0
   - category: main
     dependencies:
@@ -4951,7 +5077,8 @@ package:
     name: gmp
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/gmp-6.3.0-h7bae524_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/gmp-6.3.0-h7bae524_2.conda
     version: 6.3.0
   - category: main
     dependencies:
@@ -5018,7 +5145,8 @@ package:
     name: graphviz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/graphviz-12.2.1-h5ae0cbf_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/graphviz-12.2.1-h5ae0cbf_1.conda
     version: 12.2.1
   - category: main
     dependencies:
@@ -5044,7 +5172,8 @@ package:
     name: graphviz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/graphviz-12.2.1-h44a0556_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/graphviz-12.2.1-h44a0556_1.conda
     version: 12.2.1
   - category: main
     dependencies:
@@ -5098,7 +5227,8 @@ package:
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -5125,7 +5255,8 @@ package:
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -5152,7 +5283,8 @@ package:
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.1-pyhd8ed1ab_0.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -5194,7 +5326,8 @@ package:
     name: gtk3
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/gtk3-3.24.43-h0c6a113_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/gtk3-3.24.43-h0c6a113_5.conda
     version: 3.24.43
   - category: main
     dependencies:
@@ -5220,7 +5353,8 @@ package:
     name: gtk3
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/gtk3-3.24.43-h70b172e_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/gtk3-3.24.43-h70b172e_5.conda
     version: 3.24.43
   - category: main
     dependencies:
@@ -5246,7 +5380,8 @@ package:
     name: gtk3
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/gtk3-3.24.43-h07173f4_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/gtk3-3.24.43-h07173f4_5.conda
     version: 3.24.43
   - category: main
     dependencies:
@@ -5260,7 +5395,8 @@ package:
     name: gts
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/gts-0.7.6-h977cf35_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/gts-0.7.6-h977cf35_4.conda
     version: 0.7.6
   - category: main
     dependencies:
@@ -5273,7 +5409,8 @@ package:
     name: gts
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/gts-0.7.6-h53e17e3_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/gts-0.7.6-h53e17e3_4.conda
     version: 0.7.6
   - category: main
     dependencies:
@@ -5286,7 +5423,8 @@ package:
     name: gts
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/gts-0.7.6-he42f4ea_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/gts-0.7.6-he42f4ea_4.conda
     version: 0.7.6
   - category: main
     dependencies:
@@ -5299,7 +5437,8 @@ package:
     name: h11
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
     version: 0.14.0
   - category: main
     dependencies:
@@ -5312,7 +5451,8 @@ package:
     name: h11
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
     version: 0.14.0
   - category: main
     dependencies:
@@ -5325,7 +5465,8 @@ package:
     name: h11
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
     version: 0.14.0
   - category: main
     dependencies:
@@ -5339,7 +5480,8 @@ package:
     name: h2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
     version: 4.2.0
   - category: main
     dependencies:
@@ -5353,7 +5495,8 @@ package:
     name: h2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
     version: 4.2.0
   - category: main
     dependencies:
@@ -5367,7 +5510,8 @@ package:
     name: h2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
     version: 4.2.0
   - category: main
     dependencies:
@@ -5390,7 +5534,8 @@ package:
     name: harfbuzz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/harfbuzz-11.2.1-h3beb420_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/harfbuzz-11.2.1-h3beb420_0.conda
     version: 11.2.1
   - category: main
     dependencies:
@@ -5412,7 +5557,8 @@ package:
     name: harfbuzz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/harfbuzz-11.2.1-hdfbcdba_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/harfbuzz-11.2.1-hdfbcdba_0.conda
     version: 11.2.1
   - category: main
     dependencies:
@@ -5463,7 +5609,8 @@ package:
     name: hatch
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
     version: 1.14.1
   - category: main
     dependencies:
@@ -5491,7 +5638,8 @@ package:
     name: hatch
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
     version: 1.14.1
   - category: main
     dependencies:
@@ -5519,7 +5667,8 @@ package:
     name: hatch
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.1-pyhd8ed1ab_0.conda
     version: 1.14.1
   - category: main
     dependencies:
@@ -5627,7 +5776,8 @@ package:
     name: hpack
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
     version: 4.1.0
   - category: main
     dependencies:
@@ -5639,7 +5789,8 @@ package:
     name: hpack
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
     version: 4.1.0
   - category: main
     dependencies:
@@ -5651,7 +5802,8 @@ package:
     name: hpack
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
     version: 4.1.0
   - category: main
     dependencies:
@@ -5668,7 +5820,8 @@ package:
     name: httpcore
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
     version: 1.0.7
   - category: main
     dependencies:
@@ -5685,7 +5838,8 @@ package:
     name: httpcore
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
     version: 1.0.7
   - category: main
     dependencies:
@@ -5702,7 +5856,8 @@ package:
     name: httpcore
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.7-pyh29332c3_1.conda
     version: 1.0.7
   - category: main
     dependencies:
@@ -5764,7 +5919,8 @@ package:
     name: httpx
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
     version: 0.28.1
   - category: main
     dependencies:
@@ -5780,7 +5936,8 @@ package:
     name: httpx
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
     version: 0.28.1
   - category: main
     dependencies:
@@ -5796,7 +5953,8 @@ package:
     name: httpx
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/httpx-0.28.1-pyhd8ed1ab_0.conda
     version: 0.28.1
   - category: main
     dependencies:
@@ -5891,7 +6049,8 @@ package:
     name: icu
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/icu-75.1-he02047a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/icu-75.1-he02047a_0.conda
     version: '75.1'
   - category: main
     dependencies:
@@ -5915,7 +6074,8 @@ package:
     name: icu
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/icu-75.1-hfee45f7_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/icu-75.1-hfee45f7_0.conda
     version: '75.1'
   - category: main
     dependencies:
@@ -5928,7 +6088,8 @@ package:
     name: identify
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
     version: 2.6.12
   - category: main
     dependencies:
@@ -5941,7 +6102,8 @@ package:
     name: identify
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
     version: 2.6.12
   - category: main
     dependencies:
@@ -5954,7 +6116,8 @@ package:
     name: identify
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/identify-2.6.12-pyhd8ed1ab_0.conda
     version: 2.6.12
   - category: main
     dependencies:
@@ -5966,7 +6129,8 @@ package:
     name: idna
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
     version: '3.10'
   - category: main
     dependencies:
@@ -5978,7 +6142,8 @@ package:
     name: idna
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
     version: '3.10'
   - category: main
     dependencies:
@@ -5990,7 +6155,8 @@ package:
     name: idna
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/idna-3.10-pyhd8ed1ab_1.conda
     version: '3.10'
   - category: main
     dependencies:
@@ -6086,7 +6252,8 @@ package:
     name: iniconfig
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
     version: 2.0.0
   - category: main
     dependencies:
@@ -6098,7 +6265,8 @@ package:
     name: iniconfig
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
     version: 2.0.0
   - category: main
     dependencies:
@@ -6110,7 +6278,8 @@ package:
     name: iniconfig
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.0.0-pyhd8ed1ab_1.conda
     version: 2.0.0
   - category: main
     dependencies:
@@ -6122,7 +6291,8 @@ package:
     name: isodate
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
     version: 0.7.2
   - category: main
     dependencies:
@@ -6134,7 +6304,8 @@ package:
     name: isodate
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
     version: 0.7.2
   - category: main
     dependencies:
@@ -6146,7 +6317,8 @@ package:
     name: isodate
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/isodate-0.7.2-pyhd8ed1ab_1.conda
     version: 0.7.2
   - category: main
     dependencies:
@@ -6323,7 +6495,8 @@ package:
     name: jeepney
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jeepney-0.9.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jeepney-0.9.0-pyhd8ed1ab_0.conda
     version: 0.9.0
   - category: main
     dependencies:
@@ -6336,7 +6509,8 @@ package:
     name: jinja2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
     version: 3.1.6
   - category: main
     dependencies:
@@ -6349,7 +6523,8 @@ package:
     name: jinja2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
     version: 3.1.6
   - category: main
     dependencies:
@@ -6362,7 +6537,8 @@ package:
     name: jinja2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
     version: 3.1.6
   - category: main
     dependencies:
@@ -6374,7 +6550,8 @@ package:
     name: jmespath
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
     version: 1.0.1
   - category: main
     dependencies:
@@ -6386,7 +6563,8 @@ package:
     name: jmespath
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
     version: 1.0.1
   - category: main
     dependencies:
@@ -6398,7 +6576,8 @@ package:
     name: jmespath
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
     version: 1.0.1
   - category: main
     dependencies:
@@ -6411,7 +6590,8 @@ package:
     name: jsonpatch
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
     version: '1.33'
   - category: main
     dependencies:
@@ -6424,7 +6604,8 @@ package:
     name: jsonpatch
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
     version: '1.33'
   - category: main
     dependencies:
@@ -6437,7 +6618,8 @@ package:
     name: jsonpatch
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/jsonpatch-1.33-pyhd8ed1ab_1.conda
     version: '1.33'
   - category: main
     dependencies:
@@ -6637,7 +6819,8 @@ package:
     name: keyring
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyha804496_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyha804496_0.conda
     version: 25.6.0
   - category: main
     dependencies:
@@ -6655,7 +6838,8 @@ package:
     name: keyring
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
     version: 25.6.0
   - category: main
     dependencies:
@@ -6673,7 +6857,8 @@ package:
     name: keyring
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
     version: 25.6.0
   - category: main
     dependencies:
@@ -6702,7 +6887,8 @@ package:
     name: krb5
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
     version: 1.21.3
   - category: main
     dependencies:
@@ -6717,7 +6903,8 @@ package:
     name: krb5
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/krb5-1.21.3-h37d8d59_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/krb5-1.21.3-h37d8d59_0.conda
     version: 1.21.3
   - category: main
     dependencies:
@@ -6732,7 +6919,8 @@ package:
     name: krb5
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.3-h237132a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.3-h237132a_0.conda
     version: 1.21.3
   - category: main
     dependencies:
@@ -6745,7 +6933,8 @@ package:
     name: ld64
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ld64-951.9-h2b71b23_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/ld64-951.9-h2b71b23_6.conda
     version: '951.9'
   - category: main
     dependencies:
@@ -6758,7 +6947,8 @@ package:
     name: ld64
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/ld64-951.9-h4c6efb1_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/ld64-951.9-h4c6efb1_6.conda
     version: '951.9'
   - category: main
     dependencies:
@@ -6774,7 +6964,8 @@ package:
     name: ld64_osx-64
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ld64_osx-64-951.9-hc68d7ca_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/ld64_osx-64-951.9-hc68d7ca_6.conda
     version: '951.9'
   - category: main
     dependencies:
@@ -6817,7 +7008,8 @@ package:
     name: ldap3
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -6830,7 +7022,8 @@ package:
     name: ldap3
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -6843,7 +7036,8 @@ package:
     name: ldap3
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/ldap3-2.9.1-pyhd8ed1ab_1.conda
     version: 2.9.1
   - category: main
     dependencies:
@@ -6857,7 +7051,8 @@ package:
     name: lerc
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
     version: 4.0.0
   - category: main
     dependencies:
@@ -6870,7 +7065,8 @@ package:
     name: lerc
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/lerc-4.0.0-hcca01a6_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/lerc-4.0.0-hcca01a6_1.conda
     version: 4.0.0
   - category: main
     dependencies:
@@ -6883,7 +7079,8 @@ package:
     name: lerc
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.0.0-hd64df32_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.0.0-hd64df32_1.conda
     version: 4.0.0
   - category: main
     dependencies:
@@ -6969,7 +7166,8 @@ package:
     name: libarchive
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libarchive-3.7.7-h2c98640_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libarchive-3.7.7-h2c98640_4.conda
     version: 3.7.7
   - category: main
     dependencies:
@@ -7127,7 +7325,8 @@ package:
     name: libcups
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libcups-2.3.3-h4637d8d_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libcups-2.3.3-h4637d8d_4.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -7146,7 +7345,8 @@ package:
     name: libcurl
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.14.1-h332b0f4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.14.1-h332b0f4_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -7164,7 +7364,8 @@ package:
     name: libcurl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libcurl-8.14.1-h5dec5d8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libcurl-8.14.1-h5dec5d8_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -7182,7 +7383,8 @@ package:
     name: libcurl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.14.1-h73640d1_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.14.1-h73640d1_0.conda
     version: 8.14.1
   - category: main
     dependencies:
@@ -7194,7 +7396,8 @@ package:
     name: libcxx
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libcxx-20.1.6-hf95d169_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libcxx-20.1.6-hf95d169_0.conda
     version: 20.1.6
   - category: main
     dependencies:
@@ -7206,7 +7409,8 @@ package:
     name: libcxx
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-20.1.6-ha82da77_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-20.1.6-ha82da77_0.conda
     version: 20.1.6
   - category: main
     dependencies:
@@ -7219,7 +7423,8 @@ package:
     name: libdeflate
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libdeflate-1.24-h86f0d12_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libdeflate-1.24-h86f0d12_0.conda
     version: '1.24'
   - category: main
     dependencies:
@@ -7231,7 +7436,8 @@ package:
     name: libdeflate
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libdeflate-1.24-hcc1b750_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libdeflate-1.24-hcc1b750_0.conda
     version: '1.24'
   - category: main
     dependencies:
@@ -7299,7 +7505,8 @@ package:
     name: libev
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libev-4.33-hd590300_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libev-4.33-hd590300_2.conda
     version: '4.33'
   - category: main
     dependencies: {}
@@ -7310,7 +7517,8 @@ package:
     name: libev
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libev-4.33-h10d778d_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libev-4.33-h10d778d_2.conda
     version: '4.33'
   - category: main
     dependencies: {}
@@ -7321,7 +7529,8 @@ package:
     name: libev
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libev-4.33-h93a5062_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libev-4.33-h93a5062_2.conda
     version: '4.33'
   - category: main
     dependencies:
@@ -7334,7 +7543,8 @@ package:
     name: libexpat
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.7.0-h5888daf_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.7.0-h5888daf_0.conda
     version: 2.7.0
   - category: main
     dependencies:
@@ -7346,7 +7556,8 @@ package:
     name: libexpat
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libexpat-2.7.0-h240833e_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libexpat-2.7.0-h240833e_0.conda
     version: 2.7.0
   - category: main
     dependencies:
@@ -7358,7 +7569,8 @@ package:
     name: libexpat
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.7.0-h286801f_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.7.0-h286801f_0.conda
     version: 2.7.0
   - category: main
     dependencies:
@@ -7371,7 +7583,8 @@ package:
     name: libffi
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libffi-3.4.6-h2dba641_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libffi-3.4.6-h2dba641_1.conda
     version: 3.4.6
   - category: main
     dependencies:
@@ -7383,7 +7596,8 @@ package:
     name: libffi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libffi-3.4.6-h281671d_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libffi-3.4.6-h281671d_1.conda
     version: 3.4.6
   - category: main
     dependencies:
@@ -7395,7 +7609,8 @@ package:
     name: libffi
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libffi-3.4.6-h1da3d7d_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libffi-3.4.6-h1da3d7d_1.conda
     version: 3.4.6
   - category: main
     dependencies:
@@ -7493,7 +7708,8 @@ package:
     name: libgcc
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.1.0-h767d61c_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.1.0-h767d61c_2.conda
     version: 15.1.0
   - category: main
     dependencies:
@@ -7529,7 +7745,8 @@ package:
     name: libgd
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libgd-2.3.3-h6f5c62b_11.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libgd-2.3.3-h6f5c62b_11.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -7552,7 +7769,8 @@ package:
     name: libgd
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libgd-2.3.3-h8555400_11.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libgd-2.3.3-h8555400_11.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -7575,7 +7793,8 @@ package:
     name: libgd
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libgd-2.3.3-hb2c3a21_11.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgd-2.3.3-hb2c3a21_11.conda
     version: 2.3.3
   - category: main
     dependencies:
@@ -7716,7 +7935,8 @@ package:
     name: libgit2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libgit2-1.9.1-h014eb84_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libgit2-1.9.1-h014eb84_0.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -7734,7 +7954,8 @@ package:
     name: libgit2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libgit2-1.9.1-h1b783f7_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libgit2-1.9.1-h1b783f7_0.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -7752,7 +7973,8 @@ package:
     name: libgit2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libgit2-1.9.1-h41192e5_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgit2-1.9.1-h41192e5_0.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -7769,7 +7991,8 @@ package:
     name: libglib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libglib-2.84.2-h3618099_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libglib-2.84.2-h3618099_0.conda
     version: 2.84.2
   - category: main
     dependencies:
@@ -7786,7 +8009,8 @@ package:
     name: libglib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libglib-2.84.2-h3139dbc_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libglib-2.84.2-h3139dbc_0.conda
     version: 2.84.2
   - category: main
     dependencies:
@@ -7803,7 +8027,8 @@ package:
     name: libglib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libglib-2.84.2-hbec27ea_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libglib-2.84.2-hbec27ea_0.conda
     version: 2.84.2
   - category: main
     dependencies:
@@ -7815,7 +8040,8 @@ package:
     name: libgomp
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.1.0-h767d61c_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.1.0-h767d61c_2.conda
     version: 15.1.0
   - category: main
     dependencies:
@@ -7828,7 +8054,8 @@ package:
     name: libiconv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libiconv-1.18-h4ce23a2_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libiconv-1.18-h4ce23a2_1.conda
     version: '1.18'
   - category: main
     dependencies:
@@ -7840,7 +8067,8 @@ package:
     name: libiconv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libiconv-1.18-h4b5e92a_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libiconv-1.18-h4b5e92a_1.conda
     version: '1.18'
   - category: main
     dependencies:
@@ -7852,7 +8080,8 @@ package:
     name: libiconv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libiconv-1.18-hfe07756_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libiconv-1.18-hfe07756_1.conda
     version: '1.18'
   - category: main
     dependencies:
@@ -7868,7 +8097,8 @@ package:
     name: libidn2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libidn2-2.3.8-ha4ef2c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libidn2-2.3.8-ha4ef2c3_0.conda
     version: 2.3.8
   - category: main
     dependencies:
@@ -7884,7 +8114,8 @@ package:
     name: libidn2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libidn2-2.3.8-he8ff88c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libidn2-2.3.8-he8ff88c_0.conda
     version: 2.3.8
   - category: main
     dependencies:
@@ -7900,7 +8131,8 @@ package:
     name: libidn2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libidn2-2.3.8-h38aa460_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libidn2-2.3.8-h38aa460_0.conda
     version: 2.3.8
   - category: main
     dependencies:
@@ -7913,7 +8145,8 @@ package:
     name: libintl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libintl-0.24.1-h27064b9_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libintl-0.24.1-h27064b9_0.conda
     version: 0.24.1
   - category: main
     dependencies:
@@ -7926,7 +8159,8 @@ package:
     name: libintl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libintl-0.24.1-h493aca8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libintl-0.24.1-h493aca8_0.conda
     version: 0.24.1
   - category: main
     dependencies:
@@ -8020,7 +8254,8 @@ package:
     name: liblief
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.16.4-h5888daf_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/liblief-0.16.4-h5888daf_0.conda
     version: 0.16.4
   - category: main
     dependencies:
@@ -8034,7 +8269,8 @@ package:
     name: liblief
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/liblief-0.16.4-h240833e_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/liblief-0.16.4-h240833e_0.conda
     version: 0.16.4
   - category: main
     dependencies:
@@ -8048,7 +8284,8 @@ package:
     name: liblief
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.16.4-h286801f_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.16.4-h286801f_0.conda
     version: 0.16.4
   - category: main
     dependencies:
@@ -8081,7 +8318,8 @@ package:
     name: libllvm20
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libllvm20-20.1.6-h29c3a6c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libllvm20-20.1.6-h29c3a6c_0.conda
     version: 20.1.6
   - category: main
     dependencies:
@@ -8094,7 +8332,8 @@ package:
     name: liblzma
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/liblzma-5.8.1-hb9d3cd8_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/liblzma-5.8.1-hb9d3cd8_2.conda
     version: 5.8.1
   - category: main
     dependencies:
@@ -8106,7 +8345,8 @@ package:
     name: liblzma
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/liblzma-5.8.1-hd471939_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/liblzma-5.8.1-hd471939_2.conda
     version: 5.8.1
   - category: main
     dependencies:
@@ -8118,7 +8358,8 @@ package:
     name: liblzma
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblzma-5.8.1-h39f12f2_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/liblzma-5.8.1-h39f12f2_2.conda
     version: 5.8.1
   - category: main
     dependencies:
@@ -8144,7 +8385,8 @@ package:
     name: libmamba
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libmamba-2.2.0-h8dd7f75_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libmamba-2.2.0-h8dd7f75_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -8169,7 +8411,8 @@ package:
     name: libmamba
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libmamba-2.2.0-h0fd82b3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libmamba-2.2.0-h0fd82b3_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -8194,7 +8437,8 @@ package:
     name: libmamba
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-2.2.0-h4691815_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-2.2.0-h4691815_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -8297,7 +8541,8 @@ package:
     name: libnghttp2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libnghttp2-1.64.0-hc7306c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libnghttp2-1.64.0-hc7306c3_0.conda
     version: 1.64.0
   - category: main
     dependencies:
@@ -8327,7 +8572,8 @@ package:
     name: libnsl
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libnsl-2.0.1-hd590300_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libnsl-2.0.1-hd590300_0.conda
     version: 2.0.1
   - category: main
     dependencies:
@@ -8389,7 +8635,8 @@ package:
     name: libpng
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.47-h943b412_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.47-h943b412_0.conda
     version: 1.6.47
   - category: main
     dependencies:
@@ -8402,7 +8649,8 @@ package:
     name: libpng
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libpng-1.6.47-h3c4a55f_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libpng-1.6.47-h3c4a55f_0.conda
     version: 1.6.47
   - category: main
     dependencies:
@@ -8415,7 +8663,8 @@ package:
     name: libpng
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.47-h3783ad8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.47-h3783ad8_0.conda
     version: 1.6.47
   - category: main
     dependencies:
@@ -8485,7 +8734,8 @@ package:
     name: librsvg
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/librsvg-2.58.4-he92a37e_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/librsvg-2.58.4-he92a37e_3.conda
     version: 2.58.4
   - category: main
     dependencies:
@@ -8502,7 +8752,8 @@ package:
     name: librsvg
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/librsvg-2.58.4-h21a6cfa_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/librsvg-2.58.4-h21a6cfa_3.conda
     version: 2.58.4
   - category: main
     dependencies:
@@ -8519,7 +8770,8 @@ package:
     name: librsvg
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/librsvg-2.58.4-h266df6f_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/librsvg-2.58.4-h266df6f_3.conda
     version: 2.58.4
   - category: main
     dependencies:
@@ -8544,7 +8796,8 @@ package:
     name: libsodium
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libsodium-1.0.20-hfdf4475_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libsodium-1.0.20-hfdf4475_0.conda
     version: 1.0.20
   - category: main
     dependencies:
@@ -8572,7 +8825,8 @@ package:
     name: libsolv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libsolv-0.7.33-h7955e40_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libsolv-0.7.33-h7955e40_0.conda
     version: 0.7.33
   - category: main
     dependencies:
@@ -8586,7 +8840,8 @@ package:
     name: libsolv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libsolv-0.7.33-h04d1b7c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libsolv-0.7.33-h04d1b7c_0.conda
     version: 0.7.33
   - category: main
     dependencies:
@@ -8600,7 +8855,8 @@ package:
     name: libsolv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libsolv-0.7.33-h13dfb9a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libsolv-0.7.33-h13dfb9a_0.conda
     version: 0.7.33
   - category: main
     dependencies:
@@ -8628,7 +8884,8 @@ package:
     name: libsqlite
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.50.1-hdb6dae5_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.50.1-hdb6dae5_0.conda
     version: 3.50.1
   - category: main
     dependencies:
@@ -8657,7 +8914,8 @@ package:
     name: libssh2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libssh2-1.11.1-hcf80075_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libssh2-1.11.1-hcf80075_0.conda
     version: 1.11.1
   - category: main
     dependencies:
@@ -8671,7 +8929,8 @@ package:
     name: libssh2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libssh2-1.11.1-hed3591d_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libssh2-1.11.1-hed3591d_0.conda
     version: 1.11.1
   - category: main
     dependencies:
@@ -8684,7 +8943,8 @@ package:
     name: libssh2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libssh2-1.11.1-h1590b86_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libssh2-1.11.1-h1590b86_0.conda
     version: 1.11.1
   - category: main
     dependencies:
@@ -8732,7 +8992,8 @@ package:
     name: libtiff
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.7.0-hf01ce69_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.7.0-hf01ce69_5.conda
     version: 4.7.0
   - category: main
     dependencies:
@@ -8752,7 +9013,8 @@ package:
     name: libtiff
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libtiff-4.7.0-h1167cee_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libtiff-4.7.0-h1167cee_5.conda
     version: 4.7.0
   - category: main
     dependencies:
@@ -8772,7 +9034,8 @@ package:
     name: libtiff
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libtiff-4.7.0-h2f21f7c_5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libtiff-4.7.0-h2f21f7c_5.conda
     version: 4.7.0
   - category: main
     dependencies:
@@ -8821,7 +9084,8 @@ package:
     name: libuuid
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
     version: 2.38.1
   - category: main
     dependencies:
@@ -8834,7 +9098,8 @@ package:
     name: libuv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libuv-1.51.0-hb9d3cd8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libuv-1.51.0-hb9d3cd8_0.conda
     version: 1.51.0
   - category: main
     dependencies:
@@ -8846,7 +9111,8 @@ package:
     name: libuv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libuv-1.51.0-h4cb831e_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libuv-1.51.0-h4cb831e_0.conda
     version: 1.51.0
   - category: main
     dependencies:
@@ -8858,7 +9124,8 @@ package:
     name: libuv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libuv-1.51.0-h5505292_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libuv-1.51.0-h5505292_0.conda
     version: 1.51.0
   - category: main
     dependencies:
@@ -8914,7 +9181,8 @@ package:
     name: libxcb
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libxcb-1.17.0-h8a09558_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libxcb-1.17.0-h8a09558_0.conda
     version: 1.17.0
   - category: main
     dependencies:
@@ -8963,7 +9231,8 @@ package:
     name: libxml2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.8-h4bc477f_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.8-h4bc477f_0.conda
     version: 2.13.8
   - category: main
     dependencies:
@@ -8979,7 +9248,8 @@ package:
     name: libxml2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.8-h93c44a6_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.8-h93c44a6_0.conda
     version: 2.13.8
   - category: main
     dependencies:
@@ -8995,7 +9265,8 @@ package:
     name: libxml2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libxml2-2.13.8-h52572c6_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libxml2-2.13.8-h52572c6_0.conda
     version: 2.13.8
   - category: main
     dependencies:
@@ -9008,7 +9279,8 @@ package:
     name: libzlib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -9020,7 +9292,8 @@ package:
     name: libzlib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libzlib-1.3.1-hd23fc13_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/libzlib-1.3.1-hd23fc13_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -9032,7 +9305,8 @@ package:
     name: libzlib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.1-h8359307_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.1-h8359307_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -9114,7 +9388,8 @@ package:
     name: llvm-tools
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20.1.6-h3fe3016_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/llvm-tools-20.1.6-h3fe3016_0.conda
     version: 20.1.6
   - category: main
     dependencies:
@@ -9178,7 +9453,8 @@ package:
     name: locket
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
     version: 1.0.0
   - category: main
     dependencies:
@@ -9190,7 +9466,8 @@ package:
     name: locket
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
     version: 1.0.0
   - category: main
     dependencies:
@@ -9202,7 +9479,8 @@ package:
     name: locket
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/locket-1.0.0-pyhd8ed1ab_0.tar.bz2
     version: 1.0.0
   - category: main
     dependencies:
@@ -9214,7 +9492,8 @@ package:
     name: lockfile
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
     version: 0.12.2
   - category: main
     dependencies:
@@ -9226,7 +9505,8 @@ package:
     name: lockfile
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
     version: 0.12.2
   - category: main
     dependencies:
@@ -9238,7 +9518,8 @@ package:
     name: lockfile
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/lockfile-0.12.2-py_1.tar.bz2
     version: 0.12.2
   - category: main
     dependencies:
@@ -9252,7 +9533,8 @@ package:
     name: lz4-c
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/lz4-c-1.10.0-h5888daf_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/lz4-c-1.10.0-h5888daf_1.conda
     version: 1.10.0
   - category: main
     dependencies:
@@ -9265,7 +9547,8 @@ package:
     name: lz4-c
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/lz4-c-1.10.0-h240833e_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/lz4-c-1.10.0-h240833e_1.conda
     version: 1.10.0
   - category: main
     dependencies:
@@ -9278,7 +9561,8 @@ package:
     name: lz4-c
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/lz4-c-1.10.0-h286801f_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/lz4-c-1.10.0-h286801f_1.conda
     version: 1.10.0
   - category: main
     dependencies:
@@ -9290,7 +9574,8 @@ package:
     name: lzo
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/lzo-2.10-hd590300_1001.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/lzo-2.10-hd590300_1001.conda
     version: '2.10'
   - category: main
     dependencies: {}
@@ -9301,7 +9586,8 @@ package:
     name: lzo
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/lzo-2.10-h10d778d_1001.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/lzo-2.10-h10d778d_1001.conda
     version: '2.10'
   - category: main
     dependencies: {}
@@ -9312,7 +9598,8 @@ package:
     name: lzo
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/lzo-2.10-h93a5062_1001.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/lzo-2.10-h93a5062_1001.conda
     version: '2.10'
   - category: main
     dependencies:
@@ -9328,7 +9615,8 @@ package:
     name: mamba
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/mamba-2.2.0-had4a41a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/mamba-2.2.0-had4a41a_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -9345,7 +9633,8 @@ package:
     name: mamba
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/mamba-2.2.0-h19c8969_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/mamba-2.2.0-h19c8969_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -9362,7 +9651,8 @@ package:
     name: mamba
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/mamba-2.2.0-h3d01267_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/mamba-2.2.0-h3d01267_0.conda
     version: 2.2.0
   - category: main
     dependencies:
@@ -9464,7 +9754,8 @@ package:
     name: mbedtls
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/mbedtls-3.5.1-h5888daf_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/mbedtls-3.5.1-h5888daf_1.conda
     version: 3.5.1
   - category: main
     dependencies:
@@ -9477,7 +9768,8 @@ package:
     name: mbedtls
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/mbedtls-3.5.1-h240833e_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/mbedtls-3.5.1-h240833e_1.conda
     version: 3.5.1
   - category: main
     dependencies:
@@ -9490,7 +9782,8 @@ package:
     name: mbedtls
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/mbedtls-3.5.1-h286801f_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/mbedtls-3.5.1-h286801f_1.conda
     version: 3.5.1
   - category: main
     dependencies:
@@ -9502,7 +9795,8 @@ package:
     name: mdurl
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
     version: 0.1.2
   - category: main
     dependencies:
@@ -9514,7 +9808,8 @@ package:
     name: mdurl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
     version: 0.1.2
   - category: main
     dependencies:
@@ -9526,7 +9821,8 @@ package:
     name: mdurl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
     version: 0.1.2
   - category: main
     dependencies:
@@ -9784,7 +10080,8 @@ package:
     name: msrest
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
     version: 0.6.21
   - category: main
     dependencies:
@@ -9800,7 +10097,8 @@ package:
     name: msrest
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
     version: 0.6.21
   - category: main
     dependencies:
@@ -9816,7 +10114,8 @@ package:
     name: msrest
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/msrest-0.6.21-pyh44b312d_0.tar.bz2
     version: 0.6.21
   - category: main
     dependencies:
@@ -9829,7 +10128,8 @@ package:
     name: ncurses
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
     version: '6.5'
   - category: main
     dependencies:
@@ -9841,7 +10141,8 @@ package:
     name: ncurses
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.5-h0622a9a_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.5-h0622a9a_3.conda
     version: '6.5'
   - category: main
     dependencies:
@@ -9853,7 +10154,8 @@ package:
     name: ncurses
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda
     version: '6.5'
   - category: main
     dependencies:
@@ -9865,7 +10167,8 @@ package:
     name: networkx
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
     version: '3.5'
   - category: main
     dependencies:
@@ -9877,7 +10180,8 @@ package:
     name: networkx
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
     version: '3.5'
   - category: main
     dependencies:
@@ -9889,7 +10193,8 @@ package:
     name: networkx
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
     version: '3.5'
   - category: main
     dependencies:
@@ -9945,7 +10250,8 @@ package:
     name: nodeenv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -9958,7 +10264,8 @@ package:
     name: nodeenv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -9971,7 +10278,8 @@ package:
     name: nodeenv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
     version: 1.9.1
   - category: main
     dependencies:
@@ -10009,7 +10317,8 @@ package:
     name: numpy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.6-py311h27c81cd_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.6-py311h27c81cd_0.conda
     version: 2.2.6
   - category: main
     dependencies:
@@ -10043,7 +10352,8 @@ package:
     name: oauthlib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
@@ -10058,7 +10368,8 @@ package:
     name: oauthlib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
@@ -10073,7 +10384,8 @@ package:
     name: oauthlib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
@@ -10087,7 +10399,8 @@ package:
     name: openssl
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.0-h7b32b05_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.0-h7b32b05_1.conda
     version: 3.5.0
   - category: main
     dependencies:
@@ -10100,7 +10413,8 @@ package:
     name: openssl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.0-hc426f3f_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.0-hc426f3f_1.conda
     version: 3.5.0
   - category: main
     dependencies:
@@ -10113,7 +10427,8 @@ package:
     name: openssl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.0-h81ee809_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.0-h81ee809_1.conda
     version: 3.5.0
   - category: main
     dependencies:
@@ -10127,7 +10442,8 @@ package:
     name: oras-py
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
     version: 0.1.14
   - category: main
     dependencies:
@@ -10141,7 +10457,8 @@ package:
     name: oras-py
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
     version: 0.1.14
   - category: main
     dependencies:
@@ -10155,7 +10472,8 @@ package:
     name: oras-py
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/oras-py-0.1.14-pyhd8ed1ab_0.conda
     version: 0.1.14
   - category: main
     dependencies:
@@ -10213,7 +10531,8 @@ package:
     name: packaging
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
     version: '25.0'
   - category: main
     dependencies:
@@ -10225,7 +10544,8 @@ package:
     name: packaging
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
     version: '25.0'
   - category: main
     dependencies:
@@ -10237,7 +10557,8 @@ package:
     name: packaging
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
     version: '25.0'
   - category: main
     dependencies:
@@ -10260,7 +10581,8 @@ package:
     name: pango
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/pango-1.56.3-h9ac818e_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/pango-1.56.3-h9ac818e_1.conda
     version: 1.56.3
   - category: main
     dependencies:
@@ -10282,7 +10604,8 @@ package:
     name: pango
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pango-1.56.3-hae8941d_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pango-1.56.3-hae8941d_1.conda
     version: 1.56.3
   - category: main
     dependencies:
@@ -10304,7 +10627,8 @@ package:
     name: pango
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/pango-1.56.3-h5fd7515_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/pango-1.56.3-h5fd7515_1.conda
     version: 1.56.3
   - category: main
     dependencies:
@@ -10318,7 +10642,8 @@ package:
     name: partd
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
     version: 1.4.2
   - category: main
     dependencies:
@@ -10332,7 +10657,8 @@ package:
     name: partd
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
     version: 1.4.2
   - category: main
     dependencies:
@@ -10346,7 +10672,8 @@ package:
     name: partd
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/partd-1.4.2-pyhd8ed1ab_0.conda
     version: 1.4.2
   - category: main
     dependencies:
@@ -10361,7 +10688,8 @@ package:
     name: passlib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
     version: 1.7.4
   - category: main
     dependencies:
@@ -10376,7 +10704,8 @@ package:
     name: passlib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
     version: 1.7.4
   - category: main
     dependencies:
@@ -10391,7 +10720,8 @@ package:
     name: passlib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/passlib-1.7.4-pyhd8ed1ab_2.conda
     version: 1.7.4
   - category: main
     dependencies:
@@ -10415,7 +10745,8 @@ package:
     name: patch
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/patch-2.7.6-hbcf498f_1002.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/patch-2.7.6-hbcf498f_1002.tar.bz2
     version: 2.7.6
   - category: main
     dependencies: {}
@@ -10440,7 +10771,8 @@ package:
     name: patchelf
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/patchelf-0.17.2-h58526e2_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/patchelf-0.17.2-h58526e2_0.conda
     version: 0.17.2
   - category: main
     dependencies:
@@ -10452,7 +10784,8 @@ package:
     name: pathspec
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
     version: 0.12.1
   - category: main
     dependencies:
@@ -10464,7 +10797,8 @@ package:
     name: pathspec
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
     version: 0.12.1
   - category: main
     dependencies:
@@ -10476,7 +10810,8 @@ package:
     name: pathspec
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pathspec-0.12.1-pyhd8ed1ab_1.conda
     version: 0.12.1
   - category: main
     dependencies:
@@ -10491,7 +10826,8 @@ package:
     name: pcre2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.45-hc749103_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.45-hc749103_0.conda
     version: '10.45'
   - category: main
     dependencies:
@@ -10505,7 +10841,8 @@ package:
     name: pcre2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pcre2-10.45-hf733adb_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pcre2-10.45-hf733adb_0.conda
     version: '10.45'
   - category: main
     dependencies:
@@ -10519,7 +10856,8 @@ package:
     name: pcre2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.45-ha881caa_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.45-ha881caa_0.conda
     version: '10.45'
   - category: main
     dependencies:
@@ -10544,7 +10882,8 @@ package:
     name: perl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/perl-5.32.1-7_h10d778d_perl5.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/perl-5.32.1-7_h10d778d_perl5.conda
     version: 5.32.1
   - category: main
     dependencies: {}
@@ -10569,7 +10908,8 @@ package:
     name: pexpect
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -10582,7 +10922,8 @@ package:
     name: pexpect
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -10595,7 +10936,8 @@ package:
     name: pexpect
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
     version: 4.9.0
   - category: main
     dependencies:
@@ -10609,7 +10951,8 @@ package:
     name: pip
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -10623,7 +10966,8 @@ package:
     name: pip
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -10637,7 +10981,8 @@ package:
     name: pip
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -10651,7 +10996,8 @@ package:
     name: pixman
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/pixman-0.46.0-h29eaf8c_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/pixman-0.46.0-h29eaf8c_0.conda
     version: 0.46.0
   - category: main
     dependencies:
@@ -10664,7 +11010,8 @@ package:
     name: pixman
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pixman-0.46.0-h1fd1274_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pixman-0.46.0-h1fd1274_0.conda
     version: 0.46.0
   - category: main
     dependencies:
@@ -10677,7 +11024,8 @@ package:
     name: pixman
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/pixman-0.46.0-h2f9eb0b_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/pixman-0.46.0-h2f9eb0b_0.conda
     version: 0.46.0
   - category: main
     dependencies:
@@ -10806,7 +11154,8 @@ package:
     name: pluggy
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
     version: 1.6.0
   - category: main
     dependencies:
@@ -10818,7 +11167,8 @@ package:
     name: pluggy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
     version: 1.6.0
   - category: main
     dependencies:
@@ -10830,7 +11180,8 @@ package:
     name: pluggy
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
     version: 1.6.0
   - category: main
     dependencies:
@@ -11014,7 +11365,8 @@ package:
     name: psutil
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.0.0-py311h4d7f069_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/psutil-7.0.0-py311h4d7f069_0.conda
     version: 7.0.0
   - category: main
     dependencies:
@@ -11234,7 +11586,8 @@ package:
     name: pyasn1
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
     version: 0.6.1
   - category: main
     dependencies:
@@ -11246,7 +11599,8 @@ package:
     name: pyasn1
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
     version: 0.6.1
   - category: main
     dependencies:
@@ -11258,7 +11612,8 @@ package:
     name: pyasn1
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
     version: 0.6.1
   - category: main
     dependencies: {}
@@ -11269,7 +11624,8 @@ package:
     name: pybind11-abi
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
     version: '4'
   - category: main
     dependencies: {}
@@ -11280,7 +11636,8 @@ package:
     name: pybind11-abi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
     version: '4'
   - category: main
     dependencies: {}
@@ -11291,7 +11648,8 @@ package:
     name: pybind11-abi
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pybind11-abi-4-hd8ed1ab_3.tar.bz2
     version: '4'
   - category: main
     dependencies:
@@ -11349,7 +11707,8 @@ package:
     name: pycparser
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
     version: '2.22'
   - category: main
     dependencies:
@@ -11361,7 +11720,8 @@ package:
     name: pycparser
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
     version: '2.22'
   - category: main
     dependencies:
@@ -11373,7 +11733,8 @@ package:
     name: pycparser
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
     version: '2.22'
   - category: main
     dependencies:
@@ -11439,7 +11800,8 @@ package:
     name: pydantic
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
     version: 2.11.4
   - category: main
     dependencies:
@@ -11456,7 +11818,8 @@ package:
     name: pydantic
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
     version: 2.11.4
   - category: main
     dependencies:
@@ -11473,7 +11836,8 @@ package:
     name: pydantic
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
     version: 2.11.4
   - category: main
     dependencies:
@@ -11684,7 +12048,8 @@ package:
     name: pygithub
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -11704,7 +12069,8 @@ package:
     name: pygithub
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -11724,7 +12090,8 @@ package:
     name: pygithub
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygithub-2.6.1-pyhd8ed1ab_0.conda
     version: 2.6.1
   - category: main
     dependencies:
@@ -11736,7 +12103,8 @@ package:
     name: pygments
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
     version: 2.19.1
   - category: main
     dependencies:
@@ -11748,7 +12116,8 @@ package:
     name: pygments
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
     version: 2.19.1
   - category: main
     dependencies:
@@ -11760,7 +12129,8 @@ package:
     name: pygments
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
     version: 2.19.1
   - category: main
     dependencies:
@@ -11772,7 +12142,8 @@ package:
     name: pyjwt
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
     version: 2.10.1
   - category: main
     dependencies:
@@ -11784,7 +12155,8 @@ package:
     name: pyjwt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
     version: 2.10.1
   - category: main
     dependencies:
@@ -11796,7 +12168,8 @@ package:
     name: pyjwt
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
     version: 2.10.1
   - category: main
     dependencies:
@@ -11930,7 +12303,8 @@ package:
     name: pynacl
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.5.0-py311h3336109_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.5.0-py311h3336109_4.conda
     version: 1.5.0
   - category: main
     dependencies:
@@ -11963,7 +12337,8 @@ package:
     name: pynamodb
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
     version: 6.1.0
   - category: main
     dependencies:
@@ -11978,7 +12353,8 @@ package:
     name: pynamodb
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
     version: 6.1.0
   - category: main
     dependencies:
@@ -11993,7 +12369,8 @@ package:
     name: pynamodb
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.1.0-pyhd8ed1ab_0.conda
     version: 6.1.0
   - category: main
     dependencies:
@@ -12115,7 +12492,8 @@ package:
     name: pyparsing
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
     version: 3.1.4
   - category: main
     dependencies:
@@ -12127,7 +12505,8 @@ package:
     name: pyparsing
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
     version: 3.1.4
   - category: main
     dependencies:
@@ -12139,7 +12518,8 @@ package:
     name: pyparsing
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.1.4-pyhd8ed1ab_0.conda
     version: 3.1.4
   - category: main
     dependencies:
@@ -12154,7 +12534,8 @@ package:
     name: pyperclip
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyha804496_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyha804496_3.conda
     version: 1.8.2
   - category: main
     dependencies:
@@ -12168,7 +12549,8 @@ package:
     name: pyperclip
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyh534df25_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyh534df25_3.conda
     version: 1.8.2
   - category: main
     dependencies:
@@ -12182,7 +12564,8 @@ package:
     name: pyperclip
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyh534df25_3.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pyperclip-1.8.2-pyh534df25_3.conda
     version: 1.8.2
   - category: main
     dependencies:
@@ -12237,7 +12620,8 @@ package:
     name: pysocks
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
     version: 1.7.1
   - category: main
     dependencies:
@@ -12250,7 +12634,8 @@ package:
     name: pysocks
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
     version: 1.7.1
   - category: main
     dependencies:
@@ -12263,7 +12648,8 @@ package:
     name: pysocks
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
     version: 1.7.1
   - category: main
     dependencies:
@@ -12281,7 +12667,8 @@ package:
     name: pytest
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
     version: 8.0.2
   - category: main
     dependencies:
@@ -12299,7 +12686,8 @@ package:
     name: pytest
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
     version: 8.0.2
   - category: main
     dependencies:
@@ -12317,7 +12705,8 @@ package:
     name: pytest
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
     version: 8.0.2
   - category: main
     dependencies:
@@ -13085,7 +13474,8 @@ package:
     name: python_abi
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies: {}
@@ -13096,7 +13486,8 @@ package:
     name: python_abi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies: {}
@@ -13107,7 +13498,8 @@ package:
     name: python_abi
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/python_abi-3.11-7_cp311.conda
     version: '3.11'
   - category: main
     dependencies:
@@ -13119,7 +13511,8 @@ package:
     name: pytz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
     version: '2025.2'
   - category: main
     dependencies:
@@ -13131,7 +13524,8 @@ package:
     name: pytz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
     version: '2025.2'
   - category: main
     dependencies:
@@ -13143,7 +13537,8 @@ package:
     name: pytz
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
     version: '2025.2'
   - category: main
     dependencies:
@@ -13175,7 +13570,8 @@ package:
     name: pyyaml
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pyyaml-6.0.2-py311ha3cf9ac_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/pyyaml-6.0.2-py311ha3cf9ac_2.conda
     version: 6.0.2
   - category: main
     dependencies:
@@ -13355,7 +13751,8 @@ package:
     name: readline
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
     version: '8.2'
   - category: main
     dependencies:
@@ -13367,7 +13764,8 @@ package:
     name: readline
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/readline-8.2-h7cca4af_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/readline-8.2-h7cca4af_2.conda
     version: '8.2'
   - category: main
     dependencies:
@@ -13379,7 +13777,8 @@ package:
     name: readline
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda
     version: '8.2'
   - category: main
     dependencies:
@@ -13529,7 +13928,8 @@ package:
     name: requests
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
     version: 2.32.3
   - category: main
     dependencies:
@@ -13545,7 +13945,8 @@ package:
     name: requests
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
     version: 2.32.3
   - category: main
     dependencies:
@@ -13561,7 +13962,8 @@ package:
     name: requests
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
     version: 2.32.3
   - category: main
     dependencies:
@@ -13705,7 +14107,8 @@ package:
     name: rich
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
     version: 14.0.0
   - category: main
     dependencies:
@@ -13720,7 +14123,8 @@ package:
     name: rich
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
     version: 14.0.0
   - category: main
     dependencies:
@@ -13735,7 +14139,8 @@ package:
     name: rich
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/rich-14.0.0-pyh29332c3_0.conda
     version: 14.0.0
   - category: main
     dependencies:
@@ -13796,7 +14201,8 @@ package:
     name: ripgrep
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.1-h8fae777_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.1-h8fae777_1.conda
     version: 14.1.1
   - category: main
     dependencies:
@@ -13808,7 +14214,8 @@ package:
     name: ripgrep
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.1-h926acf8_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.1-h926acf8_1.conda
     version: 14.1.1
   - category: main
     dependencies:
@@ -13820,7 +14227,8 @@ package:
     name: ripgrep
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.1-h0ef69ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.1-h0ef69ab_1.conda
     version: 14.1.1
   - category: main
     dependencies:
@@ -14047,7 +14455,8 @@ package:
     name: scipy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.15.2-py311h0c91ca8_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/scipy-1.15.2-py311h0c91ca8_0.conda
     version: 1.15.2
   - category: main
     dependencies:
@@ -14150,7 +14559,8 @@ package:
     name: semver
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
     version: 3.0.4
   - category: main
     dependencies:
@@ -14162,7 +14572,8 @@ package:
     name: semver
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
     version: 3.0.4
   - category: main
     dependencies:
@@ -14174,7 +14585,8 @@ package:
     name: semver
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/semver-3.0.4-pyhd8ed1ab_0.conda
     version: 3.0.4
   - category: main
     dependencies:
@@ -14318,7 +14730,8 @@ package:
     name: sgmllib3k
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -14330,7 +14743,8 @@ package:
     name: sgmllib3k
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -14342,7 +14756,8 @@ package:
     name: sgmllib3k
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sgmllib3k-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -14393,7 +14808,8 @@ package:
     name: sigtool
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/sigtool-0.1.3-h88f4db0_0.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/sigtool-0.1.3-h88f4db0_0.tar.bz2
     version: 0.1.3
   - category: main
     dependencies:
@@ -14420,7 +14836,8 @@ package:
     name: simdjson
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/simdjson-3.13.0-h84d6215_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/simdjson-3.13.0-h84d6215_0.conda
     version: 3.13.0
   - category: main
     dependencies:
@@ -14433,7 +14850,8 @@ package:
     name: simdjson
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/simdjson-3.13.0-h9275861_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/simdjson-3.13.0-h9275861_0.conda
     version: 3.13.0
   - category: main
     dependencies:
@@ -14459,7 +14877,8 @@ package:
     name: six
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
     version: 1.17.0
   - category: main
     dependencies:
@@ -14471,7 +14890,8 @@ package:
     name: six
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
     version: 1.17.0
   - category: main
     dependencies:
@@ -14483,7 +14903,8 @@ package:
     name: six
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
     version: 1.17.0
   - category: main
     dependencies:
@@ -14495,7 +14916,8 @@ package:
     name: smmap
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
     version: 5.0.2
   - category: main
     dependencies:
@@ -14507,7 +14929,8 @@ package:
     name: smmap
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
     version: 5.0.2
   - category: main
     dependencies:
@@ -14519,7 +14942,8 @@ package:
     name: smmap
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.2-pyhd8ed1ab_0.conda
     version: 5.0.2
   - category: main
     dependencies:
@@ -14531,7 +14955,8 @@ package:
     name: sniffio
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -14543,7 +14968,8 @@ package:
     name: sniffio
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -14555,7 +14981,8 @@ package:
     name: sniffio
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -14606,7 +15033,8 @@ package:
     name: soupsieve
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
     version: '2.7'
   - category: main
     dependencies:
@@ -14618,7 +15046,8 @@ package:
     name: soupsieve
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
     version: '2.7'
   - category: main
     dependencies:
@@ -14630,7 +15059,8 @@ package:
     name: soupsieve
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/soupsieve-2.7-pyhd8ed1ab_0.conda
     version: '2.7'
   - category: main
     dependencies:
@@ -14727,7 +15157,8 @@ package:
     name: stopit
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
@@ -14740,7 +15171,8 @@ package:
     name: stopit
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
@@ -14753,7 +15185,8 @@ package:
     name: stopit
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
@@ -14770,7 +15203,8 @@ package:
     name: streamz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
     version: 0.6.4
   - category: main
     dependencies:
@@ -14787,7 +15221,8 @@ package:
     name: streamz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
     version: 0.6.4
   - category: main
     dependencies:
@@ -14804,7 +15239,8 @@ package:
     name: streamz
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/streamz-0.6.4-pyhd8ed1ab_1.conda
     version: 0.6.4
   - category: main
     dependencies:
@@ -14818,7 +15254,8 @@ package:
     name: tapi
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/tapi-1300.6.5-h390ca13_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/tapi-1300.6.5-h390ca13_0.conda
     version: 1300.6.5
   - category: main
     dependencies:
@@ -14832,7 +15269,8 @@ package:
     name: tapi
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/tapi-1300.6.5-h03f4b80_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/tapi-1300.6.5-h03f4b80_0.conda
     version: 1300.6.5
   - category: main
     dependencies:
@@ -14845,7 +15283,8 @@ package:
     name: tar
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/tar-1.34-hb2e2bae_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/tar-1.34-hb2e2bae_1.tar.bz2
     version: '1.34'
   - category: main
     dependencies:
@@ -14857,7 +15296,8 @@ package:
     name: tar
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/tar-1.34-hcb2f6ea_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/tar-1.34-hcb2f6ea_1.tar.bz2
     version: '1.34'
   - category: main
     dependencies:
@@ -14869,7 +15309,8 @@ package:
     name: tar
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/tar-1.34-h7cb298e_1.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/tar-1.34-h7cb298e_1.tar.bz2
     version: '1.34'
   - category: main
     dependencies:
@@ -14881,7 +15322,8 @@ package:
     name: tblib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
     version: 3.1.0
   - category: main
     dependencies:
@@ -14893,7 +15335,8 @@ package:
     name: tblib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
     version: 3.1.0
   - category: main
     dependencies:
@@ -14905,7 +15348,8 @@ package:
     name: tblib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tblib-3.1.0-pyhd8ed1ab_0.conda
     version: 3.1.0
   - category: main
     dependencies:
@@ -14933,7 +15377,8 @@ package:
     name: tk
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/tk-8.6.13-hf689a15_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/tk-8.6.13-hf689a15_2.conda
     version: 8.6.13
   - category: main
     dependencies:
@@ -14946,7 +15391,8 @@ package:
     name: tk
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-h892fb3f_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-h892fb3f_2.conda
     version: 8.6.13
   - category: main
     dependencies:
@@ -14958,7 +15404,8 @@ package:
     name: toml
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
@@ -14970,7 +15417,8 @@ package:
     name: toml
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
@@ -14982,7 +15430,8 @@ package:
     name: toml
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
@@ -14994,7 +15443,8 @@ package:
     name: tomli
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -15006,7 +15456,8 @@ package:
     name: tomli
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -15018,7 +15469,8 @@ package:
     name: tomli
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
     version: 2.2.1
   - category: main
     dependencies:
@@ -15030,7 +15482,8 @@ package:
     name: tomli-w
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -15042,7 +15495,8 @@ package:
     name: tomli-w
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -15054,7 +15508,8 @@ package:
     name: tomli-w
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -15066,7 +15521,8 @@ package:
     name: tomlkit
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
     version: 0.13.3
   - category: main
     dependencies:
@@ -15078,7 +15534,8 @@ package:
     name: tomlkit
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
     version: 0.13.3
   - category: main
     dependencies:
@@ -15090,7 +15547,8 @@ package:
     name: tomlkit
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.13.3-pyha770c72_0.conda
     version: 0.13.3
   - category: main
     dependencies:
@@ -15102,7 +15560,8 @@ package:
     name: toolz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -15114,7 +15573,8 @@ package:
     name: toolz
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -15126,7 +15586,8 @@ package:
     name: toolz
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/toolz-1.0.0-pyhd8ed1ab_1.conda
     version: 1.0.0
   - category: main
     dependencies:
@@ -15185,7 +15646,8 @@ package:
     name: tqdm
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
@@ -15198,7 +15660,8 @@ package:
     name: tqdm
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
@@ -15211,7 +15674,8 @@ package:
     name: tqdm
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
@@ -15302,7 +15766,8 @@ package:
     name: typer
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
     version: 0.16.0
   - category: main
     dependencies:
@@ -15315,7 +15780,8 @@ package:
     name: typer
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
     version: 0.16.0
   - category: main
     dependencies:
@@ -15328,7 +15794,8 @@ package:
     name: typer
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.16.0-pyh167b9f4_0.conda
     version: 0.16.0
   - category: main
     dependencies:
@@ -15549,7 +16016,8 @@ package:
     name: tzdata
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
     version: 2025b
   - category: main
     dependencies: {}
@@ -15560,7 +16028,8 @@ package:
     name: tzdata
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
     version: 2025b
   - category: main
     dependencies: {}
@@ -15571,7 +16040,8 @@ package:
     name: tzdata
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
     version: 2025b
   - category: main
     dependencies:
@@ -15678,7 +16148,8 @@ package:
     name: urllib3
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
     version: 2.4.0
   - category: main
     dependencies:
@@ -15694,7 +16165,8 @@ package:
     name: urllib3
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
     version: 2.4.0
   - category: main
     dependencies:
@@ -15710,7 +16182,8 @@ package:
     name: urllib3
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
     version: 2.4.0
   - category: main
     dependencies:
@@ -15723,7 +16196,8 @@ package:
     name: userpath
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
     version: 1.9.2
   - category: main
     dependencies:
@@ -15736,7 +16210,8 @@ package:
     name: userpath
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
     version: 1.9.2
   - category: main
     dependencies:
@@ -15749,7 +16224,8 @@ package:
     name: userpath
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/userpath-1.9.2-pyhd8ed1ab_0.conda
     version: 1.9.2
   - category: main
     dependencies:
@@ -15757,40 +16233,43 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: 6a74897b1d7f9053f827833d50c6f678
-      sha256: 859e77c7e4be567d53e5a875fcc4827f8e0a6e1795bcc9e54ac844252cf594c0
+      md5: faae2c17f567260fe5cc97aff00c37e4
+      sha256: 55852231156a8f437ef2ec196d2233330ed4316e3143a1fba6f11f83118c246a
     manager: conda
     name: uv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.7.11-h2f11bb8_0.conda
-    version: 0.7.11
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/uv-0.7.12-h2f11bb8_0.conda
+    version: 0.7.12
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
     hash:
-      md5: 8674ec1c0084e97c2ce9e59280653fc6
-      sha256: 0577d9da5b33ae517f0a219e532c188bc9414be8e344e495457338e039d0f1ac
+      md5: 975b18940de7b3d24eb5625cd1970d5f
+      sha256: d31fe1c12b1de9b1545c13021bb8ae85fad853218f2b8b7c843ba27c7bc7ebc7
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.7.11-h6914f18_0.conda
-    version: 0.7.11
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/uv-0.7.12-h6914f18_0.conda
+    version: 0.7.12
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: cb55e67e3f36f1e2c68a41f06f0476e5
-      sha256: 311c9d579af5ad916b6bb04370a4e3cadf2d1242ceccea1c1c8bd8422fc593a3
+      md5: 9942fb6ca64f01450046f1c35ac5c1f7
+      sha256: b7e9aff3c790a153361348c4233f7fee26de241ae59c060801ee14b37d4b43dc
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.11-hb4c02be_0.conda
-    version: 0.7.11
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.12-hb4c02be_0.conda
+    version: 0.7.12
   - category: main
     dependencies:
       __unix: ''
@@ -15805,7 +16284,8 @@ package:
     name: uvicorn
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
     version: 0.34.3
   - category: main
     dependencies:
@@ -15821,7 +16301,8 @@ package:
     name: uvicorn
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
     version: 0.34.3
   - category: main
     dependencies:
@@ -15837,7 +16318,8 @@ package:
     name: uvicorn
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/uvicorn-0.34.3-pyh31011fe_0.conda
     version: 0.34.3
   - category: main
     dependencies:
@@ -16104,7 +16586,8 @@ package:
     name: wayland
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/wayland-1.23.1-h3e06ad9_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/wayland-1.23.1-h3e06ad9_1.conda
     version: 1.23.1
   - category: main
     dependencies:
@@ -16163,7 +16646,8 @@ package:
     name: werkzeug
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
     version: 3.1.3
   - category: main
     dependencies:
@@ -16176,7 +16660,8 @@ package:
     name: werkzeug
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
     version: 3.1.3
   - category: main
     dependencies:
@@ -16189,7 +16674,8 @@ package:
     name: werkzeug
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
     version: 3.1.3
   - category: main
     dependencies:
@@ -16206,7 +16692,8 @@ package:
     name: wget
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/wget-1.21.4-hda4d442_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/wget-1.21.4-hda4d442_0.conda
     version: 1.21.4
   - category: main
     dependencies:
@@ -16222,7 +16709,8 @@ package:
     name: wget
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/wget-1.21.4-hca547e6_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/wget-1.21.4-hca547e6_0.conda
     version: 1.21.4
   - category: main
     dependencies:
@@ -16238,7 +16726,8 @@ package:
     name: wget
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/wget-1.21.4-he2df1f1_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/wget-1.21.4-he2df1f1_0.conda
     version: 1.21.4
   - category: main
     dependencies:
@@ -16250,7 +16739,8 @@ package:
     name: wheel
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
     version: 0.45.1
   - category: main
     dependencies:
@@ -16262,7 +16752,8 @@ package:
     name: wheel
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
     version: 0.45.1
   - category: main
     dependencies:
@@ -16274,7 +16765,8 @@ package:
     name: wheel
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.1-pyhd8ed1ab_1.conda
     version: 0.45.1
   - category: main
     dependencies:
@@ -16304,7 +16796,8 @@ package:
     name: wrapt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/wrapt-1.17.2-py311h4d7f069_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/wrapt-1.17.2-py311h4d7f069_0.conda
     version: 1.17.2
   - category: main
     dependencies:
@@ -16332,7 +16825,8 @@ package:
     name: wsproto
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -16345,7 +16839,8 @@ package:
     name: wsproto
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -16358,7 +16853,8 @@ package:
     name: wsproto
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wsproto-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -16370,7 +16866,8 @@ package:
     name: wurlitzer
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
     version: 3.1.1
   - category: main
     dependencies:
@@ -16382,7 +16879,8 @@ package:
     name: wurlitzer
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
     version: 3.1.1
   - category: main
     dependencies:
@@ -16394,7 +16892,8 @@ package:
     name: wurlitzer
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_1.conda
     version: 3.1.1
   - category: main
     dependencies:
@@ -16409,7 +16908,8 @@ package:
     name: xattr
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/xattr-1.1.0-py311h3336109_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/xattr-1.1.0-py311h3336109_1.conda
     version: 1.1.0
   - category: main
     dependencies:
@@ -16440,7 +16940,8 @@ package:
     name: xclip
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/xclip-0.13-hb9d3cd8_4.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/xclip-0.13-hb9d3cd8_4.conda
     version: '0.13'
   - category: main
     dependencies:
@@ -16739,7 +17240,8 @@ package:
     name: xsel
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/xsel-1.2.1-hb9d3cd8_6.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/xsel-1.2.1-hb9d3cd8_6.conda
     version: 1.2.1
   - category: main
     dependencies:
@@ -16751,7 +17253,8 @@ package:
     name: yaml
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/yaml-0.2.5-h7f98852_2.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/yaml-0.2.5-h7f98852_2.tar.bz2
     version: 0.2.5
   - category: main
     dependencies: {}
@@ -16762,7 +17265,8 @@ package:
     name: yaml
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/yaml-0.2.5-h0d85af4_2.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/yaml-0.2.5-h0d85af4_2.tar.bz2
     version: 0.2.5
   - category: main
     dependencies: {}
@@ -16773,7 +17277,8 @@ package:
     name: yaml
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/yaml-0.2.5-h3422bc3_2.tar.bz2
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/yaml-0.2.5-h3422bc3_2.tar.bz2
     version: 0.2.5
   - category: main
     dependencies:
@@ -16787,7 +17292,8 @@ package:
     name: yaml-cpp
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/yaml-cpp-0.8.0-h3f2d84a_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/yaml-cpp-0.8.0-h3f2d84a_0.conda
     version: 0.8.0
   - category: main
     dependencies:
@@ -16800,7 +17306,8 @@ package:
     name: yaml-cpp
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/yaml-cpp-0.8.0-h92383a6_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/yaml-cpp-0.8.0-h92383a6_0.conda
     version: 0.8.0
   - category: main
     dependencies:
@@ -16813,7 +17320,8 @@ package:
     name: yaml-cpp
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/yaml-cpp-0.8.0-ha1acc90_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/yaml-cpp-0.8.0-ha1acc90_0.conda
     version: 0.8.0
   - category: main
     dependencies:
@@ -16825,7 +17333,8 @@ package:
     name: zict
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
     version: 3.0.0
   - category: main
     dependencies:
@@ -16837,7 +17346,8 @@ package:
     name: zict
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
     version: 3.0.0
   - category: main
     dependencies:
@@ -16849,7 +17359,8 @@ package:
     name: zict
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zict-3.0.0-pyhd8ed1ab_1.conda
     version: 3.0.0
   - category: main
     dependencies:
@@ -16861,7 +17372,8 @@ package:
     name: zipp
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
     version: 3.22.0
   - category: main
     dependencies:
@@ -16873,7 +17385,8 @@ package:
     name: zipp
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
     version: 3.22.0
   - category: main
     dependencies:
@@ -16885,7 +17398,8 @@ package:
     name: zipp
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
     version: 3.22.0
   - category: main
     dependencies:
@@ -16899,7 +17413,8 @@ package:
     name: zlib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -16912,7 +17427,8 @@ package:
     name: zlib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/zlib-1.3.1-hd23fc13_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/zlib-1.3.1-hd23fc13_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -16925,7 +17441,8 @@ package:
     name: zlib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.1-h8359307_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.1-h8359307_2.conda
     version: 1.3.1
   - category: main
     dependencies:
@@ -16986,7 +17503,8 @@ package:
     name: zstd
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
     version: 1.5.7
   - category: main
     dependencies:
@@ -16999,7 +17517,8 @@ package:
     name: zstd
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/zstd-1.5.7-h8210216_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/zstd-1.5.7-h8210216_2.conda
     version: 1.5.7
   - category: main
     dependencies:
@@ -17012,6 +17531,7 @@ package:
     name: zstd
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-h6491c7d_2.conda
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-h6491c7d_2.conda
     version: 1.5.7
 version: 1
