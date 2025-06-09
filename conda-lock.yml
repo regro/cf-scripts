@@ -10292,15 +10292,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: babce4d9841ebfcee64249d98eb4e0d4
-      sha256: f28273a72d25f4d7d62a9ba031d5271082afc498121bd0f6783d72b4103dbbc7
+      md5: 002e600fcc82f415bfaad7d05a44c016
+      sha256: a9a6f36c2982837e19448c231435a914376948eb493e2cd8e9f69b133ca0e796
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.2.6-py311h5d046bc_0.conda
-    version: 2.2.6
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.0-py311h519dc76_0.conda
+    version: 2.3.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -10311,15 +10311,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8e850d1284fd8a90aeb4b5195a0116f3
-      sha256: bcb2c6fd701f3591fd4cd04580ec62ad88622c09671139a98d82ca80e2ae365f
+      md5: 91eb2cc588b04797414f36c781cb398f
+      sha256: 29b6b4912f1e91a186365b68a524df3d98ad319f80731befd27f465f2d703778
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.6-py311h27c81cd_0.conda
-    version: 2.2.6
+      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.0-py311h9224382_0.conda
+    version: 2.3.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -10330,15 +10330,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 9446d2629b529e92769dfb34c7c194bb
-      sha256: c6cd42960418a2bd60cfbc293f08d85076f7d8aacf7a94f516195381241d4d93
+      md5: 56ade1d0ea3530973648464b23a5b131
+      sha256: 2ed53589ec66c38895abfaacccc11e0c875dd146147ab02ebf2849665671430d
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.6-py311h762c074_0.conda
-    version: 2.2.6
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.0-py311h4379d9d_0.conda
+    version: 2.3.0
   - category: main
     dependencies:
       blinker: ''
@@ -17366,41 +17366,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 234be740b00b8e41567e5b0ed95aaba9
-      sha256: 3f7a58ff4ff1d337d56af0641a7eba34e7eea0bf32e49934c96ee171640f620b
+      md5: df5e78d904988eb55042c0c97446079f
+      sha256: 7560d21e1b021fd40b65bfb72f67945a3fcb83d78ad7ccf37b8b3165ec3b68ad
     manager: conda
     name: zipp
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
-    version: 3.22.0
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.23.0-pyhd8ed1ab_0.conda
+    version: 3.23.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 234be740b00b8e41567e5b0ed95aaba9
-      sha256: 3f7a58ff4ff1d337d56af0641a7eba34e7eea0bf32e49934c96ee171640f620b
+      md5: df5e78d904988eb55042c0c97446079f
+      sha256: 7560d21e1b021fd40b65bfb72f67945a3fcb83d78ad7ccf37b8b3165ec3b68ad
     manager: conda
     name: zipp
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
-    version: 3.22.0
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.23.0-pyhd8ed1ab_0.conda
+    version: 3.23.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 234be740b00b8e41567e5b0ed95aaba9
-      sha256: 3f7a58ff4ff1d337d56af0641a7eba34e7eea0bf32e49934c96ee171640f620b
+      md5: df5e78d904988eb55042c0c97446079f
+      sha256: 7560d21e1b021fd40b65bfb72f67945a3fcb83d78ad7ccf37b8b3165ec3b68ad
     manager: conda
     name: zipp
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/zipp-3.22.0-pyhd8ed1ab_0.conda
-    version: 3.22.0
+      https://conda.anaconda.org/conda-forge/noarch/zipp-3.23.0-pyhd8ed1ab_0.conda
+    version: 3.23.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
