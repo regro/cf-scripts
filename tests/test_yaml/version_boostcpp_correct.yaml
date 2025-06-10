@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://boostorg.jfrog.io/artifactory/main/release/{{ version }}/source/{{ filename }}
-  sha256: 79e6d3f986444e5a80afbeccdaf2d1c1cf964baa8d766d20859d653a16c39848
+  sha256: e0f020de72913559199b5698b1f50a733dcfd7e1b0532de4a2357c3baca95e0f
   patches:
     # https://github.com/boostorg/build/pull/642
     - 456be0b7ecca065fbccf380c2f51e0985e608ba0.patch  # [osx and arm64]
