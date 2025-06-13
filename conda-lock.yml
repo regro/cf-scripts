@@ -11794,15 +11794,15 @@ package:
       typing-inspection: '>=0.4.0'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: 7f6b4780ae015503068182b94512e044
-      sha256: 7d44b0c332a1404cb3bd4738438abe4b73fb499c4747a798202b561ddda1556a
+      md5: 5dadd574d19387f5baaec7326e539b9d
+      sha256: 4f4393bc877c74a0516ebea6af0b8cfd72960601ec729eaad4c8b252f5395e2b
     manager: conda
     name: pydantic
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.5-pyh3cfb1c2_0.conda
-    version: 2.11.5
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.6-pyh3cfb1c2_0.conda
+    version: 2.11.6
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
@@ -11812,15 +11812,15 @@ package:
       typing-inspection: '>=0.4.0'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: 7f6b4780ae015503068182b94512e044
-      sha256: 7d44b0c332a1404cb3bd4738438abe4b73fb499c4747a798202b561ddda1556a
+      md5: 5dadd574d19387f5baaec7326e539b9d
+      sha256: 4f4393bc877c74a0516ebea6af0b8cfd72960601ec729eaad4c8b252f5395e2b
     manager: conda
     name: pydantic
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.5-pyh3cfb1c2_0.conda
-    version: 2.11.5
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.6-pyh3cfb1c2_0.conda
+    version: 2.11.6
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
@@ -11830,15 +11830,15 @@ package:
       typing-inspection: '>=0.4.0'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: 7f6b4780ae015503068182b94512e044
-      sha256: 7d44b0c332a1404cb3bd4738438abe4b73fb499c4747a798202b561ddda1556a
+      md5: 5dadd574d19387f5baaec7326e539b9d
+      sha256: 4f4393bc877c74a0516ebea6af0b8cfd72960601ec729eaad4c8b252f5395e2b
     manager: conda
     name: pydantic
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.5-pyh3cfb1c2_0.conda
-    version: 2.11.5
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.6-pyh3cfb1c2_0.conda
+    version: 2.11.6
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
