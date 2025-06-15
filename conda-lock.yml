@@ -1085,41 +1085,41 @@ package:
     dependencies:
       __unix: ''
     hash:
-      md5: 95db94f75ba080a22eb623590993167b
-      sha256: 2a70ed95ace8a3f8a29e6cd1476a943df294a7111dfb3e152e3478c4c889b7ac
+      md5: 72525f07d72806e3b639ad4504c30ce5
+      sha256: 7cfec9804c84844ea544d98bda1d9121672b66ff7149141b8415ca42dfcd44f6
     manager: conda
     name: ca-certificates
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.4.26-hbd8a1cb_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.6.15-hbd8a1cb_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       __unix: ''
     hash:
-      md5: 95db94f75ba080a22eb623590993167b
-      sha256: 2a70ed95ace8a3f8a29e6cd1476a943df294a7111dfb3e152e3478c4c889b7ac
+      md5: 72525f07d72806e3b639ad4504c30ce5
+      sha256: 7cfec9804c84844ea544d98bda1d9121672b66ff7149141b8415ca42dfcd44f6
     manager: conda
     name: ca-certificates
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.4.26-hbd8a1cb_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.6.15-hbd8a1cb_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       __unix: ''
     hash:
-      md5: 95db94f75ba080a22eb623590993167b
-      sha256: 2a70ed95ace8a3f8a29e6cd1476a943df294a7111dfb3e152e3478c4c889b7ac
+      md5: 72525f07d72806e3b639ad4504c30ce5
+      sha256: 7cfec9804c84844ea544d98bda1d9121672b66ff7149141b8415ca42dfcd44f6
     manager: conda
     name: ca-certificates
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.4.26-hbd8a1cb_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.6.15-hbd8a1cb_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       msgpack-python: '>=0.5.2,<2.0.0'
@@ -1397,41 +1397,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: c33eeaaa33f45031be34cda513df39b6
-      sha256: 52aa837642fd851b3f7ad3b1f66afc5366d133c1d452323f786b0378a391915c
+      md5: 781d068df0cc2407d4db0ecfbb29225b
+      sha256: d71c85835813072cd6d7ce4b24be34215cd90c104785b15a5d58f4cd0cb50778
     manager: conda
     name: certifi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.4.26-pyhd8ed1ab_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.6.15-pyhd8ed1ab_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: c33eeaaa33f45031be34cda513df39b6
-      sha256: 52aa837642fd851b3f7ad3b1f66afc5366d133c1d452323f786b0378a391915c
+      md5: 781d068df0cc2407d4db0ecfbb29225b
+      sha256: d71c85835813072cd6d7ce4b24be34215cd90c104785b15a5d58f4cd0cb50778
     manager: conda
     name: certifi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.4.26-pyhd8ed1ab_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.6.15-pyhd8ed1ab_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: c33eeaaa33f45031be34cda513df39b6
-      sha256: 52aa837642fd851b3f7ad3b1f66afc5366d133c1d452323f786b0378a391915c
+      md5: 781d068df0cc2407d4db0ecfbb29225b
+      sha256: d71c85835813072cd6d7ce4b24be34215cd90c104785b15a5d58f4cd0cb50778
     manager: conda
     name: certifi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.4.26-pyhd8ed1ab_0.conda
-    version: 2025.4.26
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.6.15-pyhd8ed1ab_0.conda
+    version: 2025.6.15
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -13218,43 +13218,43 @@ package:
       graphviz: '>=2.46.1'
       python: '>=3.9'
     hash:
-      md5: f822f0e13849c2283f72ec4aa120eeaa
-      sha256: c8f5d3d23b5962524217f33549add8d6c5af22fe839b49603f4588771154a51c
+      md5: 606d94da4566aa177df7615d68b29176
+      sha256: b0139f80dea17136451975e4c0fefb5c86893d8b7bc6360626e8b025b8d8003a
     manager: conda
     name: python-graphviz
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.20.3-pyh91182bf_2.conda
-    version: 0.20.3
+      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.21-pyhbacfb6d_0.conda
+    version: '0.21'
   - category: main
     dependencies:
       graphviz: '>=2.46.1'
       python: '>=3.9'
     hash:
-      md5: f822f0e13849c2283f72ec4aa120eeaa
-      sha256: c8f5d3d23b5962524217f33549add8d6c5af22fe839b49603f4588771154a51c
+      md5: 606d94da4566aa177df7615d68b29176
+      sha256: b0139f80dea17136451975e4c0fefb5c86893d8b7bc6360626e8b025b8d8003a
     manager: conda
     name: python-graphviz
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.20.3-pyh91182bf_2.conda
-    version: 0.20.3
+      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.21-pyhbacfb6d_0.conda
+    version: '0.21'
   - category: main
     dependencies:
       graphviz: '>=2.46.1'
       python: '>=3.9'
     hash:
-      md5: f822f0e13849c2283f72ec4aa120eeaa
-      sha256: c8f5d3d23b5962524217f33549add8d6c5af22fe839b49603f4588771154a51c
+      md5: 606d94da4566aa177df7615d68b29176
+      sha256: b0139f80dea17136451975e4c0fefb5c86893d8b7bc6360626e8b025b8d8003a
     manager: conda
     name: python-graphviz
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.20.3-pyh91182bf_2.conda
-    version: 0.20.3
+      https://conda.anaconda.org/conda-forge/noarch/python-graphviz-0.21-pyhbacfb6d_0.conda
+    version: '0.21'
   - category: main
     dependencies:
       python: '>=3.9'
