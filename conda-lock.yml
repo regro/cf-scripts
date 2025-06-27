@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f516f057fe1f8af1f583245737a806ad
-      sha256: 3ea2d40d1d7fd76600114f282f5ce326fad0581eea5c8cafa8d0084621d190a1
+      md5: 5e3b86e05cf133f7dbc8d740dba3a568
+      sha256: 480ccdc6ecc685f6457bbf8900856556de0a7859e2d0a27013a74802a38938d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.11.56.43-hd8ed1ab_0.conda
-    version: 2025.06.27.11.56.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.19.47.22-hd8ed1ab_0.conda
+    version: 2025.06.27.19.47.22
   - category: main
     dependencies: {}
     hash:
-      md5: f516f057fe1f8af1f583245737a806ad
-      sha256: 3ea2d40d1d7fd76600114f282f5ce326fad0581eea5c8cafa8d0084621d190a1
+      md5: 5e3b86e05cf133f7dbc8d740dba3a568
+      sha256: 480ccdc6ecc685f6457bbf8900856556de0a7859e2d0a27013a74802a38938d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.11.56.43-hd8ed1ab_0.conda
-    version: 2025.06.27.11.56.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.19.47.22-hd8ed1ab_0.conda
+    version: 2025.06.27.19.47.22
   - category: main
     dependencies: {}
     hash:
-      md5: f516f057fe1f8af1f583245737a806ad
-      sha256: 3ea2d40d1d7fd76600114f282f5ce326fad0581eea5c8cafa8d0084621d190a1
+      md5: 5e3b86e05cf133f7dbc8d740dba3a568
+      sha256: 480ccdc6ecc685f6457bbf8900856556de0a7859e2d0a27013a74802a38938d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.11.56.43-hd8ed1ab_0.conda
-    version: 2025.06.27.11.56.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.06.27.19.47.22-hd8ed1ab_0.conda
+    version: 2025.06.27.19.47.22
   - category: main
     dependencies:
       click: '>=8'
@@ -9319,43 +9319,43 @@ package:
       boolean.py: '>=4.0.0'
       python: ''
     hash:
-      md5: 6a2b3c442b5f0ab9a187b2fcc7dae263
-      sha256: e24af74061ffb417e82538b3da6e735e7b16b5e00c1ad8c0064225a7a1745759
+      md5: 3661a18c7c7e36b5082430bf22fbfaf7
+      sha256: 2bbfbb950178665b3f00f8467bd3210953cdacb88a2bb47fbdff1fe62eb16a23
     manager: conda
     name: license-expression
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.2-pyhe01879c_0.conda
-    version: 30.4.2
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.3-pyhe01879c_0.conda
+    version: 30.4.3
   - category: main
     dependencies:
       boolean.py: '>=4.0.0'
       python: '>=3.9'
     hash:
-      md5: 6a2b3c442b5f0ab9a187b2fcc7dae263
-      sha256: e24af74061ffb417e82538b3da6e735e7b16b5e00c1ad8c0064225a7a1745759
+      md5: 3661a18c7c7e36b5082430bf22fbfaf7
+      sha256: 2bbfbb950178665b3f00f8467bd3210953cdacb88a2bb47fbdff1fe62eb16a23
     manager: conda
     name: license-expression
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.2-pyhe01879c_0.conda
-    version: 30.4.2
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.3-pyhe01879c_0.conda
+    version: 30.4.3
   - category: main
     dependencies:
       boolean.py: '>=4.0.0'
       python: '>=3.9'
     hash:
-      md5: 6a2b3c442b5f0ab9a187b2fcc7dae263
-      sha256: e24af74061ffb417e82538b3da6e735e7b16b5e00c1ad8c0064225a7a1745759
+      md5: 3661a18c7c7e36b5082430bf22fbfaf7
+      sha256: 2bbfbb950178665b3f00f8467bd3210953cdacb88a2bb47fbdff1fe62eb16a23
     manager: conda
     name: license-expression
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.2-pyhe01879c_0.conda
-    version: 30.4.2
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.3-pyhe01879c_0.conda
+    version: 30.4.3
   - category: main
     dependencies:
       __osx: '>=10.13'
