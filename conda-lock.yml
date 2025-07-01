@@ -10297,15 +10297,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 002e600fcc82f415bfaad7d05a44c016
-      sha256: a9a6f36c2982837e19448c231435a914376948eb493e2cd8e9f69b133ca0e796
+      md5: 3c92d1c6a7938b0f92997bd0485561ef
+      sha256: 3d58e99d5d15eb31d41122728adbe7945867f95373c756367b536a41b77ec377
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.0-py311h519dc76_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.1-py311h519dc76_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -10316,15 +10316,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 91eb2cc588b04797414f36c781cb398f
-      sha256: 29b6b4912f1e91a186365b68a524df3d98ad319f80731befd27f465f2d703778
+      md5: fff03595ad69c0bd55eca4f38ad92d74
+      sha256: 633f226ec0d0c8c5d5acbbe9b9bd4c731e4965f873c49d65710c59b6cac2cb05
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.0-py311h9224382_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.1-py311h9224382_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -10335,15 +10335,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 56ade1d0ea3530973648464b23a5b131
-      sha256: 2ed53589ec66c38895abfaacccc11e0c875dd146147ab02ebf2849665671430d
+      md5: 2c407c787f5811cd4964901c55379a42
+      sha256: 6b707cbf94f6b7f91b819763650f82225db5846c3b3afefcc0712ed2f3a0f565
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.0-py311h4379d9d_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.1-py311h4379d9d_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       blinker: ''
