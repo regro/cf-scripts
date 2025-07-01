@@ -65,7 +65,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -106,7 +106,7 @@ jobs:
           python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: set up docker buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         if: ${{ ! env.CI_SKIP }}
 
       - name: build docker image
@@ -211,7 +211,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -352,7 +352,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
