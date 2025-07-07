@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: d5a5bea6084c920d0d982c3e36f8768d
-      sha256: f10b0ca2d00d8df87ec187ea877ba331011f9c6979a7f2e89e48335335cd3b72
+      md5: 8ea4ad2df43e084dbd9822c8a26fc79f
+      sha256: 5c8dccd97ee0cb6c4a6dce82dd4b4e066437e4cf861f10bb364ee09b1a6e0959
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.15.56.50-hd8ed1ab_0.conda
-    version: 2025.07.07.15.56.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.21.12.10-hd8ed1ab_0.conda
+    version: 2025.07.07.21.12.10
   - category: main
     dependencies: {}
     hash:
-      md5: d5a5bea6084c920d0d982c3e36f8768d
-      sha256: f10b0ca2d00d8df87ec187ea877ba331011f9c6979a7f2e89e48335335cd3b72
+      md5: 8ea4ad2df43e084dbd9822c8a26fc79f
+      sha256: 5c8dccd97ee0cb6c4a6dce82dd4b4e066437e4cf861f10bb364ee09b1a6e0959
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.15.56.50-hd8ed1ab_0.conda
-    version: 2025.07.07.15.56.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.21.12.10-hd8ed1ab_0.conda
+    version: 2025.07.07.21.12.10
   - category: main
     dependencies: {}
     hash:
-      md5: d5a5bea6084c920d0d982c3e36f8768d
-      sha256: f10b0ca2d00d8df87ec187ea877ba331011f9c6979a7f2e89e48335335cd3b72
+      md5: 8ea4ad2df43e084dbd9822c8a26fc79f
+      sha256: 5c8dccd97ee0cb6c4a6dce82dd4b4e066437e4cf861f10bb364ee09b1a6e0959
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.15.56.50-hd8ed1ab_0.conda
-    version: 2025.07.07.15.56.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.21.12.10-hd8ed1ab_0.conda
+    version: 2025.07.07.21.12.10
   - category: main
     dependencies:
       click: '>=8'
@@ -6451,43 +6451,43 @@ package:
       more-itertools: ''
       python: '>=3.9'
     hash:
-      md5: eb257d223050a5a27f5fdf5c9debc8ec
-      sha256: 61da3e37149da5c8479c21571eaec61cc4a41678ee872dcb2ff399c30878dddb
+      md5: c2c206c4054db7a655761c9e5bbb11f7
+      sha256: f132ac71f89e3133fe159034ec85cec946c75f2c60e2039a8bbd1012721a785e
     manager: conda
     name: jaraco.functools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.1.0-pyhd8ed1ab_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.2.1-pyhd8ed1ab_0.conda
+    version: 4.2.1
   - category: main
     dependencies:
       more-itertools: ''
       python: '>=3.9'
     hash:
-      md5: eb257d223050a5a27f5fdf5c9debc8ec
-      sha256: 61da3e37149da5c8479c21571eaec61cc4a41678ee872dcb2ff399c30878dddb
+      md5: c2c206c4054db7a655761c9e5bbb11f7
+      sha256: f132ac71f89e3133fe159034ec85cec946c75f2c60e2039a8bbd1012721a785e
     manager: conda
     name: jaraco.functools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.1.0-pyhd8ed1ab_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.2.1-pyhd8ed1ab_0.conda
+    version: 4.2.1
   - category: main
     dependencies:
       more-itertools: ''
       python: '>=3.9'
     hash:
-      md5: eb257d223050a5a27f5fdf5c9debc8ec
-      sha256: 61da3e37149da5c8479c21571eaec61cc4a41678ee872dcb2ff399c30878dddb
+      md5: c2c206c4054db7a655761c9e5bbb11f7
+      sha256: f132ac71f89e3133fe159034ec85cec946c75f2c60e2039a8bbd1012721a785e
     manager: conda
     name: jaraco.functools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.1.0-pyhd8ed1ab_0.conda
-    version: 4.1.0
+      https://conda.anaconda.org/conda-forge/noarch/jaraco.functools-4.2.1-pyhd8ed1ab_0.conda
+    version: 4.2.1
   - category: main
     dependencies:
       python: '>=3.9'
