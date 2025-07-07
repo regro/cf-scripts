@@ -12,13 +12,11 @@ from typing import Iterator, List, Literal, Optional
 
 import feedparser
 import orjson
-import packaging.version
 import requests
 import yaml
 from conda.models.version import VersionOrder
-
-# TODO: parse_version has bad type annotations
-from pkg_resources import parse_version
+from packaging.version import InvalidVersion
+from packaging.version import parse as parse_version
 
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
@@ -618,7 +616,7 @@ class GithubReleases(AbstractSource):
                 or parse_version(latest).is_prerelease
             ):
                 return False
-        except packaging.version.InvalidVersion:
+        except InvalidVersion:
             # version strings violating the Python spec are supported
             pass
         for prefix in ("v", "release-", "releases/"):
