@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 083eed82ce16e4fefbeeedeafa63a4c4
-      sha256: 084950968002c1c0a56eccb093dfc378febf9d450b4eb9057c0ff62c3b2addac
+      md5: fd71f606e99338a252d2a63172b6e16a
+      sha256: d714b9abb0e762df343f14a3a1bada3fb80cfe722fa1526c74a0137a0977494c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.06.02.50.29-hd8ed1ab_0.conda
-    version: 2025.07.06.02.50.29
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.09.59.47-hd8ed1ab_0.conda
+    version: 2025.07.07.09.59.47
   - category: main
     dependencies: {}
     hash:
-      md5: 083eed82ce16e4fefbeeedeafa63a4c4
-      sha256: 084950968002c1c0a56eccb093dfc378febf9d450b4eb9057c0ff62c3b2addac
+      md5: fd71f606e99338a252d2a63172b6e16a
+      sha256: d714b9abb0e762df343f14a3a1bada3fb80cfe722fa1526c74a0137a0977494c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.06.02.50.29-hd8ed1ab_0.conda
-    version: 2025.07.06.02.50.29
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.09.59.47-hd8ed1ab_0.conda
+    version: 2025.07.07.09.59.47
   - category: main
     dependencies: {}
     hash:
-      md5: 083eed82ce16e4fefbeeedeafa63a4c4
-      sha256: 084950968002c1c0a56eccb093dfc378febf9d450b4eb9057c0ff62c3b2addac
+      md5: fd71f606e99338a252d2a63172b6e16a
+      sha256: d714b9abb0e762df343f14a3a1bada3fb80cfe722fa1526c74a0137a0977494c
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.06.02.50.29-hd8ed1ab_0.conda
-    version: 2025.07.06.02.50.29
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.07.09.59.47-hd8ed1ab_0.conda
+    version: 2025.07.07.09.59.47
   - category: main
     dependencies:
       click: '>=8'
@@ -16588,15 +16588,15 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: a37843723437ba75f42c9270ffe800b1
-      sha256: 73d809ec8056c2f08e077f9d779d7f4e4c2b625881cad6af303c33dc1562ea01
+      md5: 0f2ca7906bf166247d1d760c3422cb8a
+      sha256: ba673427dcd480cfa9bbc262fd04a9b1ad2ed59a159bd8f7e750d4c52282f34c
     manager: conda
     name: wayland
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/wayland-1.23.1-h3e06ad9_1.conda
-    version: 1.23.1
+      https://conda.anaconda.org/conda-forge/linux-64/wayland-1.24.0-h3e06ad9_0.conda
+    version: 1.24.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
