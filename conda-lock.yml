@@ -3969,19 +3969,19 @@ package:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
       python: ''
       python-multipart: '>=0.0.18'
-      starlette: '>=0.40.0,<0.47.0'
+      starlette: '>=0.40.0,<0.48.0'
       typing_extensions: '>=4.8.0'
       uvicorn-standard: '>=0.12.0'
     hash:
-      md5: f20f85f4b6e7858bc204811fba049ae1
-      sha256: 67cb6c1ab3bc490a86a76179fc03dbcae93ef2f999faee32cef35d51953425f0
+      md5: f54a31cfa6cbebb2e0c2ebfb333d0046
+      sha256: 2ccef15ffe364bc6f23d3a2a2e9f2c53a1e0b4221864473eda22560e659a9654
     manager: conda
     name: fastapi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.0-pyhe01879c_0.conda
-    version: 0.116.0
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-pyhe01879c_0.conda
+    version: 0.116.1
   - category: main
     dependencies:
       email_validator: '>=2.0.0'
@@ -3991,19 +3991,19 @@ package:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
       python: '>=3.9'
       python-multipart: '>=0.0.18'
-      starlette: '>=0.40.0,<0.47.0'
+      starlette: '>=0.40.0,<0.48.0'
       typing_extensions: '>=4.8.0'
       uvicorn-standard: '>=0.12.0'
     hash:
-      md5: f20f85f4b6e7858bc204811fba049ae1
-      sha256: 67cb6c1ab3bc490a86a76179fc03dbcae93ef2f999faee32cef35d51953425f0
+      md5: f54a31cfa6cbebb2e0c2ebfb333d0046
+      sha256: 2ccef15ffe364bc6f23d3a2a2e9f2c53a1e0b4221864473eda22560e659a9654
     manager: conda
     name: fastapi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.0-pyhe01879c_0.conda
-    version: 0.116.0
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-pyhe01879c_0.conda
+    version: 0.116.1
   - category: main
     dependencies:
       email_validator: '>=2.0.0'
@@ -4013,19 +4013,19 @@ package:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
       python: '>=3.9'
       python-multipart: '>=0.0.18'
-      starlette: '>=0.40.0,<0.47.0'
+      starlette: '>=0.40.0,<0.48.0'
       typing_extensions: '>=4.8.0'
       uvicorn-standard: '>=0.12.0'
     hash:
-      md5: f20f85f4b6e7858bc204811fba049ae1
-      sha256: 67cb6c1ab3bc490a86a76179fc03dbcae93ef2f999faee32cef35d51953425f0
+      md5: f54a31cfa6cbebb2e0c2ebfb333d0046
+      sha256: 2ccef15ffe364bc6f23d3a2a2e9f2c53a1e0b4221864473eda22560e659a9654
     manager: conda
     name: fastapi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.0-pyhe01879c_0.conda
-    version: 0.116.0
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-pyhe01879c_0.conda
+    version: 0.116.1
   - category: main
     dependencies:
       python: '>=3.9'
@@ -15078,47 +15078,47 @@ package:
     dependencies:
       anyio: '>=3.6.2,<5'
       python: ''
-      typing_extensions: '>=3.10.0'
+      typing_extensions: '>=4.10.0'
     hash:
-      md5: 36ec80c2b37e52760ab41be7c2bd1fd3
-      sha256: d41b9b2719a2a0176930df21d7fec7b758058e7fafd53dc900b5706cd627fa3a
+      md5: 1ce2c3951695f9d69536c6dc385f7f77
+      sha256: 82d77f6d032a9e5c2a2be6da469e3794a76499973b99b42c6bf923e53e76062e
     manager: conda
     name: starlette
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.46.2-pyh81abbef_0.conda
-    version: 0.46.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.1-pyh82d4cca_0.conda
+    version: 0.47.1
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
       python: '>=3.9'
-      typing_extensions: '>=3.10.0'
+      typing_extensions: '>=4.10.0'
     hash:
-      md5: 36ec80c2b37e52760ab41be7c2bd1fd3
-      sha256: d41b9b2719a2a0176930df21d7fec7b758058e7fafd53dc900b5706cd627fa3a
+      md5: 1ce2c3951695f9d69536c6dc385f7f77
+      sha256: 82d77f6d032a9e5c2a2be6da469e3794a76499973b99b42c6bf923e53e76062e
     manager: conda
     name: starlette
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.46.2-pyh81abbef_0.conda
-    version: 0.46.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.1-pyh82d4cca_0.conda
+    version: 0.47.1
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
       python: '>=3.9'
-      typing_extensions: '>=3.10.0'
+      typing_extensions: '>=4.10.0'
     hash:
-      md5: 36ec80c2b37e52760ab41be7c2bd1fd3
-      sha256: d41b9b2719a2a0176930df21d7fec7b758058e7fafd53dc900b5706cd627fa3a
+      md5: 1ce2c3951695f9d69536c6dc385f7f77
+      sha256: 82d77f6d032a9e5c2a2be6da469e3794a76499973b99b42c6bf923e53e76062e
     manager: conda
     name: starlette
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.46.2-pyh81abbef_0.conda
-    version: 0.46.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.1-pyh82d4cca_0.conda
+    version: 0.47.1
   - category: main
     dependencies:
       python: '>=3.9'
