@@ -1397,41 +1397,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: fac657ab965a05f69ba777a7b934255a
-      sha256: d5bcebb3748005b50479055b69bd6a19753219effcf921b9158ef3ff588c752b
+      md5: 4c07624f3faefd0bb6659fb7396cfa76
+      sha256: f68ee5038f37620a4fb4cdd8329c9897dce80331db8c94c3ab264a26a8c70a08
     manager: conda
     name: certifi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.9-pyhd8ed1ab_0.conda
-    version: 2025.7.9
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
+    version: 2025.7.14
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: fac657ab965a05f69ba777a7b934255a
-      sha256: d5bcebb3748005b50479055b69bd6a19753219effcf921b9158ef3ff588c752b
+      md5: 4c07624f3faefd0bb6659fb7396cfa76
+      sha256: f68ee5038f37620a4fb4cdd8329c9897dce80331db8c94c3ab264a26a8c70a08
     manager: conda
     name: certifi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.9-pyhd8ed1ab_0.conda
-    version: 2025.7.9
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
+    version: 2025.7.14
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: fac657ab965a05f69ba777a7b934255a
-      sha256: d5bcebb3748005b50479055b69bd6a19753219effcf921b9158ef3ff588c752b
+      md5: 4c07624f3faefd0bb6659fb7396cfa76
+      sha256: f68ee5038f37620a4fb4cdd8329c9897dce80331db8c94c3ab264a26a8c70a08
     manager: conda
     name: certifi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.9-pyhd8ed1ab_0.conda
-    version: 2025.7.9
+      https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
+    version: 2025.7.14
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: d2882fc424acc5a3dd70de85b194ec58
-      sha256: e8ce7d7a06f258f89c040af7bc00e4134326720b49ed3f1758b83c4ecb2bc15d
+      md5: 189f2b913292ac97c48ff3702ba725ba
+      sha256: fc5feeae1bd158de9a6978b39b1f1dc3b0871f13268730448feb5a17735f3bd9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.10.18.30-hd8ed1ab_0.conda
-    version: 2025.07.14.10.18.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.13.02.31-hd8ed1ab_0.conda
+    version: 2025.07.14.13.02.31
   - category: main
     dependencies: {}
     hash:
-      md5: d2882fc424acc5a3dd70de85b194ec58
-      sha256: e8ce7d7a06f258f89c040af7bc00e4134326720b49ed3f1758b83c4ecb2bc15d
+      md5: 189f2b913292ac97c48ff3702ba725ba
+      sha256: fc5feeae1bd158de9a6978b39b1f1dc3b0871f13268730448feb5a17735f3bd9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.10.18.30-hd8ed1ab_0.conda
-    version: 2025.07.14.10.18.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.13.02.31-hd8ed1ab_0.conda
+    version: 2025.07.14.13.02.31
   - category: main
     dependencies: {}
     hash:
-      md5: d2882fc424acc5a3dd70de85b194ec58
-      sha256: e8ce7d7a06f258f89c040af7bc00e4134326720b49ed3f1758b83c4ecb2bc15d
+      md5: 189f2b913292ac97c48ff3702ba725ba
+      sha256: fc5feeae1bd158de9a6978b39b1f1dc3b0871f13268730448feb5a17735f3bd9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.10.18.30-hd8ed1ab_0.conda
-    version: 2025.07.14.10.18.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.14.13.02.31-hd8ed1ab_0.conda
+    version: 2025.07.14.13.02.31
   - category: main
     dependencies:
       click: '>=8'
