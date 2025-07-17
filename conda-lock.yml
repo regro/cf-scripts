@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 6eb3063864cce538220ac2b6a1f877b0
-      sha256: c77d55bff78d44d6b6da047136c379c291abf6ca31242c7b10b7db9b8f472c6d
+      md5: 671f2b7c7abafbc21e64f58399101400
+      sha256: 65e9b075ee061c4299408e781b9987fbc10eafe476c046940fa3c3c79331db22
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.16.16.38.28-hd8ed1ab_0.conda
-    version: 2025.07.16.16.38.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.17.07.35.02-hd8ed1ab_0.conda
+    version: 2025.07.17.07.35.02
   - category: main
     dependencies: {}
     hash:
-      md5: 6eb3063864cce538220ac2b6a1f877b0
-      sha256: c77d55bff78d44d6b6da047136c379c291abf6ca31242c7b10b7db9b8f472c6d
+      md5: 671f2b7c7abafbc21e64f58399101400
+      sha256: 65e9b075ee061c4299408e781b9987fbc10eafe476c046940fa3c3c79331db22
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.16.16.38.28-hd8ed1ab_0.conda
-    version: 2025.07.16.16.38.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.17.07.35.02-hd8ed1ab_0.conda
+    version: 2025.07.17.07.35.02
   - category: main
     dependencies: {}
     hash:
-      md5: 6eb3063864cce538220ac2b6a1f877b0
-      sha256: c77d55bff78d44d6b6da047136c379c291abf6ca31242c7b10b7db9b8f472c6d
+      md5: 671f2b7c7abafbc21e64f58399101400
+      sha256: 65e9b075ee061c4299408e781b9987fbc10eafe476c046940fa3c3c79331db22
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.16.16.38.28-hd8ed1ab_0.conda
-    version: 2025.07.16.16.38.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.17.07.35.02-hd8ed1ab_0.conda
+    version: 2025.07.17.07.35.02
   - category: main
     dependencies:
       click: '>=8'
@@ -7581,43 +7581,43 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
+      libgcc: '>=14'
     hash:
-      md5: db0bfbe7dd197b68ad5f30333bae6ce0
-      sha256: 33ab03438aee65d6aa667cf7d90c91e5e7d734c19a67aa4c7040742c0a13d505
+      md5: 4211416ecba1866fab0c6470986c22d6
+      sha256: da2080da8f0288b95dd86765c801c6e166c4619b910b11f9a8446fb852438dc2
     manager: conda
     name: libexpat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.7.0-h5888daf_0.conda
-    version: 2.7.0
+      https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.7.1-hecca717_0.conda
+    version: 2.7.1
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 026d0a1056ba2a3dbbea6d4b08188676
-      sha256: 976f2e23ad2bb2b8e92c99bfa2ead3ad557b17a129b170f7e2dfcf233193dd7e
+      md5: 9fdeae0b7edda62e989557d645769515
+      sha256: 689862313571b62ee77ee01729dc093f2bf25a2f99415fcfe51d3a6cd31cce7b
     manager: conda
     name: libexpat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libexpat-2.7.0-h240833e_0.conda
-    version: 2.7.0
+      https://conda.anaconda.org/conda-forge/osx-64/libexpat-2.7.1-h21dd04a_0.conda
+    version: 2.7.1
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 6934bbb74380e045741eb8637641a65b
-      sha256: ee550e44765a7bbcb2a0216c063dcd53ac914a7be5386dd0554bd06e6be61840
+      md5: b1ca5f21335782f71a8bd69bdc093f67
+      sha256: 8fbb17a56f51e7113ed511c5787e0dec0d4b10ef9df921c4fd1cccca0458f648
     manager: conda
     name: libexpat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.7.0-h286801f_0.conda
-    version: 2.7.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.7.1-hec049ff_0.conda
+    version: 2.7.1
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
