@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: a58c16683a84ecd4e31a007557177855
-      sha256: 3e17fe4fed445a731ed39e8da6ce65d0b82ed96c4583d1792d61d93481b0177d
+      md5: e6b975bafb7ada8cf10b9caa3b6abac2
+      sha256: cbde01f6c3a1dd3be594fe6383f04f11aeaa7a895feb815b5d2561e8cd9734f2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.07.41.21-hd8ed1ab_0.conda
-    version: 2025.07.18.07.41.21
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.13.48.40-hd8ed1ab_0.conda
+    version: 2025.07.18.13.48.40
   - category: main
     dependencies: {}
     hash:
-      md5: a58c16683a84ecd4e31a007557177855
-      sha256: 3e17fe4fed445a731ed39e8da6ce65d0b82ed96c4583d1792d61d93481b0177d
+      md5: e6b975bafb7ada8cf10b9caa3b6abac2
+      sha256: cbde01f6c3a1dd3be594fe6383f04f11aeaa7a895feb815b5d2561e8cd9734f2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.07.41.21-hd8ed1ab_0.conda
-    version: 2025.07.18.07.41.21
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.13.48.40-hd8ed1ab_0.conda
+    version: 2025.07.18.13.48.40
   - category: main
     dependencies: {}
     hash:
-      md5: a58c16683a84ecd4e31a007557177855
-      sha256: 3e17fe4fed445a731ed39e8da6ce65d0b82ed96c4583d1792d61d93481b0177d
+      md5: e6b975bafb7ada8cf10b9caa3b6abac2
+      sha256: cbde01f6c3a1dd3be594fe6383f04f11aeaa7a895feb815b5d2561e8cd9734f2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.07.41.21-hd8ed1ab_0.conda
-    version: 2025.07.18.07.41.21
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.18.13.48.40-hd8ed1ab_0.conda
+    version: 2025.07.18.13.48.40
   - category: main
     dependencies:
       click: '>=8'
@@ -16236,43 +16236,42 @@ package:
       libgcc: '>=14'
       libstdcxx: '>=14'
     hash:
-      md5: 7293b3aa53ef28424d80bba0204ddb5c
-      sha256: fdb3fcf8f8e8731db179119694a530bff7c9ca26dd461e8f1eb6b126fb026ba7
+      md5: d2f9356537d9e7bbeba085a1aba82f78
+      sha256: 27e2fa2c5ec3d76ea842d811002ed1c6f4a21e697485f84a01dc6ce9230fe7c6
     manager: conda
     name: uv
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/uv-0.7.21-heb9285d_0.conda
-    version: 0.7.21
+      https://conda.anaconda.org/conda-forge/linux-64/uv-0.8.0-heb9285d_0.conda
+    version: 0.8.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=19'
     hash:
-      md5: 4373a505d4c5cf3834f4325bc2aa1ff8
-      sha256: 3250c27143a784332916cc2d156992ff439afa006333a483af38ca191073dbd6
+      md5: b440d18cc1373a5c04c9f95ee32e791e
+      sha256: 2378a97c4be4badfe40cbada678e3a3a18b6a8f9b1bd4fa3fefe18d9acad4922
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/uv-0.7.21-hfa71dfd_0.conda
-    version: 0.7.21
+    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.8.0-hfa71dfd_0.conda
+    version: 0.8.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=19'
     hash:
-      md5: 54bc2fe90ab5a8753e6d453eb78dd15c
-      sha256: 258df5be3d78c282865a69b4bb2cffcc93b13d982f843c858a6153f442383ea1
+      md5: 501d628e3179352228578698f3dc5682
+      sha256: 38dbd9087421fe39c27a52c5f151331627e79da92a95731d3aff1a996b555b6b
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.21-hb521335_0.conda
-    version: 0.7.21
+      https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.7.22-hb521335_0.conda
+    version: 0.7.22
   - category: main
     dependencies:
       __unix: ''
