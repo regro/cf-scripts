@@ -3,13 +3,13 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: b6e1bb8b05c8e2e978adf6045bbfbf3dd667be28ad370051e7def217c59677cf
-    osx-64: 976ee67b87113aaa96914dd74febe852a4f446b5cfd13d7970d596ddd49f0054
-    osx-arm64: 955bee3a78e887405cec719f9153364a9fb08a16cf094727fe339313c3e243ff
+    linux-64: efed08f4a81f04a187cfe3e352727d106d6dc70307dbd86f17f60a589c9aa996
+    osx-64: 1204481407b10740297d5cb16d501e5f62234d72cc479bb036e53a2071a9481d
+    osx-arm64: 54009994f7e3af9be8925fd3b0e28806ff56fafbb57c99e713108bbc313cf7de
   platforms:
-    - osx-arm64
     - linux-64
     - osx-64
+    - osx-arm64
   sources:
     - environment.yml
 package:
@@ -4197,45 +4197,6 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
     version: 3.18.0
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: 7e081d00fdcba21b76658c1649691836
-      sha256: 483f3291f0236d9b2a3bb417b4620d08149e1ef383da4b392fbcccce4c3ceeb5
-    manager: conda
-    name: flaky
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
-    version: 3.8.1
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: 7e081d00fdcba21b76658c1649691836
-      sha256: 483f3291f0236d9b2a3bb417b4620d08149e1ef383da4b392fbcccce4c3ceeb5
-    manager: conda
-    name: flaky
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
-    version: 3.8.1
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: 7e081d00fdcba21b76658c1649691836
-      sha256: 483f3291f0236d9b2a3bb417b4620d08149e1ef383da4b392fbcccce4c3ceeb5
-    manager: conda
-    name: flaky
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/flaky-3.8.1-pyhd8ed1ab_1.conda
-    version: 3.8.1
   - category: main
     dependencies:
       blinker: '>=1.6.2'
@@ -12807,6 +12768,48 @@ package:
     version: 1.1.4
   - category: main
     dependencies:
+      pytest: '>=7.0.0'
+      python: '>=3.9'
+    hash:
+      md5: e53955439162ee07c7ea1308ad6fa8be
+      sha256: de5228ea34aec9a78767add15681ab00f604589314a43828f7ea7be9aee83154
+    manager: conda
+    name: pytest-retry
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-retry-1.7.0-pyhd8ed1ab_0.conda
+    version: 1.7.0
+  - category: main
+    dependencies:
+      pytest: '>=7.0.0'
+      python: '>=3.9'
+    hash:
+      md5: e53955439162ee07c7ea1308ad6fa8be
+      sha256: de5228ea34aec9a78767add15681ab00f604589314a43828f7ea7be9aee83154
+    manager: conda
+    name: pytest-retry
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-retry-1.7.0-pyhd8ed1ab_0.conda
+    version: 1.7.0
+  - category: main
+    dependencies:
+      pytest: '>=7.0.0'
+      python: '>=3.9'
+    hash:
+      md5: e53955439162ee07c7ea1308ad6fa8be
+      sha256: de5228ea34aec9a78767add15681ab00f604589314a43828f7ea7be9aee83154
+    manager: conda
+    name: pytest-retry
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-retry-1.7.0-pyhd8ed1ab_0.conda
+    version: 1.7.0
+  - category: main
+    dependencies:
       pytest: '>=5.0.0,<9.0.0'
       python: '>=3.9'
     hash:
@@ -12953,6 +12956,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.5.0,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
@@ -12977,6 +12981,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.5.0,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
@@ -13001,6 +13006,7 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       ncurses: '>=6.5,<7.0a0'
       openssl: '>=3.5.0,<4.0a0'
+      pip: ''
       readline: '>=8.2,<9.0a0'
       tk: '>=8.6.13,<8.7.0a0'
       tzdata: ''
