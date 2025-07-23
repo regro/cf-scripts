@@ -5,7 +5,6 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.lazy_json_backends import load
@@ -160,7 +159,6 @@ def test_update_run_deps():
     assert "python >=3.7" in recipe.dumps()
 
 
-@flaky
 def test_get_depfinder_comparison():
     with open(
         os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"),
@@ -418,7 +416,6 @@ extra:
 """
 
 
-@flaky
 @pytest.mark.parametrize(
     "update_kind,out_yml",
     [

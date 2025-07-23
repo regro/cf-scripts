@@ -5,7 +5,6 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import Version
@@ -91,7 +90,6 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
         # ("cb3multi", "6.0.0"),
     ],
 )
-@flaky
 def test_version_up(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
@@ -135,7 +133,6 @@ def test_version_up(case, new_ver, tmp_path, caplog):
         ("polars", "1.20.0"),
     ],
 )
-@flaky
 def test_version_up_v1(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,

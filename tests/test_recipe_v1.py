@@ -2,7 +2,6 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
@@ -142,7 +141,6 @@ def test_not_sub_condition(sub_cond, super_cond):
     assert not is_sub_condition(sub_node=super_node, super_node=sub_node)
 
 
-@flaky
 def test_combine_v1_conditions(tmp_path):
     run_test_migration(
         m=combine_conditions_migrator,

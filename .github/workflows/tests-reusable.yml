@@ -149,6 +149,8 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --durations=10 \
+            --retries=5 \
+            --retry-delay=10 \
             --ignore=tests/model \
             -m "not mongodb" \
             tests

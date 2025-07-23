@@ -1,7 +1,6 @@
 import os
 
 import networkx as nx
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import ExtraJinja2KeysCleanup, Version
@@ -17,7 +16,6 @@ VERSION_CF = Version(
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
-@flaky
 def test_version_extra_jinja2_keys_cleanup(tmp_path):
     with open(os.path.join(YAML_PATH, "version_extra_jinja2_keys.yaml")) as fp:
         in_yaml = fp.read()
