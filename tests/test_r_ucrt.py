@@ -1,5 +1,4 @@
 import networkx as nx
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import RUCRTCleanup, Version
@@ -138,7 +137,6 @@ extra:
 """  # noqa
 
 
-@flaky
 def test_r_ucrt(tmp_path):
     run_test_migration(
         m=version_migrator_rbase,

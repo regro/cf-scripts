@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, Mock, patch
 import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
-from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -432,7 +431,6 @@ def test_latest_version_npm(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_rawurl_test_list,
 )
-@flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
@@ -1708,7 +1706,6 @@ def test_main(
         ("https://github.com/archs/sources.tar.gz", "1.2.3", None),
     ],
 )
-@flaky
 def test_github_version_prefix(url, version, version_prefix, tmpdir):
     gh = Github()
     meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
@@ -1734,7 +1731,6 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
     ],
 )
-@flaky
 def test_github_releases(tmpdir, url, feedstock_version):
     meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with meta_yaml as _meta_yaml:
@@ -1760,7 +1756,6 @@ def test_github_releases(tmpdir, url, feedstock_version):
         )
     ],
 )
-@flaky
 def test_github_releases_unusual_version(
     tmp_path: Path, url: str, feedstock_version: str, regex: str
 ):
