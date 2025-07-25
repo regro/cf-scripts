@@ -554,7 +554,6 @@ def _parse_recipes(
         elif "feedstock-name" in validated_recipes[0].get("extra", {}):
             sval = validated_recipes[0]["extra"]["feedstock-name"]
             skey = "name"
-
         else:
             sval = None
             skey = None
