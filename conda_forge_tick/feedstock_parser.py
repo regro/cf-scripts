@@ -513,11 +513,11 @@ def populate_feedstock_attributes(
     node_attrs["req"] = req
 
     # set name and version
-    keys = [("package", "name"), ("package", "version")]
-    missing_keys = [k[1] for k in keys if k[1] not in yaml_dict.get(k[0], {})]
-    for k in keys:
-        if k[1] not in missing_keys:
-            node_attrs[k[1]] = yaml_dict[k[0]][k[1]]
+    for subkey in ["name", "version"]:
+        for topkey in ["package", "recipe"]:
+            if topkey in yaml_dict and subkey in yaml_dict[topkey]:
+                node_attrs[subkey] = yaml_dict[topkey][subkey]
+                break
 
     # sometimes a version is not given at the top level, so we check outputs
     # we do not know which version to take, but hopefully they are all the same

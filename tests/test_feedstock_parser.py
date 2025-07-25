@@ -105,3 +105,14 @@ def test_feedstock_parser_load_feedstock_local_semi_ate_stdf():
     )
     assert attrs["feedstock_name"] == "semi-ate-stdf"
     assert "parsing_error" in attrs
+
+
+def test_feedstock_parser_load_feedstock_local_fenics_basix_version():
+    attrs = load_feedstock_local(
+        "fenics-basix",
+        {},
+    )
+    assert attrs["feedstock_name"] == "fenics-basix"
+    assert attrs["version"] == attrs["meta_yaml"]["outputs"][0]["version"]
+    assert attrs["name"] == attrs["meta_yaml"]["outputs"][0]["name"]
+    assert attrs["name"] == "fenics-basix"
