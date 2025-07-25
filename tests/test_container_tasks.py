@@ -779,11 +779,11 @@ def test_container_tasks_provide_source_code_local(use_containers):
             [
                 "git",
                 "clone",
-                "https://github.com/conda-forge/mattspy-feedstock.git",
+                "https://github.com/conda-forge/conda-smithy-feedstock.git",
             ]
         )
 
-        with provide_source_code_local("mattspy-feedstock/recipe") as source_dir:
+        with provide_source_code_local("conda-smithy-feedstock/recipe") as source_dir:
             assert os.path.exists(source_dir)
             assert os.path.isdir(source_dir)
             assert "pyproject.toml" in os.listdir(source_dir)
