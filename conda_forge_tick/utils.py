@@ -536,6 +536,38 @@ def _parse_recipes(
     RecipeTypedDict
         A dict conforming to conda-build's rendered output
     """
+    # some heuristics to find the "top-level" name and version
+    # we use these in the following order
+    # 1. Does the output name match the "name" field in the context block
+    #    if present?
+    # 2. Does the output version match the "version" field in the
+    #    context block if present?
+    # 3. Does the output name match the feedstock-name in the extra
+    #    field if present?
+    if len(validated_recipes) > 1:
+        if "name" in validated_recipes[0].get("context", {}):
+            sval = validated_recipes[0]["context"]["name"]
+            skey = "name"
+        elif "version" in validated_recipes[0].get("context", {}):
+            sval = str(validated_recipes[0]["context"]["version"])
+            skey = "version"
+        elif "feedstock-name" in validated_recipes[0].get("extra", {}):
+            sval = validated_recipes[0]["extra"]["feedstock-name"]
+            skey = "name"
+        else:
+            sval = None
+            skey = None
+
+        if sval is not None and skey is not None:
+            sind = None
+            for ind, recipe in enumerate(validated_recipes):
+                if recipe.get("package", {}).get(skey, "") == sval:
+                    sind = ind
+                    break
+            if sind is not None:
+                first = validated_recipes.pop(sind)
+                validated_recipes = [first] + validated_recipes
+
     first = validated_recipes[0]
     about = first["about"]
     build = first["build"]
@@ -622,6 +654,9 @@ def _parse_recipes(
         output_data.append(
             {
                 "name": None if package_output is None else package_output.get("name"),
+                "version": None
+                if package_output is None
+                else package_output.get("version"),
                 "requirements": requirements_output_data,
                 "build": build_output_data,
                 "tests": recipe.get("tests", []),
