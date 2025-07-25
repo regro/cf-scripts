@@ -544,7 +544,7 @@ def _parse_recipes(
     #    context block if present?
     # 3. Does the output name match the feedstock-name in the extra
     #    field if present?
-    if len(validated_recipes) > 0:
+    if len(validated_recipes) > 1:
         if "name" in validated_recipes[0].get("context", {}):
             sval = validated_recipes[0]["context"]["name"]
             skey = "name"
