@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 1e44dedc7ac80bf01e1094d564914324
-      sha256: 21bc39926e1965472d258893e531c06119ef59dcc159068d0b5b9e7883ad3e40
+      md5: 9c97f06eba522573377a8af522561cd9
+      sha256: ad5aaaf46a4fdc43c7ed8c88b1d7f621882f8add4bc4e28dec6ae1b53d9027f7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.12.12.46-hd8ed1ab_0.conda
-    version: 2025.07.26.12.12.46
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.20.42.37-hd8ed1ab_0.conda
+    version: 2025.07.26.20.42.37
   - category: main
     dependencies: {}
     hash:
-      md5: 1e44dedc7ac80bf01e1094d564914324
-      sha256: 21bc39926e1965472d258893e531c06119ef59dcc159068d0b5b9e7883ad3e40
+      md5: 9c97f06eba522573377a8af522561cd9
+      sha256: ad5aaaf46a4fdc43c7ed8c88b1d7f621882f8add4bc4e28dec6ae1b53d9027f7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.12.12.46-hd8ed1ab_0.conda
-    version: 2025.07.26.12.12.46
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.20.42.37-hd8ed1ab_0.conda
+    version: 2025.07.26.20.42.37
   - category: main
     dependencies: {}
     hash:
-      md5: 1e44dedc7ac80bf01e1094d564914324
-      sha256: 21bc39926e1965472d258893e531c06119ef59dcc159068d0b5b9e7883ad3e40
+      md5: 9c97f06eba522573377a8af522561cd9
+      sha256: ad5aaaf46a4fdc43c7ed8c88b1d7f621882f8add4bc4e28dec6ae1b53d9027f7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.12.12.46-hd8ed1ab_0.conda
-    version: 2025.07.26.12.12.46
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.26.20.42.37-hd8ed1ab_0.conda
+    version: 2025.07.26.20.42.37
   - category: main
     dependencies:
       click: '>=8'
@@ -9833,43 +9833,43 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 37e8e1693db1057f8f1a8d2ab74b3f2f
-      sha256: 8df7cf2d04f05a7c5cbf79ddc4a81dfc0f3c998c329b29e1d909527e0eef4784
+      md5: 1536e33294b7907d6d8e9249f0def528
+      sha256: bf01b40d982330543305c03730e2c0220f2048d0dec95e2ddc8a8f98e8bc8104
     manager: conda
     name: menuinst
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.3.0-py311h38be061_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.3.1-py311h38be061_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 957dcddc0de466c33d6c74479b58ce18
-      sha256: 069b483c7557aad80eff173d516a5d5802b9948bafbde817dc3aa46bc4467cfe
+      md5: 8c202d49cfd9e2feffacba9f448f5b6e
+      sha256: d3aea89e6542d1cf2bcaea59ced8cf8ed48333be0895ed1e198f130ceaf5fa08
     manager: conda
     name: menuinst
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.3.0-py311h6eed73b_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.3.1-py311h6eed73b_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: bab14963be05265ad348df4d6c821963
-      sha256: 359206fa576cd01e1c8b45bd7dea5f1157e8757a311fcbee44ed55a8122af7a9
+      md5: 17efc7ba479491924b93c40173530654
+      sha256: d118da84abb3722f3c755d4f0d9300af5e7d34ad9a94e8a6727f274f362785fa
     manager: conda
     name: menuinst
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.3.0-py311h267d04e_0.conda
-    version: 2.3.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.3.1-py311h267d04e_0.conda
+    version: 2.3.1
   - category: main
     dependencies:
       asgiref: '>=3.2.10,<3.8'
