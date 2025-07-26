@@ -10486,45 +10486,45 @@ package:
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: 314795c37076f0dc59b8875c2091c1f6
-      sha256: c2ab2a27105da4eb83618e1012cedc715bd24efbd1732b85064c90f525fd4e5c
+      md5: e02b597b9bf9c4e9916b9ae4a7431b8f
+      sha256: 96cb9cd8bb35fd0fc9b7e650d0ecb3e08353b830707c4856bc24f91b77691d58
     manager: conda
     name: orjson
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.0-py311h902ca64_0.conda
-    version: 3.11.0
+      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.1-py311h902ca64_0.conda
+    version: 3.11.1
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: df4e5495a889aab67dabb63001b17047
-      sha256: 4aae05447add17dd345b179af64f6ad4be708f0375f0d6d8938e09d700f44203
+      md5: abc86cbf48c320057d0f4fd96ee3c64f
+      sha256: 2c1f6c46b73cf04869b99669d878deee7ed5f81d4d85afe80aa04704335fafc8
     manager: conda
     name: orjson
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.0-py311hd3d88a1_0.conda
-    version: 3.11.0
+      https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.1-py311hd3d88a1_0.conda
+    version: 3.11.1
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: 3.11.*
       python_abi: 3.11.*
     hash:
-      md5: eb57c74f1a52f22418b592c14e02d5d0
-      sha256: 5ab2669ab9091cc56901a8531d5962ff41a0d9082a3d7d9b315349866029fbd4
+      md5: 616b7e761e125388439862110cdeb5c8
+      sha256: 9ad461b311084dbc163dc6e2403a0c5e4f70353d215bdbe3ae7fb3da506d79c7
     manager: conda
     name: orjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.0-py311h1c3fc1a_0.conda
-    version: 3.11.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.1-py311h1c3fc1a_0.conda
+    version: 3.11.1
   - category: main
     dependencies:
       python: ''
