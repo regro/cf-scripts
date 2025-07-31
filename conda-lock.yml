@@ -332,19 +332,19 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       cffi: '>=1.0.1'
-      libgcc: '>=13'
+      libgcc: '>=14'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 18143eab7fcd6662c604b85850f0db1e
-      sha256: d1af1fbcb698c2e07b0d1d2b98384dd6021fa55c8bcb920e3652e0b0c393881b
+      md5: 112c5e2b7fe99e3678bbd64316d38f0c
+      sha256: d6d2f38ece253492a3e00800b5d4a5c2cc4b2de73b2c0fcc580c218f1cf58de6
     manager: conda
     name: argon2-cffi-bindings
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/argon2-cffi-bindings-21.2.0-py311h9ecbd09_5.conda
-    version: 21.2.0
+      https://conda.anaconda.org/conda-forge/linux-64/argon2-cffi-bindings-25.1.0-py311h49ec1c0_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -352,15 +352,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 29b46bd410067f668c4cef7fdc78fe25
-      sha256: fa5eb633b320e10fc2138f3d842d8a8ca72815f106acbab49a68ec9783e4d70d
+      md5: 8051f5bb22c95da482362f7a8c35fd68
+      sha256: cab14d6bdcaf64f0911dcd994b51ddb753650d041a74c87a2107041763605e66
     manager: conda
     name: argon2-cffi-bindings
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/argon2-cffi-bindings-21.2.0-py311h3336109_5.conda
-    version: 21.2.0
+      https://conda.anaconda.org/conda-forge/osx-64/argon2-cffi-bindings-25.1.0-py311h13e5629_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -368,15 +368,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 1e8260965552c6ec86453b7d15a598de
-      sha256: 6eabd1bcefc235b7943688d865519577d7668a2f4dc3a24ee34d81eb4bfe77d1
+      md5: 3b4ba20f581ec2268df5a76c64232ae5
+      sha256: f5b4102716a568877e212a9d4c677027b887f215d4735acfe4532efb2da59de1
     manager: conda
     name: argon2-cffi-bindings
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/argon2-cffi-bindings-21.2.0-py311h460d6c5_5.conda
-    version: 21.2.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/argon2-cffi-bindings-25.1.0-py311h3696347_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       python: '>=3.7'
@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b82f7e0c6ab800a24f2e53096c908ed4
-      sha256: a87406222bc77e1f15c94e17b292d9fcd4869d39c28f34268bb9924a71ff059c
+      md5: eb58f6deddd6dbf36ea674a5d6f059f7
+      sha256: 24f3c052c0dcd2ba33f6b836259bee9463473b320461de1d172fc70265066120
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.29.16.05.27-hd8ed1ab_0.conda
-    version: 2025.07.29.16.05.27
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.31.21.21.45-hd8ed1ab_0.conda
+    version: 2025.07.31.21.21.45
   - category: main
     dependencies: {}
     hash:
-      md5: b82f7e0c6ab800a24f2e53096c908ed4
-      sha256: a87406222bc77e1f15c94e17b292d9fcd4869d39c28f34268bb9924a71ff059c
+      md5: eb58f6deddd6dbf36ea674a5d6f059f7
+      sha256: 24f3c052c0dcd2ba33f6b836259bee9463473b320461de1d172fc70265066120
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.29.16.05.27-hd8ed1ab_0.conda
-    version: 2025.07.29.16.05.27
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.31.21.21.45-hd8ed1ab_0.conda
+    version: 2025.07.31.21.21.45
   - category: main
     dependencies: {}
     hash:
-      md5: b82f7e0c6ab800a24f2e53096c908ed4
-      sha256: a87406222bc77e1f15c94e17b292d9fcd4869d39c28f34268bb9924a71ff059c
+      md5: eb58f6deddd6dbf36ea674a5d6f059f7
+      sha256: 24f3c052c0dcd2ba33f6b836259bee9463473b320461de1d172fc70265066120
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.29.16.05.27-hd8ed1ab_0.conda
-    version: 2025.07.29.16.05.27
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.07.31.21.21.45-hd8ed1ab_0.conda
+    version: 2025.07.31.21.21.45
   - category: main
     dependencies:
       click: '>=8'
