@@ -3,7 +3,7 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: efed08f4a81f04a187cfe3e352727d106d6dc70307dbd86f17f60a589c9aa996
+    linux-64: c06e963d00def0ab33b8db7534adcc9f795aeb60ca51a1ab3b2e207aac4db32a
     osx-64: 1204481407b10740297d5cb16d501e5f62234d72cc479bb036e53a2071a9481d
     osx-arm64: 54009994f7e3af9be8925fd3b0e28806ff56fafbb57c99e713108bbc313cf7de
   platforms:
@@ -1660,43 +1660,43 @@ package:
       __unix: ''
       python: '>=3.10'
     hash:
-      md5: 94b550b8d3a614dbd326af798c7dfb40
-      sha256: 8aee789c82d8fdd997840c952a586db63c6890b00e88c4fb6e80a38edd5f51c0
+      md5: 2cc16494e4ce28efc52fb29ec3c348a1
+      sha256: cc39c9ce0a0c17a9b841099bc457fba8237bb91d815a72ada63f296f2db47e78
     manager: conda
     name: click
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
-    version: 8.2.1
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.2-pyh707e725_0.conda
+    version: 8.2.2
   - category: main
     dependencies:
       __unix: ''
       python: '>=3.10'
     hash:
-      md5: 94b550b8d3a614dbd326af798c7dfb40
-      sha256: 8aee789c82d8fdd997840c952a586db63c6890b00e88c4fb6e80a38edd5f51c0
+      md5: 2cc16494e4ce28efc52fb29ec3c348a1
+      sha256: cc39c9ce0a0c17a9b841099bc457fba8237bb91d815a72ada63f296f2db47e78
     manager: conda
     name: click
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
-    version: 8.2.1
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.2-pyh707e725_0.conda
+    version: 8.2.2
   - category: main
     dependencies:
       __unix: ''
       python: '>=3.10'
     hash:
-      md5: 94b550b8d3a614dbd326af798c7dfb40
-      sha256: 8aee789c82d8fdd997840c952a586db63c6890b00e88c4fb6e80a38edd5f51c0
+      md5: 2cc16494e4ce28efc52fb29ec3c348a1
+      sha256: cc39c9ce0a0c17a9b841099bc457fba8237bb91d815a72ada63f296f2db47e78
     manager: conda
     name: click
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.2.1-pyh707e725_0.conda
-    version: 8.2.1
+      https://conda.anaconda.org/conda-forge/noarch/click-8.2.2-pyh707e725_0.conda
+    version: 8.2.2
   - category: main
     dependencies:
       click: ''
@@ -14492,54 +14492,54 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       cffi: '>=1.7'
-      libgcc: '>=13'
-      openssl: '>=3.3.2,<4.0a0'
+      libgcc: '>=14'
+      openssl: '>=3.5.1,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: f84552538ef88afab89605794bd0ebb7
-      sha256: 3e3137b84d3a712099ecf1611e63bfabaca3c4c5c252491d657a7d713a93106a
+      md5: 7cc573fd6540b40a5132781e8ff562e2
+      sha256: 52651696e8593dfa65a7205e002e65ea8054692c8b2893bd68044b574caa253b
     manager: conda
     name: scrypt
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/scrypt-0.8.27-py311h442f005_0.conda
-    version: 0.8.27
+      https://conda.anaconda.org/conda-forge/linux-64/scrypt-0.8.29-py311ha973bff_0.conda
+    version: 0.8.29
   - category: main
     dependencies:
       __osx: '>=10.13'
       cffi: '>=1.7'
-      openssl: '>=3.3.2,<4.0a0'
+      openssl: '>=3.5.1,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 1d697eb104c38798ebbd44f7d9384595
-      sha256: df95c75e92d05b3314eef364b1ccbc99fcae673f34fb19c38f4bdf93f7864b8d
+      md5: 9436857607d64974706bed046d233f8a
+      sha256: a0934a5500581b5d3baa460ec2989a011aab258e4936e2e75575af9b67a29fa8
     manager: conda
     name: scrypt
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/scrypt-0.8.27-py311h5106b28_0.conda
-    version: 0.8.27
+      https://conda.anaconda.org/conda-forge/osx-64/scrypt-0.8.29-py311h3a41b9d_0.conda
+    version: 0.8.29
   - category: main
     dependencies:
       __osx: '>=11.0'
       cffi: '>=1.7'
-      openssl: '>=3.3.2,<4.0a0'
+      openssl: '>=3.5.1,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: f50114c23c30c5c6c102443f19fa2d57
-      sha256: 0be02c6f55c662e3f4187524173818d556c1cae91aa2101eb48923d051a0c931
+      md5: a696f1ef8675d22a3feda5dc41498653
+      sha256: 5ea9dae7a4c7786a0e68e105a5c87b629f3a0378d1bca215ba68409d85104386
     manager: conda
     name: scrypt
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/scrypt-0.8.27-py311hf787bfc_0.conda
-    version: 0.8.27
+      https://conda.anaconda.org/conda-forge/osx-arm64/scrypt-0.8.29-py311h783b628_0.conda
+    version: 0.8.29
   - category: main
     dependencies:
       cryptography: ''
