@@ -63,3 +63,5 @@ pixi.toml
 venv
 oryx-build-commands.txt
 .env
+env/
+.DS_Store

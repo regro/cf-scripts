@@ -5,12 +5,6 @@ from fastapi import APIRouter
 
 from ..base_classes import AbstractIntegrationTestHelper, TestCase
 
-PYPI_SIMPLE_API_RESPONSE = json.loads(
-    Path(__file__)
-    .parent.joinpath("resources/pypi_simple_api_response.json")
-    .read_text()
-)
-
 
 class VersionUpdate(TestCase):
     def get_router(self) -> APIRouter:

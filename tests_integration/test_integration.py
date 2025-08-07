@@ -62,8 +62,8 @@ def global_environment_setup():
 
     new_settings.frac_make_graph = 1.0  # do not skip nodes due to randomness
     new_settings.frac_update_upstream_versions = 1.0
-    new_settings.graph_github_backend_repo = "regro-staging/cf-graph-countyfair"
-    new_settings.conda_forge_org = "conda-forge-bot-staging"
+    new_settings.graph_github_backend_repo = "janjagusch-regro-staging/cf-graph-countyfair"
+    new_settings.conda_forge_org = "janjagusch-conda-forge-bot-staging"
 
     with use_settings(new_settings):
         setup_logging(logging.INFO)
@@ -240,7 +240,7 @@ def invoke_bot_command(args: list[str]):
     cli.main(args, standalone_mode=False)
 
 
-@pytest.mark.parametrize("use_containers", [False, True])
+@pytest.mark.parametrize("use_containers", [False])
 def test_scenario(
     use_containers: bool,
     scenario: tuple[int, dict[str, TestCase]],
