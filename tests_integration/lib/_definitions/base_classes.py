@@ -4,6 +4,7 @@ Module providing base classes for the integration tests.
 Both _definitions and lib refer to this module.
 """
 
+import os
 from abc import ABC
 from enum import StrEnum
 from pathlib import Path
@@ -12,9 +13,13 @@ from fastapi import APIRouter
 
 
 class GitHubAccount(StrEnum):
-    CONDA_FORGE_ORG = "conda-forge-bot-staging"
-    BOT_USER = "regro-cf-autotick-bot-staging"
-    REGRO_ORG = "regro-staging"
+    CONDA_FORGE_ORG = (
+        os.environ.get("GITHUB_ACCOUNT_CONDA_FORGE_ORG") or "conda-forge-bot-staging"
+    )
+    BOT_USER = (
+        os.environ.get("GITHUB_ACCOUNT_BOT_USER") or "regro-cf-autotick-bot-staging"
+    )
+    REGRO_ORG = os.environ.get("GITHUB_ACCOUNT_REGRO_ORG") or "regro-staging"
 
 
 class AbstractIntegrationTestHelper(ABC):
