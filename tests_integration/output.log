@@ -1,9 +1,0 @@
-ERROR: file or directory not found: tests_integration
-
-============================= test session starts ==============================
-platform darwin -- Python 3.11.13, pytest-8.0.2, pluggy-1.6.0
-rootdir: /Users/janjagusch/Projects/personal/cf-scripts/tests_integration
-plugins: env-1.1.4, xdist-3.8.0, anyio-4.10.0, retry-1.7.0, cov-6.2.1, xprocess-1.0.2, split-0.10.0, requests-mock-1.12.1
-collected 0 items
-
-============================ no tests ran in 0.00s =============================
