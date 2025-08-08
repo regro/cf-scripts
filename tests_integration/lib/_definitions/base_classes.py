@@ -12,9 +12,9 @@ from fastapi import APIRouter
 
 
 class GitHubAccount(StrEnum):
-    CONDA_FORGE_ORG = "janjagusch-conda-forge-bot-staging"
-    BOT_USER = "janjagusch-bot"
-    REGRO_ORG = "janjagusch-regro-staging"
+    CONDA_FORGE_ORG = "conda-forge-bot-staging"
+    BOT_USER = "regro-cf-autotick-bot-staging"
+    REGRO_ORG = "regro-staging"
 
 
 class AbstractIntegrationTestHelper(ABC):
@@ -96,46 +96,6 @@ class AbstractIntegrationTestHelper(ABC):
         AssertionError
             If the assertion fails.
         """
-        pass
-
-    def assert_version_pr_present_v1(
-        self,
-        feedstock: str,
-        new_version: str,
-        new_hash: str,
-        old_version: str,
-        old_hash: str,
-    ) -> None:
-        """
-        Assert that the bot has opened a version update PR for v1 recipes.
-
-        Parameters
-        ----------
-        feedstock
-            The feedstock we expect the PR for, without the -feedstock suffix.
-        new_version
-            The new version that is expected.
-        new_hash
-            The new SHA-256 source artifact hash.
-        old_version
-            The old version of the feedstock, to check that it no longer appears in the recipe.
-        old_hash
-            The old SHA-256 source artifact hash, to check that it no longer appears in the recipe.
-
-
-        Raises
-        ------
-        AssertionError
-            If the assertion fails.
-        """
-        pass
-
-    def assert_new_runtime_requirements_equal(
-        self,
-        feedstock: str,
-        new_version: str,
-        runtime_requirements: list[str],
-    ):
         pass
 
 
