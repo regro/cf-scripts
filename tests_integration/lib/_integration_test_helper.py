@@ -4,10 +4,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from ruamel import yaml
 from typing import Any
 
 from github import Github, PullRequest
+from ruamel import yaml
 
 from conda_forge_tick.git_utils import GitCli
 from conda_forge_tick.utils import (
@@ -114,12 +114,8 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         )
 
         return matching_prs[0]
-    
-    def _assert_version_pr_meta(
-        self,
-        feedstock: str,
-        pr: PullRequest
-    ):
+
+    def _assert_version_pr_meta(self, feedstock: str, pr: PullRequest):
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
         assert pr.head.repo.owner.login == GitHubAccount.BOT_USER
         assert pr.head.repo.name == full_feedstock_name
@@ -162,7 +158,6 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             with open(target_dir / "recipe" / "recipe.yaml") as f:
                 return yaml.safe_load(f)
 
-
     def _assert_version_pr_content_v1(
         self,
         pr: PullRequest,
@@ -178,7 +173,6 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         assert old_version not in recipe_raw
         assert old_hash not in recipe_raw
 
-
     def assert_version_pr_present(
         self,
         feedstock: str,
@@ -189,7 +183,14 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
     ):
         pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
         self._assert_version_pr_meta(feedstock=feedstock, pr=pr)
-        self._assert_version_pr_content_v0(feedstock=feedstock, pr=pr, new_version=new_version, new_hash=new_hash, old_version=old_version, old_hash=old_hash)
+        self._assert_version_pr_content_v0(
+            feedstock=feedstock,
+            pr=pr,
+            new_version=new_version,
+            new_hash=new_hash,
+            old_version=old_version,
+            old_hash=old_hash,
+        )
         LOGGER.info(
             "Version PR for %s v%s validated successfully.",
             feedstock,
@@ -206,14 +207,15 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
     ):
         pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
         self._assert_version_pr_meta(feedstock=feedstock, pr=pr)
-        self._assert_version_pr_content_v1(pr=pr, new_version=new_version, new_hash=new_hash, old_version=old_version, old_hash=old_hash)
+        self._assert_version_pr_content_v1(
+            pr=pr,
+            new_version=new_version,
+            new_hash=new_hash,
+            old_version=old_version,
+            old_hash=old_hash,
+        )
         LOGGER.info(
             "Version PR for %s v%s validated successfully.",
             feedstock,
             new_version,
         )
-
-    def assert_new_runtime_requirements_equal(self, feedstock: str, new_version: str, runtime_requirements: list[str]):
-        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
-        recipe = self._get_pr_content_recipe_v1(pr)
-        assert recipe["requirements"]["run"] == runtime_requirements
