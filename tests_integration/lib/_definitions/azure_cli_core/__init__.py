@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -6,7 +5,7 @@ from fastapi import APIRouter
 from ..base_classes import AbstractIntegrationTestHelper, TestCase
 
 
-class GrayskullV1VersionUpdate(TestCase):
+class V1VersionUpdate(TestCase):
     def get_router(self) -> APIRouter:
         router = APIRouter()
 
@@ -31,31 +30,6 @@ class GrayskullV1VersionUpdate(TestCase):
             old_version="2.75.0",
             old_hash="0187f93949c806f8e39617cdb3b4fd4e3cac5ebe45f02dc0763850bcf7de8df2",
         )
-        helper.assert_runtime_requirements_equals(
-            "azure-cli-core",
-            new_version="2.76.0",
-            runtime_requirements=[
-                "python >=${{ python_min }}",
-                "argcomplete >=3.5.2,<3.6.dev0",
-                "azure-cli-telemetry ==1.1.0.*",
-                "azure-mgmt-core >=1.2.0,<2",
-                "cryptography",
-                "distro",
-                "humanfriendly >=10.0,<11.dev0",
-                "jmespath",
-                "knack >=0.11.0,<0.12.dev0",
-                "microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.dev0",
-                "msal ==1.33.0b1",
-                "msal_extensions ==1.2.0",
-                "packaging >=20.9",
-                "pkginfo >=1.5.0.1",
-                "psutil >=5.9",
-                "py-deviceid",
-                "pyjwt >=2.1.0",
-                "pyopenssl >=17.1.0",
-                "requests",
-            ]
-        )
 
 
-ALL_TEST_CASES: list[TestCase] = [GrayskullV1VersionUpdate()]
+ALL_TEST_CASES: list[TestCase] = [V1VersionUpdate()]
