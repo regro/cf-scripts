@@ -1,4 +1,4 @@
-from . import conda_forge_pinning, pydantic, azure_cli_core
+from . import azure_cli_core, conda_forge_pinning, pydantic
 from .base_classes import AbstractIntegrationTestHelper, GitHubAccount, TestCase
 
 TEST_CASE_MAPPING: dict[str, list[TestCase]] = {
