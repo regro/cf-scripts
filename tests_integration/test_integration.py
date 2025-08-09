@@ -28,6 +28,8 @@ from tests_integration.lib import (
     setup_logging,
 )
 
+from .lib._definitions import GitHubAccount
+
 TESTS_INTEGRATION_DIR = Path(__file__).parent
 CF_SCRIPTS_ROOT_DIR = TESTS_INTEGRATION_DIR.parent
 MITMPROXY_CONFDIR = TESTS_INTEGRATION_DIR / ".mitmproxy"
@@ -62,8 +64,10 @@ def global_environment_setup():
 
     new_settings.frac_make_graph = 1.0  # do not skip nodes due to randomness
     new_settings.frac_update_upstream_versions = 1.0
-    new_settings.graph_github_backend_repo = "regro-staging/cf-graph-countyfair"
-    new_settings.conda_forge_org = "conda-forge-bot-staging"
+    new_settings.graph_github_backend_repo = (
+        f"{GitHubAccount.REGRO_ORG}/cf-graph-countyfair"
+    )
+    new_settings.conda_forge_org = GitHubAccount.CONDA_FORGE_ORG
 
     with use_settings(new_settings):
         setup_logging(logging.INFO)
