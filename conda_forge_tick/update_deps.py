@@ -633,10 +633,13 @@ def _apply_env_dep_comparison(
         # Do not try to replace expressions.
         if is_expression_requirement(patch.before):
             continue
+        # Add new package.
         if patch.before is None:
             new_deps.append(patch.after)
+        # Remove old package.
         elif patch.after is None:
             new_deps.remove(patch.before)
+        # Update existing package.
         else:
             new_deps[new_deps.index(patch.before)] = patch.after
     return new_deps
