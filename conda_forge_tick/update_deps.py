@@ -624,6 +624,7 @@ def is_expression_requirement(dep: str) -> bool:
 def _apply_env_dep_comparison(
     deps: list[str], env_dep_comparison: EnvDepComparison
 ) -> list[str]:
+    """Apply updates to dependency list while maintaining original package order."""
     new_deps = copy.copy(deps)
     patches = _env_dep_comparison_to_patches(env_dep_comparison)
     for package, patch in patches.items():
