@@ -809,5 +809,4 @@ def test_apply_dep_update_v1(
     recipe_file = tmp_path / "recipe.yaml"
     recipe_file.write_text(recipe)
     apply_dep_update(tmp_path, dep_comparison=dep_comparison)
-    breakpoint()
     assert recipe_file.read_text() == new_recipe
