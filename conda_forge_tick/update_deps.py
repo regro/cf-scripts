@@ -3,6 +3,7 @@ import logging
 import os
 import pprint
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Literal, Union
@@ -606,16 +607,13 @@ def _env_dep_comparison_to_patches(
 ) -> dict[str, Patch]:
     deps_to_remove = copy.copy(env_dep_comparison["cf_minus_df"])
     deps_to_add = copy.copy(env_dep_comparison["df_minus_cf"])
-    patches: dict[str, Patch] = {}
+    patches: dict[str, Patch] = defaultdict(Patch)
     for dep in deps_to_add:
         package = dep.split(" ")[0]
         patches[package] = Patch(after=dep)
     for dep in deps_to_remove:
         package = dep.split(" ")[0]
-        if package in patches:
-            patches[package].before = dep
-        else:
-            patches[package] = Patch(before=dep)
+        patches[package].before = dep
     return patches
 
 
