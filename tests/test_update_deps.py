@@ -11,8 +11,10 @@ from conda_forge_tick.lazy_json_backends import load
 from conda_forge_tick.migrators import DependencyUpdateMigrator, Version
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
+    DepComparison,
     _merge_dep_comparisons_sec,
     _update_sec_deps,
+    apply_dep_update,
     generate_dep_hint,
     get_dep_updates_and_hints,
     get_depfinder_comparison,
@@ -625,3 +627,187 @@ def test_update_deps_version_pyquil(caplog, tmp_path, update_kind, out_yml):
         tmp_path=tmp_path,
         make_body=True,
     )
+
+
+@pytest.mark.parametrize(
+    "recipe, dep_comparison, new_recipe",
+    [
+        (
+            """schema_version: 1
+
+context:
+  name: azure-cli-core
+  version: "2.75.0"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name | replace('-', '_') }}-${{ version }}.tar.gz
+  sha256: 0187f93949c806f8e39617cdb3b4fd4e3cac5ebe45f02dc0763850bcf7de8df2
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+    - setuptools
+  run:
+    - python >=${{ python_min }}
+    - argcomplete >=3.5.2,<3.5.3
+    - azure-cli-telemetry >=1.1.0
+    - azure-mgmt-core >=1.2.0,<2
+    - cryptography
+    - distro
+    - humanfriendly >=10.0
+    - jmespath
+    - knack >=0.11.0,<0.11.1
+    - microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.0
+    - msal ==1.33.0b1
+    - msal_extensions ==1.2.0
+    - packaging >=20.9
+    - pkginfo >=1.5.0.1
+    - psutil >=5.9
+    - py-deviceid
+    - pyjwt >=2.1.0
+    - pyopenssl >=17.1.0
+    - pysocks >=1.6.0
+    - requests >=2.20.0
+
+tests:
+  - python:
+      imports:
+        - azure
+        - azure.cli
+        - azure.cli.core
+        - azure.cli.core.commands
+        - azure.cli.core.extension
+        - azure.cli.core.profiles
+      python_version: ${{ python_min }}.*
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: Microsoft Azure Command-Line Tools Core Module
+  homepage: https://github.com/Azure/azure-cli
+  repository: https://github.com/Azure/azure-cli
+  documentation: https://docs.microsoft.com/en-us/cli/azure
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - andreyz4k
+    - janjagusch""",
+            {
+                "host": {
+                    "cf_minus_df": {"python 3.9.*", "setuptools"},
+                    "df_minus_cf": {"python"},
+                },
+                "run": {
+                    "cf_minus_df": {
+                        "knack >=0.11.0,<0.11.1",
+                        "pysocks >=1.6.0",
+                        "azure-cli-telemetry >=1.1.0",
+                        "python >=3.9",
+                        "microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.0",
+                        "humanfriendly >=10.0",
+                        "argcomplete >=3.5.2,<3.5.3",
+                        "requests >=2.20.0",
+                        "msal_extensions ==1.2.0",
+                    },
+                    "df_minus_cf": {
+                        "requests",
+                        "knack >=0.11.0,<0.12.dev0",
+                        "humanfriendly >=10.0,<11.dev0",
+                        "argcomplete >=3.5.2,<3.6.dev0",
+                        "microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.dev0",
+                        "python",
+                        "msal-extensions ==1.2.0",
+                        "azure-cli-telemetry ==1.1.0.*",
+                    },
+                },
+            },
+            """schema_version: 1
+
+context:
+  name: azure-cli-core
+  version: 2.75.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name | replace('-', '_') }}-${{ version }}.tar.gz
+  sha256: 0187f93949c806f8e39617cdb3b4fd4e3cac5ebe45f02dc0763850bcf7de8df2
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+  run:
+    - python >=${{ python_min }}
+    - argcomplete >=3.5.2,<3.6.dev0
+    - azure-cli-telemetry ==1.1.0.*
+    - azure-mgmt-core >=1.2.0,<2
+    - cryptography
+    - distro
+    - humanfriendly >=10.0,<11.dev0
+    - jmespath
+    - knack >=0.11.0,<0.12.dev0
+    - microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.dev0
+    - msal ==1.33.0b1
+    - packaging >=20.9
+    - pkginfo >=1.5.0.1
+    - psutil >=5.9
+    - py-deviceid
+    - pyjwt >=2.1.0
+    - pyopenssl >=17.1.0
+    - requests
+    - msal-extensions ==1.2.0
+tests:
+  - python:
+      imports:
+        - azure
+        - azure.cli
+        - azure.cli.core
+        - azure.cli.core.commands
+        - azure.cli.core.extension
+        - azure.cli.core.profiles
+      python_version: ${{ python_min }}.*
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: Microsoft Azure Command-Line Tools Core Module
+  homepage: https://github.com/Azure/azure-cli
+  repository: https://github.com/Azure/azure-cli
+  documentation: https://docs.microsoft.com/en-us/cli/azure
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - andreyz4k
+    - janjagusch
+""",
+        )
+    ],
+)
+def test_apply_dep_update_v1(
+    recipe: str, dep_comparison: DepComparison, new_recipe: str, tmp_path: Path
+):
+    recipe_file = tmp_path / "recipe.yaml"
+    recipe_file.write_text(recipe)
+    apply_dep_update(tmp_path, dep_comparison=dep_comparison)
+    breakpoint()
+    assert recipe_file.read_text() == new_recipe

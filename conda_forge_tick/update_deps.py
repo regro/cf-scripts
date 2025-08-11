@@ -3,10 +3,12 @@ import logging
 import os
 import pprint
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Literal, Union
 
 import requests
+from ruamel.yaml import YAML
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
@@ -24,6 +26,15 @@ except ImportError:
     from grayskull.__main__ import create_python_recipe
 
 logger = logging.getLogger(__name__)
+
+yaml = YAML()
+yaml.default_flow_style = False
+yaml.block_seq_indent = True
+yaml.indent(mapping=2, sequence=4, offset=2)
+yaml.width = 4096
+
+EnvDepComparison = dict[Literal["df_minus_cf", "cf_minus_df"], set[str]]
+DepComparison = dict[Literal["host", "run"], EnvDepComparison]
 
 
 SECTIONS_TO_PARSE = ["host", "run"]
@@ -584,6 +595,72 @@ def _gen_key_selector(dct, key):
             yield k
 
 
+@dataclass
+class Patch:
+    before: str | None = None
+    after: str | None = None
+
+
+def _env_dep_comparison_to_patches(
+    env_dep_comparison: EnvDepComparison,
+) -> dict[str, Patch]:
+    deps_to_remove = copy.copy(env_dep_comparison["cf_minus_df"])
+    deps_to_add = copy.copy(env_dep_comparison["df_minus_cf"])
+    patches: dict[str, Patch] = {}
+    for dep in deps_to_add:
+        package = dep.split(" ")[0]
+        patches[package] = Patch(after=dep)
+    for dep in deps_to_remove:
+        package = dep.split(" ")[0]
+        if package in patches:
+            patches[package].before = dep
+        else:
+            patches[package] = Patch(before=dep)
+    return patches
+
+
+def _apply_env_dep_comparison(
+    deps: list[str], env_dep_comparison: EnvDepComparison
+) -> list[str]:
+    new_deps = copy.copy(deps)
+    patches = _env_dep_comparison_to_patches(env_dep_comparison)
+    for package, patch in patches.items():
+        # Do not touch Python itself - too finicky.
+        if package == "python":
+            continue
+        if patch.before is None:
+            new_deps.append(patch.after)
+        elif patch.after is None:
+            new_deps.remove(patch.before)
+        else:
+            new_deps[new_deps.index(patch.before)] = patch.after
+    return new_deps
+
+
+def _is_multi_output_v1_recipe(recipe: dict) -> bool:
+    return "outputs" in recipe
+
+
+def _is_v1_recipe_okay_for_dep_updates(recipe: dict) -> bool:
+    return not _is_multi_output_v1_recipe(recipe=recipe)
+
+
+def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
+    new_recipe = copy.deepcopy(recipe)
+    if not _is_v1_recipe_okay_for_dep_updates(recipe):
+        return new_recipe
+
+    host_deps = _apply_env_dep_comparison(
+        recipe["requirements"]["host"], dep_comparison["host"]
+    )
+    run_deps = _apply_env_dep_comparison(
+        recipe["requirements"]["run"], dep_comparison["run"]
+    )
+    new_recipe["requirements"]["host"] = host_deps
+    new_recipe["requirements"]["run"] = run_deps
+    return new_recipe
+
+
 def apply_dep_update(recipe_dir, dep_comparison):
     """Update a recipe given a dependency comparison.
 
@@ -594,6 +671,12 @@ def apply_dep_update(recipe_dir, dep_comparison):
     dep_comparison : dict
         The dependency comparison.
     """
+    if (recipe_file := Path(recipe_dir).joinpath("recipe.yaml")).is_file():
+        recipe = yaml.load(recipe_file.read_text())
+        if (new_recipe := _apply_dep_update_v1(recipe, dep_comparison)) != recipe:
+            with recipe_file.open("w") as f:
+                yaml.dump(new_recipe, f)
+        return
     recipe_pth = os.path.join(recipe_dir, "meta.yaml")
     with open(recipe_pth) as fp:
         lines = fp.readlines()
