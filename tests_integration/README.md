@@ -90,7 +90,7 @@ In detail, the process of collecting test scenarios is as follows:
 For each feedstock, collect the available test cases in lexically sorted order.
 
 | Feedstock A | Feedstock B |
-|-------------|-------------|
+| ----------- | ----------- |
 | Test Case 1 | Test Case 1 |
 | Test Case 2 | Test Case 2 |
 | Test Case 3 |             |
@@ -104,15 +104,15 @@ Feedstocks that have fewer test cases repeat their test cases to supply exactly 
 In the example below, the last instance of `test_case_2.py` for Feedstock B is not needed and thus discarded.
 
 
-| Feedstock A                  | Feedstock B                  |
-|------------------------------|------------------------------|
-| Test Case 1                  | Test Case 1                  |
-| Test Case 2                  | Test Case 2                  |
-| Test Case 3                  | Test Case 1                  |
-| Test Case 4                  | Test Case 2                  |
-| Test Case 5                  | Test Case 1                  |
+| Feedstock A                | Feedstock B                |
+| -------------------------- | -------------------------- |
+| Test Case 1                | Test Case 1                |
+| Test Case 2                | Test Case 2                |
+| Test Case 3                | Test Case 1                |
+| Test Case 4                | Test Case 2                |
+| Test Case 5                | Test Case 1                |
 | ✂️ everything is cut here ✂️ | ✂️ everything is cut here ✂️ |
-|                              | Test Case 2 (discarded 🗑️)  |
+|                            | Test Case 2 (discarded 🗑️)  |
 
 #### 3. Shuffle Test Scenarios
 For each feedstock, we shuffle the test cases (rows) individually to ensure a random combination of test cases.
@@ -122,7 +122,7 @@ Finally, we get the test scenarios as the rows of the table below.
 Each test scenario executes exactly one test case per feedstock, in parallel.
 
 |            | Feedstock A | Feedstock B |
-|------------|-------------|-------------|
+| ---------- | ----------- | ----------- |
 | Scenario 1 | Test Case 3 | Test Case 2 |
 | Scenario 2 | Test Case 1 | Test Case 1 |
 | Scenario 3 | Test Case 4 | Test Case 1 |
@@ -133,14 +133,14 @@ Each test scenario executes exactly one test case per feedstock, in parallel.
 ## Environment Variables
 The tests expect the following environment variables:
 
-| Variable           | Description                                                                                                                       |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `GITHUB_ACCOUNT_CONDA_FORGE_ORG` | The GitHub organization mimicking `conda-forge`. Defaults to `conda-forge-bot-staging`.                      |
-| `GITHUB_ACCOUNT_REGRO_ORG` | The GitHub organization mimicking [regro](https://github.com/regro). Defaults to `regro-staging`.  |
-| `GITHUB_ACCOUNT_BOT_USER` | The GitHub user to interact with `$GITHUB_ACCOUNT_CONDA_FORGE_ORG` and `$GITHUB_ACCOUNT_REGRO_ORG`. Defaults to `regro-cf-autotick-bot-staging`.  |
-| `BOT_TOKEN`        | Classic PAT for `cf-regro-autotick-bot-staging`. Used to interact with the test environment.                                      |
-| `TEST_SETUP_TOKEN` | Classic PAT for `cf-regro-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`.  |
-| `GITHUB_RUN_ID`    | Set by GitHub. ID of the current run. Used as random seed.                                                                        |
+| Variable                         | Description                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GITHUB_ACCOUNT_CONDA_FORGE_ORG` | The GitHub organization mimicking `conda-forge`. Defaults to `conda-forge-bot-staging`.                                                          |
+| `GITHUB_ACCOUNT_REGRO_ORG`       | The GitHub organization mimicking [regro](https://github.com/regro). Defaults to `regro-staging`.                                                |
+| `GITHUB_ACCOUNT_BOT_USER`        | The GitHub user to interact with `$GITHUB_ACCOUNT_CONDA_FORGE_ORG` and `$GITHUB_ACCOUNT_REGRO_ORG`. Defaults to `regro-cf-autotick-bot-staging`. |
+| `BOT_TOKEN`                      | Classic PAT for `regro-cf-autotick-bot-staging`. Used to interact with the test environment.                                                     |
+| `TEST_SETUP_TOKEN`               | Classic PAT for `regro-cf-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`.                 |
+| `GITHUB_RUN_ID`                  | Set by GitHub. ID of the current run. Used as random seed.                                                                                       |
 
 
 We do not use `BOT_TOKEN` instead of `TEST_SETUP_TOKEN` for setting up the test environment to allow for future separation of the two tokens.
@@ -152,7 +152,7 @@ The bot token (which you can should use as the test setup token) should have the
 
 ## Running the Integration Tests Locally
 
-To run the integration tests locally, you currently need to have a valid token for the `cf-regro-autotick-bot-staging` account.
+To run the integration tests locally, you currently need to have a valid token for the `regro-cf-autotick-bot-staging` account.
 Besides that, run the following setup wizard to set up self-signed certificates for the HTTP proxy:
 
 ```bash
