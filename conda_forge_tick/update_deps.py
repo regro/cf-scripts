@@ -617,6 +617,10 @@ def _env_dep_comparison_to_patches(
     return patches
 
 
+def is_expression_requirement(dep: str) -> bool:
+    return dep.startswith(r"${{")
+
+
 def _apply_env_dep_comparison(
     deps: list[str], env_dep_comparison: EnvDepComparison
 ) -> list[str]:
@@ -625,6 +629,9 @@ def _apply_env_dep_comparison(
     for package, patch in patches.items():
         # Do not touch Python itself - too finicky.
         if package == "python":
+            continue
+        # Do not try to replace expressions.
+        if is_expression_requirement(patch.before):
             continue
         if patch.before is None:
             new_deps.append(patch.after)
