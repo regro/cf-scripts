@@ -135,6 +135,9 @@ The tests expect the following environment variables:
 
 | Variable           | Description                                                                                                                       |
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `GITHUB_ACCOUNT_CONDA_FORGE_ORG` | The GitHub organization mimicking `conda-forge`. Defaults to `conda-forge-bot-staging`.                      |
+| `GITHUB_ACCOUNT_REGRO_ORG` | The GitHub organization mimicking [regro](https://github.com/regro). Defaults to `regro-staging`.  |
+| `GITHUB_ACCOUNT_BOT_USER` | The GitHub user to interact with `$GITHUB_ACCOUNT_CONDA_FORGE_ORG` and `$GITHUB_ACCOUNT_REGRO_ORG`. Defaults to `regro-cf-autotick-bot-staging`.  |
 | `BOT_TOKEN`        | Classic PAT for `cf-regro-autotick-bot-staging`. Used to interact with the test environment.                                      |
 | `TEST_SETUP_TOKEN` | Classic PAT for `cf-regro-autotick-bot-staging` used to setup the test environment. Typically, this is identical to `BOT_TOKEN`.  |
 | `GITHUB_RUN_ID`    | Set by GitHub. ID of the current run. Used as random seed.                                                                        |
