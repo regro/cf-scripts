@@ -152,7 +152,7 @@ The bot token (which you can should use as the test setup token) should have the
 
 ## Running the Integration Tests Locally
 
-To run the integration tests locally, you currently need to have a valid token for the `GITHUB_ACCOUNT_BOT_USER` account.
+To run the integration tests locally, you need to have a valid token for the `GITHUB_ACCOUNT_BOT_USER` account.
 Besides that, run the following setup wizard to set up self-signed certificates for the HTTP proxy:
 
 ```bash
