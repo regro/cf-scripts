@@ -666,6 +666,12 @@ def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
     return new_recipe
 
 
+def get_v1_recipe_file_if_exists(recipe_dir: Path) -> Path | None:
+    if (recipe_file := Path(recipe_dir).joinpath("recipe.yaml")).is_file():
+        return recipe_file
+    return None
+
+
 def apply_dep_update(recipe_dir, dep_comparison):
     """Update a recipe given a dependency comparison.
 
@@ -676,7 +682,7 @@ def apply_dep_update(recipe_dir, dep_comparison):
     dep_comparison : dict
         The dependency comparison.
     """
-    if (recipe_file := Path(recipe_dir).joinpath("recipe.yaml")).is_file():
+    if recipe_file := get_v1_recipe_file_if_exists(recipe_dir):
         recipe = yaml.load(recipe_file.read_text())
         if (new_recipe := _apply_dep_update_v1(recipe, dep_comparison)) != recipe:
             with recipe_file.open("w") as f:
