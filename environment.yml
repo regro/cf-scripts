@@ -21,6 +21,7 @@ dependencies:
   - conda-package-handling
   - conda-smithy >=3.34.1
   - conda-build >=3.24.0
+  - conda-recipe-manager >=0.6.1
   - curl
   - depfinder
   - distributed

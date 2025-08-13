@@ -9,7 +9,10 @@ from pathlib import Path
 from typing import Dict, Literal, Union
 
 import requests
+from grayskull.config import Configuration
+from grayskull.utils import generate_recipe
 from ruamel.yaml import YAML
+from souschef.recipe import Recipe
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
@@ -20,6 +23,7 @@ from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.settings import settings
+from conda_forge_tick.utils import get_recipe_schema_version
 
 try:
     from grayskull.main import create_python_recipe
@@ -406,6 +410,45 @@ def make_grayskull_recipe(attrs, version_key="version"):
     return out
 
 
+def _generate_grayskull_recipe_v1(recipe: Recipe, configuration: Configuration) -> str:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        generate_recipe(
+            recipe=recipe,
+            config=configuration,
+            folder_path=temp_dir,
+            use_v1_format=True,
+        )
+        return (Path(temp_dir) / configuration.name / "recipe.yaml").read_text()
+
+
+def _validate_grayskull_recipe_v1(recipe: Recipe):
+    # The new v1 recipe format allows for complex structures as requirements, not just strings.
+    # For example, '{'if': 'linux', 'then': 'numpy'}'.
+    # This is hard to integrate into the remainder of the dependency update process downstream,
+    # so we skip recipes affected by this for now.
+    for environment in ["host", "run"]:
+        for requirement in recipe.yaml["requirements"][environment]:
+            if not isinstance(requirement, str):
+                raise ValueError(
+                    f"Requirement in '{environment}' environment is not a string: '{requirement}'"
+                )
+
+
+def _get_grayskull_recipe_v1(
+    package_name: str, package_version: str, package_is_noarch: bool
+) -> str:
+    recipe, config = create_python_recipe(
+        pkg_name=package_name,
+        version=package_version,
+        download=False,
+        is_strict_cf=True,
+        from_local_sdist=False,
+        is_arch=not package_is_noarch,
+    )
+    _validate_grayskull_recipe_v1(recipe=recipe)
+    return _generate_grayskull_recipe_v1(recipe=recipe, configuration=config)
+
+
 def get_grayskull_comparison(attrs, version_key="version"):
     """Get the dependency comparison between the recipe and grayskull.
 
@@ -420,11 +463,29 @@ def get_grayskull_comparison(attrs, version_key="version"):
     -------
     d : dict
         The dependency comparison with conda-forge.
-    """
-    gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
 
-    # load the feedstock with the grayskull meta_yaml
-    new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+    Raises
+    ------
+    ValueError
+        When a v1 recipe contains requirements we are unable to process.
+    """
+    recipe_schema_version = get_recipe_schema_version(attrs)
+    if recipe_schema_version == 0:
+        gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
+        new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+    elif recipe_schema_version == 1:
+        recipe = attrs["meta_yaml"]
+        gs_recipe = _get_grayskull_recipe_v1(
+            package_name=recipe["package"]["name"],
+            package_version=recipe["package"]["version"],
+            package_is_noarch=bool(recipe["build"].get("noarch")),
+        )
+        new_attrs = load_feedstock(
+            attrs.get("feedstock_name"), {}, recipe_yaml=gs_recipe
+        )
+    else:
+        raise ValueError(f"Unknown recipe schema version: '{recipe_schema_version}'.")
+
     d = {}
     for section in SECTIONS_TO_PARSE:
         gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}

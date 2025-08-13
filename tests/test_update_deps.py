@@ -810,3 +810,131 @@ def test_apply_dep_update_v1(
     recipe_file.write_text(recipe)
     apply_dep_update(tmp_path, dep_comparison=dep_comparison)
     assert recipe_file.read_text() == new_recipe
+
+
+@pytest.mark.parametrize(
+    "attrs, expected_dep_comparison",
+    [
+        (
+            {
+                "feedstock_name": "depfinder",
+                "meta_yaml": {
+                    "about": {
+                        "home": "http://github.com/ericdill/depfinder",
+                        "license": "BSD-3-Clause",
+                        "license_file": "LICENSE",
+                        "summary": "Find all the unique imports in your library",
+                    },
+                    "build": {
+                        "entry_points": [
+                            "depfinder = depfinder.cli:cli",
+                            "depfinder = depfinder.cli:cli",
+                            "depfinder = depfinder.cli:cli",
+                        ],
+                        "noarch": "python",
+                        "number": "0",
+                        "script": " -m pip install . --no-deps -vv",
+                    },
+                    "extra": {
+                        "recipe-maintainers": [
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                        ]
+                    },
+                    "package": {"name": "depfinder", "version": "2.3.0"},
+                    "requirements": {
+                        "host": [
+                            "python <3.9",
+                            "pip",
+                            "python <3.9",
+                            "pip",
+                            "python <3.9",
+                            "pip",
+                        ],
+                        "run": [
+                            "python <3.9",
+                            "stdlib-list",
+                            "python <3.9",
+                            "stdlib-list",
+                            "python <3.9",
+                            "stdlib-list",
+                        ],
+                    },
+                    "source": {
+                        "sha256": "2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000",
+                        "url": "https://pypi.io/packages/source/d/depfinder/depfinder-2.3.0.tar.gz",
+                    },
+                    "test": {
+                        "commands": ["depfinder -h", "depfinder -h", "depfinder -h"],
+                        "imports": ["depfinder", "depfinder", "depfinder"],
+                    },
+                },
+                "name": "depfinder",
+                "raw_meta_yaml": '{% set version = "2.3.0" %}\n\npackage:\n  name: depfinder\n  version: {{ version }}\n\nsource:\n  url: https://pypi.io/packages/source/d/depfinder/depfinder-{{ version }}.tar.gz\n  sha256: 2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000\n\nbuild:\n  number: 0\n  noarch: python\n  script: "{{ PYTHON }} -m pip install . --no-deps -vv"\n  entry_points:\n    - depfinder = depfinder.cli:cli\n\nrequirements:\n  host:\n    # Python version is limited by stdlib-list.\n    - python <3.9\n    - pip\n  run:\n    - python <3.9\n    - stdlib-list\n\ntest:\n  commands:\n    - depfinder -h\n  imports:\n    - depfinder\n\nabout:\n  home: http://github.com/ericdill/depfinder\n  license: BSD-3-Clause\n  license_file: LICENSE\n  summary: Find all the unique imports in your library\n\nextra:\n  recipe-maintainers:\n    - ericdill\n    - mariusvniekerk\n    - tonyfast\n    - ocefpaf\n',
+                "total_requirements": {
+                    "build": set(),
+                    "host": {"python <3.9", "pip"},
+                    "run": {"python <3.9", "stdlib-list"},
+                    "test": set(),
+                },
+                "version": "2.3.0",
+            },
+            {
+                "host": {
+                    "cf_minus_df": {"python <3.9"},
+                    "df_minus_cf": {"python >=3.7"},
+                },
+                "run": {
+                    "cf_minus_df": {"python <3.9"},
+                    "df_minus_cf": {"pyyaml", "python >=3.7"},
+                },
+            },
+        ),
+        (
+            {
+                "meta_yaml": {
+                    "schema_version": 1,
+                    "package": {
+                        "name": "azure-mgmt-synapse",
+                        "version": "2.0.0",
+                    },
+                    "build": {"noarch": "python"},
+                },
+                "feedstock_name": "azure-mgmt-synapse",
+                "total_requirements": {
+                    "build": set(),
+                    "host": {"pip", "python"},
+                    "run": {
+                        "msrest >=0.5.0",
+                        "azure-mgmt-core >=1.2.0,<2.0.0",
+                        "python",
+                        "numpy",
+                    },
+                    "test": {"pip"},
+                },
+            },
+            {
+                "host": {"cf_minus_df": set(), "df_minus_cf": set()},
+                "run": {
+                    "cf_minus_df": {"numpy", "msrest >=0.5.0"},
+                    "df_minus_cf": {"azure-common >=1.1,<2.dev0", "msrest >=0.6.21"},
+                },
+            },
+        ),
+    ],
+)
+def test_get_grayskull_comparison_full(
+    attrs: dict, expected_dep_comparison: DepComparison
+):
+    dep_comparison: DepComparison = get_grayskull_comparison(attrs=attrs)[0]
+    assert dep_comparison == expected_dep_comparison
