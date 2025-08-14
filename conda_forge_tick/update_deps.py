@@ -471,17 +471,19 @@ def get_grayskull_comparison(attrs, version_key="version"):
     """
     recipe_schema_version = get_recipe_schema_version(attrs)
     if recipe_schema_version == 0:
-        gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
-        new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+        grayskull_recipe = make_grayskull_recipe(attrs, version_key=version_key)
+        new_attrs = load_feedstock(
+            attrs.get("feedstock_name"), {}, meta_yaml=grayskull_recipe
+        )
     elif recipe_schema_version == 1:
         recipe = attrs["meta_yaml"]
-        gs_recipe = _make_grayskull_recipe_v1(
+        grayskull_recipe = _make_grayskull_recipe_v1(
             package_name=recipe["package"]["name"],
             package_version=attrs["version_pr_info"][version_key],
             package_is_noarch=bool(recipe["build"].get("noarch")),
         )
         new_attrs = load_feedstock(
-            attrs.get("feedstock_name"), {}, recipe_yaml=gs_recipe
+            attrs.get("feedstock_name"), {}, recipe_yaml=grayskull_recipe
         )
     else:
         raise ValueError(f"Unknown recipe schema version: '{recipe_schema_version}'.")
@@ -502,7 +504,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
         d[section]["cf_minus_df"] = cf_minus_df
         d[section]["df_minus_cf"] = df_minus_cf
 
-    return d, gs_recipe
+    return d, grayskull_recipe
 
 
 def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
