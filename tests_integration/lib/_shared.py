@@ -78,6 +78,7 @@ def get_transparent_urls() -> set[str]:
         "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
         "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
         "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
+        "https://codeload.github.com/*",
     }
 
     # this is to protect against mistakes and typos, adjust if it ever becomes too strict
