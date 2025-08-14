@@ -219,3 +219,13 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             feedstock,
             new_version,
         )
+
+    def assert_new_run_requirements_equal_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        run_requirements: list[str],
+    ):
+        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
+        recipe = self._get_pr_content_recipe_v1(pr)
+        assert recipe["requirements"]["run"] == run_requirements

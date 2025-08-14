@@ -39,6 +39,16 @@ class VersionUpdate(TestCase):
             old_version="0.116.0",
             old_hash="80dc0794627af0390353a6d1171618276616310d37d24faba6648398e57d687a",
         )
+        helper.assert_new_run_requirements_equal_v1(
+            "fastapi",
+            new_version="0.116.1",
+            run_requirements=[
+                r"python >=${{ python_min }}",
+                "starlette >=0.40.0,<0.48.0",
+                "typing_extensions >=4.8.0",
+                "pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0",
+            ],
+        )
 
 
 ALL_TEST_CASES: list[TestCase] = [VersionUpdate()]

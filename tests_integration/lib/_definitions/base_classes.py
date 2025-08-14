@@ -135,6 +135,14 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
+    def assert_new_run_requirements_equal_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        run_requirements: list[str],
+    ):
+        pass
+
 
 class TestCase(ABC):
     """
