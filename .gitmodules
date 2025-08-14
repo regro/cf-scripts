@@ -7,6 +7,3 @@
 [submodule "tests_integration/definitions/pydantic/resources/feedstock_v1"]
 	path = tests_integration/lib/_definitions/pydantic/resources/feedstock_v1
 	url = https://github.com/conda-forge/pydantic-feedstock.git
-[submodule "tests_integration/lib/_definitions/azure-cli-core/resources/feedstock"]
-	path = tests_integration/lib/_definitions/azure_cli_core/resources/feedstock
-	url = https://github.com/conda-forge/azure-cli-core-feedstock.git
