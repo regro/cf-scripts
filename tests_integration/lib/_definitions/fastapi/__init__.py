@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -15,6 +16,14 @@ class VersionUpdate(TestCase):
                 # rest omitted
                 "info": {"name": "fastapi", "version": "0.116.1"}
             }
+
+        @router.get("/pypi.org/pypi/fastapi/0.116.1/json")
+        def handle_pypi_version_json_api():
+            return json.loads(
+                Path(__file__)
+                .parent.joinpath("pypi_version_json_response.json")
+                .read_text()
+            )
 
         return router
 
