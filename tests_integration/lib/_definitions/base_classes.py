@@ -141,6 +141,23 @@ class AbstractIntegrationTestHelper(ABC):
         new_version: str,
         run_requirements: list[str],
     ):
+        """
+        Assert that the new run requirements in the version update PR match our expectations.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        new_version
+            The new version that is expected.
+        run_requirements
+            A list of requirements.
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
         pass
 
 
