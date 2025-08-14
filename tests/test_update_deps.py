@@ -908,42 +908,12 @@ def test_apply_dep_update_v1(
                     "schema_version": 1,
                     "package": {
                         "name": "azure-mgmt-synapse",
-                        "version": "2.0.0",
+                        "version": "1.0.0",
                     },
                     "build": {"noarch": "python"},
                 },
                 "feedstock_name": "azure-mgmt-synapse",
-                "total_requirements": {
-                    "build": set(),
-                    "host": {"pip", "python"},
-                    "run": {
-                        "msrest >=0.5.0",
-                        "azure-mgmt-core >=1.2.0,<2.0.0",
-                        "python",
-                        "numpy",
-                    },
-                    "test": {"pip"},
-                },
-            },
-            {
-                "host": {"cf_minus_df": set(), "df_minus_cf": set()},
-                "run": {
-                    "cf_minus_df": {"numpy", "msrest >=0.5.0"},
-                    "df_minus_cf": {"azure-common >=1.1,<2.dev0", "msrest >=0.6.21"},
-                },
-            },
-        ),
-        (
-            {
-                "meta_yaml": {
-                    "schema_version": 1,
-                    "package": {
-                        "name": "azure-cli-core",
-                        "version": "2.76.0",
-                    },
-                    "build": {"noarch": "python"},
-                },
-                "feedstock_name": "azure-cli-core",
+                "version_pr_info": {"version": "2.0.0"},
                 "total_requirements": {
                     "build": set(),
                     "host": {"pip", "python"},
@@ -970,7 +940,6 @@ def test_get_grayskull_comparison_full(
     attrs: dict, expected_dep_comparison: DepComparison
 ):
     dep_comparison: DepComparison = get_grayskull_comparison(attrs=attrs)[0]
-    breakpoint()
     assert dep_comparison == expected_dep_comparison
 
 
