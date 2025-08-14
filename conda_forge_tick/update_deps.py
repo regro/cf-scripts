@@ -434,7 +434,7 @@ def _validate_grayskull_recipe_v1(recipe: Recipe):
                 )
 
 
-def _get_grayskull_recipe_v1(
+def _make_grayskull_recipe_v1(
     package_name: str, package_version: str, package_is_noarch: bool
 ) -> str:
     recipe, config = create_python_recipe(
@@ -475,7 +475,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
         new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
     elif recipe_schema_version == 1:
         recipe = attrs["meta_yaml"]
-        gs_recipe = _get_grayskull_recipe_v1(
+        gs_recipe = _make_grayskull_recipe_v1(
             package_name=recipe["package"]["name"],
             package_version=attrs["version_pr_info"][version_key],
             package_is_noarch=bool(recipe["build"].get("noarch")),
