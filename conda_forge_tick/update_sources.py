@@ -9,13 +9,15 @@ import typing
 import urllib.parse
 from pathlib import Path
 from typing import Iterator, List, Literal, Optional
+import json
 
 import feedparser
 import orjson
 import requests
+import urllib.request
 import yaml
 from conda.models.version import VersionOrder
-from packaging.version import InvalidVersion
+from packaging.version import InvalidVersion, Version
 from packaging.version import parse as parse_version
 
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
@@ -651,80 +653,97 @@ class NVIDIA(AbstractSource):
     """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
 
     name = "NVIDIA"
-    template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
-    feedstock_to_package = {
-        "cudatoolkit": "cuda",
-    }
 
-    def next_ver_func(self, name: str, current_ver: str) -> Optional[str]:
-        # Challenges:
-        # 1. Most libraries use SemVer, but some use CalVer
-        # 2. We don't know the build number in advance, so need to look it up
+    def get_url(self, meta_yaml: dict) -> Optional[str]:
+        """Generate metadata needed to get the latest version of an NVIDIA redist.
 
-        next_versions = next_version(current_ver)
-        r = None
-        for ver in next_versions:
-            to_try = [ver]
-            major, minor, patch = ver.split(".")
-            if int(minor) <= 9:
-                to_try.append(f"{major}.0{int(minor)}.{patch}")  # for CalVer
-            for v in to_try:
-                r = requests.get(self.template.format(name=name, version=v))
-                if r.ok:
-                    break
-            else:
-                continue
-            break
-        else:
-            return None
-        assert r is not None
+        We actually return a URL plus other information needed to fetch the latest package
+        version from "https://developer.download.nvidia.com/compute/{ compute_subdir
+        }/redist/release_{ release_label }.json"
 
-        next_ver = None
-        if name == "cuda":
-            # hack: the CUDA json contains a ton of components, none of which
-            # is versioned using the CTK version, so instead of looking up
-            # from the json we simply use its filename
-            #
-            # Note: the version string does not contain the build number
-            #
-            # TODO(leofang): discuss internally if we could avoid this hack
-            next_ver = v
-        else:
-            metadata = r.json()
-            # hack: "name" may not be the library name here...
-            # but this loop should not be expensive since the convention is
-            # keys = {'release_date', 'library name'}
-            for k in metadata:
-                if name not in k.lower().replace("_", ""):
-                    continue
-                try:
-                    next_ver = metadata[k]["version"]
-                except KeyError:
-                    continue
-                else:
-                    break
-            else:
-                return None
-        assert next_ver is not None
-        return next_ver
+        We check a recipe's extra section for two special keys: "compute-subdir" and
+        "redist-json-name".
 
-    def get_url(self, meta_yaml) -> Optional[str]:
+        "compute-subdir" is used as above to locate the correct redist folder, and
+        redist-json-name is used to find the correct section in the JSON. We expect the
+        JSON to have the following format:
+
+        ```json
+        {
+            "release_date": "2024-12-03",
+            "release_label": "0.8.1",  # this is the same version used in the filename
+            "release_product": "nvjpeg2000",
+            "libnvjpeg_2k": {  # this is the key which corresponds to redist-json-name
+                "name": "NVIDIA nvJPEG 2000",
+                "license": "nvJPEG 2K",
+                "license_path": "libnvjpeg_2k/LICENSE.txt",
+                "version": "0.8.1.40",
+                ...
+        }
+        ```
+
+        Each of "compute-subdir" and "redist-json-name" will fallback to using the
+        "feedstock-name" parameter if undefined.
+
+        The returned url is not actually valid since we return the json slug that we need
+        by separating it with #.
+        """
         url = meta_yaml["url"]
-        if "nvidia.com" not in url:
+        if "developer.download.nvidia.com/compute" not in url:
             return None
-        feedstock_name = meta_yaml["feedstock_name"]
-        name = self.feedstock_to_package.get(feedstock_name, feedstock_name)
-        # we need major.minor.patch
-        current_ver = meta_yaml["version"]
-        if current_ver.count(".") > 2:
-            current_ver = current_ver.split(".")
-            current_ver = ".".join(current_ver[:3])
-        elif current_ver.count(".") == 1:
-            current_ver = f"{current_ver}.0"
-        return self.next_ver_func(name, current_ver)
+        try:
+            nvidia_compute_subdir = meta_yaml["extra"]["compute-subdir"]
+        except KeyError:
+            nvidia_compute_subdir = meta_yaml["extra"]["feedstock-name"]
+        try:
+            nvidia_redist_json_name = meta_yaml["extra"]["redist-json-name"]
+        except KeyError:
+            nvidia_redist_json_name = meta_yaml["extra"]["feedstock-name"]
+
+        return f"https://developer.download.nvidia.com/compute/{nvidia_compute_subdir}/redist#{nvidia_redist_json_name}"
 
     def get_version(self, url: str) -> Optional[str]:
-        return url  # = next version, same as in BaseRawURL
+        """Get latest version of a package by scraping nvidia.com JSONs.
+
+        url should be an address of the following form: "https://developer.download.
+        nvidia.com/compute/{nvidia_compute_subdir}/redist#{nvidia_redist_json_name}".
+        where we expect 'https://developer.download.nvidia.com/compute/
+        {{ nvidia_compute_subdir }}/redist/' to be a list of links which includes
+        multiple 'redistrib_X.Y.Z.json'. The latest of which will be the nominal latest
+        version. AND the string after # is the slug used to access the part of the JSON
+        blob which is relevant to the package.
+
+        Returns
+        -------
+            The full package version including build number.
+
+        Raises
+        ------
+            ValueError: If the slug is incorrect.
+        """
+        actual_url, slug = url.split("#")
+        response = requests.get(actual_url)
+        html_content = response.text
+        # Search for links to redistrib_*.json in the response and strip the versions from there
+        # re doesn't support repeating patterns, so we assume there are three version numbers
+        redistrib_pattern = re.compile(
+            pattern=r"redistrib_[0-9]+\.[0-9]+\.[0-9]+\.json<"
+        )
+        result = re.findall(redistrib_pattern, html_content)
+        stripped_results = [x[10:-6] for x in result]
+        stripped_results.sort(key=Version, reverse=True)
+        release_version = stripped_results[0]
+
+        # Fetch library details from developer archive
+        response = urllib.request.urlopen(
+            f"{actual_url}/redistrib_{release_version}.json"
+        )
+        json_data = json.loads(response.read().decode("utf-8"))
+
+        # Extract version from library details
+        lib_info = json_data[slug]
+
+        return lib_info["version"]
 
 
 class CratesIO(AbstractSource):
