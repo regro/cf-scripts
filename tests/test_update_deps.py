@@ -2,9 +2,11 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import Literal
 
 import networkx as nx
 import pytest
+from ruamel import yaml
 from test_migrators import run_test_migration
 
 from conda_forge_tick.lazy_json_backends import load
@@ -931,10 +933,232 @@ def test_apply_dep_update_v1(
                 },
             },
         ),
+        (
+            {
+                "meta_yaml": {
+                    "schema_version": 1,
+                    "package": {
+                        "name": "azure-cli-core",
+                        "version": "2.76.0",
+                    },
+                    "build": {"noarch": "python"},
+                },
+                "feedstock_name": "azure-cli-core",
+                "total_requirements": {
+                    "build": set(),
+                    "host": {"pip", "python"},
+                    "run": {
+                        "msrest >=0.5.0",
+                        "azure-mgmt-core >=1.2.0,<2.0.0",
+                        "python",
+                        "numpy",
+                    },
+                    "test": {"pip"},
+                },
+            },
+            {
+                "host": {"cf_minus_df": set(), "df_minus_cf": set()},
+                "run": {
+                    "cf_minus_df": {"numpy", "msrest >=0.5.0"},
+                    "df_minus_cf": {"azure-common >=1.1,<2.dev0", "msrest >=0.6.21"},
+                },
+            },
+        ),
     ],
 )
 def test_get_grayskull_comparison_full(
     attrs: dict, expected_dep_comparison: DepComparison
 ):
     dep_comparison: DepComparison = get_grayskull_comparison(attrs=attrs)[0]
+    breakpoint()
     assert dep_comparison == expected_dep_comparison
+
+
+UpdateKind = Literal["update-grayskull"]
+
+
+@pytest.fixture
+def conda_build_config() -> str:
+    return yaml.dump({"python_min": ["3.9"]})
+
+
+@pytest.mark.parametrize(
+    "update_kind, original_recipe, new_version, expected_new_recipe",
+    [
+        (
+            "update-grayskull",
+            r"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "0.116.0"
+
+package:
+  name: fastapi
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/f/fastapi/fastapi-${{ version }}.tar.gz
+  sha256: 80dc0794627af0390353a6d1171618276616310d37d24faba6648398e57d687a
+  patches:
+    # this ships a `bin/fastapi` which says to install `fastapi-cli`
+    # but as this recipe already depends on `fastapi-cli`, it clobbers the working one
+    - 0000-no-broken-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script:
+    - ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+
+requirements:
+  host:
+    - pdm-backend
+    - pip
+    - python ${{ python_min }}.*
+  run:
+    - python >=${{ python_min }}
+    # [project.dependencies]
+    - starlette >=0.40.0,<0.47.0
+    - typing_extensions >=4.8.0
+    - pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0
+    # [project.optional-dependencies.standard]
+    - email_validator >=2.0.0
+    - fastapi-cli >=0.0.8
+    - httpx >=0.23.0
+    - jinja2 >=3.1.5
+    - python-multipart >=0.0.18
+    - uvicorn-standard >=0.12.0
+
+tests:
+  - python:
+      pip_check: true
+      python_version: ${{ python_min }}.*
+      imports:
+        - fastapi
+        - fastapi.dependencies
+        - fastapi.middleware
+        - fastapi.openapi
+        - fastapi.security
+  - requirements:
+      run:
+        - python ${{ python_min }}.*
+    script:
+      - fastapi --version
+      - fastapi --help
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: FastAPI framework, high performance, easy to learn, fast to code, ready for production
+  homepage: https://github.com/fastapi/fastapi
+  repository: https://github.com/fastapi/fastapi
+  documentation: https://fastapi.tiangolo.com
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - tiangolo
+    - synapticarbors
+    - bollwyvl
+""".strip(),
+            "0.116.1",
+            r"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 0.116.1
+
+package:
+  name: fastapi
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/f/fastapi/fastapi-${{ version }}.tar.gz
+  sha256: ed52cbf946abfd70c5a0dccb24673f0670deeb517a88b3544d03c2a6bf283143
+  patches:
+    # this ships a `bin/fastapi` which says to install `fastapi-cli`
+    # but as this recipe already depends on `fastapi-cli`, it clobbers the working one
+    - 0000-no-broken-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script:
+    - ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+
+requirements:
+  host:
+    - pdm-backend
+    - pip
+    - python ${{ python_min }}.*
+  run:
+    - python >=${{ python_min }}
+    - starlette >=0.40.0,<0.47.0
+    - typing_extensions >=4.8.0
+    - pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0
+tests:
+  - python:
+      pip_check: true
+      python_version: ${{ python_min }}.*
+      imports:
+        - fastapi
+        - fastapi.dependencies
+        - fastapi.middleware
+        - fastapi.openapi
+        - fastapi.security
+  - requirements:
+      run:
+        - python ${{ python_min }}.*
+    script:
+      - fastapi --version
+      - fastapi --help
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: FastAPI framework, high performance, easy to learn, fast to code, ready for production
+  homepage: https://github.com/fastapi/fastapi
+  repository: https://github.com/fastapi/fastapi
+  documentation: https://fastapi.tiangolo.com
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - tiangolo
+    - synapticarbors
+    - bollwyvl
+""".lstrip(),
+        )
+    ],
+)
+def test_update_deps_version_v1(
+    update_kind: UpdateKind,
+    original_recipe: str,
+    new_version: str,
+    expected_new_recipe: str,
+    tmp_path: Path,
+    conda_build_config: str,
+):
+    kwargs = {
+        "new_version": new_version,
+        "conda-forge.yml": {"bot": {"inspection": update_kind}},
+    }
+    run_test_migration(
+        m=VERSION,
+        inp=original_recipe,
+        output=expected_new_recipe,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": new_version,
+        },
+        tmp_path=tmp_path,
+        make_body=True,
+        recipe_version=1,
+        conda_build_config=conda_build_config,
+    )
