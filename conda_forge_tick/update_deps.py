@@ -720,14 +720,11 @@ def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
     if not _is_v1_recipe_okay_for_dep_updates(recipe):
         return new_recipe
 
-    host_deps = _apply_env_dep_comparison(
-        recipe["requirements"]["host"], dep_comparison["host"]
-    )
-    run_deps = _apply_env_dep_comparison(
-        recipe["requirements"]["run"], dep_comparison["run"]
-    )
-    new_recipe["requirements"]["host"] = host_deps
-    new_recipe["requirements"]["run"] = run_deps
+    for section in SECTIONS_TO_UPDATE:
+        new_recipe["requirements"][section] = _apply_env_dep_comparison(
+            recipe["requirements"][section], dep_comparison[section]
+        )
+
     return new_recipe
 
 
