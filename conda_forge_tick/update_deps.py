@@ -477,7 +477,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
         recipe = attrs["meta_yaml"]
         gs_recipe = _get_grayskull_recipe_v1(
             package_name=recipe["package"]["name"],
-            package_version=recipe["package"]["version"],
+            package_version=attrs["version_pr_info"][version_key],
             package_is_noarch=bool(recipe["build"].get("noarch")),
         )
         new_attrs = load_feedstock(
