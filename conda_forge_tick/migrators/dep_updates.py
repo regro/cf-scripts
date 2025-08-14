@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class DependencyUpdateMigrator(MiniMigrator):
     post_migration = True
+    allowed_schema_versions = [0, 1]
 
     def __init__(self, python_nodes):
         if not hasattr(self, "_init_args"):

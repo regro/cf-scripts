@@ -2,17 +2,21 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import Literal
 
 import networkx as nx
 import pytest
+from ruamel import yaml
 from test_migrators import run_test_migration
 
 from conda_forge_tick.lazy_json_backends import load
 from conda_forge_tick.migrators import DependencyUpdateMigrator, Version
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
+    DepComparison,
     _merge_dep_comparisons_sec,
     _update_sec_deps,
+    apply_dep_update,
     generate_dep_hint,
     get_dep_updates_and_hints,
     get_depfinder_comparison,
@@ -624,4 +628,507 @@ def test_update_deps_version_pyquil(caplog, tmp_path, update_kind, out_yml):
         },
         tmp_path=tmp_path,
         make_body=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "recipe, dep_comparison, new_recipe",
+    [
+        (
+            """schema_version: 1
+
+context:
+  name: azure-cli-core
+  version: "2.75.0"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name | replace('-', '_') }}-${{ version }}.tar.gz
+  sha256: 0187f93949c806f8e39617cdb3b4fd4e3cac5ebe45f02dc0763850bcf7de8df2
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+    - setuptools
+  run:
+    - python >=${{ python_min }}
+    - argcomplete >=3.5.2,<3.5.3
+    - azure-cli-telemetry >=1.1.0
+    - azure-mgmt-core >=1.2.0,<2
+    - cryptography
+    - distro
+    - humanfriendly >=10.0
+    - jmespath
+    - knack >=0.11.0,<0.11.1
+    - microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.0
+    - msal ==1.33.0b1
+    - msal_extensions ==1.2.0
+    - packaging >=20.9
+    - pkginfo >=1.5.0.1
+    - psutil >=5.9
+    - py-deviceid
+    - pyjwt >=2.1.0
+    - pyopenssl >=17.1.0
+    - pysocks >=1.6.0
+    - requests >=2.20.0
+
+tests:
+  - python:
+      imports:
+        - azure
+        - azure.cli
+        - azure.cli.core
+        - azure.cli.core.commands
+        - azure.cli.core.extension
+        - azure.cli.core.profiles
+      python_version: ${{ python_min }}.*
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: Microsoft Azure Command-Line Tools Core Module
+  homepage: https://github.com/Azure/azure-cli
+  repository: https://github.com/Azure/azure-cli
+  documentation: https://docs.microsoft.com/en-us/cli/azure
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - andreyz4k
+    - janjagusch""",
+            {
+                "host": {
+                    "cf_minus_df": {"python 3.9.*", "setuptools"},
+                    "df_minus_cf": {"python"},
+                },
+                "run": {
+                    "cf_minus_df": {
+                        "knack >=0.11.0,<0.11.1",
+                        "pysocks >=1.6.0",
+                        "azure-cli-telemetry >=1.1.0",
+                        "python >=3.9",
+                        "microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.0",
+                        "humanfriendly >=10.0",
+                        "argcomplete >=3.5.2,<3.5.3",
+                        "requests >=2.20.0",
+                        "msal_extensions ==1.2.0",
+                    },
+                    "df_minus_cf": {
+                        "requests",
+                        "knack >=0.11.0,<0.12.dev0",
+                        "humanfriendly >=10.0,<11.dev0",
+                        "argcomplete >=3.5.2,<3.6.dev0",
+                        "microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.dev0",
+                        "python",
+                        "msal-extensions ==1.2.0",
+                        "azure-cli-telemetry ==1.1.0.*",
+                    },
+                },
+            },
+            """schema_version: 1
+
+context:
+  name: azure-cli-core
+  version: 2.75.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name | replace('-', '_') }}-${{ version }}.tar.gz
+  sha256: 0187f93949c806f8e39617cdb3b4fd4e3cac5ebe45f02dc0763850bcf7de8df2
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+    - setuptools
+  run:
+    - python >=${{ python_min }}
+    - argcomplete >=3.5.2,<3.6.dev0
+    - azure-cli-telemetry ==1.1.0.*
+    - azure-mgmt-core >=1.2.0,<2
+    - cryptography
+    - distro
+    - humanfriendly >=10.0,<11.dev0
+    - jmespath
+    - knack >=0.11.0,<0.12.dev0
+    - microsoft-security-utilities-secret-masker >=1.0.0b4,<1.1.dev0
+    - msal ==1.33.0b1
+    - packaging >=20.9
+    - pkginfo >=1.5.0.1
+    - psutil >=5.9
+    - py-deviceid
+    - pyjwt >=2.1.0
+    - pyopenssl >=17.1.0
+    - requests
+    - msal-extensions ==1.2.0
+tests:
+  - python:
+      imports:
+        - azure
+        - azure.cli
+        - azure.cli.core
+        - azure.cli.core.commands
+        - azure.cli.core.extension
+        - azure.cli.core.profiles
+      python_version: ${{ python_min }}.*
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: Microsoft Azure Command-Line Tools Core Module
+  homepage: https://github.com/Azure/azure-cli
+  repository: https://github.com/Azure/azure-cli
+  documentation: https://docs.microsoft.com/en-us/cli/azure
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - andreyz4k
+    - janjagusch
+""",
+        )
+    ],
+)
+def test_apply_dep_update_v1(
+    recipe: str, dep_comparison: DepComparison, new_recipe: str, tmp_path: Path
+):
+    recipe_file = tmp_path / "recipe.yaml"
+    recipe_file.write_text(recipe)
+    apply_dep_update(tmp_path, dep_comparison=dep_comparison)
+    assert recipe_file.read_text() == new_recipe
+
+
+@pytest.mark.parametrize(
+    "attrs, expected_dep_comparison",
+    [
+        (
+            {
+                "feedstock_name": "depfinder",
+                "meta_yaml": {
+                    "about": {
+                        "home": "http://github.com/ericdill/depfinder",
+                        "license": "BSD-3-Clause",
+                        "license_file": "LICENSE",
+                        "summary": "Find all the unique imports in your library",
+                    },
+                    "build": {
+                        "entry_points": [
+                            "depfinder = depfinder.cli:cli",
+                            "depfinder = depfinder.cli:cli",
+                            "depfinder = depfinder.cli:cli",
+                        ],
+                        "noarch": "python",
+                        "number": "0",
+                        "script": " -m pip install . --no-deps -vv",
+                    },
+                    "extra": {
+                        "recipe-maintainers": [
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                            "ericdill",
+                            "mariusvniekerk",
+                            "tonyfast",
+                            "ocefpaf",
+                        ]
+                    },
+                    "package": {"name": "depfinder", "version": "2.3.0"},
+                    "requirements": {
+                        "host": [
+                            "python <3.9",
+                            "pip",
+                            "python <3.9",
+                            "pip",
+                            "python <3.9",
+                            "pip",
+                        ],
+                        "run": [
+                            "python <3.9",
+                            "stdlib-list",
+                            "python <3.9",
+                            "stdlib-list",
+                            "python <3.9",
+                            "stdlib-list",
+                        ],
+                    },
+                    "source": {
+                        "sha256": "2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000",
+                        "url": "https://pypi.io/packages/source/d/depfinder/depfinder-2.3.0.tar.gz",
+                    },
+                    "test": {
+                        "commands": ["depfinder -h", "depfinder -h", "depfinder -h"],
+                        "imports": ["depfinder", "depfinder", "depfinder"],
+                    },
+                },
+                "name": "depfinder",
+                "raw_meta_yaml": '{% set version = "2.3.0" %}\n\npackage:\n  name: depfinder\n  version: {{ version }}\n\nsource:\n  url: https://pypi.io/packages/source/d/depfinder/depfinder-{{ version }}.tar.gz\n  sha256: 2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000\n\nbuild:\n  number: 0\n  noarch: python\n  script: "{{ PYTHON }} -m pip install . --no-deps -vv"\n  entry_points:\n    - depfinder = depfinder.cli:cli\n\nrequirements:\n  host:\n    # Python version is limited by stdlib-list.\n    - python <3.9\n    - pip\n  run:\n    - python <3.9\n    - stdlib-list\n\ntest:\n  commands:\n    - depfinder -h\n  imports:\n    - depfinder\n\nabout:\n  home: http://github.com/ericdill/depfinder\n  license: BSD-3-Clause\n  license_file: LICENSE\n  summary: Find all the unique imports in your library\n\nextra:\n  recipe-maintainers:\n    - ericdill\n    - mariusvniekerk\n    - tonyfast\n    - ocefpaf\n',
+                "total_requirements": {
+                    "build": set(),
+                    "host": {"python <3.9", "pip"},
+                    "run": {"python <3.9", "stdlib-list"},
+                    "test": set(),
+                },
+                "version": "2.3.0",
+            },
+            {
+                "host": {
+                    "cf_minus_df": {"python <3.9"},
+                    "df_minus_cf": {"python >=3.7"},
+                },
+                "run": {
+                    "cf_minus_df": {"python <3.9"},
+                    "df_minus_cf": {"pyyaml", "python >=3.7"},
+                },
+            },
+        ),
+        (
+            {
+                "meta_yaml": {
+                    "schema_version": 1,
+                    "package": {
+                        "name": "azure-mgmt-synapse",
+                        "version": "1.0.0",
+                    },
+                    "build": {"noarch": "python"},
+                },
+                "feedstock_name": "azure-mgmt-synapse",
+                "version_pr_info": {"version": "2.0.0"},
+                "total_requirements": {
+                    "build": set(),
+                    "host": {"pip", "python"},
+                    "run": {
+                        "msrest >=0.5.0",
+                        "azure-mgmt-core >=1.2.0,<2.0.0",
+                        "python",
+                        "numpy",
+                    },
+                    "test": {"pip"},
+                },
+            },
+            {
+                "host": {"cf_minus_df": set(), "df_minus_cf": set()},
+                "run": {
+                    "cf_minus_df": {"numpy", "msrest >=0.5.0"},
+                    "df_minus_cf": {"azure-common >=1.1,<2.dev0", "msrest >=0.6.21"},
+                },
+            },
+        ),
+    ],
+)
+def test_get_grayskull_comparison_full(
+    attrs: dict, expected_dep_comparison: DepComparison
+):
+    dep_comparison: DepComparison = get_grayskull_comparison(attrs=attrs)[0]
+    assert dep_comparison == expected_dep_comparison
+
+
+UpdateKind = Literal["update-grayskull"]
+
+
+@pytest.fixture
+def conda_build_config() -> str:
+    return yaml.dump({"python_min": ["3.9"]})
+
+
+@pytest.mark.parametrize(
+    "update_kind, original_recipe, new_version, expected_new_recipe",
+    [
+        (
+            "update-grayskull",
+            r"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "0.116.0"
+
+package:
+  name: fastapi
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/f/fastapi/fastapi-${{ version }}.tar.gz
+  sha256: 80dc0794627af0390353a6d1171618276616310d37d24faba6648398e57d687a
+  patches:
+    # this ships a `bin/fastapi` which says to install `fastapi-cli`
+    # but as this recipe already depends on `fastapi-cli`, it clobbers the working one
+    - 0000-no-broken-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script:
+    - ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+
+requirements:
+  host:
+    - pdm-backend
+    - pip
+    - python ${{ python_min }}.*
+  run:
+    - python >=${{ python_min }}
+    # [project.dependencies]
+    - starlette >=0.40.0,<0.47.0
+    - typing_extensions >=4.8.0
+    - pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0
+    # [project.optional-dependencies.standard]
+    - email_validator >=2.0.0
+    - fastapi-cli >=0.0.8
+    - httpx >=0.23.0
+    - jinja2 >=3.1.5
+    - python-multipart >=0.0.18
+    - uvicorn-standard >=0.12.0
+
+tests:
+  - python:
+      pip_check: true
+      python_version: ${{ python_min }}.*
+      imports:
+        - fastapi
+        - fastapi.dependencies
+        - fastapi.middleware
+        - fastapi.openapi
+        - fastapi.security
+  - requirements:
+      run:
+        - python ${{ python_min }}.*
+    script:
+      - fastapi --version
+      - fastapi --help
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: FastAPI framework, high performance, easy to learn, fast to code, ready for production
+  homepage: https://github.com/fastapi/fastapi
+  repository: https://github.com/fastapi/fastapi
+  documentation: https://fastapi.tiangolo.com
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - tiangolo
+    - synapticarbors
+    - bollwyvl
+""".strip(),
+            "0.116.1",
+            r"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 0.116.1
+
+package:
+  name: fastapi
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/f/fastapi/fastapi-${{ version }}.tar.gz
+  sha256: ed52cbf946abfd70c5a0dccb24673f0670deeb517a88b3544d03c2a6bf283143
+  patches:
+    # this ships a `bin/fastapi` which says to install `fastapi-cli`
+    # but as this recipe already depends on `fastapi-cli`, it clobbers the working one
+    - 0000-no-broken-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script:
+    - ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --disable-pip-version-check
+
+requirements:
+  host:
+    - pdm-backend
+    - pip
+    - python ${{ python_min }}.*
+  run:
+    - python >=${{ python_min }}
+    - starlette >=0.40.0,<0.48.0
+    - typing_extensions >=4.8.0
+    - pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0
+tests:
+  - python:
+      pip_check: true
+      python_version: ${{ python_min }}.*
+      imports:
+        - fastapi
+        - fastapi.dependencies
+        - fastapi.middleware
+        - fastapi.openapi
+        - fastapi.security
+  - requirements:
+      run:
+        - python ${{ python_min }}.*
+    script:
+      - fastapi --version
+      - fastapi --help
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: FastAPI framework, high performance, easy to learn, fast to code, ready for production
+  homepage: https://github.com/fastapi/fastapi
+  repository: https://github.com/fastapi/fastapi
+  documentation: https://fastapi.tiangolo.com
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - tiangolo
+    - synapticarbors
+    - bollwyvl
+""".lstrip(),
+        )
+    ],
+)
+def test_update_deps_version_v1(
+    update_kind: UpdateKind,
+    original_recipe: str,
+    new_version: str,
+    expected_new_recipe: str,
+    tmp_path: Path,
+    conda_build_config: str,
+):
+    kwargs = {
+        "new_version": new_version,
+        "conda-forge.yml": {"bot": {"inspection": update_kind}},
+    }
+    run_test_migration(
+        m=VERSION,
+        inp=original_recipe,
+        output=expected_new_recipe,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": new_version,
+        },
+        tmp_path=tmp_path,
+        make_body=True,
+        recipe_version=1,
+        conda_build_config=conda_build_config,
     )

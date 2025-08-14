@@ -4,8 +4,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 
-from github import Github
+from github import Github, PullRequest
+from ruamel import yaml
 
 from conda_forge_tick.git_utils import GitCli
 from conda_forge_tick.utils import (
@@ -92,14 +94,11 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             "Repository contents of %s have been overwritten successfully.", repo_name
         )
 
-    def assert_version_pr_present(
+    def _get_matching_version_pr(
         self,
         feedstock: str,
         new_version: str,
-        new_hash: str,
-        old_version: str,
-        old_hash: str,
-    ):
+    ) -> PullRequest:
         gh = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
 
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
@@ -114,17 +113,30 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             f"Found {len(matching_prs)} matching version PRs, but exactly 1 must be present."
         )
 
-        matching_pr = matching_prs[0]
+        return matching_prs[0]
 
-        assert matching_pr.head.repo.owner.login == GitHubAccount.BOT_USER
-        assert matching_pr.head.repo.name == full_feedstock_name
+    def _assert_version_pr_meta(self, feedstock: str, pr: PullRequest):
+        full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
+        assert pr.head.repo.owner.login == GitHubAccount.BOT_USER
+        assert pr.head.repo.name == full_feedstock_name
 
+    def _assert_version_pr_content_v0(
+        self,
+        feedstock: str,
+        pr: PullRequest,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
+    ):
         cli = GitCli()
+
+        full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
 
         with tempfile.TemporaryDirectory() as tmpdir:
             target_dir = Path(tmpdir) / full_feedstock_name
-            cli.clone_repo(matching_pr.head.repo.clone_url, target_dir)
-            cli.checkout_branch(target_dir, matching_pr.head.ref)
+            cli.clone_repo(pr.head.repo.clone_url, target_dir)
+            cli.checkout_branch(target_dir, pr.head.ref)
 
             with open(target_dir / "recipe" / "meta.yaml") as f:
                 meta = f.read()
@@ -134,8 +146,86 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         assert old_version not in meta
         assert old_hash not in meta
 
+    def _get_pr_content_recipe_v1(
+        self,
+        pr: PullRequest,
+    ) -> dict[str, Any]:
+        cli = GitCli()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            target_dir = Path(tmpdir)
+            cli.clone_repo(pr.head.repo.clone_url, target_dir)
+            cli.checkout_branch(target_dir, pr.head.ref)
+            with open(target_dir / "recipe" / "recipe.yaml") as f:
+                return yaml.safe_load(f)
+
+    def _assert_version_pr_content_v1(
+        self,
+        pr: PullRequest,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
+    ):
+        recipe = self._get_pr_content_recipe_v1(pr)
+        recipe_raw = yaml.dump(recipe)
+        assert recipe["context"]["version"] == new_version
+        assert recipe["source"]["sha256"] == new_hash
+        assert old_version not in recipe_raw
+        assert old_hash not in recipe_raw
+
+    def assert_version_pr_present_v0(
+        self,
+        feedstock: str,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
+    ):
+        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
+        self._assert_version_pr_meta(feedstock=feedstock, pr=pr)
+        self._assert_version_pr_content_v0(
+            feedstock=feedstock,
+            pr=pr,
+            new_version=new_version,
+            new_hash=new_hash,
+            old_version=old_version,
+            old_hash=old_hash,
+        )
         LOGGER.info(
             "Version PR for %s v%s validated successfully.",
             feedstock,
             new_version,
         )
+
+    def assert_version_pr_present_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
+    ):
+        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
+        self._assert_version_pr_meta(feedstock=feedstock, pr=pr)
+        self._assert_version_pr_content_v1(
+            pr=pr,
+            new_version=new_version,
+            new_hash=new_hash,
+            old_version=old_version,
+            old_hash=old_hash,
+        )
+        LOGGER.info(
+            "Version PR for %s v%s validated successfully.",
+            feedstock,
+            new_version,
+        )
+
+    def assert_new_run_requirements_equal_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        run_requirements: list[str],
+    ):
+        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
+        recipe = self._get_pr_content_recipe_v1(pr)
+        assert recipe["requirements"]["run"] == run_requirements
