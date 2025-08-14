@@ -173,7 +173,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         assert old_version not in recipe_raw
         assert old_hash not in recipe_raw
 
-    def assert_version_pr_present(
+    def assert_version_pr_present_v0(
         self,
         feedstock: str,
         new_version: str,

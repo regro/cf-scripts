@@ -26,7 +26,7 @@ class VersionUpdate(TestCase):
         helper.overwrite_feedstock_contents("pydantic", feedstock_v1_dir, branch="1.x")
 
     def validate(self, helper: AbstractIntegrationTestHelper):
-        helper.assert_version_pr_present_v0(
+        helper.assert_version_pr_present_v1(
             "pydantic",
             new_version="2.10.2",
             new_hash="2bc2d7f17232e0841cbba4641e65ba1eb6fafb3a08de3a091ff3ce14a197c4fa",
