@@ -757,6 +757,7 @@ requirements:
   host:
     - python ${{ python_min }}.*
     - pip
+    - setuptools
   run:
     - python >=${{ python_min }}
     - argcomplete >=3.5.2,<3.6.dev0
