@@ -467,7 +467,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
     Raises
     ------
     ValueError
-        When a v1 recipe contains requirements we are unable to process.
+        When a v1 recipe contains requirements that we are unable to process.
     """
     recipe_schema_version = get_recipe_schema_version(attrs)
     if recipe_schema_version == 0:
