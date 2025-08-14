@@ -1066,7 +1066,7 @@ requirements:
     - python ${{ python_min }}.*
   run:
     - python >=${{ python_min }}
-    - starlette >=0.40.0,<0.47.0
+    - starlette >=0.40.0,<0.48.0
     - typing_extensions >=4.8.0
     - pydantic >=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0
 tests:
