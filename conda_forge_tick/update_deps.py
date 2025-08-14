@@ -695,7 +695,7 @@ def _apply_env_dep_comparison(
         if package == "python":
             continue
         # Do not try to replace expressions.
-        if is_expression_requirement(patch.before):
+        if patch.before is not None and is_expression_requirement(patch.before):
             continue
         # Add new package.
         if patch.before is None:
