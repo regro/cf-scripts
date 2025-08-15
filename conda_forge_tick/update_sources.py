@@ -2,19 +2,19 @@ import abc
 import collections.abc
 import copy
 import functools
+import json
 import logging
 import re
 import subprocess
 import typing
 import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Iterator, List, Literal, Optional
-import json
 
 import feedparser
 import orjson
 import requests
-import urllib.request
 import yaml
 from conda.models.version import VersionOrder
 from packaging.version import InvalidVersion, Version
