@@ -2276,39 +2276,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 5975f54172a3ad24a339b664c1a8dbfc
-      sha256: d0f07d490106569cc7d0dac5ae9bbf60c2806f7f637c5b9bfcf2c21f9ec5a239
+      md5: 899dfa5cdacc1eb4e96cd3e6ac373df7
+      sha256: 58739a870e93fd06b0e3fc11f8e0c0bdad4ea645e33b0707b339421c05609c0b
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.15.10.12.55-hd8ed1ab_0.conda
-    version: 2025.08.15.10.12.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.16.00.52.58-hd8ed1ab_0.conda
+    version: 2025.08.16.00.52.58
   - category: main
     dependencies: {}
     hash:
-      md5: 5975f54172a3ad24a339b664c1a8dbfc
-      sha256: d0f07d490106569cc7d0dac5ae9bbf60c2806f7f637c5b9bfcf2c21f9ec5a239
+      md5: 899dfa5cdacc1eb4e96cd3e6ac373df7
+      sha256: 58739a870e93fd06b0e3fc11f8e0c0bdad4ea645e33b0707b339421c05609c0b
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.15.10.12.55-hd8ed1ab_0.conda
-    version: 2025.08.15.10.12.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.16.00.52.58-hd8ed1ab_0.conda
+    version: 2025.08.16.00.52.58
   - category: main
     dependencies: {}
     hash:
-      md5: 5975f54172a3ad24a339b664c1a8dbfc
-      sha256: d0f07d490106569cc7d0dac5ae9bbf60c2806f7f637c5b9bfcf2c21f9ec5a239
+      md5: 899dfa5cdacc1eb4e96cd3e6ac373df7
+      sha256: 58739a870e93fd06b0e3fc11f8e0c0bdad4ea645e33b0707b339421c05609c0b
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.15.10.12.55-hd8ed1ab_0.conda
-    version: 2025.08.15.10.12.55
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.16.00.52.58-hd8ed1ab_0.conda
+    version: 2025.08.16.00.52.58
   - category: main
     dependencies:
       click: '>=8'
@@ -13159,43 +13159,43 @@ package:
     version: 1.1.1
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: ''
     hash:
-      md5: 38e34d2d1d9dca4fb2b9a0a04f604e2c
-      sha256: 1b09a28093071c1874862422696429d0d35bd0b8420698003ac004746c5e82a2
+      md5: 23029aae904a2ba587daba708208012f
+      sha256: df9aa74e9e28e8d1309274648aac08ec447a92512c33f61a8de0afa9ce32ebe8
     manager: conda
     name: python-fastjsonschema
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.1-pyhd8ed1ab_0.conda
-    version: 2.21.1
+      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
+    version: 2.21.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 38e34d2d1d9dca4fb2b9a0a04f604e2c
-      sha256: 1b09a28093071c1874862422696429d0d35bd0b8420698003ac004746c5e82a2
+      md5: 23029aae904a2ba587daba708208012f
+      sha256: df9aa74e9e28e8d1309274648aac08ec447a92512c33f61a8de0afa9ce32ebe8
     manager: conda
     name: python-fastjsonschema
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.1-pyhd8ed1ab_0.conda
-    version: 2.21.1
+      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
+    version: 2.21.2
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 38e34d2d1d9dca4fb2b9a0a04f604e2c
-      sha256: 1b09a28093071c1874862422696429d0d35bd0b8420698003ac004746c5e82a2
+      md5: 23029aae904a2ba587daba708208012f
+      sha256: df9aa74e9e28e8d1309274648aac08ec447a92512c33f61a8de0afa9ce32ebe8
     manager: conda
     name: python-fastjsonschema
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.1-pyhd8ed1ab_0.conda
-    version: 2.21.1
+      https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
+    version: 2.21.2
   - category: main
     dependencies:
       cpython: 3.11.13.*
@@ -16249,43 +16249,43 @@ package:
       libgcc: '>=14'
       libstdcxx: '>=14'
     hash:
-      md5: e24a16385fae0e4b7a88c1d1c4cb0b2b
-      sha256: b6d32e4904cc46ac4d8425e6ca883eccb87624c06321e3a9ddeef933be47b5f8
+      md5: 54a1d1beaa19fd2edf0cf7a61a9a28dc
+      sha256: 8a15d1c1a208ea5d0934d7d072e3ab256ae64504f7675cdfa4a739b2d37af528
     manager: conda
     name: uv
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/uv-0.8.10-heb9285d_0.conda
-    version: 0.8.10
+      https://conda.anaconda.org/conda-forge/linux-64/uv-0.8.11-heb9285d_0.conda
+    version: 0.8.11
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=19'
     hash:
-      md5: 54ec2d37afce57a3be47f7861dd10194
-      sha256: 44ebe73619674a547a0371142f1d1485fac82807b990a43eacbf44bf033db40f
+      md5: 7da11c43b1e3323d3bda7658802ee9fb
+      sha256: 23cb879c0533f2253ca3ce005698de416a1e931790f13d8f95ccba6cb8acec0c
     manager: conda
     name: uv
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/uv-0.8.10-hfa71dfd_0.conda
-    version: 0.8.10
+      https://conda.anaconda.org/conda-forge/osx-64/uv-0.8.11-hfa71dfd_0.conda
+    version: 0.8.11
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=19'
     hash:
-      md5: dc9440ef7efae8c0d0b9e6a6d042914e
-      sha256: 6e4909bd6f8fda7f90a73d9e449074e9196be55a9a872034fde22805390d58e3
+      md5: 3bbc37bc39463710b7fe4ca27880b77b
+      sha256: f275f9c5e37e72728e487e44b6f257bfbb24f0ba3fa515ac4111072dcdad2bba
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.8.10-hb521335_0.conda
-    version: 0.8.10
+      https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.8.11-hb521335_0.conda
+    version: 0.8.11
   - category: main
     dependencies:
       __unix: ''
