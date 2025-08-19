@@ -2819,15 +2819,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2b29b8511e41df13644241cb6eb7c829
-      sha256: 19483ba2bfba5c5f35a7bd65ea75658eed17cdc49bcca098e305526a2ccf72f6
+      md5: 2c7a5be0a0607c8d400e9fc764f4052d
+      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.1-pyhd8ed1ab_0.conda
-    version: 0.6.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
+    version: 0.6.2
   - category: main
     dependencies:
       click: '>=8.1.7,<8.2.0'
@@ -2842,15 +2842,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2b29b8511e41df13644241cb6eb7c829
-      sha256: 19483ba2bfba5c5f35a7bd65ea75658eed17cdc49bcca098e305526a2ccf72f6
+      md5: 2c7a5be0a0607c8d400e9fc764f4052d
+      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.1-pyhd8ed1ab_0.conda
-    version: 0.6.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
+    version: 0.6.2
   - category: main
     dependencies:
       click: '>=8.1.7,<8.2.0'
@@ -2865,15 +2865,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2b29b8511e41df13644241cb6eb7c829
-      sha256: 19483ba2bfba5c5f35a7bd65ea75658eed17cdc49bcca098e305526a2ccf72f6
+      md5: 2c7a5be0a0607c8d400e9fc764f4052d
+      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.1-pyhd8ed1ab_0.conda
-    version: 0.6.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
+    version: 0.6.2
   - category: main
     dependencies:
       __unix: ''
