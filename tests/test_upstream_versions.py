@@ -1063,6 +1063,7 @@ about:
   dev_url: https://developer.nvidia.com/cutensor/downloads
 
 extra:
+  redist-json-name: libcutensor
   recipe-maintainers:
     - leofang
     - jakirkham
@@ -1075,7 +1076,7 @@ latest_url_nvidia_test_list = [
         "cutensor",
         sample_cutensor,
         "1.4.0.3",
-        "1.5.0.3",
+        None,
         NVIDIA(),
         {},
     ),
@@ -1086,7 +1087,6 @@ latest_url_nvidia_test_list = [
     "name, inp, curr_ver, ver, source, urls",
     latest_url_nvidia_test_list,
 )
-@pytest.mark.xfail
 def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:

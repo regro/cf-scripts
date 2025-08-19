@@ -690,17 +690,43 @@ class NVIDIA(AbstractSource):
         """
         url = meta_yaml["url"]
         if "developer.download.nvidia.com/compute" not in url:
+            logger.debug(
+                "The source URL did not contain developer.download.nvidia.com/compute."
+            )
             return None
-        try:
-            nvidia_compute_subdir = meta_yaml["extra"]["compute-subdir"]
-        except KeyError:
-            nvidia_compute_subdir = meta_yaml["extra"]["feedstock-name"]
-        try:
-            nvidia_redist_json_name = meta_yaml["extra"]["redist-json-name"]
-        except KeyError:
-            nvidia_redist_json_name = meta_yaml["extra"]["feedstock-name"]
+        logger.debug("The source URL contains deveoper.download.nvidia.com/compute.")
 
-        return f"https://developer.download.nvidia.com/compute/{nvidia_compute_subdir}/redist#{nvidia_redist_json_name}"
+        logger.debug("Searching for a NVIDIA URL compute-subdir.")
+        if "compute-subdir" in meta_yaml["meta_yaml"]["extra"]:
+            logger.debug("Found explicit extra/compute-subdir.")
+            nvidia_compute_subdir = meta_yaml["meta_yaml"]["extra"]["compute-subdir"]
+        elif "feedstock-name" in meta_yaml["meta_yaml"]["extra"]:
+            logger.debug("Found extra/feedstock-name.")
+            nvidia_compute_subdir = meta_yaml["meta_yaml"]["extra"]["feedstock-name"]
+        else:
+            logger.debug("Found the feedstock's name.")
+            nvidia_compute_subdir = meta_yaml["feedstock_name"]
+        logger.debug("The compute-subdir for NVIDIA URL is %s.", nvidia_compute_subdir)
+
+        logger.debug("Searching for a NVIDIA URL redist-json-name.")
+        if "redist-json-name" in meta_yaml["meta_yaml"]["extra"]:
+            logger.debug("Found explicit extra/compute-subdir.")
+            nvidia_redist_json_name = meta_yaml["meta_yaml"]["extra"][
+                "redist-json-name"
+            ]
+        elif "feedstock-name" in meta_yaml["meta_yaml"]["extra"]:
+            logger.debug("Found extra/feedstock-name.")
+            nvidia_redist_json_name = meta_yaml["meta_yaml"]["extra"]["feedstock-name"]
+        else:
+            logger.debug("Found the feedstock's name.")
+            nvidia_redist_json_name = meta_yaml["feedstock_name"]
+        logger.debug(
+            "The compute-subdir for NVIDIA URL is %s.", nvidia_redist_json_name
+        )
+
+        result = f"https://developer.download.nvidia.com/compute/{nvidia_compute_subdir}/redist#{nvidia_redist_json_name}"
+        logger.debug("The NVIDIA redist URL should be %s", result)
+        return result
 
     def get_version(self, url: str) -> Optional[str]:
         """Get latest version of a package by scraping nvidia.com JSONs.
@@ -722,6 +748,7 @@ class NVIDIA(AbstractSource):
             ValueError: If the slug is incorrect.
         """
         actual_url, slug = url.split("#")
+        logger.debug("Searching %s for redistrib_X.Y.Z.json", actual_url)
         response = requests.get(actual_url)
         html_content = response.text
         # Search for links to redistrib_*.json in the response and strip the versions from there
@@ -732,6 +759,7 @@ class NVIDIA(AbstractSource):
         result = re.findall(redistrib_pattern, html_content)
         stripped_results = [x[10:-6] for x in result]
         stripped_results.sort(key=Version, reverse=True)
+        logger.debug("Found the following NVIDIA release JSON: %s", stripped_results)
         release_version = stripped_results[0]
 
         # Fetch library details from developer archive
