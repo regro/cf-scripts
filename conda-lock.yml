@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: fb0cc93262d5cde908168de9cf257a61cf188d8fdfe7b095bb324bc28dbb1fb0
-    osx-64: be86574075e56df14303c6d2baefbbfcad56e9107d18cce66c4d1123af1d70d1
-    osx-arm64: 1816a433b4e12bbeec87ef311d0203e52036541605dbab208630afb3b68127cc
+    linux-64: 58efd066f5b2e6adff803e571b32741f8f5424f03d68a8e7324ddfd3c86ab89a
+    osx-64: a1d62e018ec6b80be7502960279dc21d830af052d4e3f19198c42d7861128bf9
+    osx-arm64: 30f766aa945592e3526bd01e0ec6c960e19ae083d6ea69a79259d37565adeb55
   platforms:
     - osx-arm64
     - linux-64
@@ -5105,67 +5105,67 @@ package:
     version: 2.42.12
   - category: main
     dependencies:
-      __glibc: '>=2.28,<3.0.a0'
+      __glibc: '>=2.17,<3.0.a0'
       libcurl: '>=8.14.1,<9.0a0'
-      libexpat: '>=2.7.1,<3.0a0'
-      libgcc: '>=14'
+      libexpat: '>=2.7.0,<3.0a0'
+      libgcc: '>=13'
       libiconv: '>=1.18,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      openssl: '>=3.5.2,<4.0a0'
+      openssl: '>=3.5.0,<4.0a0'
       pcre2: '>=10.45,<10.46.0a0'
       perl: 5.*
     hash:
-      md5: a2f360a4284569d29bdd74b84cd00b67
-      sha256: befe777259a4d9d07fe7fc2a5cd1561b28f772c84a659f38fcdd0d3ecb842d6f
+      md5: 79af03347d91a390ed07a0d76a35a047
+      sha256: a92f89cf83b2010b2201df780f6db93595557faeefcb8f89b90cc2a75368f5b2
     manager: conda
     name: git
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/git-2.51.0-pl5321h28ef92a_0.conda
-    version: 2.51.0
+      https://conda.anaconda.org/conda-forge/linux-64/git-2.49.0-pl5321hc2ff736_2.conda
+    version: 2.49.0
   - category: main
     dependencies:
       __osx: '>=10.10'
       libcurl: '>=8.14.1,<9.0a0'
-      libexpat: '>=2.7.1,<3.0a0'
+      libexpat: '>=2.7.0,<3.0a0'
       libiconv: '>=1.18,<2.0a0'
-      libintl: '>=0.25.1,<1.0a0'
+      libintl: '>=0.24.1,<1.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      openssl: '>=3.5.2,<4.0a0'
+      openssl: '>=3.5.0,<4.0a0'
       pcre2: '>=10.45,<10.46.0a0'
       perl: 5.*
     hash:
-      md5: ba0824221c48893af347b4698e8b6215
-      sha256: c9c025802fa773642f3e1f507ff133624068ebc12d8cc0b434b2f34f0dc4c099
+      md5: 6d686f7a953197dec117d1d72a20ecf1
+      sha256: c02db96f084357481d5cbe7cc8d5d218de381a45711de6fe2c4d587ba4c53e97
     manager: conda
     name: git
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/git-2.51.0-pl5321h57b9e4c_0.conda
-    version: 2.51.0
+      https://conda.anaconda.org/conda-forge/osx-64/git-2.49.0-pl5321h3bb66fe_2.conda
+    version: 2.49.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcurl: '>=8.14.1,<9.0a0'
-      libexpat: '>=2.7.1,<3.0a0'
+      libexpat: '>=2.7.0,<3.0a0'
       libiconv: '>=1.18,<2.0a0'
-      libintl: '>=0.25.1,<1.0a0'
+      libintl: '>=0.24.1,<1.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      openssl: '>=3.5.2,<4.0a0'
+      openssl: '>=3.5.0,<4.0a0'
       pcre2: '>=10.45,<10.46.0a0'
       perl: 5.*
     hash:
-      md5: c08c3d1e2ca7dedb1ec3568ea4490a84
-      sha256: 8b226dd31e2bee90dd6dd1d5c4e235ac3f082b79650972e68bcc1eb149b6d56e
+      md5: 1da495d68b24e3b23f32d6404cc4433a
+      sha256: 001e31db2e69bdfdf716c0d0d401f4b7e362b4bcb88e343fc591ef61855478e4
     manager: conda
     name: git
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/git-2.51.0-pl5321he48f495_0.conda
-    version: 2.51.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/git-2.49.0-pl5321ha659579_2.conda
+    version: 2.49.0
   - category: main
     dependencies:
       python: '>=3.9'
@@ -14579,44 +14579,44 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=14'
-      openssl: '>=3.5.1,<4.0a0'
+      openssl: '>=3.5.2,<4.0a0'
       patchelf: ''
     hash:
-      md5: 72a9bb3f74cf0204a81ee0a9f0892c5e
-      sha256: 479fbf11a55e8d83a2ec8daa23176240058cd0965a3ac0a5ca423d219b8b46e4
+      md5: bcb9aefec62f3802a538209811c61934
+      sha256: ac6beec6bda1223348d8a14a73681a4d578a6749d99bea3e54a815ef276ebff1
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.45.0-h60886be_0.conda
-    version: 0.45.0
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.46.0-h60886be_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: d64bf77fca9977886d0fcd7c0116c213
-      sha256: d3d36f788c65bd3fe2d10c6af414391d52a79282e7fab9afa9d17ef2224843c7
+      md5: 3a0f4961cf4e90d796cbc2cde52989b6
+      sha256: 203da906eacb30b172e56da3c686e84fe8ac686bd9559c0493b10a7c0556bc83
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.45.0-hd3e8693_0.conda
-    version: 0.45.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.46.0-hd3e8693_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: f220e8c2418cdcbdd2142b995c7d4778
-      sha256: 71c040049748c29423b18e1a39e5da8746c8de8b326ca8aa3edcacd4459285fc
+      md5: 9f000b57b44445cdb54f258c7e9bd561
+      sha256: 249d50ff057deebab20a9f95f6fff38a0e85bcdbf791b16d220eca8c35263c9b
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.45.0-hcdef695_0.conda
-    version: 0.45.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.46.0-hcdef695_0.conda
+    version: 0.46.0
   - category: main
     dependencies:
       conda-build: ''
