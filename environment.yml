@@ -28,7 +28,7 @@ dependencies:
   - fastapi
   - feedparser
   - frozendict
-  - git
+  - git <2.50
   - github3.py
   - grayskull >=2.5
   - jinja2
