@@ -73,14 +73,14 @@ package:
       hicolor-icon-theme: ''
       librsvg: ''
     hash:
-      md5: eeb18017386c92765ad8ffa986c3f4ce
-      sha256: 824a7349bbb2ef8014077ddcfd418065a0a4de873ada1bd1b8826e20bed18c15
+      md5: 388097ca1f27fc28e0ef1986dd311891
+      sha256: f52307d3ff839bf4a001cb14b3944f169e46e37982a97c3d52cbf48a0cfe2327
     manager: conda
     name: adwaita-icon-theme
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_1.conda
     version: '48.1'
   - category: main
     dependencies:
@@ -88,14 +88,14 @@ package:
       hicolor-icon-theme: ''
       librsvg: ''
     hash:
-      md5: eeb18017386c92765ad8ffa986c3f4ce
-      sha256: 824a7349bbb2ef8014077ddcfd418065a0a4de873ada1bd1b8826e20bed18c15
+      md5: 388097ca1f27fc28e0ef1986dd311891
+      sha256: f52307d3ff839bf4a001cb14b3944f169e46e37982a97c3d52cbf48a0cfe2327
     manager: conda
     name: adwaita-icon-theme
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_1.conda
     version: '48.1'
   - category: main
     dependencies:
@@ -103,14 +103,14 @@ package:
       hicolor-icon-theme: ''
       librsvg: ''
     hash:
-      md5: eeb18017386c92765ad8ffa986c3f4ce
-      sha256: 824a7349bbb2ef8014077ddcfd418065a0a4de873ada1bd1b8826e20bed18c15
+      md5: 388097ca1f27fc28e0ef1986dd311891
+      sha256: f52307d3ff839bf4a001cb14b3944f169e46e37982a97c3d52cbf48a0cfe2327
     manager: conda
     name: adwaita-icon-theme
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-48.1-unix_1.conda
     version: '48.1'
   - category: main
     dependencies:
@@ -2365,39 +2365,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: fc22d75c64bae6ccf813687a0cd6592b
-      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
+      md5: ed898d0124d1f66e978d5411f740d506
+      sha256: 5569d83058518508d7246909e66b461524e63efab641da916fceab50e7f24ff2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
-    version: 2025.08.22.13.01.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.18.58.01-hd8ed1ab_0.conda
+    version: 2025.08.22.18.58.01
   - category: main
     dependencies: {}
     hash:
-      md5: fc22d75c64bae6ccf813687a0cd6592b
-      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
+      md5: ed898d0124d1f66e978d5411f740d506
+      sha256: 5569d83058518508d7246909e66b461524e63efab641da916fceab50e7f24ff2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
-    version: 2025.08.22.13.01.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.18.58.01-hd8ed1ab_0.conda
+    version: 2025.08.22.18.58.01
   - category: main
     dependencies: {}
     hash:
-      md5: fc22d75c64bae6ccf813687a0cd6592b
-      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
+      md5: ed898d0124d1f66e978d5411f740d506
+      sha256: 5569d83058518508d7246909e66b461524e63efab641da916fceab50e7f24ff2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
-    version: 2025.08.22.13.01.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.18.58.01-hd8ed1ab_0.conda
+    version: 2025.08.22.18.58.01
   - category: main
     dependencies:
       click: '>=8'
