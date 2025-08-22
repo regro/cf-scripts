@@ -2365,39 +2365,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: c39ec82951aac7b2be0f942c7f7b9ac3
-      sha256: dede5991a8129f09e5eac32882b1c210ec47086cd7d15fb18ef91542d474e9f4
+      md5: fc22d75c64bae6ccf813687a0cd6592b
+      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.09.46.44-hd8ed1ab_0.conda
-    version: 2025.08.22.09.46.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
+    version: 2025.08.22.13.01.40
   - category: main
     dependencies: {}
     hash:
-      md5: c39ec82951aac7b2be0f942c7f7b9ac3
-      sha256: dede5991a8129f09e5eac32882b1c210ec47086cd7d15fb18ef91542d474e9f4
+      md5: fc22d75c64bae6ccf813687a0cd6592b
+      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.09.46.44-hd8ed1ab_0.conda
-    version: 2025.08.22.09.46.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
+    version: 2025.08.22.13.01.40
   - category: main
     dependencies: {}
     hash:
-      md5: c39ec82951aac7b2be0f942c7f7b9ac3
-      sha256: dede5991a8129f09e5eac32882b1c210ec47086cd7d15fb18ef91542d474e9f4
+      md5: fc22d75c64bae6ccf813687a0cd6592b
+      sha256: 5588cdc0a126cf4c9703ba95cc8704f84982e5c8e65d3ea1997e4112c37d6e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.09.46.44-hd8ed1ab_0.conda
-    version: 2025.08.22.09.46.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.22.13.01.40-hd8ed1ab_0.conda
+    version: 2025.08.22.13.01.40
   - category: main
     dependencies:
       click: '>=8'
@@ -10971,17 +10971,17 @@ package:
       libgcc: '>=14'
       liblapack: '>=3.9.0,<4.0a0'
       libstdcxx: '>=14'
-      python: ''
+      python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 61e1b42eb1d9f0ebaf038522ce9ca2fe
-      sha256: 16f2c3c3f912e55ee133cb5c2ddc719152e418335ffadb9130e2ee1e269b6ea3
+      md5: 768227d126f180ca9212d2ce8d69497d
+      sha256: 079a9183d7e15afb3ec75290e1c3618959241fa6f2bd67fd5a659281560eff12
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.2-py311h2e04523_0.conda
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.2-py311h9517ec2_1.conda
     version: 2.3.2
   - category: main
     dependencies:
@@ -10990,17 +10990,17 @@ package:
       libcblas: '>=3.9.0,<4.0a0'
       libcxx: '>=19'
       liblapack: '>=3.9.0,<4.0a0'
-      python: ''
+      python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 37f9922b287fd0f76a743f8e38cbea8d
-      sha256: d72790ba7a79548b7c9d8c509d0a8f6093e0fd7bbe97e9d1bd175ffd60f426a8
+      md5: cd946a2d8a3c0545be2be1927abbddce
+      sha256: 7828af4d601c88a90d88c0e55dee20b9aadcea6966d43c053e72fd4c8b0067d1
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.2-py311h09fcace_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.2-py311h594a81e_1.conda
     version: 2.3.2
   - category: main
     dependencies:
@@ -11009,17 +11009,17 @@ package:
       libcblas: '>=3.9.0,<4.0a0'
       libcxx: '>=19'
       liblapack: '>=3.9.0,<4.0a0'
-      python: 3.11.*
+      python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: d399436ee3e7a06af9941cdf624d99c9
-      sha256: ffe161b3ee67c55ad994fb7dfab2411f99c9baa801ef9538de756cab53bbe92d
+      md5: 0b5fea02599032d5bfe1bbf8790ff060
+      sha256: e5ce2c3714476ad39b0cd652b3803470738a584c2572c00b03cccbdad83b520c
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.2-py311h0856f98_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.2-py311h53913e0_1.conda
     version: 2.3.2
   - category: main
     dependencies:
