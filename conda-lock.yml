@@ -2365,39 +2365,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: e7ae05afca9d0246c3984bd2709e1c11
-      sha256: bac76de965170747e8f4732631294266122348936f272a9847bf0e47512e0651
+      md5: e57e869ba13dce2f738cac8f2a5eeec9
+      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.14.03.50-hd8ed1ab_0.conda
-    version: 2025.08.24.14.03.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
+    version: 2025.08.24.19.18.43
   - category: main
     dependencies: {}
     hash:
-      md5: e7ae05afca9d0246c3984bd2709e1c11
-      sha256: bac76de965170747e8f4732631294266122348936f272a9847bf0e47512e0651
+      md5: e57e869ba13dce2f738cac8f2a5eeec9
+      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.14.03.50-hd8ed1ab_0.conda
-    version: 2025.08.24.14.03.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
+    version: 2025.08.24.19.18.43
   - category: main
     dependencies: {}
     hash:
-      md5: e7ae05afca9d0246c3984bd2709e1c11
-      sha256: bac76de965170747e8f4732631294266122348936f272a9847bf0e47512e0651
+      md5: e57e869ba13dce2f738cac8f2a5eeec9
+      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.14.03.50-hd8ed1ab_0.conda
-    version: 2025.08.24.14.03.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
+    version: 2025.08.24.19.18.43
   - category: main
     dependencies:
       click: '>=8'
@@ -4964,18 +4964,18 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
+      libgcc: '>=14'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 5ed089614b88920f8cc673fe3bc34558
-      sha256: a33ef893e4c09e9a22851b4813a28e2a4a536819eed25491d9d26533b47c8a3b
+      md5: ae1979df507c82c25f19dc53bc8a2206
+      sha256: 0850f1215c12e330453657f37c6c64a05d8f663aef451492f603fef0f3c807f4
     manager: conda
     name: frozendict
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.6-py311h9ecbd09_0.conda
+      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.6-py311h49ec1c0_1.conda
     version: 2.4.6
   - category: main
     dependencies:
@@ -4983,14 +4983,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 91586d520e07d09129b3a4434223ca08
-      sha256: d0f604b818287cd9dbefbe0dcb6c7deba6c49fddb3d9c4c3310f0bafd7ced109
+      md5: eaeced7412042d9536d7995dcbf6d60c
+      sha256: f12403592cd9157b0df02734cf2513789daefe64a493f54e9d331f1e3166c04e
     manager: conda
     name: frozendict
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.6-py311h1314207_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.6-py311h13e5629_1.conda
     version: 2.4.6
   - category: main
     dependencies:
@@ -4998,14 +4998,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 0a8c239b0a02a0f0d1b62825aeeec144
-      sha256: 1e1898fb02f645c198295eff726482c5ffae0e2525bef65b32fedb46e9458da6
+      md5: cfc626fae54f36e84232b1a7bbe2b669
+      sha256: 1dfa790e96c6ede3fd049c1eff4052a383c64464776e78bf67ffc09ac88f0a7f
     manager: conda
     name: frozendict
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.6-py311hae2e1ce_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.6-py311h3696347_1.conda
     version: 2.4.6
   - category: main
     dependencies:
