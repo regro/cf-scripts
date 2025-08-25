@@ -747,49 +747,49 @@ package:
     version: 4.3.0
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 9f07c4fc992adb2d6c30da7fab3959a7
-      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
+      md5: de0fd9702fd4c1186e930b8c35af6b6b
+      sha256: d2124c0ea13527c7f54582269b3ae19541141a3740d6d779e7aa95aa82eaf561
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
-    version: 4.13.4
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.5-pyha770c72_0.conda
+    version: 4.13.5
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 9f07c4fc992adb2d6c30da7fab3959a7
-      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
+      md5: de0fd9702fd4c1186e930b8c35af6b6b
+      sha256: d2124c0ea13527c7f54582269b3ae19541141a3740d6d779e7aa95aa82eaf561
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
-    version: 4.13.4
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.5-pyha770c72_0.conda
+    version: 4.13.5
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       soupsieve: '>=1.2'
       typing-extensions: ''
     hash:
-      md5: 9f07c4fc992adb2d6c30da7fab3959a7
-      sha256: ddb0df12fd30b2d36272f5daf6b6251c7625d6a99414d7ea930005bbaecad06d
+      md5: de0fd9702fd4c1186e930b8c35af6b6b
+      sha256: d2124c0ea13527c7f54582269b3ae19541141a3740d6d779e7aa95aa82eaf561
     manager: conda
     name: beautifulsoup4
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.4-pyha770c72_0.conda
-    version: 4.13.4
+      https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.13.5-pyha770c72_0.conda
+    version: 4.13.5
   - category: main
     dependencies:
       python: '>=3.9'
@@ -2365,39 +2365,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: e57e869ba13dce2f738cac8f2a5eeec9
-      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
+      md5: 3a800da7ddaa4099f6af02bf5bc62c41
+      sha256: 8e07f58aeecd99a187a99fbe6f26757b1eea9ddb8861b65c5e54e2a949109ca7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
-    version: 2025.08.24.19.18.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.25.03.18.12-hd8ed1ab_0.conda
+    version: 2025.08.25.03.18.12
   - category: main
     dependencies: {}
     hash:
-      md5: e57e869ba13dce2f738cac8f2a5eeec9
-      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
+      md5: 3a800da7ddaa4099f6af02bf5bc62c41
+      sha256: 8e07f58aeecd99a187a99fbe6f26757b1eea9ddb8861b65c5e54e2a949109ca7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
-    version: 2025.08.24.19.18.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.25.03.18.12-hd8ed1ab_0.conda
+    version: 2025.08.25.03.18.12
   - category: main
     dependencies: {}
     hash:
-      md5: e57e869ba13dce2f738cac8f2a5eeec9
-      sha256: 125fa30cfac3ccbc6f8587b473a1ef94f6b5d7421d56e21c7b676d7e00e51ec6
+      md5: 3a800da7ddaa4099f6af02bf5bc62c41
+      sha256: 8e07f58aeecd99a187a99fbe6f26757b1eea9ddb8861b65c5e54e2a949109ca7
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.24.19.18.43-hd8ed1ab_0.conda
-    version: 2025.08.24.19.18.43
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.08.25.03.18.12-hd8ed1ab_0.conda
+    version: 2025.08.25.03.18.12
   - category: main
     dependencies:
       click: '>=8'
@@ -16002,45 +16002,45 @@ package:
       python: ''
       typing_extensions: '>=4.10.0'
     hash:
-      md5: e7456f20ee85cd9c13e36a7c7d7052a3
-      sha256: 5112e37cb5fc739d5d386eae0a266f0687a6422b376d0078b41bcd8b0725b56f
+      md5: 7839e6127ef19c0a07fe798d9d1c436b
+      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
     manager: conda
     name: starlette
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.2-pyh82d4cca_0.conda
-    version: 0.47.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
+    version: 0.47.3
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
-      python: '>=3.9'
+      python: '>=3.10'
       typing_extensions: '>=4.10.0'
     hash:
-      md5: e7456f20ee85cd9c13e36a7c7d7052a3
-      sha256: 5112e37cb5fc739d5d386eae0a266f0687a6422b376d0078b41bcd8b0725b56f
+      md5: 7839e6127ef19c0a07fe798d9d1c436b
+      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
     manager: conda
     name: starlette
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.2-pyh82d4cca_0.conda
-    version: 0.47.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
+    version: 0.47.3
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
-      python: '>=3.9'
+      python: '>=3.10'
       typing_extensions: '>=4.10.0'
     hash:
-      md5: e7456f20ee85cd9c13e36a7c7d7052a3
-      sha256: 5112e37cb5fc739d5d386eae0a266f0687a6422b376d0078b41bcd8b0725b56f
+      md5: 7839e6127ef19c0a07fe798d9d1c436b
+      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
     manager: conda
     name: starlette
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.2-pyh82d4cca_0.conda
-    version: 0.47.2
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
+    version: 0.47.3
   - category: main
     dependencies:
       python: '>=3.9'
