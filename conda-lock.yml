@@ -8377,27 +8377,27 @@ package:
     dependencies:
       libgfortran5: 15.1.0
     hash:
-      md5: bca8f1344f0b6e3002a600f4379f8f2f
-      sha256: 10efd2a1e18641dfcb57bdc14aaebabe9b24020cf1a5d9d2ec8d7cd9b2352583
+      md5: 07cfad6b37da6e79349c6e3a0316a83b
+      sha256: 844500c9372d455f6ae538ffd3cdd7fda5f53d25a2a6b3ba33060a302c37bc3e
     manager: conda
     name: libgfortran
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libgfortran-15.1.0-h5f6db21_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/libgfortran-15.1.0-h5f6db21_1.conda
     version: 15.1.0
   - category: main
     dependencies:
       libgfortran5: 15.1.0
     hash:
-      md5: e3b7dca2c631782ca1317a994dfe19ec
-      sha256: 9620b4ac9d32fe7eade02081cd60d6a359a927d42bb8e121bd16489acd3c4d8c
+      md5: c98207b6e2b1a309abab696d229f163e
+      sha256: 981e3fac416e80b007a2798d6c1d4357ebebeb72a039aca1fb3a7effe9dcae86
     manager: conda
     name: libgfortran
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-15.1.0-hfdf1602_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-15.1.0-hfdf1602_1.conda
     version: 15.1.0
   - category: main
     dependencies:
@@ -8417,27 +8417,27 @@ package:
     dependencies:
       llvm-openmp: '>=8.0.0'
     hash:
-      md5: c97d2a80518051c0e88089c51405906b
-      sha256: b8e892f5b96d839f7bf6de267329c145160b1f33d399b053d8602085fdbf26b2
+      md5: 696e408f36a5a25afdb23e862053ca82
+      sha256: c4bb79d9e9be3e3a335282b50d18a7965e2a972b95508ea47e4086f1fd699342
     manager: conda
     name: libgfortran5
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-15.1.0-hfa3c126_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-15.1.0-hfa3c126_1.conda
     version: 15.1.0
   - category: main
     dependencies:
       llvm-openmp: '>=8.0.0'
     hash:
-      md5: 8b158ccccd67a40218e12626a39065a1
-      sha256: 44b8ce4536cc9a0e59c09ff404ef1b0120d6a91afc32799331d85268cbe42438
+      md5: 4281bd1c654cb4f5cab6392b3330451f
+      sha256: 1f8f5b2fdd0d2559d0f3bade8da8f57e9ee9b54685bd6081c6d6d9a2b0239b41
     manager: conda
     name: libgfortran5
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-15.1.0-hb74de2c_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-15.1.0-hb74de2c_1.conda
     version: 15.1.0
   - category: main
     dependencies:
@@ -11216,15 +11216,15 @@ package:
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: 9db43476156095484a7e6c25fd372e45
-      sha256: aecf6ada094fde756a4628f782dd71ca610c5a4e9a3502c3039ea88f11439c3b
+      md5: c0e654637da04d04aa5754d2e36663bc
+      sha256: 17ed0e5f041625a3ea906de967a50e02b6ff1179e47e7fc78d12e3b47fe0fa68
     manager: conda
     name: orjson
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.2-py311h902ca64_0.conda
-    version: 3.11.2
+      https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.3-py311h902ca64_0.conda
+    version: 3.11.3
   - category: main
     dependencies:
       __osx: '>=10.13'
