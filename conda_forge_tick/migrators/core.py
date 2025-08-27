@@ -656,11 +656,11 @@ class Migrator:
             - a random number in [0, 1] if not failed and a leaf node
             - a random number in [0, val] if failed
 
-        where val is 
+        where val is
 
             (1.0 + 0.05 * log10(num descendents + 1)) * max(not failed fraction, 1e-3)
 
-        This formula has the effect of 
+        This formula has the effect of
 
             - deprioritizing failed nodes by an overall amount proportional to the fraction
               of failed nodes since the list of items being sorted will have
@@ -698,10 +698,7 @@ class Migrator:
             else:
                 return 1
 
-        _not_has_error = {
-            node: _not_has_error_func(node)
-            for node in list(graph.nodes)
-        }
+        _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
         good_frac = np.mean(list(_not_has_error.values()))
         boost = {
             node: 1.0 + 0.05 * np.log10(len(nx.descendants(total_graph, x)) + 1)
@@ -712,7 +709,8 @@ class Migrator:
             list(graph.nodes),
             key=lambda x: (
                 (
-                    RNG.random() * (1.0 if _not_has_error[x] else boost[x] * max(good_frac, 1e-3))
+                    RNG.random()
+                    * (1.0 if _not_has_error[x] else boost[x] * max(good_frac, 1e-3))
                     if (
                         (not _not_has_error[x])
                         or len(nx.descendants(total_graph, x)) == 0
