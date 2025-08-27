@@ -659,16 +659,14 @@ class Migrator:
 
         where val is
 
-            (1.0 + 0.05 * log10(num descendents + 1)) * max(not failed fraction, 1e-3)
+            min((1.0 + log10(num descendents + 1)) * 0.5, 1.0)
 
         This formula has the effect of
 
-            - deprioritizing failed nodes by an overall amount proportional to the fraction
-              of not failed nodes since the list of items being sorted will have
-              `1.0 - not failed fraction` failed nodes in it
+            - deprioritizing failed nodes by an overall amount (0.5 means there is a
+              ~33% percent chance a failed node appears ahead of a non-failed node)
             - boosting failed migrators by a bit if they have a lot of descendents
-            - if `not failed fraction` falls below 1e-3, then we truncate the value
-              since there is a lot of failed work to retry
+            - never letting any failed node get ahead of non-failed, non-leaf nodes
 
         Ties are sorted randomly.
         """
