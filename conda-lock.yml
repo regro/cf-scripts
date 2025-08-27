@@ -2819,15 +2819,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2c7a5be0a0607c8d400e9fc764f4052d
-      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
+      md5: 9817c4b35f1fe101d43e867bb2e36b80
+      sha256: 721824aae81e06bed43614821ed935c6132658132c7817250696cfd80d5a1228
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
-    version: 0.6.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.3-pyhd8ed1ab_0.conda
+    version: 0.6.3
   - category: main
     dependencies:
       click: '>=8.1.7,<8.2.0'
@@ -2842,15 +2842,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2c7a5be0a0607c8d400e9fc764f4052d
-      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
+      md5: 9817c4b35f1fe101d43e867bb2e36b80
+      sha256: 721824aae81e06bed43614821ed935c6132658132c7817250696cfd80d5a1228
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
-    version: 0.6.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.3-pyhd8ed1ab_0.conda
+    version: 0.6.3
   - category: main
     dependencies:
       click: '>=8.1.7,<8.2.0'
@@ -2865,15 +2865,15 @@ package:
       pyyaml: ''
       requests: ''
     hash:
-      md5: 2c7a5be0a0607c8d400e9fc764f4052d
-      sha256: f7388a9399d91684d228448a4bd9babbfbabc06c8da25b8fb783b84809ff27d3
+      md5: 9817c4b35f1fe101d43e867bb2e36b80
+      sha256: 721824aae81e06bed43614821ed935c6132658132c7817250696cfd80d5a1228
     manager: conda
     name: conda-recipe-manager
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.2-pyhd8ed1ab_0.conda
-    version: 0.6.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.3-pyhd8ed1ab_0.conda
+    version: 0.6.3
   - category: main
     dependencies:
       __unix: ''
@@ -15171,45 +15171,45 @@ package:
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: 397e7e07356db9425069fa86e8920404
-      sha256: c32892bc6ec30f932424c6a02f2b6de1062581a1cc942127792ec7980ddc31aa
+      md5: 486cb477243a9538130c439e66277069
+      sha256: 72231a2721aa5d1bcee36bf1a33e57e500f820feb09058700365ea8e5d9c982d
     manager: conda
     name: rpds-py
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.27.0-py311h902ca64_0.conda
-    version: 0.27.0
+      https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.27.1-py311h902ca64_0.conda
+    version: 0.27.1
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: b133a892de6369b6971ac2a83ae396c8
-      sha256: fe6a950458dcded2c4e7a879eba06f5b3b699fe6a5fcc2ee2882785d459f2874
+      md5: 2313cb4dcdec1663a07c03d3181111ea
+      sha256: e4b010b8576d2da3826f0d31e298bf4af6dd22cc3c4b99ac537aa378bbae56f9
     manager: conda
     name: rpds-py
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.27.0-py311hd3d88a1_0.conda
-    version: 0.27.0
+      https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.27.1-py311hd3d88a1_0.conda
+    version: 0.27.1
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: 3.11.*
       python_abi: 3.11.*
     hash:
-      md5: 65b920af8c94ae5d14cc76ba2c9e07c4
-      sha256: a048d46fcfc3974fcbb8dcf3667fc6c904fa7abc343abd9d1de75c05b96b6735
+      md5: 56ebedc5c64f5c3d513a9532d67952fc
+      sha256: 68196572450da817fb3c526ad2737ea793aa9c87f1b4814a1e731c457459c0ea
     manager: conda
     name: rpds-py
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.27.0-py311h1c3fc1a_0.conda
-    version: 0.27.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.27.1-py311h1c3fc1a_0.conda
+    version: 0.27.1
   - category: main
     dependencies:
       libgcc-ng: '>=12'
