@@ -702,7 +702,7 @@ class Migrator:
         _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
         good_frac = np.mean(list(_not_has_error.values()))
         boost = {
-            node: 1.0 + 0.05 * np.log10(len(nx.descendants(total_graph, x)) + 1)
+            node: 1.0 + 0.05 * np.log10(len(nx.descendants(total_graph, node)) + 1)
             for node in list(graph.nodes)
         }
 
