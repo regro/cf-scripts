@@ -663,7 +663,7 @@ class Migrator:
         This formula has the effect of
 
             - deprioritizing failed nodes by an overall amount proportional to the fraction
-              of failed nodes since the list of items being sorted will have
+              of not failed nodes since the list of items being sorted will have
               `1.0 - not failed fraction` failed nodes in it
             - boosting failed migrators by a bit if they have a lot of descendents
             - if `not failed fraction` falls below 1e-3, then we truncate the value
