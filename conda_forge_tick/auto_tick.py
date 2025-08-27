@@ -1032,6 +1032,14 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                             ),
                             flush=True,
                         )
+        else:
+            print("order of possible migrations:", flush=True)
+            for node_name in possible_nodes:
+                print(
+                    "    node|num_descendents: %s|%d"
+                    % (node_name, len(nx.descendants(mctx.graph, node_name))),
+                    flush=True,
+                )
 
         print(
             "found %d nodes for migration %s%s"
