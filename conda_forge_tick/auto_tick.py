@@ -1032,6 +1032,19 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                             ),
                             flush=True,
                         )
+        else:
+            print("order of possible migrations:", flush=True)
+            for node_name in possible_nodes:
+                with effective_graph.nodes[node_name]["payload"] as attrs:
+                    with attrs["pr_info"] as pri:
+                        attempts = pri.get("pre_pr_migrator_attempts", {}).get(
+                            migrator_name, 0
+                        )
+                print(
+                    "    node|num_descendents|attempts: %s|%d|%d"
+                    % (node_name, len(nx.descendants(mctx.graph, node_name)), attempts),
+                    flush=True,
+                )
 
         print(
             "found %d nodes for migration %s%s"
