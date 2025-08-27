@@ -689,7 +689,10 @@ class Migrator:
             key=lambda x: (
                 (
                     RNG.random()
-                    if ((not _not_has_error(x)) or len(nx.descendants(total_graph, x)) == 0)
+                    if (
+                        (not _not_has_error(x))
+                        or len(nx.descendants(total_graph, x)) == 0
+                    )
                     else len(nx.descendants(total_graph, x))
                 ),
                 RNG.random(),
