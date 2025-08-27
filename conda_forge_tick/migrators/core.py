@@ -648,7 +648,15 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name."""
+        """Determine migration order.
+
+        The feedstocks are sorted by
+
+            - number of decedents if not a failed migration and not a leaf node
+            - a random number in [0, 1] if failed or a leaf node
+
+        Ties are sorted randomly.
+        """
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")
@@ -679,10 +687,9 @@ class Migrator:
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                _not_has_error(x),
                 (
                     RNG.random()
-                    if not _not_has_error(x)
+                    if ((not _not_has_error(x)) or len(nx.descendants(total_graph, x)) == 0)
                     else len(nx.descendants(total_graph, x))
                 ),
                 RNG.random(),
