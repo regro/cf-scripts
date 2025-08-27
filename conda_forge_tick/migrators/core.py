@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import networkx as nx
+import numpy as np
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
