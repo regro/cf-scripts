@@ -700,7 +700,6 @@ class Migrator:
                 return 1
 
         _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
-        good_frac = np.mean(list(_not_has_error.values()))
         boost = {
             node: 1.0 + 0.05 * np.log10(len(nx.descendants(total_graph, node)) + 1)
             for node in list(graph.nodes)
@@ -711,7 +710,7 @@ class Migrator:
             key=lambda x: (
                 (
                     RNG.random()
-                    * (1.0 if _not_has_error[x] else boost[x] * max(good_frac, 1e-3))
+                    * (1.0 if _not_has_error[x] else min(boost[x] * 0.5, 1.0))
                     if (
                         (not _not_has_error[x])
                         or len(nx.descendants(total_graph, x)) == 0
