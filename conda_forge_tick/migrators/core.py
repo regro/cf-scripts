@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import networkx as nx
+import numpy as np
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -648,14 +649,36 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name."""
+        """Determine migration order.
+
+        The feedstocks are reverse sorted by
+
+            - number of decedents if not a failed migration and not a leaf node
+            - a random number in [0, 1] if not failed and a leaf node
+            - a random number in [0, val] if failed
+
+        where val is
+
+            (1.0 + 0.05 * log10(num descendents + 1)) * max(not failed fraction, 1e-3)
+
+        This formula has the effect of
+
+            - deprioritizing failed nodes by an overall amount proportional to the fraction
+              of not failed nodes since the list of items being sorted will have
+              `1.0 - not failed fraction` failed nodes in it
+            - boosting failed migrators by a bit if they have a lot of descendents
+            - if `not failed fraction` falls below 1e-3, then we truncate the value
+              since there is a lot of failed work to retry
+
+        Ties are sorted randomly.
+        """
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _not_has_error(node):
+        def _not_has_error_func(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
                 "pr_info",
                 {},
@@ -676,13 +699,23 @@ class Migrator:
             else:
                 return 1
 
+        _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
+        good_frac = np.mean(list(_not_has_error.values()))
+        boost = {
+            node: 1.0 + 0.05 * np.log10(len(nx.descendants(total_graph, node)) + 1)
+            for node in list(graph.nodes)
+        }
+
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                _not_has_error(x),
                 (
                     RNG.random()
-                    if not _not_has_error(x)
+                    * (1.0 if _not_has_error[x] else boost[x] * max(good_frac, 1e-3))
+                    if (
+                        (not _not_has_error[x])
+                        or len(nx.descendants(total_graph, x)) == 0
+                    )
                     else len(nx.descendants(total_graph, x))
                 ),
                 RNG.random(),
