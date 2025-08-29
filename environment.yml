@@ -47,7 +47,7 @@ dependencies:
   - pygithub
   - pymongo
   - pynamodb
-  - python=3.11
+  - python=3.12
   - python-dateutil
   - python-graphviz
   - rattler-build >=0.35.4
