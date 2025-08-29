@@ -2171,7 +2171,7 @@ package:
       conda-smithy: ''
       psutil: ''
       py-rattler: '>=0.9.0,<0.10a0'
-      python: '>=3.10'
+      python: '>=3.11'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -2179,15 +2179,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
-      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
+      md5: db44bb9ba85fa7f9164c5a6cabeb9ba5
+      sha256: 2f717e9ea176aa73c189a152db3f50ccf0b918d60d7defb72b77807d11692483
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
-    version: 0.11.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.2-pyhd8ed1ab_0.conda
+    version: 0.11.2
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2198,7 +2198,7 @@ package:
       conda-smithy: ''
       psutil: ''
       py-rattler: '>=0.9.0,<0.10a0'
-      python: '>=3.10'
+      python: '>=3.11'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -2206,15 +2206,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
-      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
+      md5: db44bb9ba85fa7f9164c5a6cabeb9ba5
+      sha256: 2f717e9ea176aa73c189a152db3f50ccf0b918d60d7defb72b77807d11692483
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
-    version: 0.11.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.2-pyhd8ed1ab_0.conda
+    version: 0.11.2
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2225,7 +2225,7 @@ package:
       conda-smithy: ''
       psutil: ''
       py-rattler: '>=0.9.0,<0.10a0'
-      python: '>=3.10'
+      python: '>=3.11'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -2233,15 +2233,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
-      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
+      md5: db44bb9ba85fa7f9164c5a6cabeb9ba5
+      sha256: 2f717e9ea176aa73c189a152db3f50ccf0b918d60d7defb72b77807d11692483
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
-    version: 0.11.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.2-pyhd8ed1ab_0.conda
+    version: 0.11.2
   - category: main
     dependencies:
       click: ''
@@ -3294,15 +3294,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: f2d902e3e28e59a8a281b84ba7c74419
-      sha256: bcd74f7a948bd189aa4517e3e03520adfa020bdcb91ef63e418cddbc45c162c7
+      md5: e9cbe50bfe64007c7943ec3e349327e9
+      sha256: 260a003be89c82074188980fdfd8e124fc0209c29d1ab9a92a1dc8d2fa240c16
     manager: conda
     name: coverage
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/coverage-7.10.5-py311h3778330_0.conda
-    version: 7.10.5
+      https://conda.anaconda.org/conda-forge/linux-64/coverage-7.10.6-py311h3778330_0.conda
+    version: 7.10.6
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -3310,15 +3310,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: 7adbc5b6031d8a79ef52ce641fe6a913
-      sha256: e80245c78a0b93a5d10bc2ec3b02c2b4aaadb73921d8be95f759dfd1064176d2
+      md5: 48bf47bd6cc368bedc07f402528d324f
+      sha256: 3f5c2b87cdaadd4623894cbae3ecf3b151497a4097b8f4e0d39fa9626fb8a552
     manager: conda
     name: coverage
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/coverage-7.10.5-py311hfbe4617_0.conda
-    version: 7.10.5
+      https://conda.anaconda.org/conda-forge/osx-64/coverage-7.10.6-py311hfbe4617_0.conda
+    version: 7.10.6
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -3326,15 +3326,15 @@ package:
       python_abi: 3.11.*
       tomli: ''
     hash:
-      md5: 4ba060eccb5a171184632178f4ff74a7
-      sha256: fdde4127d58fd93c85ff63e27205b9f8a70650d069506f1c2285d709372af2b8
+      md5: 9bd370e2fddb6b6fcb7cb77e11ff22c4
+      sha256: 84736c7b86bb65c9566474607ae5426d3d071d22e7408d406aee4531ec1bda51
     manager: conda
     name: coverage
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.10.5-py311h2fe624c_0.conda
-    version: 7.10.5
+      https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.10.6-py311h2fe624c_0.conda
+    version: 7.10.6
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
