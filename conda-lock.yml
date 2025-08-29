@@ -2179,15 +2179,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e73c0857684ba77063e1f6232c9bcd3c
-      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
+      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
+      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
-    version: 0.10.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2206,15 +2206,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e73c0857684ba77063e1f6232c9bcd3c
-      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
+      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
+      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
-    version: 0.10.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2233,15 +2233,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: e73c0857684ba77063e1f6232c9bcd3c
-      sha256: 281628921f2132d500390edcf38f7cfdd3c9a383d2096a11a7b6fd5f27cd021a
+      md5: 68d3dc5e8229fd17862a5b8e74a24b4a
+      sha256: f3c8751cb523ea5dc454269ac2e0807b35385d1d6b8f4e982fedc32bffe2f7aa
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.1-pyhd8ed1ab_0.conda
-    version: 0.10.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       click: ''
@@ -17583,14 +17583,14 @@ package:
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: a7029bd5ceee8592ead0a7f6f6a0afef
-      sha256: 997d92d3e22b917b83735c3a9c84308d2764bf2f084e534de1e02421663112bc
+      md5: ad297607cf111f8af9f0abf318cab55a
+      sha256: c66aef35bfcaf69042d5889e4ec805c3645d2e473b109f173cc9448c42944411
     manager: conda
     name: websockets
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/websockets-15.0.1-py311haee01d2_1.conda
+      https://conda.anaconda.org/conda-forge/linux-64/websockets-15.0.1-py311haee01d2_2.conda
     version: 15.0.1
   - category: main
     dependencies:
@@ -17598,14 +17598,14 @@ package:
       python: ''
       python_abi: 3.11.*
     hash:
-      md5: 6fffcff10fc2c49576054b68ae91e49b
-      sha256: 612240bb188236a2a1f27ab2c79e1d7a1db329d4a3dd99159fd76c7a04fa414e
+      md5: 24bb97dc90bf7dce2a368caf823eed95
+      sha256: d1b7a1ee0f2bb9a41b489dc431d189015b72fc8e33123fa694227f6538039d61
     manager: conda
     name: websockets
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/websockets-15.0.1-py311h179db11_1.conda
+      https://conda.anaconda.org/conda-forge/osx-64/websockets-15.0.1-py311h179db11_2.conda
     version: 15.0.1
   - category: main
     dependencies:
@@ -17613,14 +17613,14 @@ package:
       python: 3.11.*
       python_abi: 3.11.*
     hash:
-      md5: a4dfb271c365ce2c66008dfdc6a3d2e1
-      sha256: 34e21b26dac1015bc9334520121f22ad73ac02cfacd35c8a4fa89c97aea02f1c
+      md5: ef598defbb9bf205b2aaabc6c9fa53c6
+      sha256: 372c0e76eb498d7b5558d501aaedb6ad83f8577bd29cd5824478083b2ae2c1b2
     manager: conda
     name: websockets
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/websockets-15.0.1-py311hb76fab6_1.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/websockets-15.0.1-py311hb76fab6_2.conda
     version: 15.0.1
   - category: main
     dependencies:
