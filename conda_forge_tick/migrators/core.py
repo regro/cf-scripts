@@ -659,7 +659,8 @@ class Migrator:
 
         where val is
 
-            min((1.0 + log10(num descendents + 1)) * 0.5, 1.0)
+            bfac = 10.0
+            min((1.0 + bfac * log10(num descendents + 1)) * 0.5, 1.0)
 
         This formula has the effect of
 
@@ -698,8 +699,9 @@ class Migrator:
                 return 1
 
         _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
+        bfac = 10.0
         boost = {
-            node: 1.0 + 2.0 * np.log10(len(nx.descendants(total_graph, node)) + 1)
+            node: 1.0 + (bfac * np.log10(len(nx.descendants(total_graph, node)) + 1))
             for node in list(graph.nodes)
         }
 
