@@ -101,6 +101,14 @@ class BotConfigVersionUpdates(BaseModel):
         "PEP440.",
     )
 
+    even_odd_versions: Optional[bool] = Field(
+        default=None,
+        description="For projects that follow even/odd versioning schemes (like GNOME), "
+        "set to true to only accept stable versions (even minor numbers: 1.2.x, 1.4.x) "
+        "and ignore development versions (odd minor numbers: 1.1.x, 1.3.x). "
+        "Leave unset for projects that don't follow this versioning scheme.",
+    )
+
 
 class BotConfig(BaseModel):
     """
@@ -142,6 +150,8 @@ class BotConfig(BaseModel):
             random_fraction_to_keep: 0.1  # keeps 10% of versions at random
             exclude:
                 - '08.14'
+            # even/odd version filtering for unstable versions
+            even_odd_versions: true
     ```
 
     The `abi_migration_branches` feature is useful to, for example, add a

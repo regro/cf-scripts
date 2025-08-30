@@ -10,6 +10,7 @@ from conftest import FakeLazyJson
 
 from conda_forge_tick.auto_tick import (
     _commit_migration,
+    _filter_ignored_versions,
     _prepare_feedstock_repository,
     run_with_tmpdir,
 )
@@ -336,3 +337,37 @@ def test_run_with_tmpdir(
 
     assert cloned_context.feedstock_name == context.feedstock_name
     assert cloned_context.default_branch == context.default_branch
+
+
+@pytest.mark.parametrize(
+    "version, even_odd_filtering, expected",
+    [
+        ("1.1.0", True, False),  # Odd minor -> filtered out
+        ("1.2.0", True, "1.2.0"),  # Even minor -> kept
+        ("1.3_rc1", True, False),  # Underscore normalization + odd
+        ("1.4_final", True, "1.4_final"),  # Underscore normalization + even
+        ("1.x", True, "1.x"),  # Invalid version -> kept
+    ],
+)
+def test_filter_ignored_versions_even_odd(version, even_odd_filtering, expected):
+    """Test _filter_ignored_versions for even/odd filtering."""
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {"version_updates": {"even_odd_versions": even_odd_filtering}}
+        }
+    }
+    result = _filter_ignored_versions(attrs, version)
+    assert result == expected
+
+
+def test_filter_ignored_versions_exclude():
+    """Test _filter_ignored_versions for exclude functionality."""
+    attrs = {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}}
+
+    # Should filter out exact match and normalized versions
+    assert _filter_ignored_versions(attrs, "1.2.3") is False
+    assert _filter_ignored_versions(attrs, "1.2-3") is False  # Dash normalization
+    assert _filter_ignored_versions(attrs, "1_2_3") is False  # Underscore normalization
+
+    # Should keep different versions
+    assert _filter_ignored_versions(attrs, "1.2.4") == "1.2.4"

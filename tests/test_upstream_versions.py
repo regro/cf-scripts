@@ -391,6 +391,115 @@ def test_ignore_version_true(attrs, version):
 
 
 @pytest.mark.parametrize(
+    "version, even_odd_filtering, expected",
+    [
+        ("1.1.0", True, True),
+        ("1.2.0", True, False),
+        ("1.3.5", True, True),
+        ("1.4.1", True, False),
+        ("2.0.0", True, False),
+        ("2.1.0", True, True),
+        ("1.0.0", False, False),
+        ("1.1.0", False, False),
+        ("1.2.5", False, False),
+        ("1.3.1", False, False),
+        ("1.1-alpha", True, True),
+        ("1.2-beta", True, False),
+        ("1.3_rc1", True, True),
+        ("1.4_final", True, False),
+        ("1", True, False),
+        ("1.x", True, False),
+        ("invalid", True, False),
+    ],
+)
+def test_ignore_version_even_odd_filtering(version, even_odd_filtering, expected):
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {"version_updates": {"even_odd_versions": even_odd_filtering}}
+        }
+    }
+    assert ignore_version(attrs, version) is expected
+
+
+@pytest.mark.parametrize(
+    "attrs, version, expected",
+    [
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {"version_updates": {"even_odd_versions": True}}
+                }
+            },
+            "1.1.0",
+            True,
+        ),
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {"version_updates": {"even_odd_versions": True}}
+                }
+            },
+            "1.2.0",
+            False,
+        ),
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {"version_updates": {"even_odd_versions": False}}
+                }
+            },
+            "1.1.0",
+            False,
+        ),
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {"version_updates": {"even_odd_versions": False}}
+                }
+            },
+            "1.2.0",
+            False,
+        ),
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {
+                        "version_updates": {
+                            "exclude": ["1.2.0"],
+                            "even_odd_versions": True,
+                        },
+                    },
+                },
+            },
+            "1.2.0",
+            True,
+        ),
+        (
+            {
+                "conda-forge.yml": {
+                    "bot": {
+                        "version_updates": {
+                            "exclude": ["1.3.0"],
+                            "even_odd_versions": True,
+                        },
+                    },
+                },
+            },
+            "1.1.0",
+            True,
+        ),
+        (
+            {"conda-forge.yml": {"bot": {"version_updates": {}}}},
+            "1.1.0",
+            False,
+        ),
+    ],
+)
+def test_ignore_version_even_odd_integration(attrs, version, expected):
+    assert ignore_version(attrs, version) is expected
+
+
+@pytest.mark.parametrize(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_npm_test_list,
 )

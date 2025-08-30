@@ -73,15 +73,28 @@ def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
     bool
         True if the version should be ignored, False otherwise.
     """
-    versions_to_ignore = get_keys_default(
+    version_updates = get_keys_default(
         attrs,
-        ["conda-forge.yml", "bot", "version_updates", "exclude"],
+        ["conda-forge.yml", "bot", "version_updates"],
         {},
-        [],
+        {},
     )
-    return (
-        version.replace("-", ".") in versions_to_ignore or version in versions_to_ignore
-    )
+
+    normalized_version = version.replace("-", ".").replace("_", ".")
+
+    versions_to_ignore = version_updates.get("exclude", [])
+    if normalized_version in versions_to_ignore or version in versions_to_ignore:
+        return True
+
+    if version_updates.get("even_odd_versions", False):
+        try:
+            version_parts = normalized_version.split(".")
+            if len(version_parts) >= 2 and int(version_parts[1]) % 2 == 1:
+                return True
+        except ValueError:
+            pass
+
+    return False
 
 
 def get_latest_version_local(
