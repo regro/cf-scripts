@@ -1221,19 +1221,29 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
 
 
 def _filter_ignored_versions(attrs, version):
-    versions_to_ignore = get_keys_default(
+    version_updates = get_keys_default(
         attrs,
-        ["conda-forge.yml", "bot", "version_updates", "exclude"],
+        ["conda-forge.yml", "bot", "version_updates"],
         {},
-        [],
+        {},
     )
-    if (
-        str(version).replace("-", ".") in versions_to_ignore
-        or str(version) in versions_to_ignore
-    ):
+
+    version_str = str(version)
+    normalized_version = version_str.replace("-", ".").replace("_", ".")
+
+    versions_to_ignore = version_updates.get("exclude", [])
+    if normalized_version in versions_to_ignore or version_str in versions_to_ignore:
         return False
-    else:
-        return version
+
+    if version_updates.get("even_odd_versions", False):
+        try:
+            version_parts = normalized_version.split(".")
+            if len(version_parts) >= 2 and int(version_parts[1]) % 2 == 1:
+                return False
+        except ValueError:
+            pass
+
+    return version
 
 
 def _update_nodes_with_new_versions(gx):
