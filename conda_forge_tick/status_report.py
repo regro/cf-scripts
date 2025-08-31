@@ -17,7 +17,6 @@ import yaml
 from conda.models.version import VersionOrder
 from graphviz import Source
 
-from conda_forge_tick.auto_tick import _filter_ignored_versions
 from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 from conda_forge_tick.make_migrators import load_migrators
@@ -40,6 +39,7 @@ from conda_forge_tick.utils import (
     get_migrator_name,
     load_existing_graph,
 )
+from conda_forge_tick.version_filters import filter_version
 
 GH_MERGE_STATE_STATUS = [
     "behind",
@@ -89,11 +89,11 @@ def write_version_migrator_status(migrator, mctx):
                 continue
 
             with attrs["version_pr_info"] as vpri:
-                version_from_data = _filter_ignored_versions(
+                version_from_data = filter_version(
                     attrs,
                     version_data.get("new_version", False),
                 )
-                version_from_attrs = _filter_ignored_versions(
+                version_from_attrs = filter_version(
                     attrs,
                     vpri.get("new_version", False),
                 )
