@@ -461,7 +461,8 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.version_filters.is_version_ignored", return_value=False
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
     ) as is_version_ignored_mock:
         result = get_latest_version(
             "crazy-package",
@@ -510,7 +511,8 @@ def test_latest_version_skip_error_success(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.version_filters.is_version_ignored", return_value=False
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -572,7 +574,8 @@ def test_latest_version_is_version_ignored(caplog):
     source_a.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.version_filters.is_version_ignored", return_value=True
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=True,
     ):
         result = get_latest_version(
             "crazy-package",
