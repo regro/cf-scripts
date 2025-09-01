@@ -49,6 +49,7 @@ from conda_forge_tick.update_sources import (
     ROSDistro,
 )
 from conda_forge_tick.utils import get_keys_default, load_existing_graph
+from conda_forge_tick.version_filters import is_version_ignored
 
 T = TypeVar("T")
 
@@ -56,32 +57,6 @@ T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
-
-
-def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
-    """Check if a version should be ignored based on the `conda-forge.yml` file.
-
-    Parameters
-    ----------
-    attrs
-        The node attributes.
-    version
-        The version to check.
-
-    Returns
-    -------
-    bool
-        True if the version should be ignored, False otherwise.
-    """
-    versions_to_ignore = get_keys_default(
-        attrs,
-        ["conda-forge.yml", "bot", "version_updates", "exclude"],
-        {},
-        [],
-    )
-    return (
-        version.replace("-", ".") in versions_to_ignore or version in versions_to_ignore
-    )
 
 
 def get_latest_version_local(
@@ -193,7 +168,7 @@ def get_latest_version_local(
         logger.debug("Upstream: Could not find version on any source")
         return version_data
 
-    if ignore_version(attrs, new_version):
+    if is_version_ignored(attrs, new_version):
         logger.debug(
             "Ignoring version %s because it is in the exclude list.", new_version
         )
