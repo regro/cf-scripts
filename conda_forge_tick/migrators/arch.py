@@ -311,6 +311,8 @@ class _CrossCompileRebuild(GraphMigrator):
             # are not added to the graph
             _filter_excluded_deps(total_graph, self.excluded_dependencies)
 
+            target_packages = set(target_packages)
+
             # filter the graph down to the target packages
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
