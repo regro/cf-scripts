@@ -1,6 +1,5 @@
 import copy
 import os
-import typing
 from textwrap import dedent
 from typing import Any, Collection, Literal, Optional, Sequence
 
@@ -11,6 +10,7 @@ from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
 )
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, get_outputs_lut
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
@@ -20,9 +20,6 @@ from conda_forge_tick.utils import (
 )
 
 from .migration_yaml import all_noarch
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 MIGRATION_SUPPORT_DIRS = [
     os.path.join(
