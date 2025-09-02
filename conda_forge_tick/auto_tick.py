@@ -76,7 +76,6 @@ from .settings import settings
 
 logger = logging.getLogger(__name__)
 
-START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 
 
