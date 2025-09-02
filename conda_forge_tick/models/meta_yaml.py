@@ -38,7 +38,6 @@ class UrlSource(BaseSource):
     md5: str | None = Field(None, pattern=r"^[a-f0-9]{32}$")
     sha1: str | None = Field(None, pattern=r"^[a-f0-9]{40}$")
     sha256: str | None = Field(None, pattern=r"^[a-f0-9]{64}$")
-
     filename: str | None = Field(None, alias="fn")
 
 
@@ -77,11 +76,15 @@ class LocalPathSource(BaseSource):
 
 
 class PatchesOnlySource(BaseSource, StrictBaseModel):
-    """
-    Apparently, it is also possible to have a source that only contains patches.
-    """
+    """Happens due to selectors and rendering of the `source` field."""
 
     pass
+
+
+class FilenameOnlySource(BaseSource, StrictBaseModel):
+    """Happens due to selectors and rendering of the `source` field."""
+
+    filename: str | None = Field(None, alias="fn")
 
 
 Source = (
@@ -91,6 +94,7 @@ Source = (
     | SvnSource
     | LocalPathSource
     | PatchesOnlySource
+    | FilenameOnlySource
 )
 
 

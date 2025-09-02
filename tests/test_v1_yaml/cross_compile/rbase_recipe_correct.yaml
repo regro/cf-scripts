@@ -1,0 +1,73 @@
+schema_version: 1
+
+context:
+  version: "2.0.1"
+  posix: ${{'m2-' if win else ''}}
+  native: ${{'m2w64-' if win else ''}}
+
+package:
+  name: r-magrittr
+  version: ${{ version|replace("-", "_") }}
+
+source:
+  url:
+    - https://cran.r-project.org/src/contrib/magrittr_${{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/magrittr/magrittr_${{ version }}.tar.gz
+  sha256: 75c265d51cc2b34beb27040edb09823c7b954d3990a7a931e40690b75d4aad5f
+
+build:
+  number: 0
+  dynamic_linking:
+    rpaths:
+      - lib/R/lib/
+      - lib/
+
+requirements:
+  build:
+    - if: build_platform != host_platform
+      then:
+        - cross-r-base ${{ r_base }}
+        - r-rlang
+    - if: not win
+      then: ${{ compiler('c') }}
+    - if: win
+      then: ${{ compiler('m2w64_c') }}
+    - if: win
+      then: ${{ posix }}filesystem
+    - ${{ posix }}make
+    - if: win
+      then: ${{ posix }}sed
+    - if: win
+      then: ${{ posix }}coreutils
+    - if: win
+      then: ${{ posix }}zip
+  host:
+    - r-base
+    - r-rlang
+  run:
+    - r-base
+    - r-rlang
+    - if: win
+      then: ${{ native }}gcc-libs
+
+tests:
+  - script:
+      - if: not win
+        then: "$R -e \"library('magrittr')\""
+      - if: win
+        then: "\"%R%\" -e \"library('magrittr')\""
+
+about:
+  license: MIT
+  summary: |
+    Provides a mechanism for chaining commands with a new forward-pipe operator, %>%. This operator will forward a value, or the result of an expression, into the next function call/expression. There is flexible support for the type of right-hand side expressions. For more information, see package vignette. To quote
+    Rene Magritte, "Ceci n'est pas un pipe."
+  license_file:
+    - lib/R/share/licenses/MIT
+    - LICENSE
+  homepage: https://magrittr.tidyverse.org
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+    - ocefpaf

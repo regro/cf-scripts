@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
@@ -41,7 +41,7 @@ def _cleanup_raw_yaml(raw_yaml):
 
 
 class RUCRTCleanup(MiniMigrator):
-    """Cleanup the R recipes for ucrt"""
+    """Cleanup the R recipes for ucrt."""
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         return (
@@ -49,7 +49,7 @@ class RUCRTCleanup(MiniMigrator):
                 w in attrs.get("raw_meta_yaml", "")
                 for w in ["native", "- posix", "- m2w64"]
             )
-        ) or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        ) or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):

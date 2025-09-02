@@ -1,3 +1,4 @@
+import copy
 import functools
 import logging
 import os
@@ -11,7 +12,10 @@ from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.migrators.core import Migrator, MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import (
+    Migrator,
+    MiniMigrator,
+)
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
 
@@ -88,6 +92,61 @@ def _has_req_section(lines, section_name):
             return True
 
     return False
+
+
+def _extract_bounds(req):
+    comma_parts = req.split(",")
+    parts = []
+    for part in comma_parts:
+        parts += part.split("|")
+    num_upper = sum("<" in part for part in parts)
+    if num_upper == 1:
+        for part in parts:
+            if "<" in part:
+                upper = part
+                break
+        upper_ver = upper.replace("<=", "").replace("<", "").strip()
+        if "<=" in upper:
+            upper_ver = upper_ver.split(".")
+            if len(upper_ver) < 2:
+                upper_ver.append("0")
+            upper_ver[-1] = str(int(upper_ver[-1]) + 1)
+            upper_ver[-1] = upper_ver[-1] + "a0"
+            upper_ver = ".".join(upper_ver)
+    elif num_upper == 0:
+        upper_ver = None
+    else:
+        raise RuntimeError(
+            f"Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    num_lower = sum(">" in part for part in parts)
+    if num_lower == 1:
+        for part in parts:
+            if ">" in part:
+                lower = part
+                break
+        lower_ver = lower.replace(">=", "").replace(">", "").strip()
+        if ">" in lower and ">=" not in lower:
+            lower_ver = lower_ver.split(".")
+            if len(lower_ver) < 2:
+                lower_ver.append("0")
+            lower_ver[-1] = str(int(lower_ver[-1]) + 1)
+            lower_ver = ".".join(lower_ver)
+    elif num_lower == 0:
+        lower_ver = None
+    else:
+        raise RuntimeError(
+            f"Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    return lower_ver, upper_ver
 
 
 def _process_req_list(section, req_list_name, new_python_req, force_apply=False):
@@ -175,16 +234,22 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
                 if name == "python" and (force_apply or req == ""):
                     adjusted_python = True
+
+                    _new_py_req = new_python_req
+                    if req_list_name == "run":
+                        py_lower_bound, py_upper_bound = _extract_bounds(req)
+                        if py_upper_bound is not None:
+                            _new_py_req = new_python_req + f",<{py_upper_bound}"
+                        if py_lower_bound is not None:
+                            python_min_override = py_lower_bound
+
                     new_line = (
                         indent_to_keep
                         + "- python "
-                        + new_python_req
+                        + _new_py_req
                         + ("  # " + comment if comment != "" else "")
                         + "\n"
                     )
-                    if req.startswith(">="):
-                        python_min_override = req[2:].strip()
-
                 else:
                     new_line = line
         else:
@@ -254,11 +319,11 @@ def _process_section(
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section, None
 
-    found_it, section, python_min_override = _process_req_list(
+    found_it, section, _ = _process_req_list(
         section, build_or_host, "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
-    found_it, section, _ = _process_req_list(
+    found_it, section, python_min_override = _process_req_list(
         section, "run", ">={{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` to run? %s", found_it)
@@ -350,13 +415,15 @@ class NoarchPythonMinMigrator(Migrator):
 
     migrator_version = 1
     bump_number = 1
+    max_solver_attempts = 3
 
     def __init__(
         self,
         *,
-        pr_limit: int = 10,
-        graph: nx.DiGraph = None,
-        effective_graph: nx.DiGraph = None,
+        pr_limit: int = 0,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
+        total_graph: nx.DiGraph | None = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
     ):
         if not hasattr(self, "_init_args"):
@@ -368,39 +435,46 @@ class NoarchPythonMinMigrator(Migrator):
                 "graph": graph,
                 "effective_graph": effective_graph,
                 "piggy_back_migrations": piggy_back_migrations,
+                "total_graph": total_graph,
             }
 
+        self.name = "noarch_python_min"
+
+        if total_graph is not None:
+            total_graph = copy.deepcopy(total_graph)
+            total_graph.clear_edges()
+
         super().__init__(
-            pr_limit,
+            pr_limit=pr_limit,
             graph=graph,
             effective_graph=effective_graph,
             piggy_back_migrations=piggy_back_migrations,
+            total_graph=total_graph,
         )
-        self.name = "noarch_python_min"
 
-        self._reset_effective_graph()
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-    def filter(self, attrs) -> bool:
         has_noarch_python = False
-        has_python_min = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
-            if "{{ python_min }}" in line:
-                has_python_min = True
+                break
 
-        needs_migration = has_noarch_python and (not has_python_min)
-
-        return (
-            super().filter(attrs)
-            or (not needs_migration)
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
-        )
+        return not has_noarch_python
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        # the actual migration is done via a mini-migrator so that we can
-        # apply this to other migrators as well
+        # if the feedstock has already been updated, return a migration ID
+        # and make no changes.
+        for line in attrs.get("raw_meta_yaml", "").splitlines():
+            if "{{ python_min }}" in line:
+                muid = super().migrate(recipe_dir, attrs)
+                muid["already_done"] = True
+                return muid
+
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+
         _apply_noarch_python_min(
             recipe_dir,
             attrs,

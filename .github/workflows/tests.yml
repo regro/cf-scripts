@@ -16,3 +16,4 @@ jobs:
     uses: ./.github/workflows/tests-reusable.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}

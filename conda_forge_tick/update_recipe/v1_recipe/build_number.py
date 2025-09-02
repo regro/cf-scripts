@@ -25,8 +25,8 @@ def old_build_number(recipe_text: str) -> int:
     ----------
     * `recipe_text` - The recipe text.
 
-    Returns:
-    --------
+    Returns
+    -------
     * The build number.
     """
     match = re.search(RE_PATTERN, recipe_text)
@@ -85,8 +85,8 @@ def update_build_number(file: Path, new_build_number: int | Callable = 0) -> str
     * `file` - The path to the recipe file.
     * `new_build_number` - The new build number to use. (default: 0)
 
-    Returns:
-    --------
+    Returns
+    -------
     * The updated recipe as a string.
     """
     data = _load_yaml(file)

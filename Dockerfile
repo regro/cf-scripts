@@ -30,7 +30,9 @@ RUN conda activate base && \
     pip install --no-deps --no-build-isolation -e . && \
     cd - && \
     conda deactivate && \
-    conda deactivate
+    conda deactivate && \
+    # remove .git dir once installed and version is set
+    rm -rf $AUTOTICK_BOT_DIR/.git
 
 # now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda
@@ -40,6 +42,7 @@ ENV LOGNAME=conda
 ENV MAIL=/var/spool/mail/conda
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/conda/bin
 RUN chown conda:conda $HOME && \
+    chown -R conda:conda /opt/autotick-bot && \
     cp -R /etc/skel $HOME && \
     chown -R conda:conda $HOME/skel && \
     (ls -A1 $HOME/skel | xargs -I {} mv -n $HOME/skel/{} $HOME) && \

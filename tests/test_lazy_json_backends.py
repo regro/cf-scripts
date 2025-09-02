@@ -1,8 +1,12 @@
+import base64
 import hashlib
 import json
 import logging
 import os
 import pickle
+import tempfile
+import time
+import uuid
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -10,8 +14,8 @@ import pytest
 
 import conda_forge_tick
 import conda_forge_tick.utils
+from conda_forge_tick.git_utils import github_client
 from conda_forge_tick.lazy_json_backends import (
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
     GithubLazyJsonBackend,
     LazyJson,
@@ -29,8 +33,10 @@ from conda_forge_tick.lazy_json_backends import (
     loads,
     remove_key_for_hashmap,
     sync_lazy_json_across_backends,
+    touch_all_lazy_json_refs,
 )
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import settings
 
 HAVE_MONGODB = (
     "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.classified_info
@@ -42,6 +48,7 @@ HAVE_MONGODB = (
 
 
 @pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
+@pytest.mark.mongodb
 def test_lazy_json_override_backends_global(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -143,6 +150,7 @@ def test_lazy_json_override_backends_global(tmpdir):
 
 
 @pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
+@pytest.mark.mongodb
 def test_lazy_json_override_backends_global_nocache(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -209,6 +217,7 @@ def test_lazy_json_override_backends_global_nocache(tmpdir):
         ("mongodb", "file"),
     ],
 )
+@pytest.mark.mongodb
 def test_lazy_json_backends_sync(backends, tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -255,10 +264,13 @@ def test_lazy_json_backends_sync(backends, tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )
@@ -322,10 +334,13 @@ def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )
@@ -376,19 +391,19 @@ def test_lazy_json_backends_dump_load(tmpdir):
             dumps(blob)
             == """\
 {
- "a": {
-  "__set__": true,
-  "elements": [
-   1,
-   2,
-   3
-  ]
- },
- "b": 56,
- "c": "3333",
- "d": {
-  "__lazy_json__": "blah.json"
- }
+  "a": {
+    "__set__": true,
+    "elements": [
+      1,
+      2,
+      3
+    ]
+  },
+  "b": 56,
+  "c": "3333",
+  "d": {
+    "__lazy_json__": "blah.json"
+  }
 }"""
         )
 
@@ -411,10 +426,13 @@ def test_lazy_json_backends_dump_load(tmpdir):
         "file",
         pytest.param(
             "mongodb",
-            marks=pytest.mark.skipif(
-                not HAVE_MONGODB,
-                reason="no mongodb",
-            ),
+            marks=[
+                pytest.mark.skipif(
+                    not HAVE_MONGODB,
+                    reason="no mongodb",
+                ),
+                pytest.mark.mongodb,
+            ],
         ),
     ],
 )
@@ -606,7 +624,7 @@ def test_lazy_json_backends_hashmap(tmpdir):
 
 def test_github_base_url() -> None:
     github_backend = GithubLazyJsonBackend()
-    assert github_backend.base_url == CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL + "/"
+    assert github_backend.base_url == settings().graph_github_backend_raw_base_url
     github_backend.base_url = "https://github.com/lorem/ipsum"
     assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 
@@ -771,3 +789,158 @@ def test_github_offline_hget_not_found(
 def test_github_online_hget_not_found(name: str, key: str):
     with pytest.raises(KeyError):
         GithubLazyJsonBackend().hget(name, key)
+
+
+def test_lazy_json_eq():
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(str(tmpdir)),
+        lazy_json_override_backends(["github"]),
+    ):
+        ngmix = LazyJson("node_attrs/ngmix.json")
+        touch_all_lazy_json_refs(ngmix)
+        ngmix2 = LazyJson("node_attrs/ngmix.json")
+        touch_all_lazy_json_refs(ngmix2)
+
+        fitsio = LazyJson("node_attrs/fitsio.json")
+        touch_all_lazy_json_refs(ngmix2)
+
+        assert ngmix == ngmix2
+        assert fitsio != ngmix2
+        assert ngmix2 == ngmix
+        assert ngmix2 != fitsio
+
+        assert ngmix.data == ngmix2
+        assert ngmix2 == ngmix.data
+
+        assert ngmix.data == ngmix2.data
+        assert fitsio.data != ngmix2.data
+        assert ngmix2.data == ngmix.data
+        assert ngmix2.data != fitsio.data
+
+        with ngmix["pr_info"] as pri:
+            pri.clear()
+        assert ngmix.data != ngmix2.data
+        assert ngmix2.data != ngmix.data
+        assert ngmix != ngmix2
+        assert ngmix2 != ngmix
+
+        del ngmix.data["pr_info"]
+        assert ngmix.data != ngmix2.data
+        assert ngmix2.data != ngmix.data
+        assert ngmix != ngmix2
+        assert ngmix2 != ngmix
+
+
+@pytest.mark.skipif(
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
+)
+def test_lazy_json_backends_github_api():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    try:
+        with lazy_json_override_backends(["github_api"], use_file_cache=False):
+            backend = LAZY_JSON_BACKENDS[get_lazy_json_primary_backend()]()
+
+            assert not backend.hexists("lazy_json", node)
+            lzj = LazyJson(fname)
+            assert not backend.hexists("lazy_json", node)
+            with lzj:
+                lzj["uid"] = uid
+            _sleep()
+            assert backend.hexists("lazy_json", node)
+            assert json.loads(backend.hget("lazy_json", node))["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+            _sleep()
+            assert json.loads(backend.hget("lazy_json", node))["uid"] == lzj.data["uid"]
+
+            backend.hdel("lazy_json", [node])
+            _sleep()
+            assert not backend.hexists("lazy_json", node)
+    finally:
+        gh = github_client()
+        repo = gh.get_repo("regro/cf-graph-countyfair")
+        message = f"remove files {fname} from testing"
+        for tr in range(10):
+            try:
+                contents = repo.get_contents(fname)
+                repo.delete_file(fname, message, contents.sha)
+                break
+            except Exception:
+                pass
+
+
+@pytest.mark.skipif(
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
+)
+def test_lazy_json_backends_github_api_nopush():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    try:
+        with lazy_json_override_backends(["github_api"], use_file_cache=False):
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+            _sleep()
+
+            cnt = repo.get_contents(fname)
+            curr_data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                pass
+            _sleep()
+            cnt_again = repo.get_contents(fname)
+            assert cnt.sha == cnt_again.sha
+            curr_data = base64.b64decode(cnt_again.content.encode("utf-8")).decode(
+                "utf-8"
+            )
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+            _sleep()
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+    finally:
+        message = f"remove files {fname} from testing"
+        fnames = [fname]
+        for _fname in fnames:
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(_fname)
+                    repo.delete_file(_fname, message, contents.sha)
+                    break
+                except Exception as e:
+                    if tr == 9:
+                        raise e
+                    else:
+                        pass

@@ -2,25 +2,24 @@ import abc
 import collections.abc
 import copy
 import functools
-import json
 import logging
 import re
 import subprocess
 import typing
 import urllib.parse
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Literal, Optional
 
 import feedparser
+import orjson
 import requests
 import yaml
 from conda.models.version import VersionOrder
-
-# TODO: parse_version has bad type annotations
-from pkg_resources import parse_version
+from packaging.version import InvalidVersion
+from packaging.version import parse as parse_version
 
 from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
 from .hashing import hash_url
 
@@ -243,7 +242,7 @@ class CRAN(AbstractSource):
                 CRAN_INDEX = self._get_cran_index(session)
                 logger.debug("Cran source initialized")
             except Exception:
-                logger.error("Cran initialization failed", exc_info=True)
+                logger.exception("Cran initialization failed")
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
@@ -328,7 +327,7 @@ class ROSDistro(AbstractSource):
                 ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
             except Exception:
-                logger.error("ROS Distro initialization failed", exc_info=True)
+                logger.exception("ROS Distro initialization failed")
                 ROS_DISTRO_INDEX = {}
 
     def get_url(self, meta_yaml: "RecipeTypedDict") -> Optional[str]:
@@ -369,11 +368,11 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout=2) -> bool:
+def url_exists(url: str, timeout=5) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
-     - requests cannot handle ftp
+     - requests cannot handle ftp.
     """
     if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
         try:
@@ -423,14 +422,14 @@ class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
     next_ver_func = None
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "feedstock_name" not in meta_yaml:
+    def get_url(self, attrs) -> Optional[str]:
+        if "feedstock_name" not in attrs:
             return None
-        if "version" not in meta_yaml:
+        if "version" not in attrs:
             return None
 
         # TODO: pull this from the graph itself
-        content = meta_yaml["raw_meta_yaml"]
+        content = attrs["raw_meta_yaml"]
 
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
@@ -439,9 +438,9 @@ class BaseRawURL(AbstractSource):
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
-        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
+        orig_urls = urls_from_meta(attrs["meta_yaml"])
         logger.debug("orig urls: %s", orig_urls)
-        current_ver = meta_yaml["version"]
+        current_ver = attrs["version"]
         current_sha256 = None
         orig_ver = current_ver
         found = True
@@ -465,7 +464,10 @@ class BaseRawURL(AbstractSource):
                     new_content = "\n".join(_new_lines)
                 else:
                     new_content = content.replace(orig_ver, next_ver)
-                new_meta = parse_meta_yaml(new_content)
+                if attrs["meta_yaml"].get("schema_version", 0) == 0:
+                    new_meta = parse_meta_yaml(new_content)
+                else:
+                    new_meta = parse_recipe_yaml(new_content)
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
@@ -477,7 +479,7 @@ class BaseRawURL(AbstractSource):
                     # this URL looks bad if these things happen
                     if (
                         str(new_meta["package"]["version"]) != next_ver
-                        or meta_yaml["url"] == url
+                        or attrs.get("url", "") == url
                         or url in orig_urls
                     ):
                         logger.debug(
@@ -487,7 +489,7 @@ class BaseRawURL(AbstractSource):
                             'str(new_meta["package"]["version"]) != next_ver',
                             str(new_meta["package"]["version"]) != next_ver,
                             'meta_yaml["url"] == url',
-                            meta_yaml["url"] == url,
+                            attrs.get("url", "") == url,
                             "url in orig_urls",
                             url in orig_urls,
                         )
@@ -558,12 +560,13 @@ class Github(VersionFromFeed):
         self.version_prefix = self.get_version_prefix(version, split_url)
         if self.version_prefix is None:
             return
-        logger.debug(f"Found version prefix from url: {self.version_prefix}")
+        logger.debug("Found version prefix from url: %s", self.version_prefix)
         self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):
-        """Returns prefix for the first split that contains version. If prefix
-        is empty - returns None."""
+        """Return prefix for the first split that contains version. If prefix
+        is empty - returns None.
+        """
         r = re.compile(rf"^(.*){version}")
         for split in split_url:
             match = r.match(split)
@@ -595,7 +598,7 @@ class GithubReleases(AbstractSource):
         owner, repo = meta_yaml["url"].split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str) -> Optional[str | Literal[False]]:
         r = requests.get(url)
         if not r.ok:
             return False
@@ -603,8 +606,16 @@ class GithubReleases(AbstractSource):
         url_components = r.url.split("/")
         latest = "/".join(url_components[url_components.index("releases") + 2 :])
         # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or latest == "latest" or parse_version(latest).is_prerelease:
-            return False
+        try:
+            if (
+                len(latest) == 0
+                or latest == "latest"
+                or parse_version(latest).is_prerelease
+            ):
+                return False
+        except InvalidVersion:
+            # version strings violating the Python spec are supported
+            pass
         for prefix in ("v", "release-", "releases/"):
             if latest.startswith(prefix):
                 latest = latest[len(prefix) :]
@@ -615,6 +626,10 @@ class GithubReleases(AbstractSource):
         return latest
 
 
+# TODO: this one does not work because the atom feeds from libraries.io
+# all return 403 and I cannot find the correct URL to use
+# also url_contains is not defined
+# also package_name is not defined
 class LibrariesIO(VersionFromFeed):
     name = "LibrariesIO"
 
@@ -729,7 +744,7 @@ class CratesIO(AbstractSource):
 
         # the response body is a newline-delimited JSON stream, with the latest version
         # being the last line
-        latest = json.loads(r.text.splitlines()[-1])
+        latest = orjson.loads(r.text.splitlines()[-1])
 
         return latest.get("vers")
 
@@ -737,7 +752,12 @@ class CratesIO(AbstractSource):
     def _tier_directory(package: str) -> str:
         """Depending on the length of the package name, the tier directory structure
         will differ.
-        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files
+        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files.
+
+        Raises
+        ------
+        ValueError
+            If the package name is empty.
         """
         if not package:
             raise ValueError("Package name cannot be empty")

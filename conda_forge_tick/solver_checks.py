@@ -1,15 +1,21 @@
-import json
 import logging
 import os
 import shutil
 import tempfile
 
+import orjson
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
     should_use_container,
 )
 from conda_forge_feedstock_ops.os_utils import sync_dirs
+
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +77,9 @@ def is_recipe_solvable(
             str(logging.getLevelName(logger.getEffectiveLevel())).upper()
         )
         logger.debug(
-            f"is_recipe_solver log-level={logging.getLevelName(logger.getEffectiveLevel())}"
-            f" -> verbosity={verbosity}"
+            "is_recipe_solver log-level=%d -> verbosity=%d",
+            logging.getLevelName(logger.getEffectiveLevel()),
+            verbosity,
         )
 
     if should_use_container(use_container=use_container):
@@ -110,7 +117,6 @@ def _is_recipe_solvable_containerized(
 
     See the docstring of `is_recipe_solvable` for inputs and outputs.
     """
-
     args = [
         "conda-forge-tick-container",
         "check-solvable",
@@ -125,7 +131,7 @@ def _is_recipe_solvable_containerized(
         args += ["--additional-channels", ",".join(additional_channels)]
 
     if build_platform:
-        args += ["--build-platform", json.dumps(build_platform)]
+        args += ["--build-platform", orjson.dumps(build_platform).decode("utf-8")]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
@@ -133,15 +139,25 @@ def _is_recipe_solvable_containerized(
             feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
         )
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         data = run_container_operation(
             args,
             mount_readonly=True,
             mount_dir=tmp_feedstock_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         # When tempfile removes tempdir, it tries to reset permissions on subdirs.

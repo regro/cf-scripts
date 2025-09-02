@@ -1,0 +1,90 @@
+name: tests-integration
+on:
+  pull_request:
+    branches:
+      - main
+  merge_group: null
+  workflow_dispatch: null
+
+# Integration tests interact with GitHub resources in the integration test infrastructure and therefore
+# cannot run concurrently with other integration tests.
+concurrency:
+  group: cf-scripts-integration-tests
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+jobs:
+  integration-tests:
+    name: Run Integration Tests
+    # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
+    # Nevertheless, this check is always run in the merge queue.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          path: cf-scripts
+          submodules: 'true'
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: cf-scripts
+          push: false
+          load: true
+          tags: conda-forge-tick:test
+
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: Run pip install
+        working-directory: cf-scripts
+        run: |
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Run mitmproxy certificate setup wizard
+        working-directory: cf-scripts
+        run: |
+          # place a script in the mitmproxy directory that will be run by the setup wizard
+          # to trust the mitmproxy certificate
+          cat <<EOF > ./tests_integration/.mitmproxy/${{ env.MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT }}
+          #!/usr/bin/env bash
+          set -euo pipefail
+          sudo cp "\$1" /usr/local/share/ca-certificates/mitmproxy.crt
+          sudo update-ca-certificates
+          EOF
+
+          ./tests_integration/mitmproxy_setup_wizard.sh
+        env:
+          MITMPROXY_WIZARD_HEADLESS: true
+          MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: mitmproxy_trust_script.sh
+
+      - name: Set up git identity
+        run: |
+          git config --global user.name "regro-cf-autotick-bot-staging"
+          git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
+
+      - name: Run Integration Tests with pytest
+        working-directory: cf-scripts
+        run: |
+          pytest -s -v \
+          --dist=no \
+          tests_integration
+        env:
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
+      - name: Print Proxy Logs
+        run: cat /tmp/mitmproxy.log
+        if: always()

@@ -8,12 +8,9 @@ on:
 concurrency: bot-make-graph
 
 jobs:
-  update-nodes:
-    name: update-nodes
+  make-graph:
+    name: make-graph
     runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        job_num: [ 1, 2, 3 ]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -28,12 +25,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -47,92 +44,22 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: make graph
         if: success() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
-          conda-forge-tick make-graph --job=${BOT_JOB} --n-jobs=3
-        env:
-          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
-          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-          BOT_JOB: ${{ matrix.job_num }}
-
-      - name: deploy
-        if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          conda-forge-tick deploy-to-github
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-
-      - name: bump on fail
-        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
-        run: |
-          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          python cf-scripts/autotick-bot/bump_bot_team.py
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-          ACTION_NAME: ${{ github.workflow }}
-
-  make-graph:
-    name: make-graph
-    needs: update-nodes
-    runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
-
-    steps:
-      - name: get latest release
-        id: latest_release
-        run: |
-          tag_name=$(gh api repos/regro/cf-scripts/releases/latest --jq '.tag_name')
-          echo "latest release: ${tag_name}"
-          echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ steps.latest_release.outputs.tag_name }}
-          path: cf-scripts
-
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
-        with:
-          environment-file: cf-scripts/conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: cf-scripts/autotick-bot/condarc
-
-      - name: do local setup and stop me if needed
-        run: |
-          cd cf-scripts
-          python autotick-bot/stop_me_if_needed.py
-
-      - name: install bot code
-        if: success() && ! env.CI_SKIP
-        run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
-      - name: make graph
-        if: success() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
           conda-forge-tick make-graph --update-nodes-and-edges
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+          RUN_ID: ${{ github.run_id }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: deploy
         if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP

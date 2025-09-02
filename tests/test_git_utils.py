@@ -4,6 +4,8 @@ import json
 import logging
 import subprocess
 import tempfile
+import time
+import uuid
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
@@ -13,6 +15,7 @@ import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
 
+import conda_forge_tick
 from conda_forge_tick.git_utils import (
     Bound,
     DryRunBackend,
@@ -24,12 +27,17 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     GitPlatformError,
     RepositoryNotFoundError,
+    _get_pth_blob_sha_and_content,
+    delete_file_via_gh_api,
+    github_client,
+    push_file_via_gh_api,
     trim_pr_json_keys,
 )
 from conda_forge_tick.models.pr_json import (
     GithubPullRequestMergeableState,
     PullRequestState,
 )
+from conda_forge_tick.os_utils import pushd
 
 """
 Note: You have to have git installed on your machine to run these tests.
@@ -39,11 +47,11 @@ Note: You have to have git installed on your machine to run these tests.
 @mock.patch("subprocess.run")
 @pytest.mark.parametrize("check_error", [True, False])
 def test_git_cli_run_git_command_no_error(
-    subprocess_run_mock: MagicMock, check_error: bool
+    subprocess_run_mock: MagicMock, check_error: bool, tmp_path: Path
 ):
     cli = GitCli()
 
-    working_directory = Path("TEST_DIR")
+    working_directory = tmp_path
 
     cli._run_git_command(
         ["GIT_COMMAND", "ARG1", "ARG2"], working_directory, check_error
@@ -59,10 +67,10 @@ def test_git_cli_run_git_command_no_error(
 
 
 @mock.patch("subprocess.run")
-def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
+def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    working_directory = Path("TEST_DIR")
+    working_directory = tmp_path
 
     subprocess_run_mock.side_effect = subprocess.CalledProcessError(
         returncode=1, cmd=""
@@ -76,14 +84,15 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
 @pytest.mark.parametrize("check_error", [True, False])
 @mock.patch("subprocess.run")
 def test_git_cli_run_git_command_mock(
-    subprocess_run_mock: MagicMock, check_error: bool, suppress_all_output: bool
+    subprocess_run_mock: MagicMock,
+    check_error: bool,
+    suppress_all_output: bool,
+    tmp_path: Path,
 ):
-    """
-    This test checks if all parameters are passed correctly to the subprocess.run function.
-    """
+    """Check if all parameters are passed correctly to the subprocess.run function."""
     cli = GitCli()
 
-    working_directory = Path("TEST_DIR")
+    working_directory = tmp_path
 
     cli._run_git_command(
         ["COMMAND", "ARG1", "ARG2"], working_directory, check_error, suppress_all_output
@@ -108,9 +117,7 @@ def test_git_cli_run_git_command_mock(
 
 @pytest.mark.parametrize("check_error", [True, False])
 def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
-    """
-    Verify that the stdout of the git command is captured and not printed to the console.
-    """
+    """Verify that the stdout of the git command is captured and not printed to the console."""
     cli = GitCli()
 
     p = cli._run_git_command(["version"], check_error=check_error)
@@ -122,9 +129,7 @@ def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
 
 
 def test_git_cli_run_git_command_stderr_not_captured(capfd):
-    """
-    Verify that the stderr of the git command is not captured if no token is hidden.
-    """
+    """Verify that the stderr of the git command is not captured if no token is hidden."""
     cli = GitCli()
 
     p = cli._run_git_command(["non-existing-command"], check_error=False)
@@ -182,11 +187,11 @@ def init_temp_git_repo(git_dir: Path, bare: bool = False):
 )
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 def test_git_cli_add_success_mock(
-    run_git_command_mock: MagicMock, n_paths: int, all_: bool
+    run_git_command_mock: MagicMock, n_paths: int, all_: bool, tmp_path: Path
 ):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
     paths = [Path(f"test{i}.txt") for i in range(n_paths)]
 
     cli.add(git_dir, *paths, all_=all_)
@@ -199,10 +204,12 @@ def test_git_cli_add_success_mock(
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_add_no_arguments_error(run_git_command_mock: MagicMock):
+def test_git_cli_add_no_arguments_error(
+    run_git_command_mock: MagicMock, tmp_path: Path
+):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     with pytest.raises(ValueError, match="Either pathspec or all_ must be set"):
         cli.add(git_dir)
@@ -245,9 +252,9 @@ def test_git_cli_add_success(n_paths: int, all_: bool):
 @pytest.mark.parametrize("all_", [True, False])
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 def test_git_cli_commit_success_mock(
-    run_git_command_mock: MagicMock, all_: bool, allow_empty: bool
+    run_git_command_mock: MagicMock, all_: bool, allow_empty: bool, tmp_path: Path
 ):
-    git_dir = Path("GIT_DIR")
+    git_dir = tmp_path
     message = "COMMIT_MESSAGE"
 
     cli = GitCli()
@@ -321,10 +328,10 @@ def test_git_cli_reset_hard_already_reset():
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_reset_hard_mock(run_git_command_mock: MagicMock):
+def test_git_cli_reset_hard_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     cli.reset_hard(git_dir)
 
@@ -441,10 +448,10 @@ def test_git_cli_clone_repo_mock_error(run_git_command_mock: MagicMock):
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_add_remote_mock(run_git_command_mock: MagicMock):
+def test_git_cli_add_remote_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
     remote_name = "origin"
     remote_url = "https://git-repository.com/repo.git"
 
@@ -477,10 +484,10 @@ def test_git_cli_add_remote():
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_push_to_url_mock(run_git_command_mock: MagicMock):
+def test_git_cli_push_to_url_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
     remote_url = "https://git-repository.com/repo.git"
 
     cli.push_to_url(git_dir, remote_url, "BRANCH_NAME")
@@ -491,15 +498,15 @@ def test_git_cli_push_to_url_mock(run_git_command_mock: MagicMock):
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_push_to_url_mock_error(run_git_command_mock: MagicMock):
+def test_git_cli_push_to_url_mock_error(
+    run_git_command_mock: MagicMock, tmp_path: Path
+):
     cli = GitCli()
 
     run_git_command_mock.side_effect = GitCliError("Error")
 
     with pytest.raises(GitCliError):
-        cli.push_to_url(
-            Path("TEST_DIR"), "https://git-repository.com/repo.git", "BRANCH_NAME"
-        )
+        cli.push_to_url(tmp_path, "https://git-repository.com/repo.git", "BRANCH_NAME")
 
 
 def test_git_cli_push_to_url_local_repository():
@@ -539,10 +546,10 @@ def test_git_cli_push_to_url_local_repository():
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
+def test_git_cli_add_token_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     origin = "https://git-repository.com"
     token = "TOKEN"
@@ -564,10 +571,10 @@ def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_clear_token_mock(run_git_command_mock: MagicMock):
+def test_git_cli_clear_token_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     origin = "https://git-repository.com"
 
@@ -585,10 +592,10 @@ def test_git_cli_clear_token_mock(run_git_command_mock: MagicMock):
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_fetch_all_mock(run_git_command_mock: MagicMock):
+def test_git_cli_fetch_all_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     cli.fetch_all(git_dir)
 
@@ -629,11 +636,11 @@ def test_git_cli_does_branch_exist():
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 @pytest.mark.parametrize("does_exist", [True, False])
 def test_git_cli_does_branch_exist_mock(
-    run_git_command_mock: MagicMock, does_exist: bool
+    run_git_command_mock: MagicMock, does_exist: bool, tmp_path: Path
 ):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
     branch_name = "main"
 
     run_git_command_mock.return_value = (
@@ -691,11 +698,13 @@ def test_git_cli_does_remote_exist_mock(
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 @pytest.mark.parametrize("track", [True, False])
-def test_git_cli_checkout_branch_mock(run_git_command_mock: MagicMock, track: bool):
+def test_git_cli_checkout_branch_mock(
+    run_git_command_mock: MagicMock, track: bool, tmp_path: Path
+):
     branch_name = "BRANCH_NAME"
 
     cli = GitCli()
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
 
     cli.checkout_branch(git_dir, branch_name, track=track)
 
@@ -775,10 +784,10 @@ def test_git_cli_diffed_files_no_diff():
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_diffed_files_mock(run_git_command_mock: MagicMock):
+def test_git_cli_diffed_files_mock(run_git_command_mock: MagicMock, tmp_path: Path):
     cli = GitCli()
 
-    git_dir = Path("TEST_DIR")
+    git_dir = tmp_path
     commit = "COMMIT"
 
     run_git_command_mock.return_value = subprocess.CompletedProcess(
@@ -961,10 +970,11 @@ def test_git_platform_backend_clone_fork_and_branch(
     clone_fork_and_branch_mock: MagicMock,
     user_mock: MagicMock,
     backend: GitPlatformBackend,
+    tmp_path: Path,
 ):
     upstream_owner = "UPSTREAM-OWNER"
     repo_name = "REPO"
-    target_dir = Path("TARGET_DIR")
+    target_dir = tmp_path
     new_branch = "NEW_BRANCH"
     base_branch = "BASE_BRANCH"
 
@@ -1085,11 +1095,14 @@ def test_github_backend_fork_not_exists_repo_found(
 @mock.patch("conda_forge_tick.git_utils.GitCli.add_token")
 @mock.patch("conda_forge_tick.git_utils.GitCli.push_to_url")
 def test_github_backend_push_to_repository(
-    push_to_url_mock: MagicMock, add_token_mock: MagicMock, clear_token_mock: MagicMock
+    push_to_url_mock: MagicMock,
+    add_token_mock: MagicMock,
+    clear_token_mock: MagicMock,
+    tmp_path: Path,
 ):
     backend = GitHubBackend.from_token("THIS_IS_THE_TOKEN")
 
-    git_dir = Path("GIT_DIR")
+    git_dir = tmp_path
 
     backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
 
@@ -1390,9 +1403,7 @@ def test_github_backend_create_pull_request_validation_error(
     github_response_get_repo: dict,
     github_response_create_pull_validation_error: dict,
 ):
-    """
-    Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError.
-    """
+    """Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError."""
 
     def request_side_effect(method, _url, **_kwargs):
         response = requests.Response()
@@ -1649,17 +1660,17 @@ def test_dry_run_backend_get_remote_url_existing_fork():
     assert url == "https://github.com/conda-forge/pytest-feedstock.git"
 
 
-def test_dry_run_backend_push_to_repository(caplog):
+def test_dry_run_backend_push_to_repository(caplog, tmp_path: Path):
     caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
-    git_dir = Path("GIT_DIR")
+    git_dir = tmp_path
 
     backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
 
     assert (
-        "Dry Run: Pushing changes from GIT_DIR to OWNER/REPO on branch BRANCH_NAME"
+        f"Dry Run: Pushing changes from {git_dir} to OWNER/REPO on branch BRANCH_NAME"
         in caplog.text
     )
 
@@ -1786,3 +1797,60 @@ def test_trim_pr_json_keys_src():
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
     assert "r" not in pr_json
+
+
+@pytest.mark.skipif(
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
+)
+def test_git_utils_push_and_delete_file_via_gh_api():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    repo_name = "regro/cf-graph-countyfair"
+    gh = github_client()
+    repo = gh.get_repo(repo_name)
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(str(tmpdir)):
+        try:
+            with open(fname, "w") as f:
+                f.write('{"uid": "initial_uid"}')
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            _, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert json.loads(data)["uid"] == "initial_uid"
+
+            with open(fname, "w") as f:
+                f.write('{"uid": "new_uid"}')
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert json.loads(data)["uid"] == "new_uid"
+
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert sha == new_sha
+
+            delete_file_via_gh_api(fname, repo_name, f"testing - delete - {fname}")
+            _sleep()
+            new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert new_sha is None
+            assert data is None
+        finally:
+            message = f"remove files {fname} from testing"
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(fname)
+                    repo.delete_file(fname, message, contents.sha)
+                    break
+                except Exception:
+                    pass

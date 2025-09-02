@@ -58,7 +58,12 @@ def _munge_cos7_lines(cfg_lines):
 
 
 class Cos7Config(MiniMigrator):
+    allowed_schema_versions = {0, 1}
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+
         if any(
             SYSROOT_REGEX.search(line) for line in attrs["raw_meta_yaml"].splitlines()
         ):

@@ -1,30 +1,35 @@
 import copy
 import logging
 import os
-import random
 import re
+import secrets
 import time
 from collections import defaultdict
-from typing import Any, Collection, Literal, MutableSet, Optional, Sequence, Set
+from typing import Any, Collection, Literal, Optional, Sequence, Set
 
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
-from conda_forge_tick.migrators.core import GraphMigrator, Migrator, MiniMigrator
+from conda_forge_tick.migrators.core import (
+    GraphMigrator,
+    Migrator,
+    MiniMigrator,
+    get_outputs_lut,
+)
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     get_bot_run_url,
     get_keys_default,
     get_migrator_name,
-    pluck,
     yaml_safe_dump,
     yaml_safe_load,
 )
 
 from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
+RNG = secrets.SystemRandom()
 logger = logging.getLogger(__name__)
 
 
@@ -79,7 +84,7 @@ def _patch_dict(cfg, patches):
 
 
 def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
-    """Merge a migrator_yaml with the conda_build_config_yaml"""
+    """Merge a migrator_yaml with the conda_build_config_yaml."""
     migrator_keys = defaultdict(list)
     current_key = None
     regex = re.compile(r"\w")
@@ -113,11 +118,52 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
     return "\n".join(outbound_cbc)
 
 
+def _trim_edges_for_abi_rebuild(
+    total_graph: nx.DiGraph, migrator: Migrator, outputs_lut: dict[str, str]
+) -> nx.DiGraph:
+    migrator_payload = migrator.loaded_yaml.get("__migrator", {})
+    include_build = migrator_payload.get("include_build", False)
+
+    for node, node_attrs in total_graph.nodes.items():
+        # do not trim any edges for pinnings repo
+        if node == "conda-forge-pinning":
+            continue
+
+        with node_attrs["payload"] as attrs:
+            in_migration = not migrator.filter_not_in_migration(attrs)
+
+            requirements = attrs.get("requirements", {})
+            host = requirements.get("host", set())
+            build = requirements.get("build", set())
+            if include_build:
+                bh = host | build
+            else:
+                bh = host or build
+
+            # get host/build, run and test and launder them through outputs
+            # this should fix outputs related issues (eg gdal)
+            all_reqs = requirements.get("run", set())
+            if in_migration:
+                all_reqs = all_reqs | requirements.get("test", set())
+                all_reqs = all_reqs | bh
+            rq = get_deps_from_outputs_lut(
+                all_reqs,
+                outputs_lut,
+            )
+
+            for e in list(total_graph.in_edges(node)):
+                if e[0] not in rq:
+                    total_graph.remove_edge(*e)
+
+    return total_graph
+
+
 class MigrationYaml(GraphMigrator):
     """Migrator for bumping the build number."""
 
     migrator_version = 0
     rerender = True
+    allowed_schema_versions = [0, 1]
 
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
@@ -125,8 +171,10 @@ class MigrationYaml(GraphMigrator):
         self,
         yaml_contents: str,
         name: str,
-        graph: nx.DiGraph = None,
-        pr_limit: int = 50,
+        package_names: set[str] | None = None,
+        total_graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph | None = None,
+        pr_limit: int = 0,
         top_level: Set["PackageName"] | None = None,
         cycles: Optional[Collection["PackageName"]] = None,
         migration_number: Optional[int] = None,
@@ -137,8 +185,8 @@ class MigrationYaml(GraphMigrator):
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
         max_solver_attempts=3,
-        effective_graph: nx.DiGraph = None,
-        force_pr_after_solver_attempts=100,
+        effective_graph: nx.DiGraph | None = None,
+        force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
         **kwargs: Any,
@@ -148,6 +196,7 @@ class MigrationYaml(GraphMigrator):
 
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = {
+                "total_graph": total_graph,
                 "graph": graph,
                 "pr_limit": pr_limit,
                 "top_level": top_level,
@@ -164,21 +213,12 @@ class MigrationYaml(GraphMigrator):
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
                 "paused": paused,
+                "package_names": package_names,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
-        super().__init__(
-            graph=graph,
-            pr_limit=pr_limit,
-            obj_version=migration_number,
-            piggy_back_migrations=piggy_back_migrations,
-            check_solvable=check_solvable,
-            ignored_deps_per_node=ignored_deps_per_node,
-            effective_graph=effective_graph,
-        )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
-        self.name = name
         self.top_level = top_level or set()
         self.cycles = set(cycles or [])
         self.automerge = automerge
@@ -189,20 +229,138 @@ class MigrationYaml(GraphMigrator):
         self.longterm = longterm
         self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
         self.paused = paused
+        self.package_names = package_names or set()
 
-        self._reset_effective_graph()
+        # special init steps to be done on total_graph
+        # - compute package names to find in host to indicate needs migration
+        # - trim edges to only those for host|run|test deps - must be done before plucking
+        # - add pinning as child of all nodes in graph
+        if total_graph is not None:
+            # compute package names for migrating
+            migrator_payload = self.loaded_yaml.get("__migrator", {})
+            all_package_names = set(
+                sum(
+                    (
+                        list(node.get("payload", {}).get("outputs_names", set()))
+                        for node in total_graph.nodes.values()
+                    ),
+                    [],
+                ),
+            )
+            if "override_cbc_keys" in migrator_payload:
+                package_names = set(migrator_payload.get("override_cbc_keys"))
+            else:
+                package_names = (
+                    set(self.loaded_yaml)
+                    | {ly.replace("_", "-") for ly in self.loaded_yaml}
+                ) & all_package_names
+            self.package_names = package_names
+            self._init_kwargs["package_names"] = package_names
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """
-        Determine whether migrator needs to be filtered out.
+        # compute excluded pinned feedstocks no matter what
+        outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
-        Return value of True means to skip migrator, False means to go ahead.
-        Calls up the MRO until Migrator.filter, see docstring there (./core.py).
-        """
+        self.excluded_pinned_feedstocks = set()
+        for _node in self.package_names:
+            self.excluded_pinned_feedstocks.update(outputs_lut.get(_node, {_node}))
+
+        # finish special init steps
+        if total_graph is not None:
+            # needed so that we can filter nodes not in migration
+            self.graph = None
+            total_graph = copy.deepcopy(total_graph)
+            self.total_graph = total_graph
+            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
+            total_graph.add_edges_from(
+                [(n, "conda-forge-pinning") for n in total_graph.nodes]
+            )
+            delattr(self, "total_graph")
+            delattr(self, "graph")
+
+        super().__init__(
+            graph=graph,
+            pr_limit=pr_limit,
+            obj_version=migration_number,
+            piggy_back_migrations=piggy_back_migrations,
+            check_solvable=check_solvable,
+            ignored_deps_per_node=ignored_deps_per_node,
+            effective_graph=effective_graph,
+            total_graph=total_graph,
+            name=name,
+        )
+
+        if total_graph is not None:
+            # recompute top-level nodes and cycles after cutting to graph of all rebuilds
+            # these computations have to go after the call to super which turns the
+            # total graph into the graph of all possible rebuilds (stored in self.graph)
+            migrator_payload = self.loaded_yaml.get("__migrator", {})
+            excluded_feedstocks = set(migrator_payload.get("exclude", []))
+            feedstock_names = {
+                p for p in self.excluded_pinned_feedstocks if p in total_graph.nodes
+            } - excluded_feedstocks
+
+            top_level = {
+                node
+                for node in {
+                    total_graph.successors(feedstock_name)
+                    for feedstock_name in feedstock_names
+                }
+                if (node in self.graph)
+                and len(list(self.graph.predecessors(node))) == 0
+            }
+
+            cycles = set()
+            for cyc in nx.simple_cycles(self.graph):
+                cycles |= set(cyc)
+
+            self.top_level = self.top_level | top_level
+            self._init_kwargs["top_level"] = top_level
+            self.cycles = self.cycles | cycles
+            self._init_kwargs["cycles"] = cycles
+
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
+
+        node = attrs["feedstock_name"]
+
+        if node == "conda-forge-pinning":
+            # conda-forge-pinning is always included in migration
+            return False
+
         migrator_payload = self.loaded_yaml.get("__migrator", {})
-        platform_allowlist = migrator_payload.get("platform_allowlist", [])
-        wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
+        include_noarch = migrator_payload.get("include_noarch", False)
+        include_build = migrator_payload.get("include_build", False)
+        excluded_feedstocks = set(migrator_payload.get("exclude", []))
+        exclude_pinned_pkgs = migrator_payload.get("exclude_pinned_pkgs", True)
 
+        # Generally, the packages themselves should be excluded from the migration;
+        # an example for exceptions are migrations for new python versions
+        # where numpy needs to be rebuilt despite being pinned.
+        if exclude_pinned_pkgs:
+            excluded_feedstocks.update(self.excluded_pinned_feedstocks)
+
+        requirements = attrs.get("requirements", {})
+        host = requirements.get("host", set())
+        build = requirements.get("build", set())
+        if include_build:
+            bh = host | build
+        else:
+            bh = host or build
+        only_python = "python" in self.package_names
+        inclusion_criteria = bh & set(self.package_names) and (
+            include_noarch or not all_noarch(attrs, only_python=only_python)
+        )
+
+        if not inclusion_criteria:
+            logger.debug(
+                "filter %s: pin %s not in host/build %s",
+                node,
+                self.package_names,
+                bh,
+            )
+
+        platform_allowlist = migrator_payload.get("platform_allowlist", [])
         platform_filtered = False
         if platform_allowlist:
             # migrator.platform_allowlist allows both styles: "osx-64" & "osx_64";
@@ -213,6 +371,30 @@ class MigrationYaml(GraphMigrator):
             # attrs.platforms and platform_allowlist is empty
             intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
             platform_filtered = not bool(intersection)
+
+            if platform_filtered:
+                logger.debug(
+                    "filter %s: platform(s) %s not in %s",
+                    node,
+                    attrs.get("platforms", {}),
+                    platform_allowlist,
+                )
+
+        if node in excluded_feedstocks:
+            logger.debug(
+                "filter %s: excluded feedstock",
+                node,
+            )
+
+        return (
+            platform_filtered
+            or (not inclusion_criteria)
+            or (node in excluded_feedstocks)
+        )
+
+    def filter_node_migrated(self, attrs, not_bad_str_start=""):
+        migrator_payload = self.loaded_yaml.get("__migrator", {})
+        wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
 
         need_to_wait = False
         if wait_for_migrators:
@@ -227,20 +409,14 @@ class MigrationYaml(GraphMigrator):
                     need_to_wait = True
             if set(wait_for_migrators) - found_migrators:
                 need_to_wait = True
+
         logger.debug(
             "filter %s: need to wait for %s",
             attrs.get("name", ""),
             wait_for_migrators,
         )
 
-        return (
-            platform_filtered
-            or need_to_wait
-            or super().filter(
-                attrs=attrs,
-                not_bad_str_start=not_bad_str_start,
-            )
-        )
+        return need_to_wait or super().filter_node_migrated(attrs, not_bad_str_start)
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -387,53 +563,37 @@ class MigrationYaml(GraphMigrator):
         n["name"] = self.name
         return n
 
-    def order(
-        self,
-        graph: nx.DiGraph,
-        total_graph: nx.DiGraph,
-    ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
 
-        if hasattr(self, "name"):
-            assert isinstance(self.name, str)
-            migrator_name = self.name.lower().replace(" ", "")
+def _compute_pin_impact(
+    total_graph: nx.DiGraph, package_names: tuple[str], outputs_lut: dict[str, str]
+) -> int:
+    # Generally, the packages themselves should be excluded from the migration;
+    # an example for exceptions are migrations for new python versions
+    # where numpy needs to be rebuilt despite being pinned.
+    excluded_feedstocks = set()
+    for node in package_names:
+        excluded_feedstocks.update(outputs_lut.get(node, {node}))
+
+    included_nodes = 0
+
+    for node, node_attrs in total_graph.nodes.items():
+        # always keep pinning
+        if node == "conda-forge-pinning":
+            included_nodes += 1
         else:
-            migrator_name = self.__class__.__name__.lower()
-
-        def _not_has_error(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pr_info",
-                {},
-            ).get("pre_pr_migrator_status", {}) and (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempts",
-                    {},
+            with node_attrs["payload"] as attrs:
+                requirements = attrs.get("requirements", {})
+                host = requirements.get("host", set())
+                build = requirements.get("build", set())
+                bh = host or build
+                only_python = "python" in package_names
+                inclusion_criteria = bh & set(package_names) and (
+                    not all_noarch(attrs, only_python=only_python)
                 )
-                .get(
-                    migrator_name,
-                    3,
-                )
-                >= self.max_solver_attempts
-            ):
-                return 0
-            else:
-                return 1
+                if inclusion_criteria and node not in excluded_feedstocks:
+                    included_nodes += 1
 
-        return sorted(
-            graph,
-            key=lambda x: (
-                _not_has_error(x),
-                (
-                    random.uniform(0, 1)
-                    if not _not_has_error(x)
-                    else len(nx.descendants(total_graph, x))
-                ),
-                x,
-            ),
-            reverse=True,
-        )
+    return included_nodes
 
 
 class MigrationYamlCreator(Migrator):
@@ -446,15 +606,16 @@ class MigrationYamlCreator(Migrator):
     # TODO: make yaml_contents an arg?
     def __init__(
         self,
+        *,
         package_name: str,
         new_pin_version: str,
         current_pin: str,
         pin_spec: str,
         feedstock_name: str,
-        graph: nx.DiGraph,
+        total_graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph | None = None,
         pin_impact: Optional[int] = None,
-        full_graph: Optional[nx.DiGraph] = None,
-        pr_limit: int = 1,
+        pr_limit: int = 0,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,
         pinnings: list[str] | None = None,
@@ -464,36 +625,34 @@ class MigrationYamlCreator(Migrator):
             pinnings = [package_name]
 
         if pin_impact is None:
-            if full_graph is not None:
-                pin_impact = len(create_rebuild_graph(full_graph, tuple(pinnings)))
-                full_graph = None
+            if total_graph is not None:
+                outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
+                pin_impact = _compute_pin_impact(
+                    total_graph, tuple(pinnings), outputs_lut
+                )
             else:
                 pin_impact = -1
 
         if not hasattr(self, "_init_args"):
-            self._init_args = [
-                package_name,
-                new_pin_version,
-                current_pin,
-                pin_spec,
-                feedstock_name,
-                graph,
-            ]
+            self._init_args = []
 
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = {
+                "package_name": package_name,
+                "new_pin_version": new_pin_version,
+                "current_pin": current_pin,
+                "pin_spec": pin_spec,
+                "feedstock_name": feedstock_name,
+                "graph": graph,
                 "pr_limit": pr_limit,
                 "bump_number": bump_number,
                 "pin_impact": pin_impact,
-                "full_graph": full_graph,
                 "effective_graph": effective_graph,
                 "pinnings": pinnings,
+                "total_graph": total_graph,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
-        super().__init__(
-            pr_limit=pr_limit, graph=graph, effective_graph=effective_graph
-        )
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
@@ -503,18 +662,24 @@ class MigrationYamlCreator(Migrator):
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
-        self.pin_impact = pin_impact
+        self.pin_impact = pin_impact or -1
         self.pinnings = pinnings
 
-        self._reset_effective_graph()
+        super().__init__(
+            pr_limit=pr_limit,
+            graph=graph,
+            effective_graph=effective_graph,
+            total_graph=total_graph,
+        )
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
         if (
-            not super().filter(attrs, not_bad_str_start)
-            and attrs.get("name", "") == "conda-forge-pinning"
+            attrs.get("name", "") == "conda-forge-pinning"
+            or attrs.get("feedstock_name", "") == "conda-forge-pinning"
         ):
-            return False
-        return True
+            return super().filter_not_in_migration(attrs, not_bad_str_start)
+        else:
+            return True
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -569,9 +734,9 @@ class MigrationYamlCreator(Migrator):
                 len_graph=(
                     self.pin_impact if self.pin_impact >= 0 else "an unknown number of"
                 ),
-                link=f"This PR was generated by {get_bot_run_url()} - please use this URL for debugging.",
+                link=f"\n\n<sub>This PR was generated by {get_bot_run_url()} - please use this URL for debugging.</sub>",
             )
-        )  # noqa
+        )
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
@@ -598,10 +763,10 @@ class MigrationYamlCreator(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name."""
         return sorted(
-            graph,
-            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            list(graph.nodes),
+            key=lambda x: (len(nx.descendants(total_graph, x)), RNG.random()),
             reverse=True,
         )
 
@@ -657,71 +822,3 @@ def all_noarch(attrs, only_python=False):
             all_noarch = all_noarch and _all_noarch
 
     return all_noarch
-
-
-def create_rebuild_graph(
-    gx: nx.DiGraph,
-    package_names: Sequence[str],
-    excluded_feedstocks: MutableSet[str] | None = None,
-    exclude_pinned_pkgs: bool = True,
-    include_noarch: bool = False,
-    include_build: bool = False,
-) -> nx.DiGraph:
-    total_graph = copy.deepcopy(gx)
-    excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
-    # Generally, the packages themselves should be excluded from the migration;
-    # an example for exceptions are migrations for new python versions
-    # where numpy needs to be rebuilt despite being pinned.
-    if exclude_pinned_pkgs:
-        for node in package_names:
-            excluded_feedstocks |= gx.graph["outputs_lut"].get(node, {node})
-
-    included_nodes = set()
-
-    for node, node_attrs in gx.nodes.items():
-        # always keep pinning
-        if node == "conda-forge-pinning":
-            continue
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        requirements = attrs.get("requirements", {})
-        host = requirements.get("host", set())
-        build = requirements.get("build", set())
-        if include_build:
-            bh = host | build
-        else:
-            bh = host or build
-        only_python = "python" in package_names
-        inclusion_criteria = bh & set(package_names) and (
-            include_noarch or not all_noarch(attrs, only_python=only_python)
-        )
-        # get host/build, run and test and launder them through outputs
-        # this should fix outputs related issues (eg gdal)
-        all_reqs = requirements.get("run", set())
-        if inclusion_criteria:
-            all_reqs = all_reqs | requirements.get("test", set())
-            all_reqs = all_reqs | bh
-        rq = get_deps_from_outputs_lut(
-            all_reqs,
-            gx.graph["outputs_lut"],
-        )
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if inclusion_criteria:
-            included_nodes.add(node)
-
-    # all nodes have the conda-forge-pinning as child package
-    total_graph.add_edges_from([(n, "conda-forge-pinning") for n in total_graph.nodes])
-    included_nodes.add("conda-forge-pinning")  # it does not get added above
-
-    # finally remove all nodes that should not be built from the graph
-    for node in list(total_graph.nodes):
-        # if there isn't a strict dependency or if the feedstock is excluded,
-        # remove it while retaining the edges to its parents and children
-        if (node not in included_nodes) or (node in excluded_feedstocks):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-    return total_graph

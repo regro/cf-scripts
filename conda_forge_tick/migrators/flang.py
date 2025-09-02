@@ -1,7 +1,7 @@
 import os
 import re
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.libboost import _replacer, _slice_into_output_sections
 
 # compiler("m2w64_fortran")
@@ -66,7 +66,7 @@ class FlangMigrator(MiniMigrator):
         lines = attrs["raw_meta_yaml"].splitlines()
         has_m2f = any(pat_m2f.search(line) or pat_fws.search(line) for line in lines)
         # filter() returns True if we _don't_ want to migrate
-        return (not (has_m2f)) or _skip_due_to_schema(
+        return (not (has_m2f)) or skip_migrator_due_to_schema(
             attrs, self.allowed_schema_versions
         )
 

@@ -1,10 +1,12 @@
 import os
+import secrets
 
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.migrators.core import Migrator
-from conda_forge_tick.migrators_types import AttrsTypedDict
+from conda_forge_tick.migrators.core import Migrator, get_outputs_lut
+
+RNG = secrets.SystemRandom()
 
 BROKEN_PACKAGES = """\
 linux-ppc64le/adios2-2.7.1-mpi_mpich_py36ha1d8cba_0.tar.bz2
@@ -295,8 +297,25 @@ linux-ppc64le/zfpy-0.5.5-py39h6474468_6.tar.bz2
 """.splitlines()
 
 
-def split_pkg(pkg):
-    """nice little code snippet from isuru and CJ"""
+def split_pkg(pkg: str):
+    """Split a package filename into its components.
+
+    Parameters
+    ----------
+    pkg : str
+        The package filename.
+
+    Returns
+    -------
+    tuple[str, str, str, str]
+        The platform, package name, version, and build string.
+
+
+    Raises
+    ------
+    RuntimeError
+        If the package filename does not end with ".tar.bz2".
+    """
     if not pkg.endswith(".tar.bz2"):
         raise RuntimeError("Can only process packages that end in .tar.bz2")
     pkg = pkg[:-8]
@@ -324,59 +343,52 @@ class RebuildBroken(Migrator):
     def __init__(
         self,
         *,
-        outputs_lut,
         pr_limit: int = 0,
-        graph: nx.DiGraph = None,
-        effective_graph: nx.DiGraph = None,
+        total_graph: nx.DiGraph | None = None,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
 
         if not hasattr(self, "_init_kwargs"):
             self._init_kwargs = {
-                "outputs_lut": outputs_lut,
                 "pr_limit": pr_limit,
                 "graph": graph,
                 "effective_graph": effective_graph,
+                "total_graph": total_graph,
             }
 
-        super().__init__(
-            1, check_solvable=False, graph=graph, effective_graph=effective_graph
-        )
         self.name = "rebuild-broken"
 
         outputs_to_migrate = {split_pkg(pkg)[1] for pkg in BROKEN_PACKAGES}
         self.feedstocks_to_migrate = set()
+        outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
         for output in outputs_to_migrate:
             for fs in outputs_lut.get(output, {output}):
                 self.feedstocks_to_migrate |= {fs}
 
-        self._reset_effective_graph()
+        super().__init__(
+            pr_limit=pr_limit,
+            check_solvable=False,
+            graph=graph,
+            effective_graph=effective_graph,
+            total_graph=total_graph,
+        )
 
     def order(
         self,
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ):
-        """Order to run migrations in
+        return sorted(list(graph.nodes), key=lambda x: RNG.random())
 
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-        Returns
-        -------
-        graph : nx.DiGraph
-            The ordered graph.
-        """
-        return graph
-
-    def filter(self, attrs: AttrsTypedDict, not_bad_str_start: str = "") -> bool:
-        return (
-            super().filter(attrs)
-            or attrs["feedstock_name"] not in self.feedstocks_to_migrate
-        )
+        not_broken = attrs["feedstock_name"] not in self.feedstocks_to_migrate
+        return not_broken
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))

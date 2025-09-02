@@ -2,6 +2,7 @@ import os
 import tempfile
 import textwrap
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -20,6 +21,9 @@ NEXT_GLOBAL_PYTHON_MIN = (
     + "."
     + str(int(GLOBAL_PYTHON_MIN.split(".")[1]) + 1)
 )
+
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 
 
 @pytest.mark.parametrize("replace_host_with_build", [True, False])
@@ -148,6 +152,46 @@ NEXT_GLOBAL_PYTHON_MIN = (
         ),
         (
             textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python 3.6.*  # this is cool
+                    - numpy
+                  run:
+                    - python <=3.12
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{ python_min }},<3.13a0
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
                 f"""\
                 build:
                   noarch: python
@@ -157,7 +201,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - python >={NEXT_GLOBAL_PYTHON_MIN}  # this is cool
                     - numpy
                   run:
-                    - python
+                    - python >={NEXT_GLOBAL_PYTHON_MIN}
                     - numpy
 
                 test:
@@ -198,7 +242,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - python >={GLOBAL_PYTHON_MIN}  # this is cool
                     - numpy
                   run:
-                    - python
+                    - python >={GLOBAL_PYTHON_MIN}
                     - numpy
 
                 test:
@@ -218,6 +262,87 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - numpy
                   run:
                     - python >={{ python_min }}
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={NEXT_GLOBAL_PYTHON_MIN}  # this is cool
+                    - numpy
+                  run:
+                    - python >={NEXT_GLOBAL_PYTHON_MIN},<3.13
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                f"""\
+                {{% set python_min = '{NEXT_GLOBAL_PYTHON_MIN}' %}}
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{{{ python_min }}}}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{{{ python_min }}}},<3.13
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{{{ python_min }}}}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={GLOBAL_PYTHON_MIN}  # this is cool
+                    - numpy
+                  run:
+                    - python >={GLOBAL_PYTHON_MIN},<3.12
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{ python_min }},<3.12
                     - numpy
 
                 test:
@@ -430,8 +555,8 @@ def test_apply_noarch_python_min(
             assert f.read() == expected_meta_yaml
 
 
-@pytest.mark.parametrize("name", ["seaborn", "extra_new_line"])
-def test_noarch_python_min_migrator(tmpdir, name):
+@pytest.mark.parametrize("name", ["seaborn", "extra_new_line", "zospy"])
+def test_noarch_python_min_migrator(tmp_path, name):
     with open(
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
     ) as f:
@@ -440,7 +565,7 @@ def test_noarch_python_min_migrator(tmpdir, name):
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_after_meta.yaml")
     ) as f:
         recipe_after = f.read()
-    m = NoarchPythonMinMigrator()
+    m = NoarchPythonMinMigrator(total_graph=TOTAL_GRAPH)
     run_test_migration(
         m=m,
         inp=recipe_before,
@@ -452,5 +577,5 @@ def test_noarch_python_min_migrator(tmpdir, name):
             "migrator_version": m.migrator_version,
             "name": "noarch_python_min",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

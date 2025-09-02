@@ -1,4 +1,4 @@
-"""Utilities for managing github repos"""
+"""Utilities for managing github repos."""
 
 import base64
 import copy
@@ -18,6 +18,7 @@ from typing import Dict, Iterator, Optional, Union
 
 import backoff
 import github
+import github.Repository
 import github3
 import github3.exceptions
 import github3.pulls
@@ -28,7 +29,10 @@ from requests.exceptions import RequestException, Timeout
 from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    _test_and_raise_besides_file_not_exists,
+)
 
 from .executors import lock_git_operation
 from .models.pr_json import (
@@ -80,14 +84,27 @@ PR_KEYS_TO_KEEP = {
 }
 
 
-def get_bot_token():
+def get_bot_token() -> str:
+    """Get the bot token from the environment.
+
+    Returns
+    -------
+    str
+        The bot token.
+    """
     with sensitive_env() as env:
         return env["BOT_TOKEN"]
 
 
 def github3_client() -> github3.GitHub:
-    """
+    """Get the github3 client.
+
     This will be removed in the future, use the GitHubBackend class instead.
+
+    Returns
+    -------
+    github3.GitHub
+        The github3 client.
     """
     if not hasattr(GITHUB3_CLIENT, "client"):
         GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
@@ -95,8 +112,14 @@ def github3_client() -> github3.GitHub:
 
 
 def github_client() -> github.Github:
-    """
+    """Get the PyGithub client.
+
     This will be removed in the future, use the GitHubBackend class instead.
+
+    Returns
+    -------
+    github.Github
+        The PyGithub client.
     """
     if not hasattr(GITHUB_CLIENT, "client"):
         GITHUB_CLIENT.client = github.Github(
@@ -117,8 +140,7 @@ class Bound(float, enum.Enum):
 
 
 class GitConnectionMode(enum.StrEnum):
-    """
-    We don't need anything else than HTTPS for now, but this would be the place to
+    """We don't need anything else than HTTPS for now, but this would be the place to
     add more connection modes (e.g. SSH).
     """
 
@@ -126,40 +148,31 @@ class GitConnectionMode(enum.StrEnum):
 
 
 class GitCliError(Exception):
-    """
-    A generic error that occurred while running a git CLI command.
-    """
+    """A generic error that occurred while running a git CLI command."""
 
     pass
 
 
 class GitPlatformError(Exception):
-    """
-    A generic error that occurred while interacting with a git platform.
-    """
+    """A generic error that occurred while interacting with a git platform."""
 
     pass
 
 
 class DuplicatePullRequestError(GitPlatformError):
-    """
-    Raised if a pull request already exists.
-    """
+    """Raised if a pull request already exists."""
 
     pass
 
 
 class RepositoryNotFoundError(Exception):
-    """
-    Raised when a repository is not found.
-    """
+    """Raised when a repository is not found."""
 
     pass
 
 
 class GitCli:
-    """
-    A simple wrapper around the git command line interface.
+    """A simple wrapper around the git command line interface.
 
     Git operations are locked (globally) to prevent operations from interfering with each other.
     If this does impact performance too much, we can consider a per-repository locking strategy.
@@ -173,23 +186,44 @@ class GitCli:
         check_error: bool = True,
         suppress_all_output: bool = False,
     ) -> subprocess.CompletedProcess:
-        """
-        Run a git command. stdout is by default only printed if the command fails. stderr is always printed by default.
+        """Run a git command.
+
+        stdout is by default only printed if the command fails. stderr is always printed by default.
         stdout is, by default, always available in the returned CompletedProcess, stderr is never.
 
-        :param cmd: The command to run, as a list of strings.
-        :param working_directory: The directory to run the command in. If None, the command will be run in the current
-        working directory.
-        :param check_error: If True, raise a GitCliError if the git command fails.
-        :param suppress_all_output: If True, suppress all output (stdout and stderr). Also, the returned
-        CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
-        :return: The result of the git command.
-        :raises GitCliError: If the git command fails and check_error is True.
-        :raises FileNotFoundError: If the working directory does not exist.
+        Parameters
+        ----------
+        cmd
+            The command to run, as a list of strings.
+        working_directory
+            The directory to run the command in. If None, the command will be run in the current
+            working directory.
+        check_error
+            If True, raise a GitCliError if the git command fails.
+        suppress_all_output
+            If True, suppress all output (stdout and stderr). Also, the returned
+            CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
+
+        Returns
+        -------
+        subprocess.CompletedProcess
+            The result of the git command.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails and check_error is True.
+        FileNotFoundError
+            If the working directory does not exist.
         """
+        if working_directory is not None and not working_directory.exists():
+            raise FileNotFoundError(
+                f"Working directory {working_directory} does not exist."
+            )
         git_command = ["git"] + cmd
 
-        logger.debug(f"Running git command: {git_command}")
+        if not suppress_all_output:
+            logger.debug("Running git command: %s", git_command)
 
         # stdout and stderr are piped to devnull if suppress_all_output is True
         stdout_args = (
@@ -210,7 +244,9 @@ class GitCli:
             )
         except subprocess.CalledProcessError as e:
             logger.info(
-                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout or '<None>'}\nend of stdout"
+                "Command '%s' failed.\nstdout:\n%s\nend of stdout",
+                " ".join(map(str, git_command)),
+                e.stdout or "<None>",
             )
             raise GitCliError(f"Error running git command: {repr(e)}")
 
@@ -218,63 +254,114 @@ class GitCli:
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
-        """
-        Add files to the git index with `git add`.
-        :param git_dir: The directory of the git repository.
-        :param pathspec: The files to add.
-        :param all_: If True, not only add the files in pathspec, but also where the index already has an entry.
-        If all_ is set with empty pathspec, all files in the entire working tree are updated.
-        :raises ValueError: If pathspec is empty and all_ is False.
-        :raises GitCliError: If the git command fails.
+        """Add files to the git index with `git add`.
+
+        Parameters
+        ----------
+        git_dir : str
+            The directory of the git repository.
+        pathspec : str
+            The files to add.
+        all_ : bool, optional
+            If True, not only add the files in pathspec, but also where the index
+            already has an entry. If all_ is set with empty pathspec, all files
+            in the entire working tree are updated.
+
+        Raises
+        ------
+        ValueError
+            If pathspec is empty and all_ is False.
+        GitCliError
+            If the git command fails.
         """
         if not pathspec and not all_:
             raise ValueError("Either pathspec or all_ must be set.")
 
         all_arg = ["--all"] if all_ else []
 
-        self._run_git_command(["add", *all_arg, *pathspec], git_dir)
+        try:
+            self._run_git_command(["add", *all_arg, *pathspec], git_dir)
+        except GitCliError as e:
+            raise GitCliError("Adding files to git failed.") from e
 
     @lock_git_operation()
     def commit(
         self, git_dir: Path, message: str, all_: bool = False, allow_empty: bool = False
     ):
-        """
-        Commit changes to the git repository with `git commit`.
-        :param git_dir: The directory of the git repository.
-        :param message: The commit message.
-        :param allow_empty: If True, allow an empty commit.
-        :param all_: Automatically stage files that have been modified and deleted, but new files are not affected.
-        :raises GitCliError: If the git command fails.
+        """Commit changes to the git repository with `git commit`.
+
+        Parameters
+        ----------
+        git_dir : Path
+            The directory of the git repository.
+        message : str
+            The commit message.
+        allow_empty : bool, optional
+            If True, allow an empty commit.
+        all_ : bool, optional
+            Automatically stage files that have been modified and deleted, but new
+            files are not affected.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
         """
         all_arg = ["-a"] if all_ else []
         allow_empty_arg = ["--allow-empty"] if allow_empty else []
 
-        self._run_git_command(
-            ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
-        )
+        try:
+            self._run_git_command(
+                ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
+            )
+        except GitCliError as e:
+            raise GitCliError("Could not commit.") from e
 
     @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
+        """Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
+
+        Parameters
+        ----------
+        git_dir : Path
+            The directory to reset.
+        to_treeish : str, optional
+            The treeish to reset to. Defaults to "HEAD".
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        FileNotFoundError
+            If the git_dir does not exist.
         """
-        Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
-        :param git_dir: The directory to reset.
-        :param to_treeish: The treeish to reset to. Defaults to "HEAD".
-        :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If the git_dir does not exist.
-        """
-        self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
+        if not git_dir.exists():
+            raise FileNotFoundError(f"git_dir {git_dir} does not exist.")
+
+        try:
+            self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
+        except GitCliError as e:
+            raise GitCliError("git reset failed") from e
 
     @lock_git_operation()
     def clone_repo(self, origin_url: str, target_dir: Path):
-        """
-        Clone a Git repository.
-        If target_dir exists and is non-empty, this method will fail with GitCliError.
-        If target_dir exists and is empty, it will work.
-        If target_dir does not exist, it will work.
-        :param target_dir: The directory to clone the repository into.
-        :param origin_url: The URL of the repository to clone.
-        :raises GitCliError: If the git command fails (e.g. because origin_url does not point to valid remote or
-        target_dir is not empty).
+        """Clone a Git repository.
+
+        Parameters
+        ----------
+        target_dir : Path
+            The directory to clone the repository into.
+            If the directory exists and is non-empty, this method will fail.
+            If the directory exists and is empty, it will work.
+            If the directory does not exist, it will work.
+        origin_url : str
+            The URL of the repository to clone.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails (e.g. because origin_url does not point to valid
+            remote or target_dir is not empty).
         """
         try:
             self._run_git_command(["clone", "--quiet", origin_url, target_dir])
@@ -285,41 +372,73 @@ class GitCli:
 
     @lock_git_operation()
     def push_to_url(self, git_dir: Path, remote_url: str, branch: str):
-        """
-        Push changes to a remote URL.
-        :param git_dir: The directory of the git repository.
-        :param remote_url: The URL of the remote.
-        :param branch: The branch to push to.
-        :raises GitCliError: If the git command fails.
-        """
+        """Push changes to a remote URL.
 
-        self._run_git_command(["push", remote_url, branch], git_dir)
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+        remote_url
+            The URL of the remote.
+        branch
+            The branch to push to.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        """
+        try:
+            self._run_git_command(["push", remote_url, branch], git_dir)
+        except GitCliError as e:
+            raise GitCliError("git push failed") from e
 
     @lock_git_operation()
     def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
+        """Add a remote to a git repository.
+
+        Parameters
+        ----------
+        remote_name
+            The name of the remote.
+        remote_url
+            The URL of the remote.
+        git_dir
+            The directory of the git repository.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails (e.g., the remote already exists).
+        FileNotFoundError
+            If git_dir does not exist.
         """
-        Add a remote to a git repository.
-        :param remote_name: The name of the remote.
-        :param remote_url: The URL of the remote.
-        :param git_dir: The directory of the git repository.
-        :raises GitCliError: If the git command fails (e.g., the remote already exists).
-        :raises FileNotFoundError: If git_dir does not exist
-        """
-        self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory does not exist: {git_dir}")
+        try:
+            self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
+        except GitCliError as e:
+            raise GitCliError(f"error adding remote {remote_name}") from e
 
     @lock_git_operation()
     def add_token(self, git_dir: Path, origin: str, token: str):
-        """
-        Configures git with a local configuration to use the given token for the given origin.
+        """Configure git with a local configuration to use the given token for the given origin.
+
         Internally, this sets the `http.<origin>/.extraheader` git configuration key to
         `AUTHORIZATION: basic <base64-encoded HTTP basic token>`.
         This is similar to how the GitHub Checkout action does it:
-        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT
+        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT.
 
         The CLI outputs of this command are suppressed to avoid leaking the token.
-        :param git_dir: The directory of the git repository.
-        :param origin: The origin to use the token for. Origin is SCHEME://HOST[:PORT] (without trailing slash).
-        :param token: The token to use.
+
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+        origin
+            The origin to use the token for. Origin is SCHEME://HOST[:PORT] (without trailing slash).
+        token
+            The token to use.
         """
         http_basic_token = base64.b64encode(f"x-access-token:{token}".encode()).decode()
 
@@ -336,10 +455,14 @@ class GitCli:
 
     @lock_git_operation()
     def clear_token(self, git_dir, origin):
-        """
-        Clear the token for the given origin.
-        :param git_dir: The directory of the git repository.
-        :param origin: The origin to clear the token for.
+        """Clear the token for the given origin.
+
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+        origin
+            The origin to clear the token for.
         """
         self._run_git_command(
             [
@@ -353,41 +476,76 @@ class GitCli:
 
     @lock_git_operation()
     def fetch_all(self, git_dir: Path):
+        """Fetch all changes from all remotes.
+
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        FileNotFoundError
+            If git_dir does not exist.
         """
-        Fetch all changes from all remotes.
-        :param git_dir: The directory of the git repository.
-        :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
-        """
-        self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
+        try:
+            self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
+        except GitCliError as e:
+            raise GitCliError(f"error running git fetch --all in {git_dir}") from e
 
     def does_branch_exist(self, git_dir: Path, branch_name: str):
-        """
-        Check if a branch exists in a git repository.
-        Note: If git_dir is not a git repository, this method will return False.
+        """Check if a branch exists in a git repository.
+
+        If git_dir is not a git repository, this method will return False.
         Note: This method is intentionally not locked with lock_git_operation, as it only reads the git repository and
         does not modify it.
-        :param branch_name: The name of the branch.
-        :param git_dir: The directory of the git repository.
-        :return: True if the branch exists, False otherwise.
-        :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
+
+        Parameters
+        ----------
+        branch_name
+            The name of the branch.
+        git_dir
+            The directory of the git repository.
+
+        Returns
+        -------
+        bool
+            True if the branch exists, False otherwise.
+
+        Raises
+        ------
+        FileNotFoundError
+            If git_dir does not exist.
         """
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
+
         ret = self._run_git_command(
             ["show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
             git_dir,
             check_error=False,
         )
-
         return ret.returncode == 0
 
     def does_remote_exist(self, remote_url: str) -> bool:
-        """
-        Check if a remote exists.
+        """Check if a remote exists.
+
         Note: This method is intentionally not locked with lock_git_operation, as it only reads a remote and does not
         modify a git repository.
-        :param remote_url: The URL of the remote.
-        :return: True if the remote exists, False otherwise.
+
+        Parameters
+        ----------
+        remote_url
+            The URL of the remote.
+
+        Returns
+        -------
+        bool
+            True if the remote exists, False otherwise.
         """
         ret = self._run_git_command(["ls-remote", remote_url], check_error=False)
 
@@ -400,56 +558,111 @@ class GitCli:
         branch: str,
         track: bool = False,
     ):
+        """Checkout a branch in a git repository.
+
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+        branch
+            The branch to check out.
+        track
+            If True, set the branch to track the remote branch with the same name (sets the --track flag).
+            A new local branch will be created with the name inferred from branch.
+            For example, if branch is "upstream/main", the new branch will be "main".
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        FileNotFoundError
+            If git_dir does not exist.
         """
-        Checkout a branch in a git repository.
-        :param git_dir: The directory of the git repository.
-        :param branch: The branch to check out.
-        :param track: If True, set the branch to track the remote branch with the same name (sets the --track flag).
-        A new local branch will be created with the name inferred from branch.
-        For example, if branch is "upstream/main", the new branch will be "main".
-        :raises GitCliError: If the git command fails.
-        :raises FileNotFoundError: If git_dir does not exist
-        """
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
         track_flag = ["--track"] if track else []
-        self._run_git_command(
-            ["checkout", "--quiet"] + track_flag + [branch],
-            git_dir,
-        )
+
+        try:
+            self._run_git_command(
+                ["checkout", "--quiet"] + track_flag + [branch],
+                git_dir,
+            )
+        except GitCliError as e:
+            raise GitCliError(
+                f"error running git checkout {' '.join(track_flag)} in {git_dir}"
+            ) from e
 
     @lock_git_operation()
     def checkout_new_branch(
         self, git_dir: Path, branch: str, start_point: str | None = None
     ):
-        """
-        Checkout a new branch in a git repository.
-        :param git_dir: The directory of the git repository.
-        :param branch: The name of the new branch.
-        :param start_point: The name of the branch to branch from, or None to branch from the current branch.
-        :raises FileNotFoundError: If git_dir does not exist
-        """
-        start_point_option = [start_point] if start_point else []
+        """Checkout a new branch in a git repository.
 
-        self._run_git_command(
-            ["checkout", "--quiet", "-b", branch] + start_point_option, git_dir
-        )
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository.
+        branch
+            The name of the new branch.
+        start_point
+            The name of the branch to branch from, or None to branch from the current branch.
+
+        Raises
+        ------
+        FileNotFoundError
+            If git_dir does not exist.
+        GitCliError
+            If the git command fails.
+        """
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
+        start_point_option = [start_point] if start_point else []
+        cmd = ["checkout", "--quiet", "-b", branch] + start_point_option
+
+        try:
+            self._run_git_command(cmd, git_dir)
+        except GitCliError as e:
+            raise GitCliError(f"error running git {' '.join(cmd)} in {git_dir}") from e
 
     def diffed_files(
         self, git_dir: Path, commit_a: str, commit_b: str = "HEAD"
     ) -> Iterator[Path]:
-        """
-        Get the files that are different between two commits.
-        :param git_dir: The directory of the git repository. This should be the root of the repository.
-            If it is a subdirectory, only the files in that subdirectory will be returned.
-        :param commit_a: The first commit.
-        :param commit_b: The second commit.
-        :return: An iterator over the files that are different between the two commits.
-        """
+        """Get the files that are different between two commits.
 
+        Parameters
+        ----------
+        git_dir
+            The directory of the git repository. This should be the root of the repository.
+            If it is a subdirectory, only the files in that subdirectory will be returned.
+        commit_a
+            The first commit.
+        commit_b
+            The second commit.
+
+        Returns
+        -------
+        Iterator[Path]
+            An iterator over the files that are different between the two commits.
+
+        Raises
+        ------
+        GitCliError
+            If the git command fails.
+        FileNotFoundError
+            If the git_dir does not exist.
+        """
+        if not git_dir.is_dir():
+            raise FileNotFoundError(f"git directory {git_dir} does not exist")
         # --relative ensures that we do not assemble invalid paths below if git_dir is a subdirectory
-        ret = self._run_git_command(
-            ["diff", "--name-only", "--relative", commit_a, commit_b],
-            git_dir,
-        )
+        cmd = ["diff", "--name-only", "--relative", commit_a, commit_b]
+
+        try:
+            ret = self._run_git_command(
+                cmd,
+                git_dir,
+            )
+        except GitCliError as e:
+            raise GitCliError(f"error running git {' '.join(cmd)} in {git_dir}") from e
 
         return (git_dir / line for line in ret.stdout.splitlines())
 
@@ -462,8 +675,7 @@ class GitCli:
         new_branch: str,
         base_branch: str = "main",
     ):
-        """
-        Convenience method to do the following:
+        """Do the following:
         1. Clone the repository at origin_url into target_dir (resetting the directory if it already exists).
         2. Add a remote named "upstream" with the URL upstream_url (ignoring if it already exists).
         3. Fetch all changes from all remotes.
@@ -473,13 +685,23 @@ class GitCli:
         This is usually used to create a new branch for a pull request. In this case, origin_url is the URL of the
         user's fork, and upstream_url is the URL of the upstream repository.
 
-        :param origin_url: The URL of the repository (fork) to clone.
-        :param target_dir: The directory to clone the repository into.
-        :param upstream_url: The URL of the upstream repository.
-        :param new_branch: The name of the branch to create.
-        :param base_branch: The name of the base branch to branch from.
+        Parameters
+        ----------
+        origin_url
+            The URL of the repository (fork) to clone.
+        target_dir
+            The directory to clone the repository into.
+        upstream_url
+            The URL of the upstream repository.
+        new_branch
+            The name of the branch to create.
+        base_branch
+            The name of the base branch to branch from.
 
-        :raises GitCliError: If a git command fails.
+        Raises
+        ------
+        GitCliError
+            If a git command fails.
         """
         try:
             self.clone_repo(origin_url, target_dir)
@@ -489,9 +711,9 @@ class GitCli:
                     f"Could not clone {origin_url} - does the remote exist?"
                 )
             logger.info(
-                f"Cloning {origin_url} into {target_dir} was not successful - "
-                f"trying to reset hard since the directory already exists. This will fail if the target directory is "
-                f"not a git repository."
+                "Cloning %s into %s was not successful - trying to reset hard since the directory already exists. This will fail if the target directory is not a git repository.",
+                origin_url,
+                target_dir,
             )
             self.reset_hard(target_dir)
 
@@ -528,13 +750,11 @@ class GitCli:
 
         try:
             logger.info(
-                f"Trying to checkout branch {new_branch} without creating a new branch"
+                "Trying to checkout branch %s without creating a new branch", new_branch
             )
             self.checkout_branch(target_dir, new_branch)
         except GitCliError:
-            logger.info(
-                f"It seems branch {new_branch} does not exist. Creating it.",
-            )
+            logger.info("It seems branch %s does not exist. Creating it.", new_branch)
             self.checkout_new_branch(target_dir, new_branch, start_point=base_branch)
 
 
@@ -542,7 +762,9 @@ class GitPlatformBackend(ABC):
     """
     A backend for interacting with a git platform (e.g. GitHub).
 
-    Implementation Note: If you wonder what should be in this class vs. the GitCli class, the GitPlatformBackend class
+    Implementation Note
+    ------------------
+    If you wonder what should be in this class vs. the GitCli class, the GitPlatformBackend class
     should contain the logic for interacting with the platform (e.g. GitHub), while the GitCli class should contain the
     logic for interacting with the git repository itself. If you need to know anything specific about the platform,
     it should be in the GitPlatformBackend class.
@@ -555,18 +777,30 @@ class GitPlatformBackend(ABC):
     GIT_PLATFORM_ORIGIN = "https://github.com"
 
     def __init__(self, git_cli: GitCli):
-        """
-        Create a new GitPlatformBackend.
-        :param git_cli: The GitCli instance to use for interacting with git repositories.
+        """Create a new GitPlatformBackend.
+
+        Parameters
+        ----------
+        git_cli
+            The GitCli instance to use for interacting with git repositories.
         """
         self.cli = git_cli
 
     @abstractmethod
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
-        """
-        Check if a repository exists.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
+        """Check if a repository exists.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+
+        Returns
+        -------
+        bool
+            True if the repository exists, False otherwise.
         """
         pass
 
@@ -576,15 +810,30 @@ class GitPlatformBackend(ABC):
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
     ) -> str:
-        """
-        Get the URL of a remote repository.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param connection_mode: The connection mode to use.
-        :raises ValueError: If the connection mode is not supported.
-        :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
-        the repository existing to generate the URL.
-        """
+        """Get the URL of a remote repository.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+        connection_mode
+            The connection mode to use.
+
+        Returns
+        -------
+        str
+            The remote URL.
+
+        Raises
+        ------
+        ValueError
+            If the connection mode is not supported.
+        RepositoryNotFoundError
+            If the repository does not exist. This is only raised if the backend relies
+            on the repository existing to generate the URL.
+        """  # noqa: DOC502 (RepositoryNotFoundError only raised by subclasses)
         match connection_mode:
             case GitConnectionMode.HTTPS:
                 return f"{self.GIT_PLATFORM_ORIGIN}/{owner}/{repo_name}.git"
@@ -594,26 +843,45 @@ class GitPlatformBackend(ABC):
     @abstractmethod
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str
-    ):
-        """
-        Push changes to a repository.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param git_dir: The directory of the git repository.
-        :param branch: The branch to push to.
-        :raises GitPlatformError: If the push fails.
+    ) -> None:
+        """Push changes to a repository.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+        git_dir
+            The directory of the git repository.
+        branch
+            The branch to push to.
+
+        Raises
+        ------
+        GitPlatformError
+            If the push fails.
         """
         pass
 
     @abstractmethod
-    def fork(self, owner: str, repo_name: str):
-        """
-        Fork a repository. If the fork already exists, do nothing except syncing the default branch name.
+    def fork(self, owner: str, repo_name: str) -> None:
+        """Fork a repository. If the fork already exists, do nothing except syncing the default branch name.
+
         Forks are created under the current user's account (see `self.user`).
         The name of the forked repository is the same as the original repository.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :raises RepositoryNotFoundError: If the repository does not exist.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+
+        Raises
+        ------
+        RepositoryNotFoundError
+            If the repository does not exist.
         """
         pass
 
@@ -625,62 +893,95 @@ class GitPlatformBackend(ABC):
         target_dir: Path,
         new_branch: str,
         base_branch: str = "main",
-    ):
-        """
+    ) -> None:
+        """Clone a fork and create a new branch from the base branch.
+
         Identical to `GitCli::clone_fork_and_branch`, but generates the URLs from the repository name.
 
-        :param upstream_owner: The owner of the upstream repository.
-        :param repo_name: The name of the repository.
-        :param target_dir: The directory to clone the repository into.
-        :param new_branch: The name of the branch to create.
-        :param base_branch: The name of the base branch to branch from.
+        Parameters
+        ----------
+        upstream_owner
+            The owner of the upstream repository.
+        repo_name
+            The name of the repository.
+        target_dir
+            The directory to clone the repository into.
+        new_branch
+            The name of the branch to create.
+        base_branch
+            The name of the base branch to branch from.
 
-        :raises GitCliError: If a git command fails.
+        Raises
+        ------
+        GitCliError
+            If a git command fails.
         """
-        self.cli.clone_fork_and_branch(
-            origin_url=self.get_remote_url(self.user, repo_name),
-            target_dir=target_dir,
-            upstream_url=self.get_remote_url(upstream_owner, repo_name),
-            new_branch=new_branch,
-            base_branch=base_branch,
-        )
+        try:
+            self.cli.clone_fork_and_branch(
+                origin_url=self.get_remote_url(self.user, repo_name),
+                target_dir=target_dir,
+                upstream_url=self.get_remote_url(upstream_owner, repo_name),
+                new_branch=new_branch,
+                base_branch=base_branch,
+            )
+        except GitCliError as e:
+            raise GitCliError(
+                f"error cloning a fork of {upstream_owner}/{repo_name} into {target_dir} or checking out the new branch {new_branch} from {base_branch}"
+            ) from e
 
     @property
     @abstractmethod
     def user(self) -> str:
-        """
-        The username of the logged-in user, i.e. the owner of forked repositories.
+        """The username of the logged-in user, i.e. the owner of forked repositories.
+
+        Returns
+        -------
+        str
+            The username of the logged-in user.
         """
         pass
 
     @abstractmethod
-    def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
-        """
-        Sync the default branch of the forked repository with the upstream repository.
-        :param upstream_owner: The owner of the upstream repository.
-        :param upstream_repo: The name of the upstream repository.
+    def _sync_default_branch(self, upstream_owner: str, upstream_repo: str) -> None:
+        """Sync the default branch of the forked repository with the upstream repository.
+
+        Parameters
+        ----------
+        upstream_owner
+            The owner of the upstream repository.
+        upstream_repo
+            The name of the upstream repository.
         """
         pass
 
     @abstractmethod
     def get_api_requests_left(self) -> int | Bound | None:
-        """
-        Get the number of remaining API requests for the backend.
-        Returns `Bound.INFINITY` if the backend does not have a rate limit.
-        Returns None if an exception occurred while getting the rate limit.
+        """Get the number of remaining API requests for the backend.
 
+        Returns
+        -------
+        int, Bound, or None
+            The number of remaining API requests. Returns `Bound.INFINITY` if the backend does not have a rate limit.
+            Returns None if an exception occurred while getting the rate limit.
+
+        Notes
+        -----
         Implementations may print diagnostic information about the API limit.
         """
         pass
 
     def is_api_limit_reached(self) -> bool:
-        """
-        Returns True if the API limit has been reached, False otherwise.
+        """Return True if the API limit has been reached, False otherwise.
 
         If an exception occurred while getting the rate limit, this method returns True, assuming the limit has
         been reached.
 
         Additionally, implementations may print diagnostic information about the API limit.
+
+        Returns
+        -------
+        bool
+            True if the API limit has been reached, False otherwise.
         """
         return self.get_api_requests_left() in (0, None)
 
@@ -694,18 +995,36 @@ class GitPlatformBackend(ABC):
         title: str,
         body: str,
     ) -> PullRequestDataValid:
-        """
-        Create a pull request from a forked repository. It is assumed that the forked repository is owned by the
-        current user and has the same name as the target repository.
-        :param target_owner: The owner of the target repository.
-        :param target_repo: The name of the target repository.
-        :param base_branch: The base branch of the pull request, located in the target repository.
-        :param head_branch: The head branch of the pull request, located in the forked repository.
-        :param title: The title of the pull request.
-        :param body: The body of the pull request.
-        :returns: The data of the created pull request.
-        :raises GitPlatformError: If the pull request could not be created.
-        :raises DuplicatePullRequestError: If a pull request already exists and the backend checks for it.
+        """Create a pull request from a forked repository.
+
+        It is assumed that the forked repository is owned by the current user and has the same name as the target repository.
+
+        Parameters
+        ----------
+        target_owner
+            The owner of the target repository.
+        target_repo
+            The name of the target repository.
+        base_branch
+            The base branch of the pull request, located in the target repository.
+        head_branch
+            The head branch of the pull request, located in the forked repository.
+        title
+            The title of the pull request.
+        body
+            The body of the pull request.
+
+        Returns
+        -------
+        PullRequestDataValid
+            The data of the created pull request.
+
+        Raises
+        ------
+        GitPlatformError
+            If the pull request could not be created.
+        DuplicatePullRequestError
+            If a pull request already exists and the backend checks for it.
         """
         pass
 
@@ -713,22 +1032,31 @@ class GitPlatformBackend(ABC):
     def comment_on_pull_request(
         self, repo_owner: str, repo_name: str, pr_number: int, comment: str
     ) -> None:
-        """
-        Comment on an existing pull request.
-        :param repo_owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param pr_number: The number of the pull request.
-        :param comment: The comment to post.
-        :raises RepositoryNotFoundError: If the repository does not exist.
-        :raises GitPlatformError: If the comment could not be posted, including if the pull request does not exist.
+        """Comment on an existing pull request.
+
+        Parameters
+        ----------
+        repo_owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+        pr_number
+            The number of the pull request.
+        comment
+            The comment to post.
+
+        Raises
+        ------
+        RepositoryNotFoundError
+            If the repository does not exist.
+        GitPlatformError
+            If the comment could not be posted, including if the pull request does not exist.
         """
         pass
 
 
 class _Github3SessionWrapper:
-    """
-    This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers.
-    """
+    """Wrapper around the github3.session.GitHubSession that allows us to intercept the response headers."""
 
     def __init__(self, session: GitHubSession):
         super().__init__()
@@ -767,15 +1095,21 @@ class GitHubBackend(GitPlatformBackend):
     def __init__(
         self, github3_client: github3.GitHub, pygithub_client: github.Github, token: str
     ):
-        """
-        Create a new GitHubBackend.
+        """Create a new GitHubBackend.
+
         Note: Because we need additional response headers, we wrap the github3 session of the github3 client
         with our own session wrapper and replace the github3 client's session with it.
-        :param github3_client: The github3 client to use for interacting with the GitHub API.
-        :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
-        :param token: The token used for writing to git repositories. Note that you need to authenticate github3
-        and PyGithub yourself. Use the `from_token` class method to create an instance
-        that has all necessary clients set up.
+
+        Parameters
+        ----------
+        github3_client
+            The github3 client to use for interacting with the GitHub API.
+        pygithub_client
+            The PyGithub client to use for interacting with the GitHub API.
+        token
+            The token used for writing to git repositories. Note that you need to authenticate github3
+            and PyGithub yourself. Use the `from_token` class method to create an instance
+            that has all necessary clients set up.
         """
         cli = GitCli()
         super().__init__(cli)
@@ -804,14 +1138,27 @@ class GitHubBackend(GitPlatformBackend):
             )
         except Exception as e:
             logger.warning(
-                f"GitHub API error fetching repo {owner}/{repo_name}.",
-                exc_info=e,
+                "GitHub API error fetching repo %s/%s.", owner, repo_name, exc_info=e
             )
             raise e
 
         return repo
 
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
+        """Check if a repository exists.
+
+        Parameters
+        ----------
+        owner
+            The owner of the repository.
+        repo_name
+            The name of the repository.
+
+        Returns
+        -------
+        bool
+            True if the repository exists, False otherwise.
+        """
         try:
             self._get_repo(owner, repo_name)
             return True
@@ -844,7 +1191,7 @@ class GitHubBackend(GitPlatformBackend):
 
         repo = self._get_repo(owner, repo_name)
 
-        logger.debug(f"Forking {owner}/{repo_name}.")
+        logger.debug("Forking %s/%s.", owner, repo_name)
         repo.create_fork()
 
         # Sleep to make sure the fork is created before we go after it
@@ -861,7 +1208,11 @@ class GitHubBackend(GitPlatformBackend):
             return
 
         logger.info(
-            f"Syncing default branch of {fork_owner}/{repo_name} with {upstream_owner}/{repo_name}..."
+            "Syncing default branch of %s/%s with %s/%s...",
+            fork_owner,
+            repo_name,
+            upstream_owner,
+            repo_name,
         )
 
         fork.rename_branch(fork.default_branch, upstream_repo.default_branch)
@@ -871,6 +1222,13 @@ class GitHubBackend(GitPlatformBackend):
 
     @cached_property
     def user(self) -> str:
+        """The username of the logged-in user, i.e. the owner of forked repositories.
+
+        Returns
+        -------
+        str
+            The username of the logged-in user.
+        """
         return self.pygithub_client.get_user().login
 
     def get_api_requests_left(self) -> int | None:
@@ -901,8 +1259,8 @@ class GitHubBackend(GitPlatformBackend):
             return remaining_limit
 
         logger.info(
-            "GitHub API limit reached, will reset at "
-            f"{datetime.utcfromtimestamp(reset_timestamp).strftime('%Y-%m-%dT%H:%M:%SZ')}"
+            "GitHub API limit reached, will reset at %s",
+            datetime.utcfromtimestamp(reset_timestamp).strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
 
         return remaining_limit
@@ -1026,12 +1384,16 @@ class DryRunBackend(GitPlatformBackend):
         self, owner: str, repo_name: str, git_dir: Path, branch: str
     ):
         logger.debug(
-            f"Dry Run: Pushing changes from {git_dir} to {owner}/{repo_name} on branch {branch}."
+            "Dry Run: Pushing changes from %s to %s/%s on branch %s.",
+            git_dir,
+            owner,
+            repo_name,
+            branch,
         )
 
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
-            logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
+            logger.debug("Fork of %s already exists. Doing nothing.", repo_name)
             return
 
         if not self.does_repository_exist(owner, repo_name):
@@ -1040,13 +1402,13 @@ class DryRunBackend(GitPlatformBackend):
             )
 
         logger.debug(
-            f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
+            "Dry Run: Creating fork of %s/%s for user %s.", owner, repo_name, self._USER
         )
         self._repos[repo_name] = owner
 
     def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
         logger.debug(
-            f"Dry Run: Syncing default branch of {upstream_owner}/{upstream_repo}."
+            "Dry Run: Syncing default branch of %s/%s.", upstream_owner, upstream_repo
         )
 
     @property
@@ -1055,11 +1417,15 @@ class DryRunBackend(GitPlatformBackend):
 
     @staticmethod
     def print_dry_run_message(title: str, data: dict[str, str]):
-        """
-        Print a dry run output message.
-        :param title: The title of the message.
-        :param data: The data to print. The keys are the field names and the values are the field values.
-        Please capitalize the keys for consistency.
+        """Print a dry run output message.
+
+        Parameters
+        ----------
+        title
+            The title of the message.
+        data
+            The data to print. The keys are the field names and the values are the field values.
+            Please capitalize the keys for consistency.
         """
         border = "=============================================================="
         output = textwrap.dedent(
@@ -1135,6 +1501,8 @@ class DryRunBackend(GitPlatformBackend):
 
 def github_backend() -> GitHubBackend:
     """
+    Return the GitHub backend.
+
     This helper method will be removed in the future, use the GitHubBackend class directly.
     """
     return GitHubBackend.from_token(get_bot_token())
@@ -1223,9 +1591,10 @@ def lazy_update_pr_json(
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
-    This function will use the ETag in the GitHub API to update PR information
-    lazily. It sends the ETag to github properly and if nothing is changed on their
-    end, it simply returns the PR. Otherwise the information is refreshed.
+    This function will use the Last-Modified field in the GitHub API to update
+    PR information lazily. It sends the Last-Modified to github properly and
+    if nothing is changed on their end, it simply returns the PR. Otherwise
+    the information is refreshed.
 
     Parameters
     ----------
@@ -1233,7 +1602,7 @@ def lazy_update_pr_json(
         A dict-like object with the current PR information.
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
-        according to the ETag. Default is False.
+        according to the Last-Modified. Default is False.
 
     Returns
     -------
@@ -1244,8 +1613,8 @@ def lazy_update_pr_json(
         "Authorization": f"token {get_bot_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force and "ETag" in pr_json:
-        hdrs["If-None-Match"] = pr_json["ETag"]
+    if not force and "Last-Modified" in pr_json:
+        hdrs["if-modified-since"] = pr_json["Last-Modified"]
 
     if "repo" not in pr_json["base"] or (
         "repo" in pr_json["base"] and "name" not in pr_json["base"]["repo"]
@@ -1338,8 +1707,6 @@ def close_out_labels(
     pr_json: LazyJson,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = github3_client()
-
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -1356,11 +1723,16 @@ def close_out_labels(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            gh = github3_client()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
-                "this PR. I will make another one as"
-                f" appropriate. This message was generated by {get_bot_run_url()} - please use this URL for debugging.",
+                "this PR. I will make another PR as"
+                " appropriate. You should expect to "
+                "wait at least a few hours, or possibly "
+                "much longer, for a new PR."
+                f"\n\n<sub>This message was generated by {get_bot_run_url()} "
+                "- please use this URL for debugging.</sub>",
             )
             pr_obj.close()
 
@@ -1376,8 +1748,6 @@ def close_out_dirty_prs(
     pr_json: LazyJson,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = github3_client()
-
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
         # update
@@ -1396,6 +1766,7 @@ def close_out_dirty_prs(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            gh = github3_client()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
 
             if all(
@@ -1405,8 +1776,11 @@ def close_out_dirty_prs(
                 pr_obj.create_comment(
                     "I see that this PR has conflicts, and I'm the only committer. "
                     "I'm going to close this PR and will make another one as"
-                    f" appropriate. This was generated by {get_bot_run_url()} - "
-                    "please use this URL for debugging,",
+                    " appropriate. You should expect to "
+                    "wait at least a few hours, or possibly "
+                    "much longer, for a new PR."
+                    f"\n\n<sub>This was generated by {get_bot_run_url()} - "
+                    "please use this URL for debugging.</sub>",
                 )
                 pr_obj.close()
 
@@ -1426,3 +1800,123 @@ def close_out_dirty_prs(
         return d
 
     return None
+
+
+def _get_pth_blob_sha_and_content(
+    pth: str, repo: github.Repository.Repository
+) -> (str | None, str | None):
+    try:
+        cnt = repo.get_contents(pth)
+        # I was using the decoded_content attribute here, but it seems that
+        # every once and a while github does not send the encoding correctly
+        # so I switched to doing the decoding by hand.
+        data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+        return cnt.sha, data
+    except github.GithubException as e:
+        _test_and_raise_besides_file_not_exists(e)
+        return None, None
+
+
+def push_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
+    """Push a file to a repo via the GitHub API.
+
+    Parameters
+    ----------
+    pth : str
+        The path to the file.
+    repo_full_name : str
+        The full name of the repository (e.g., "conda-forge/conda-forge-pinning").
+    msg : str
+        The commit message.
+    """
+    with open(pth) as f:
+        data = f.read()
+
+    ntries = 10
+
+    # exponential backoff will be base ** tr
+    # we fail at ntries - 1 so the last time we
+    # compute the backoff is at ntries - 2
+    base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+    for tr in range(ntries):
+        try:
+            gh = github_client()
+            repo = gh.get_repo(repo_full_name)
+
+            sha, cnt = _get_pth_blob_sha_and_content(pth, repo)
+            if sha is None:
+                repo.create_file(
+                    pth,
+                    msg,
+                    data,
+                )
+            else:
+                if cnt != data:
+                    repo.update_file(
+                        pth,
+                        msg,
+                        data,
+                        sha,
+                    )
+            break
+        except Exception as e:
+            logger.warning(
+                "failed to push '%s' - trying %d more times",
+                pth,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
+            else:
+                # exponential backoff
+                time.sleep(base**tr)
+
+
+def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
+    """Delete a file from a repo via the GitHub API.
+
+    Parameters
+    ----------
+    pth : str
+        The path to the file.
+    repo_full_name : str
+        The full name of the repository (e.g., "conda-forge/conda-forge-pinning").
+    msg : str
+        The commit message.
+    """
+    ntries = 10
+
+    # exponential backoff will be base ** tr
+    # we fail at ntries - 1 so the last time we
+    # compute the backoff is at ntries - 2
+    base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+    for tr in range(ntries):
+        try:
+            gh = github_client()
+            repo = gh.get_repo(repo_full_name)
+
+            sha, _ = _get_pth_blob_sha_and_content(pth, repo)
+
+            if sha is not None:
+                repo.delete_file(
+                    pth,
+                    msg,
+                    sha,
+                )
+            break
+
+        except Exception as e:
+            logger.warning(
+                "failed to delete '%s' - trying %d more times",
+                pth,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
+            else:
+                # exponential backoff
+                time.sleep(base**tr)

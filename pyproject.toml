@@ -28,7 +28,7 @@ conda-forge-tick-container = "conda_forge_tick.container_cli:cli"
 include-package-data = true
 zip-safe = false
 packages = {find = {exclude=["tests*", "scripts*", "docs*", "autotick-bot*", "planning*"]}}
-package-data = {conda_forge_tick = ["*.xsh", "*.yaml"]}
+package-data = {conda_forge_tick = ["*.xsh", "*.yaml", "*.json"]}
 package-dir = {conda_forge_tick = "conda_forge_tick"}
 
 [tool.setuptools_scm]
@@ -39,8 +39,9 @@ write_to_template = "__version__ = '{version}'\n"
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W"]
-ignore = ["E501"]
+select = ["E", "F", "I", "W", "LOG", "G", "D2", "D3", "D4", "DOC202", "DOC403", "DOC5"]
+ignore = ["E501", "D205"]
+pydocstyle.convention = "numpy"
 preview = true
 
 [tool.ruff.lint.pycodestyle]

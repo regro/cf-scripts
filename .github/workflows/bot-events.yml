@@ -1,0 +1,95 @@
+name: bot-events
+
+run-name: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
+
+concurrency:
+  group: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: 'The github event.'
+        required: true
+        default: null
+        type: choice
+        options:
+          - pr
+          - push
+      uid:
+        description: 'The unique id of the event. For PRs, this is the PR number. For pushes, this is the feedstock name.'
+        required: true
+        type: string
+      dry-run:
+        description: 'Run the bot in `dry-run` mode, making no changes.'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  react-to-event:
+    name: react-to-event
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - name: get latest release
+        id: latest_release
+        run: |
+          tag_name=$(gh api repos/regro/cf-scripts/releases/latest --jq '.tag_name')
+          echo "latest release: ${tag_name}"
+          echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ steps.latest_release.outputs.tag_name }}
+          path: cf-scripts
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh \
+            --no-clone-graph \
+            --no-clean-disk-space \
+            --no-pull-container
+        env:
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: react to event
+        if: success() && ! env.CI_SKIP
+        run: |
+          export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          if [[ '${{ github.event.inputs.dry-run}}' == 'true' ]]; then
+            kwargs="--dry-run"
+          else
+            kwargs=""
+          fi
+
+          pushd cf-scripts
+
+          conda-forge-tick ${kwargs} \
+            react-to-event \
+            --event='${{ inputs.event }}' \
+            --uid='${{ inputs.uid }}'
+        env:
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          # emptied at the beginning and end of each run, used by Python tempdir
+          TMPDIR: ${{ runner.temp }}

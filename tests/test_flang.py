@@ -1,5 +1,6 @@
 import os
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
@@ -8,10 +9,13 @@ from conda_forge_tick.migrators import FlangMigrator, Version
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 FLANG = FlangMigrator()
 VERSION_WITH_FLANG = Version(
     set(),
     piggy_back_migrations=[FLANG],
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -30,7 +34,7 @@ VERSION_WITH_FLANG = Version(
         ("pcmsolver-split", "1.10.0"),
     ],
 )
-def test_flang(feedstock, new_ver, tmpdir):
+def test_flang(feedstock, new_ver, tmp_path):
     before = f"flang_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -38,9 +42,6 @@ def test_flang(feedstock, new_ver, tmpdir):
     after = f"flang_{feedstock}_after_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, after)) as fp:
         out_yaml = fp.read()
-
-    recipe_dir = os.path.join(tmpdir, f"{feedstock}-feedstock")
-    os.makedirs(recipe_dir, exist_ok=True)
 
     run_test_migration(
         m=VERSION_WITH_FLANG,
@@ -53,6 +54,6 @@ def test_flang(feedstock, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_FLANG.migrator_version,
             "version": new_ver,
         },
-        tmpdir=recipe_dir,
+        tmp_path=tmp_path,
         should_filter=False,
     )

@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 
 import conda_smithy
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import (
@@ -16,7 +17,6 @@ from conda_forge_feedstock_ops.container_utils import (
     run_container_operation,
 )
 from conda_forge_feedstock_ops.os_utils import get_user_execute_permissions
-from flaky import flaky
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
 from conda_forge_tick.feedstock_parser import (
@@ -48,7 +48,9 @@ from conda_forge_tick.utils import (
     parse_meta_yaml_containerized,
 )
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -85,7 +87,6 @@ if HAVE_CONTAINERS:
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_get_latest_version(use_containers):
     data = run_container_operation(
         [
@@ -102,7 +103,6 @@ def test_container_tasks_get_latest_version(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_get_latest_version_json(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -129,7 +129,6 @@ def test_container_tasks_get_latest_version_json(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_get_latest_version_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -150,7 +149,6 @@ def test_container_tasks_get_latest_version_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_get_latest_version_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -273,7 +271,6 @@ def test_container_tasks_parse_meta_yaml_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_rerender_feedstock_containerized_same_as_local(
     use_containers, capfd
 ):
@@ -318,16 +315,16 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                 print(f"out: {captured.out}\nerr: {captured.err}")
 
             if "git commit -m " in captured.err:
-                assert (
-                    msg is not None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-                assert msg.startswith(
-                    "MNT:"
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is not None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
+                assert msg.startswith("MNT:"), (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
             else:
-                assert (
-                    msg is None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
 
         with pushd(tmpdir_local):
             subprocess.run(
@@ -377,9 +374,9 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
         rel_local_fnames = {
             os.path.relpath(fname, tmpdir_local) for fname in local_fnames
         }
-        assert (
-            rel_cont_fnames == rel_local_fnames
-        ), f"{rel_cont_fnames} != {rel_local_fnames}"
+        assert rel_cont_fnames == rel_local_fnames, (
+            f"{rel_cont_fnames} != {rel_local_fnames}"
+        )
 
         for cfname in cont_fnames:
             lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))
@@ -394,7 +391,6 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
         # first run the rerender locally
@@ -449,7 +445,6 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
@@ -523,7 +518,6 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_provide_source_code_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -549,7 +543,6 @@ def test_container_tasks_provide_source_code_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_provide_source_code_containerized_patches(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -581,7 +574,6 @@ def test_container_tasks_provide_source_code_containerized_patches(use_container
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
@@ -608,14 +600,13 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
         assert res_cont == res_local
 
 
-yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
+yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 
 
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     fs_dir = os.path.join(tmpdir, "scipy-feedstock")
     rp_dir = os.path.join(fs_dir, "recipe")
@@ -682,7 +673,6 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
         ("sha1", "5.0.1"),
     ],
 )
-@flaky
 def test_migration_runner_run_migration_containerized_version(
     case, new_ver, tmpdir, caplog
 ):
@@ -732,7 +722,7 @@ def test_migration_runner_run_migration_containerized_version(
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
-    pmy["new_version"] = new_ver
+    pmy["version_pr_info"] = {"new_version": new_ver}
 
     data = run_migration_containerized(
         migrator=m,
@@ -756,7 +746,6 @@ def test_migration_runner_run_migration_containerized_version(
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-@flaky
 def test_container_tasks_update_version_feedstock_dir():
     with tempfile.TemporaryDirectory() as tmpdir:
         fs_dir = os.path.join(tmpdir, "mpich-feedstock")
@@ -781,7 +770,6 @@ def test_container_tasks_update_version_feedstock_dir():
         assert actual_output == output
 
 
-@flaky
 def test_container_tasks_provide_source_code_local(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -791,11 +779,11 @@ def test_container_tasks_provide_source_code_local(use_containers):
             [
                 "git",
                 "clone",
-                "https://github.com/conda-forge/git-remote-s3-feedstock.git",
+                "https://github.com/conda-forge/conda-smithy-feedstock.git",
             ]
         )
 
-        with provide_source_code_local("git-remote-s3-feedstock/recipe") as source_dir:
+        with provide_source_code_local("conda-smithy-feedstock/recipe") as source_dir:
             assert os.path.exists(source_dir)
             assert os.path.isdir(source_dir)
             assert "pyproject.toml" in os.listdir(source_dir)
