@@ -43,7 +43,7 @@ jobs:
       NUM_SPLITS: 2
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: "regro/cf-scripts"
 
@@ -55,7 +55,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -119,7 +119,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809  # v4.2.4
         if: ${{ ! env.CI_SKIP }}
         with:
           path: .test_durations
@@ -191,7 +191,7 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: "regro/cf-scripts"
 
@@ -203,7 +203,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -267,7 +267,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: restore test durations
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809  # v4.2.4
         if: ${{ ! env.CI_SKIP }}
         with:
           path: .test_durations
@@ -332,7 +332,7 @@ jobs:
       run:
         shell: bash -leo pipefail {0}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: "regro/cf-scripts"
 
@@ -344,7 +344,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -365,7 +365,7 @@ jobs:
           python autotick-bot/stop_me_if_needed.py
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: coverage-*
@@ -377,13 +377,13 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.1.8
+        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.1.8
         if: ${{ ! env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         if: ${{ ! env.CI_SKIP }}
         with:
           path: .test_durations
@@ -393,7 +393,7 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: test-durations-*
