@@ -5207,43 +5207,43 @@ package:
     version: 2.4.6
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
     hash:
-      md5: a31ce802cd0ebfce298f342c02757019
-      sha256: f734d98cd046392fbd9872df89ac043d72ac15f6a2529f129d912e28ab44609c
+      md5: 76f492bd8ba8a0fb80ffe16fc1a75b3b
+      sha256: 05e55a2bd5e4d7f661d1f4c291ca8e65179f68234d18eb70fc00f50934d3c4d3
     manager: conda
     name: fsspec
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.7.0-pyhd8ed1ab_0.conda
-    version: 2025.7.0
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.9.0-pyhd8ed1ab_0.conda
+    version: 2025.9.0
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
     hash:
-      md5: a31ce802cd0ebfce298f342c02757019
-      sha256: f734d98cd046392fbd9872df89ac043d72ac15f6a2529f129d912e28ab44609c
+      md5: 76f492bd8ba8a0fb80ffe16fc1a75b3b
+      sha256: 05e55a2bd5e4d7f661d1f4c291ca8e65179f68234d18eb70fc00f50934d3c4d3
     manager: conda
     name: fsspec
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.7.0-pyhd8ed1ab_0.conda
-    version: 2025.7.0
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.9.0-pyhd8ed1ab_0.conda
+    version: 2025.9.0
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
     hash:
-      md5: a31ce802cd0ebfce298f342c02757019
-      sha256: f734d98cd046392fbd9872df89ac043d72ac15f6a2529f129d912e28ab44609c
+      md5: 76f492bd8ba8a0fb80ffe16fc1a75b3b
+      sha256: 05e55a2bd5e4d7f661d1f4c291ca8e65179f68234d18eb70fc00f50934d3c4d3
     manager: conda
     name: fsspec
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.7.0-pyhd8ed1ab_0.conda
-    version: 2025.7.0
+      https://conda.anaconda.org/conda-forge/noarch/fsspec-2025.9.0-pyhd8ed1ab_0.conda
+    version: 2025.9.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -14825,15 +14825,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 8178cfa7ccc0e9d89337bd9da66acb34
-      sha256: d9b4fd5d5f7649421505a11ac57dd357384ca62f27d296ee6ab8b701a04906d7
+      md5: 7fd68f1237ae16298639766d3017f3ae
+      sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       conda-build: ''
@@ -14844,15 +14844,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 8178cfa7ccc0e9d89337bd9da66acb34
-      sha256: d9b4fd5d5f7649421505a11ac57dd357384ca62f27d296ee6ab8b701a04906d7
+      md5: 7fd68f1237ae16298639766d3017f3ae
+      sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       conda-build: ''
@@ -14863,15 +14863,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 8178cfa7ccc0e9d89337bd9da66acb34
-      sha256: d9b4fd5d5f7649421505a11ac57dd357384ca62f27d296ee6ab8b701a04906d7
+      md5: 7fd68f1237ae16298639766d3017f3ae
+      sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.5-pyhd8ed1ab_0.conda
-    version: 1.4.5
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+    version: 1.4.6
   - category: main
     dependencies:
       libgcc: '>=13'
