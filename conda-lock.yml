@@ -14780,41 +14780,41 @@ package:
       openssl: '>=3.5.2,<4.0a0'
       patchelf: ''
     hash:
-      md5: bcb9aefec62f3802a538209811c61934
-      sha256: ac6beec6bda1223348d8a14a73681a4d578a6749d99bea3e54a815ef276ebff1
+      md5: 98366f1ada223a785f0dc24ed211a99c
+      sha256: aa71bcaf81c71da4a9137777249970c426a37afd46b7960b3e8c397f553a7f40
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.46.0-h60886be_0.conda
-    version: 0.46.0
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.0-h60886be_0.conda
+    version: 0.47.0
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 3a0f4961cf4e90d796cbc2cde52989b6
-      sha256: 203da906eacb30b172e56da3c686e84fe8ac686bd9559c0493b10a7c0556bc83
+      md5: b2f5ad0a287f0712c23abb0f45fbce6d
+      sha256: 03d8c45aec0e1d8e4485a54e7e61e464ecc4752c1ec6e8fdd5458c226988eba8
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.46.0-hd3e8693_0.conda
-    version: 0.46.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.47.0-h9113d71_0.conda
+    version: 0.47.0
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 9f000b57b44445cdb54f258c7e9bd561
-      sha256: 249d50ff057deebab20a9f95f6fff38a0e85bcdbf791b16d220eca8c35263c9b
+      md5: dd3bf0dde45e18b8644b97a401f08ba2
+      sha256: d747d7d36bd38d37f6e80cb78358c373fb5776147e21f9da4121e736f9212796
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.46.0-hcdef695_0.conda
-    version: 0.46.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.47.0-h8d80559_0.conda
+    version: 0.47.0
   - category: main
     dependencies:
       conda-build: ''
@@ -15672,14 +15672,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: b7d5a90193f112c78e25befb013dd606
-      sha256: e7d68675349e80416aa0d4fb8262c2f4a223ef9e6e430704be3f809ea0c34d57
+      md5: e8131ef5f338f7982dd93c0103687551
+      sha256: 633a03b7bf6cd32cf2de2f349e968fbb8a14b46edb427ea83ba311a4868d5609
     manager: conda
     name: secretstorage
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py311h38be061_3.conda
+      https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py311h38be061_4.conda
     version: 3.3.3
   - category: main
     dependencies:
@@ -18087,14 +18087,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 45734d07b738e4298f045555df930b27
-      sha256: 50ed8b8939be815b07e0937867b28159de3d65c2b6a9fb39862ecef1f42f3383
+      md5: dec34b4f74921f79ace80011bcde8875
+      sha256: 61eac5ff0e8b5cc47222765ffeb90c87417e956a6b862ab27facd69c64f58d74
     manager: conda
     name: xattr
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/xattr-1.2.0-py311h8e62900_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/xattr-1.2.0-py311h8e62900_1.conda
     version: 1.2.0
   - category: main
     dependencies:
@@ -18103,14 +18103,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 2b1e6a55ee348badaa57f3ba507b1c64
-      sha256: 823aa8cfc1feaace72dec7437a75792faa7b5e168fa43957b69d2d062371c05d
+      md5: 65562db43c19fc05612522018b7e9986
+      sha256: a97792fc82b429c9195fd5aa4b8c20b714855d7cebf855fa0b435c8ca1b4a90e
     manager: conda
     name: xattr
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/xattr-1.2.0-py311h7d51efc_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/xattr-1.2.0-py311h7d51efc_1.conda
     version: 1.2.0
   - category: main
     dependencies:
