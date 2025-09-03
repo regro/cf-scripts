@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 58efd066f5b2e6adff803e571b32741f8f5424f03d68a8e7324ddfd3c86ab89a
-    osx-64: a1d62e018ec6b80be7502960279dc21d830af052d4e3f19198c42d7861128bf9
-    osx-arm64: 30f766aa945592e3526bd01e0ec6c960e19ae083d6ea69a79259d37565adeb55
+    linux-64: 37d933f5821813c132eac100d6b94a7cb73090fc971459fc01b2491573dd930b
+    osx-64: 88ec521ae9595618964b18f4bba971836980cdb2f35204af7cc82dbacec94201
+    osx-arm64: 85621b635f7be6352eec0fefcf738bc36a1d328d8311b640d226bdc3144d2b83
   platforms:
     - osx-arm64
     - linux-64
@@ -10997,6 +10997,103 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
     version: 1.1.4
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=14'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: 315da4d0ddb6d28e35febc04f2b6773e
+      sha256: 52bb64dc52d22ce6363626ac2b724ef47066acdf0576e14562be9d8d9bbed7fa
+    manager: conda
+    name: mypy
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/mypy-1.17.1-py311h49ec1c0_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      __osx: '>=10.13'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: cb2eb9718379fa165199055f863e0090
+      sha256: defddbe522cc3d9a58dc8e99539f4e38ba6e43259ec5a50bffb54f2ad2f9f59e
+    manager: conda
+    name: mypy
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/mypy-1.17.1-py311h13e5629_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      __osx: '>=11.0'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: 233307a593a05db323f556890c2a9888
+      sha256: d333dfa0b6c505bc1d6d106b741f948eecfe2e2bade6ed1b295c80414db62ab1
+    manager: conda
+    name: mypy
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.17.1-py311h3696347_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'

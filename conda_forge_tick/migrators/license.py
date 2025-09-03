@@ -179,7 +179,7 @@ def _munge_licenses(lparts):
 
 
 def _scrape_license_string(pkg):
-    d = {}
+    d: dict[str, str | list[str] | None] = {}
 
     if pkg.startswith("r-"):
         pkg = pkg[2:]
@@ -218,7 +218,7 @@ def _scrape_license_string(pkg):
     d["license_file"] = [
         lf for lf in cmeta.meta.get("about", {}).get("license_file", [])
     ]
-    if len(d["license_file"]) == 0:
+    if len(d["license_file"]) == 0:  # type: ignore[arg-type] # this is not a typed dict
         d["license_file"] = None
 
     if "cran_license" in d:
@@ -305,8 +305,8 @@ class LicenseMigrator(MiniMigrator):
             or attrs.get("name", "").startswith("r-")
         ) and "r-base" in attrs["raw_meta_yaml"]:
             if attrs.get("feedstock_name", None) is not None:
-                if attrs.get("feedstock_name", None).endswith("-feedstock"):
-                    name = attrs.get("feedstock_name")[: -len("-feedstock")]
+                if attrs.get("feedstock_name", None).endswith("-feedstock"):  # type: ignore[union-attr] # this is not a typed dict
+                    name = attrs.get("feedstock_name")[: -len("-feedstock")]  # type: ignore[arg-type,index] # this is not a typed dict
                 else:
                     name = attrs.get("feedstock_name")
             else:

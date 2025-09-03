@@ -120,18 +120,18 @@ def _process_section(output_index, attrs, lines):
             # regexes here. So leave a marker that we can skip on
             last_line_was_build = True
             line_build = i
-        elif pat_compiler_c.search(line):
+        elif match := pat_compiler_c.match(line):
             line_compiler_c = i
-            indent_c = pat_compiler_c.match(line).group("indent")
-            selector_c = pat_compiler_c.match(line).group("selector") or ""
-        elif pat_compiler_m2c.search(line):
+            indent_c = match.group("indent")
+            selector_c = match.group("selector") or ""
+        elif match := pat_compiler_m2c.match(line):
             line_compiler_m2c = i
-            indent_m2c = pat_compiler_m2c.match(line).group("indent")
-            selector_m2c = pat_compiler_m2c.match(line).group("selector") or ""
-        elif pat_compiler_other.search(line):
+            indent_m2c = match.group("indent")
+            selector_m2c = match.group("selector") or ""
+        elif match := pat_compiler_other.match(line):
             line_compiler_other = i
-            indent_other = pat_compiler_other.match(line).group("indent")
-            selector_other = pat_compiler_other.match(line).group("selector") or ""
+            indent_other = match.group("indent")
+            selector_other = match.group("selector") or ""
         elif re.match(r"^\s*host:.*", line):
             line_host = i
         elif re.match(r"^\s*run:.*", line):

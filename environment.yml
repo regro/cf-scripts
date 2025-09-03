@@ -77,3 +77,4 @@ dependencies:
   - pytest-split
   - setuptools_scm >=8
   - python-build
+  - mypy

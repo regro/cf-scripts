@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 SELECTOR_RE = re.compile(r"^(\s*)(\S*):\s*(\S*)\s*#\s*\[(.*)\]")
 
 
-def _munge_key(key, selector):
+def _munge_key(key, selector) -> str:
     return (
         key
         + "__conda-selector_"
@@ -47,7 +47,11 @@ def _round_trip_value(val):
     return s.read().split(":")[1].strip()
 
 
-def _munge_line(line, mapping, groups):
+def _munge_line(
+    line: str,
+    mapping: dict[tuple[str, str, str, str], str],
+    groups: dict[str, tuple[str, str, str, str]],
+) -> str:
     m = SELECTOR_RE.match(line)
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
@@ -148,9 +152,10 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """Run pip check if we see python in any host sections."""
-        build_host = (
-            attrs["requirements"].get("host", set())
-            or attrs["requirements"].get("build", set())
+        # the nested types in AttrsTypedDict are incorrect
+        build_host: set[str] = (
+            attrs["requirements"].get("host", set())  # type: ignore[assignment]
+            or attrs["requirements"].get("build", set())  # type: ignore[assignment]
             or set()
         )
         return "python" not in build_host or skip_migrator_due_to_schema(
@@ -159,8 +164,8 @@ class PipCheckMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            mapping = {}
-            groups = {}
+            mapping: dict[tuple[str, str, str, str], str] = {}
+            groups: dict[str, tuple[str, str, str, str]] = {}
             with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():

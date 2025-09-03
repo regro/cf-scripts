@@ -18,13 +18,10 @@ from conda.models.version import VersionOrder
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
+from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
 from .hashing import hash_url
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
-
 
 CRAN_INDEX: Optional[dict] = None
 
