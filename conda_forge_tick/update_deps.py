@@ -316,27 +316,9 @@ def merge_dep_comparisons(dep1, dep2):
     return d
 
 
-def make_grayskull_recipe(attrs, version_key="version"):
-    """Make a grayskull recipe given bot node attrs.
-
-    Parameters
-    ----------
-    attrs : dict or LazyJson
-        The node attrs.
-    version_key : str, optional
-        The version key to use from the attrs. Default is "version".
-
-    Returns
-    -------
-    recipe : str
-        The generated grayskull recipe as a string.
-    """
-    if version_key not in attrs:
-        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
-    else:
-        pkg_version = attrs[version_key]
-
-    src = attrs["meta_yaml"].get("source", {}) or {}
+def _modify_package_name_from_github(orig_name, src):
+    # if a package source comes from github, adjust the package name
+    # for sending to create_python_recipe, so grayskull can find metadata
     if isinstance(src, dict):
         src = [src]
     is_pypi = False
@@ -367,7 +349,7 @@ def make_grayskull_recipe(attrs, version_key="version"):
         is_pypi = True
 
     if is_pypi:
-        pkg_name = attrs["name"]
+        return orig_name
     elif is_github:
         url_parts = github_url.split("/")
         if len(url_parts) < 5:
@@ -375,9 +357,33 @@ def make_grayskull_recipe(attrs, version_key="version"):
                 "github url %s for grayskull dep update is too short! assuming pypi...",
                 github_url,
             )
-            pkg_name = attrs["name"]
+            return orig_name
         else:
-            pkg_name = "/".join(url_parts[:5])
+            return "/".join(url_parts[:5])
+
+
+def make_grayskull_recipe(attrs, version_key="version"):
+    """Make a grayskull recipe given bot node attrs.
+
+    Parameters
+    ----------
+    attrs : dict or LazyJson
+        The node attrs.
+    version_key : str, optional
+        The version key to use from the attrs. Default is "version".
+
+    Returns
+    -------
+    recipe : str
+        The generated grayskull recipe as a string.
+    """
+    if version_key not in attrs:
+        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
+    else:
+        pkg_version = attrs[version_key]
+
+    src = attrs["meta_yaml"].get("source", {}) or {}
+    pkg_name = _modify_package_name_from_github(attrs["name"], src)
 
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(
@@ -477,8 +483,10 @@ def get_grayskull_comparison(attrs, version_key="version"):
         )
     elif recipe_schema_version == 1:
         recipe = attrs["meta_yaml"]
+        src = recipe.get("source", {}) or {}
+        pkg_name = _modify_package_name_from_github(recipe["package"]["name"], src)
         grayskull_recipe = _make_grayskull_recipe_v1(
-            package_name=recipe["package"]["name"],
+            package_name=pkg_name,
             package_version=attrs["version_pr_info"][version_key],
             package_is_noarch=bool(recipe["build"].get("noarch")),
         )
