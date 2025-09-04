@@ -23,6 +23,7 @@ from conda_forge_tick.utils import (
     get_recipe_schema_version,
     sanitize_string,
 )
+from conda_forge_tick.version_filters import is_version_ignored
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -236,20 +237,7 @@ class Version(Migrator):
             )
             return True
 
-        ignore_filter = False
-        versions_to_ignore = get_keys_default(
-            attrs,
-            ["conda-forge.yml", "bot", "version_updates", "exclude"],
-            {},
-            [],
-        )
-        if (
-            str(new_version).replace("-", ".") in versions_to_ignore
-            or str(new_version) in versions_to_ignore
-        ):
-            ignore_filter = True
-
-        if ignore_filter:
+        if is_version_ignored(attrs, str(new_version)):
             logger.debug(
                 "Skip due to ignored version %s for feedstock %s, skipping!",
                 new_version,
@@ -277,7 +265,6 @@ class Version(Migrator):
             or too_many_prs
             or version_filter
             or skip_filter
-            or ignore_filter
             or skip_me
         )
 

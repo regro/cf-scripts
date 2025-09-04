@@ -64,11 +64,11 @@ from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
     get_bot_run_url,
-    get_keys_default,
     get_migrator_name,
     load_existing_graph,
     sanitize_string,
 )
+from conda_forge_tick.version_filters import filter_version
 
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
@@ -1220,22 +1220,6 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                             )
 
 
-def _filter_ignored_versions(attrs, version):
-    versions_to_ignore = get_keys_default(
-        attrs,
-        ["conda-forge.yml", "bot", "version_updates", "exclude"],
-        {},
-        [],
-    )
-    if (
-        str(version).replace("-", ".") in versions_to_ignore
-        or str(version) in versions_to_ignore
-    ):
-        return False
-    else:
-        return version
-
-
 def _update_nodes_with_new_versions(gx):
     """Update every node with it's new version (when available)."""
     print("updating nodes with new versions", flush=True)
@@ -1249,7 +1233,7 @@ def _update_nodes_with_new_versions(gx):
                 continue
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
-                version_from_attrs = _filter_ignored_versions(
+                version_from_attrs = filter_version(
                     attrs,
                     vpri.get("new_version", False),
                 )

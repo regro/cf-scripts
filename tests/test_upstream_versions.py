@@ -31,12 +31,12 @@ from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
     get_latest_version,
-    ignore_version,
     include_node,
     main,
     update_upstream_versions,
 )
 from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -346,48 +346,22 @@ latest_url_rawurl_test_list = [
 ]
 
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"key": "value"},
-        {"conda-forge.yml": {"key": "value"}},
-        {"conda-forge.yml": {"bot": {"key": "value"}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"key": "value"}}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": []}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {
-                    "version_updates": {
-                        "exclude": ["12.3", "1.23", "1.2", "2.3", "1.2.3.4"],
-                    },
-                },
-            },
-        },
-    ],
-)
-def test_ignore_version_false(attrs):
-    assert ignore_version(attrs, "1.2.3") is False
+def test_is_version_ignored():
+    """Test is_version_ignored."""
+    attrs_no_filter = {"conda-forge.yml": {"bot": {"version_updates": {}}}}
+    assert is_version_ignored(attrs_no_filter, "1.2.3") is False
 
+    attrs_exclude = {
+        "conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}
+    }
+    assert is_version_ignored(attrs_exclude, "1.2.3") is True
+    assert is_version_ignored(attrs_exclude, "1.2.4") is False
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["3.2.1", "1.2.3"]}},
-            },
-        },
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["1.2.3", "3.2.1"]}},
-            },
-        },
-    ],
-)
-@pytest.mark.parametrize("version", ["1.2.3", "1.2-3"])
-def test_ignore_version_true(attrs, version):
-    assert ignore_version(attrs, version) is True
+    attrs_odd_even = {
+        "conda-forge.yml": {"bot": {"version_updates": {"even_odd_versions": True}}}
+    }
+    assert is_version_ignored(attrs_odd_even, "1.1.0") is True  # Odd minor
+    assert is_version_ignored(attrs_odd_even, "1.2.0") is False  # Even minor
 
 
 @pytest.mark.parametrize(
@@ -487,8 +461,9 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
-    ) as ignore_version_mock:
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
+    ) as is_version_ignored_mock:
         result = get_latest_version(
             "crazy-package",
             attrs,
@@ -517,7 +492,7 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.assert_called_once_with("https://source-b.com")
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
-    ignore_version_mock.assert_called_once_with(attrs, "1.2.3")
+    is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
 
     assert result == {"new_version": "1.2.3"}
 
@@ -536,7 +511,8 @@ def test_latest_version_skip_error_success(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -589,7 +565,7 @@ def test_latest_version_error_and_no_new_version(caplog):
     assert "Cannot find version on any source, exceptions occurred" in caplog.text
 
 
-def test_latest_version_ignore_version(caplog):
+def test_latest_version_is_version_ignored(caplog):
     caplog.set_level(logging.DEBUG)
 
     source_a = Mock(AbstractSource)
@@ -598,7 +574,8 @@ def test_latest_version_ignore_version(caplog):
     source_a.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=True,
     ):
         result = get_latest_version(
             "crazy-package",
