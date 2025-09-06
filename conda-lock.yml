@@ -2371,39 +2371,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: bcb8523107d39cf475b6559bb90d24ed
-      sha256: 2d851e41f09bc2292229d6c9362858cd0202a939f9eec5f2bfffb8120af0afa3
+      md5: 04475b252a1e574c13be0eacd3811ceb
+      sha256: f7c52ec5e859610fe262117bbc8b7dbeebccf41ec0f9a98fd08fb081bdc44369
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.13.11.28-hd8ed1ab_0.conda
-    version: 2025.09.06.13.11.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.20.30.12-hd8ed1ab_0.conda
+    version: 2025.09.06.20.30.12
   - category: main
     dependencies: {}
     hash:
-      md5: bcb8523107d39cf475b6559bb90d24ed
-      sha256: 2d851e41f09bc2292229d6c9362858cd0202a939f9eec5f2bfffb8120af0afa3
+      md5: 04475b252a1e574c13be0eacd3811ceb
+      sha256: f7c52ec5e859610fe262117bbc8b7dbeebccf41ec0f9a98fd08fb081bdc44369
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.13.11.28-hd8ed1ab_0.conda
-    version: 2025.09.06.13.11.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.20.30.12-hd8ed1ab_0.conda
+    version: 2025.09.06.20.30.12
   - category: main
     dependencies: {}
     hash:
-      md5: bcb8523107d39cf475b6559bb90d24ed
-      sha256: 2d851e41f09bc2292229d6c9362858cd0202a939f9eec5f2bfffb8120af0afa3
+      md5: 04475b252a1e574c13be0eacd3811ceb
+      sha256: f7c52ec5e859610fe262117bbc8b7dbeebccf41ec0f9a98fd08fb081bdc44369
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.13.11.28-hd8ed1ab_0.conda
-    version: 2025.09.06.13.11.28
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.06.20.30.12-hd8ed1ab_0.conda
+    version: 2025.09.06.20.30.12
   - category: main
     dependencies:
       attrs: ''
@@ -16941,135 +16941,135 @@ package:
   - category: main
     dependencies:
       python: ''
-      typer-slim-standard: ==0.17.3
+      typer-slim-standard: ==0.17.4
     hash:
-      md5: 6d3b039bd1e95613fad7606238cf0685
-      sha256: 7dc134908788eb04b37d726773490d516dfd76b4e83a6daf0dc4ec0d442dff3f
+      md5: 85934fab0edac241ce63dafc96b4ad8f
+      sha256: a95a459fea3d7c9ab5100751e49bc4f189fac261bab843ea715e0914e0554a3f
     manager: conda
     name: typer
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.3-pyhc883fe7_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.4-pyh66367de_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       python: '>=3.10'
-      typer-slim-standard: ==0.17.3
+      typer-slim-standard: ==0.17.4
     hash:
-      md5: 6d3b039bd1e95613fad7606238cf0685
-      sha256: 7dc134908788eb04b37d726773490d516dfd76b4e83a6daf0dc4ec0d442dff3f
+      md5: 85934fab0edac241ce63dafc96b4ad8f
+      sha256: a95a459fea3d7c9ab5100751e49bc4f189fac261bab843ea715e0914e0554a3f
     manager: conda
     name: typer
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.3-pyhc883fe7_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.4-pyh66367de_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       python: '>=3.10'
-      typer-slim-standard: ==0.17.3
+      typer-slim-standard: ==0.17.4
     hash:
-      md5: 6d3b039bd1e95613fad7606238cf0685
-      sha256: 7dc134908788eb04b37d726773490d516dfd76b4e83a6daf0dc4ec0d442dff3f
+      md5: 85934fab0edac241ce63dafc96b4ad8f
+      sha256: a95a459fea3d7c9ab5100751e49bc4f189fac261bab843ea715e0914e0554a3f
     manager: conda
     name: typer
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.3-pyhc883fe7_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-0.17.4-pyh66367de_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       click: '>=8.0.0'
       python: ''
       typing_extensions: '>=3.7.4.3'
     hash:
-      md5: 5b0f26ea75e581c12babc5b096c35a1a
-      sha256: bd02a099d27807f33aa41086c0d019d62949b8725b89307953aa3ed5faf71547
+      md5: 3494e3e04b11c8e42526dd50b44b1fdc
+      sha256: 450d664ad4469548814141b946aa92301bb642061576cd78035b78e606b8a8c7
     manager: conda
     name: typer-slim
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.3-pyhcf101f3_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.4-pyhcf101f3_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       click: '>=8.0.0'
       python: '>=3.10'
       typing_extensions: '>=3.7.4.3'
     hash:
-      md5: 5b0f26ea75e581c12babc5b096c35a1a
-      sha256: bd02a099d27807f33aa41086c0d019d62949b8725b89307953aa3ed5faf71547
+      md5: 3494e3e04b11c8e42526dd50b44b1fdc
+      sha256: 450d664ad4469548814141b946aa92301bb642061576cd78035b78e606b8a8c7
     manager: conda
     name: typer-slim
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.3-pyhcf101f3_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.4-pyhcf101f3_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       click: '>=8.0.0'
       python: '>=3.10'
       typing_extensions: '>=3.7.4.3'
     hash:
-      md5: 5b0f26ea75e581c12babc5b096c35a1a
-      sha256: bd02a099d27807f33aa41086c0d019d62949b8725b89307953aa3ed5faf71547
+      md5: 3494e3e04b11c8e42526dd50b44b1fdc
+      sha256: 450d664ad4469548814141b946aa92301bb642061576cd78035b78e606b8a8c7
     manager: conda
     name: typer-slim
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.3-pyhcf101f3_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.17.4-pyhcf101f3_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       rich: ''
       shellingham: ''
-      typer-slim: ==0.17.3
+      typer-slim: ==0.17.4
     hash:
-      md5: efc4e41ac51eaab9d860ab7f3bf5dea1
-      sha256: 1ae9576627f5c165ee0c2412e5705de37d89b9225aead8d83a0e5574403f0df0
+      md5: 18a4ecbfba33431e5a68379515e23934
+      sha256: 5d98d1bff3ee1b40f5afa6e4b8b0ea72efc6f9b5d139f3a3508a9786317e1c4d
     manager: conda
     name: typer-slim-standard
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.3-h9d53799_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.4-h5a5fed6_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       rich: ''
       shellingham: ''
-      typer-slim: ==0.17.3
+      typer-slim: ==0.17.4
     hash:
-      md5: efc4e41ac51eaab9d860ab7f3bf5dea1
-      sha256: 1ae9576627f5c165ee0c2412e5705de37d89b9225aead8d83a0e5574403f0df0
+      md5: 18a4ecbfba33431e5a68379515e23934
+      sha256: 5d98d1bff3ee1b40f5afa6e4b8b0ea72efc6f9b5d139f3a3508a9786317e1c4d
     manager: conda
     name: typer-slim-standard
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.3-h9d53799_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.4-h5a5fed6_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       rich: ''
       shellingham: ''
-      typer-slim: ==0.17.3
+      typer-slim: ==0.17.4
     hash:
-      md5: efc4e41ac51eaab9d860ab7f3bf5dea1
-      sha256: 1ae9576627f5c165ee0c2412e5705de37d89b9225aead8d83a0e5574403f0df0
+      md5: 18a4ecbfba33431e5a68379515e23934
+      sha256: 5d98d1bff3ee1b40f5afa6e4b8b0ea72efc6f9b5d139f3a3508a9786317e1c4d
     manager: conda
     name: typer-slim-standard
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.3-h9d53799_0.conda
-    version: 0.17.3
+      https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.17.4-h5a5fed6_0.conda
+    version: 0.17.4
   - category: main
     dependencies:
       typing_extensions: ==4.15.0
