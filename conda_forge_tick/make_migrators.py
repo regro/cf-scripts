@@ -334,6 +334,10 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(
             MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
         )
+    if migration_name == "libxml2214":
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="libxml2", new_pkg="libxml2-devel")
+        )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
     if migration_name == "numpy2":
