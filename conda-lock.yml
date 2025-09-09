@@ -1093,29 +1093,29 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      libgcc-ng: '>=12'
+      libgcc: '>=14'
     hash:
-      md5: 62ee74e96c5ebb0af99386de58cf9553
-      sha256: 5ced96500d945fb286c9c838e54fa759aa04a7129c59800f0846b4335cee770d
+      md5: 51a19bba1b8ebfb60df25cde030b7ebc
+      sha256: c30daba32ddebbb7ded490f0e371eae90f51e72db620554089103b4a6934b0d5
     manager: conda
     name: bzip2
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
+      https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_8.conda
     version: 1.0.8
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 7ed4301d437b59045be7e051a0308211
-      sha256: cad153608b81fb24fc8c509357daa9ae4e49dfc535b2cb49b91e23dbd68fc3c5
+      md5: 97c4b3bd8a90722104798175a1bdddbf
+      sha256: 8f50b58efb29c710f3cecf2027a8d7325ba769ab10c746eff75cea3ac050b10c
     manager: conda
     name: bzip2
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-hfdf4475_7.conda
+      https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-h500dc9f_8.conda
     version: 1.0.8
   - category: main
     dependencies:
@@ -5130,41 +5130,41 @@ package:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=14'
     hash:
-      md5: 397686f3739746730ef3a7bf0b800360
-      sha256: 603fd175df97301ebc3265243a2c93114e456f25020ebe2f31533b738494ec91
+      md5: f9f81ea472684d75b9dd8d0b328cf655
+      sha256: 858283ff33d4c033f4971bf440cebff217d5552a5222ba994c49be990dacd40d
     manager: conda
     name: fribidi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/fribidi-1.0.14-hb03c661_0.conda
-    version: 1.0.14
+      https://conda.anaconda.org/conda-forge/linux-64/fribidi-1.0.16-hb03c661_0.conda
+    version: 1.0.16
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: cdaedfcb3fbb841140af93f0f3f60c2d
-      sha256: b47505aa8aa4f2a924742397d799cb7377ec908053b0af3a82edcff09ff52906
+      md5: 4422491d30462506b9f2d554ab55e33d
+      sha256: 53dd0a6c561cf31038633aaa0d52be05da1f24e86947f06c4e324606c72c7413
     manager: conda
     name: fribidi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.14-h8616949_0.conda
-    version: 1.0.14
+      https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.16-h8616949_0.conda
+    version: 1.0.16
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: ddca06b4bd87dab0382741ea6ed4163a
-      sha256: c7425ebdc4b1589199f3a95cd195e7d9162cd0e555468b3a7e0c40dcab05321d
+      md5: 04bdce8d93a4ed181d1d726163c2d447
+      sha256: d856dc6744ecfba78c5f7df3378f03a75c911aadac803fa2b41a583667b4b600
     manager: conda
     name: fribidi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/fribidi-1.0.14-hc919400_0.conda
-    version: 1.0.14
+      https://conda.anaconda.org/conda-forge/osx-arm64/fribidi-1.0.16-hc919400_0.conda
+    version: 1.0.16
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -13905,55 +13905,55 @@ package:
     version: 8.0.2
   - category: main
     dependencies:
-      coverage: '>=7.5'
+      coverage: '>=7.10.6'
       pluggy: '>=1.2'
-      pytest: '>=6.2.5'
+      pytest: '>=7'
       python: '>=3.10'
       toml: ''
     hash:
-      md5: 50d191b852fccb4bf9ab7b59b030c99d
-      sha256: 5ba3e0955e473234fcc38cb4f0d893135710ec85ccb1dffdd73d9b213e99e8fb
+      md5: c4100b2ecb47d2d72fd835253e596d2f
+      sha256: f04251f794324993bf9e328311dde4eccb4d4fdf3a5366d017ba7b548c87f962
     manager: conda
     name: pytest-cov
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.3.0-pyhd8ed1ab_0.conda
-    version: 6.3.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhd8ed1ab_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
-      coverage: '>=7.5'
+      coverage: '>=7.10.6'
       pluggy: '>=1.2'
-      pytest: '>=6.2.5'
+      pytest: '>=7'
       python: '>=3.10'
       toml: ''
     hash:
-      md5: 50d191b852fccb4bf9ab7b59b030c99d
-      sha256: 5ba3e0955e473234fcc38cb4f0d893135710ec85ccb1dffdd73d9b213e99e8fb
+      md5: c4100b2ecb47d2d72fd835253e596d2f
+      sha256: f04251f794324993bf9e328311dde4eccb4d4fdf3a5366d017ba7b548c87f962
     manager: conda
     name: pytest-cov
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.3.0-pyhd8ed1ab_0.conda
-    version: 6.3.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhd8ed1ab_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
-      coverage: '>=7.5'
+      coverage: '>=7.10.6'
       pluggy: '>=1.2'
-      pytest: '>=6.2.5'
+      pytest: '>=7'
       python: '>=3.10'
       toml: ''
     hash:
-      md5: 50d191b852fccb4bf9ab7b59b030c99d
-      sha256: 5ba3e0955e473234fcc38cb4f0d893135710ec85ccb1dffdd73d9b213e99e8fb
+      md5: c4100b2ecb47d2d72fd835253e596d2f
+      sha256: f04251f794324993bf9e328311dde4eccb4d4fdf3a5366d017ba7b548c87f962
     manager: conda
     name: pytest-cov
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.3.0-pyhd8ed1ab_0.conda
-    version: 6.3.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhd8ed1ab_0.conda
+    version: 7.0.0
   - category: main
     dependencies:
       pytest: '>=7.4.2'
