@@ -30,8 +30,6 @@ if typing.TYPE_CHECKING:
 
     from conda_forge_tick.migrators_types import RecipeTypedDict
 
-    from .migrators_types import PackageName, RequirementsTypedDict
-
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import (
     as_iterable,
@@ -39,6 +37,8 @@ from conda_forge_tick.utils import (
     parse_recipe_yaml,
     sanitize_string,
 )
+
+from .migrators_types import PackageName, RequirementsTypedDict
 
 logger = logging.getLogger(__name__)
 

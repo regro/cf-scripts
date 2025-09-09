@@ -1,14 +1,17 @@
 import copy
 import os
 import typing
-from typing import Any
+from typing import Any, Literal
 
 from conda_forge_tick.migrators.core import _parse_bad_attr, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.replacement import Replacement
 from conda_forge_tick.utils import frozen_to_json_friendly
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
+from ..migrators_types import (
+    AttrsTypedDict,
+    MigrationUidTypedDict,
+    RequirementsTypedDict,
+)
 
 
 class MatplotlibBase(Replacement):
@@ -40,7 +43,7 @@ class MatplotlibBase(Replacement):
         _is_pred = parse_already_pred()
         _is_bad = _parse_bad_attr(attrs, not_bad_str_start)
 
-        requirements = attrs.get("requirements", {})
+        requirements: RequirementsTypedDict = attrs.get("requirements", {})
         rq = (
             requirements.get("build", set())
             | requirements.get("host", set())
@@ -59,7 +62,7 @@ class MatplotlibBase(Replacement):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         yum_pth = os.path.join(recipe_dir, "yum_requirements.txt")
         if not os.path.exists(yum_pth):
             yum_lines = []

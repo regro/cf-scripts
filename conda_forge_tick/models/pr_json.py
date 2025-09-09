@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import ClassVar, Literal
 
-from pydantic import UUID4, AnyHttpUrl, Field, TypeAdapter
+from pydantic import UUID4, AnyHttpUrl, Field
 from pydantic_extra_types.color import Color
 
 from conda_forge_tick.models.common import (
@@ -168,4 +168,4 @@ class PullRequestInfoSpecial(StrictBaseModel):
     state: Literal[PullRequestState.CLOSED]
 
 
-PullRequestData = TypeAdapter(PullRequestDataValid | PullRequestInfoSpecial)
+PullRequestData = PullRequestDataValid | PullRequestInfoSpecial

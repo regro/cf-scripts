@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 58efd066f5b2e6adff803e571b32741f8f5424f03d68a8e7324ddfd3c86ab89a
-    osx-64: a1d62e018ec6b80be7502960279dc21d830af052d4e3f19198c42d7861128bf9
-    osx-arm64: 30f766aa945592e3526bd01e0ec6c960e19ae083d6ea69a79259d37565adeb55
+    linux-64: 37d933f5821813c132eac100d6b94a7cb73090fc971459fc01b2491573dd930b
+    osx-64: 88ec521ae9595618964b18f4bba971836980cdb2f35204af7cc82dbacec94201
+    osx-arm64: 85621b635f7be6352eec0fefcf738bc36a1d328d8311b640d226bdc3144d2b83
   platforms:
     - osx-arm64
     - linux-64
@@ -5085,32 +5085,32 @@ package:
     version: 4.59.2
   - category: main
     dependencies:
-      libfreetype: 2.13.3
-      libfreetype6: 2.13.3
+      libfreetype: 2.14.0
+      libfreetype6: 2.14.0
     hash:
-      md5: 9ccd736d31e0c6e41f54e704e5312811
-      sha256: 7ef7d477c43c12a5b4cddcf048a83277414512d1116aba62ebadfa7056a7d84f
+      md5: 22c67dd57eeba8cedcc8b1e669e8ef0d
+      sha256: 1e04e8933012bc1bedc0c700f3dec209228bae888887ea0f29afd961b13d0758
     manager: conda
     name: freetype
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/freetype-2.13.3-ha770c72_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/linux-64/freetype-2.14.0-ha770c72_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
-      libfreetype: 2.13.3
-      libfreetype6: 2.13.3
+      libfreetype: 2.14.0
+      libfreetype6: 2.14.0
     hash:
-      md5: 126dba1baf5030cb6f34533718924577
-      sha256: e2870e983889eec73fdc0d4ab27d3f6501de4750ffe32d7d0a3a287f00bc2f15
+      md5: cccaa82b27111b0ca100538468505561
+      sha256: aa32a6404450889ed5294dac3c3b21d9a20e6608640e7e9d6270c9cf0be385b2
     manager: conda
     name: freetype
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/freetype-2.13.3-h694c41f_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/osx-64/freetype-2.14.0-h694c41f_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
       libfreetype: 2.13.3
@@ -5127,41 +5127,44 @@ package:
     version: 2.13.3
   - category: main
     dependencies:
-      libgcc-ng: '>=7.5.0'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=14'
     hash:
-      md5: ac7bc6a654f8f41b352b38f4051135f8
-      sha256: 5d7b6c0ee7743ba41399e9e05a58ccc1cfc903942e49ff6f677f6e423ea7a627
+      md5: 397686f3739746730ef3a7bf0b800360
+      sha256: 603fd175df97301ebc3265243a2c93114e456f25020ebe2f31533b738494ec91
     manager: conda
     name: fribidi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/fribidi-1.0.10-h36c2ea0_0.tar.bz2
-    version: 1.0.10
+      https://conda.anaconda.org/conda-forge/linux-64/fribidi-1.0.14-hb03c661_0.conda
+    version: 1.0.14
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=10.13'
     hash:
-      md5: f1c6b41e0f56998ecd9a3e210faa1dc0
-      sha256: 4f6db86ecc4984cd4ac88ca52030726c3cfd11a64dfb15c8602025ee3001a2b5
+      md5: cdaedfcb3fbb841140af93f0f3f60c2d
+      sha256: b47505aa8aa4f2a924742397d799cb7377ec908053b0af3a82edcff09ff52906
     manager: conda
     name: fribidi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.10-hbcb3906_0.tar.bz2
-    version: 1.0.10
+      https://conda.anaconda.org/conda-forge/osx-64/fribidi-1.0.14-h8616949_0.conda
+    version: 1.0.14
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=11.0'
     hash:
-      md5: c64443234ff91d70cb9c7dc926c58834
-      sha256: 4b37ea851a2cf85edf0a63d2a63266847ec3dcbba4a31156d430cdd6aa811303
+      md5: ddca06b4bd87dab0382741ea6ed4163a
+      sha256: c7425ebdc4b1589199f3a95cd195e7d9162cd0e555468b3a7e0c40dcab05321d
     manager: conda
     name: fribidi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/fribidi-1.0.10-h27ca646_0.tar.bz2
-    version: 1.0.10
+      https://conda.anaconda.org/conda-forge/osx-arm64/fribidi-1.0.14-hc919400_0.conda
+    version: 1.0.14
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -8334,30 +8337,30 @@ package:
     version: 3.4.6
   - category: main
     dependencies:
-      libfreetype6: '>=2.13.3'
+      libfreetype6: '>=2.14.0'
     hash:
-      md5: 51f5be229d83ecd401fb369ab96ae669
-      sha256: 7be9b3dac469fe3c6146ff24398b685804dfc7a1de37607b84abd076f57cc115
+      md5: 52de9afdafb86f865164e46841eacaaa
+      sha256: 050c042da421b5e6ae418ac413b240c229f0d20a75774cb0d93232308ed950e2
     manager: conda
     name: libfreetype
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libfreetype-2.13.3-ha770c72_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/linux-64/libfreetype-2.14.0-ha770c72_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
-      libfreetype6: '>=2.13.3'
+      libfreetype6: '>=2.14.0'
     hash:
-      md5: 07c8d3fbbe907f32014b121834b36dd5
-      sha256: afe0e2396844c8cfdd6256ac84cabc9af823b1727f704c137b030b85839537a6
+      md5: f4130742f7e72937ffb8b1b692b00b88
+      sha256: 75b0f0794684e5c43bcf6e647395a00c831dd4a13e3d4181235466d044f26e21
     manager: conda
     name: libfreetype
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libfreetype-2.13.3-h694c41f_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/osx-64/libfreetype-2.14.0-h694c41f_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
       libfreetype6: '>=2.13.3'
@@ -8374,34 +8377,34 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
-      libpng: '>=1.6.47,<1.7.0a0'
+      libgcc: '>=14'
+      libpng: '>=1.6.50,<1.7.0a0'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 3c255be50a506c50765a93a6644f32fe
-      sha256: 7759bd5c31efe5fbc36a7a1f8ca5244c2eabdbeb8fc1bee4b99cf989f35c7d81
+      md5: 1b304f4ff3efc107352af2cad7df58a2
+      sha256: 35dc826d9a616d925ec983f6ecae5fa58b6c596c85344465469ad1d496f2a132
     manager: conda
     name: libfreetype6
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libfreetype6-2.13.3-h48d6fc4_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/linux-64/libfreetype6-2.14.0-h73754d4_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libpng: '>=1.6.47,<1.7.0a0'
+      libpng: '>=1.6.50,<1.7.0a0'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: c76e6f421a0e95c282142f820835e186
-      sha256: 058165962aa64fc5a6955593212c0e1ea42ca6d6dba60ee61dff612d4c3818d7
+      md5: 54db56c1d97b231cfd548c6ae563aefc
+      sha256: 0bd383069657496b5b5b5877b51dfe4fd3827c5c6b9e3825e46d5fd1c10596b6
     manager: conda
     name: libfreetype6
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libfreetype6-2.13.3-h40dfd5c_1.conda
-    version: 2.13.3
+      https://conda.anaconda.org/conda-forge/osx-64/libfreetype6-2.14.0-h6912278_0.conda
+    version: 2.14.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -11001,6 +11004,103 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
     version: 1.1.4
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=14'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: 315da4d0ddb6d28e35febc04f2b6773e
+      sha256: 52bb64dc52d22ce6363626ac2b724ef47066acdf0576e14562be9d8d9bbed7fa
+    manager: conda
+    name: mypy
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/mypy-1.17.1-py311h49ec1c0_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      __osx: '>=10.13'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: cb2eb9718379fa165199055f863e0090
+      sha256: defddbe522cc3d9a58dc8e99539f4e38ba6e43259ec5a50bffb54f2ad2f9f59e
+    manager: conda
+    name: mypy
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-64/mypy-1.17.1-py311h13e5629_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      __osx: '>=11.0'
+      mypy_extensions: '>=1.0.0'
+      pathspec: '>=0.9.0'
+      psutil: '>=4.0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+      typing_extensions: '>=4.6.0'
+    hash:
+      md5: 233307a593a05db323f556890c2a9888
+      sha256: d333dfa0b6c505bc1d6d106b741f948eecfe2e2bade6ed1b295c80414db62ab1
+    manager: conda
+    name: mypy
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.17.1-py311h3696347_1.conda
+    version: 1.17.1
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
+  - category: main
+    dependencies:
+      python: '>=3.9'
+    hash:
+      md5: e9c622e0d00fa24a6292279af3ab6d06
+      sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
+    manager: conda
+    name: mypy_extensions
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
+    version: 1.1.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'

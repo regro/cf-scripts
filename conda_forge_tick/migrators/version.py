@@ -3,10 +3,9 @@ import functools
 import logging
 import random
 import secrets
-import typing
 import warnings
 from pathlib import Path
-from typing import Any, List, Sequence
+from typing import Any, List, Literal, Sequence
 
 import conda.exceptions
 import networkx as nx
@@ -15,6 +14,11 @@ from rattler_build_conda_compat.loader import load_yaml
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators_types import (
+    AttrsTypedDict,
+    MigrationUidTypedDict,
+    PackageName,
+)
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version, update_version_v1
@@ -24,13 +28,6 @@ from conda_forge_tick.utils import (
     sanitize_string,
 )
 from conda_forge_tick.version_filters import is_version_ignored
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import (
-        AttrsTypedDict,
-        MigrationUidTypedDict,
-        PackageName,
-    )
 
 SKIP_DEPS_NODES = [
     "ansible",
@@ -274,7 +271,7 @@ class Version(Migrator):
         attrs: "AttrsTypedDict",
         hash_type: str = "sha256",
         **kwargs: Any,
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         version = attrs.get("version_pr_info", {}).get("new_version", None)
 
         recipe_dir = Path(recipe_dir)
@@ -318,16 +315,16 @@ class Version(Migrator):
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
     ) -> str:
-        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
+        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
             pred = [
                 (
                     name,
-                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                         "new_version"
                     ],
                 )
                 for name in list(
-                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
+                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                 )
             ]
         else:
@@ -415,7 +412,9 @@ class Version(Migrator):
 
         body += self._hint_and_maybe_update_deps(feedstock_ctx)
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+        return (
+            super().pr_body(feedstock_ctx, add_label_text=add_label_text).format(body)
+        )
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
@@ -532,7 +531,7 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _get_attempts(node):
             if _has_solver_checks(node):
-                seen = set()
+                seen: set = set()
                 return _get_attempts_r(node, seen)
             else:
                 return _get_attempts_nr(node)

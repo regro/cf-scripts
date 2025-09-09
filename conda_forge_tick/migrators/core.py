@@ -7,7 +7,7 @@ import re
 import secrets
 import typing
 from pathlib import Path
-from typing import Any, List, Sequence, Set
+from typing import Any, List, Literal, Sequence, Set
 
 import networkx as nx
 import numpy as np
@@ -23,10 +23,10 @@ from conda_forge_tick.utils import (
     pluck,
 )
 
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
-
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
 logger = logging.getLogger(__name__)
@@ -549,7 +549,7 @@ class Migrator:
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
