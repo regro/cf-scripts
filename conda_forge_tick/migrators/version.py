@@ -312,7 +312,9 @@ class Version(Migrator):
                 )
             )
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
+    ) -> str:
         if feedstock_ctx.feedstock_name in self.effective_graph.nodes:  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
             pred = [
                 (
@@ -410,7 +412,9 @@ class Version(Migrator):
 
         body += self._hint_and_maybe_update_deps(feedstock_ctx)
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+        return (
+            super().pr_body(feedstock_ctx, add_label_text=add_label_text).format(body)
+        )
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
