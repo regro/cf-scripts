@@ -177,11 +177,14 @@ class PyPI(AbstractSource):
     name = "PyPI"
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
+        url_names = ["pypi.python.org", "pypi.org", "pypi.io", "files.pythonhosted.org"]
         source_url = meta_yaml["url"]
         if not any(s in source_url for s in url_names):
             return None
-        pkg = meta_yaml["url"].split("/")[6]
+        if "files.pythonhosted.org" in source_url:
+            pkg = meta_yaml["url"].split("/")[-1].rsplit("-", maxsplit=1)[0]
+        else:
+            pkg = meta_yaml["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
     def get_version(self, url) -> Optional[str]:
