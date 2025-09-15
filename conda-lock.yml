@@ -2371,39 +2371,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b28e0f04adca742cf1c15919b60d7a0e
-      sha256: 86bb2cec70d6ae97c0cb7c9f37f0e4e7ed9a838a19837630769fcfa1c232c172
+      md5: 363008f972587a3e7e5f894a1ed86f85
+      sha256: 3e99d6001608ec6ee26b9cac4cffdc7a512730267b8bec6b024e684bd66f6fe9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.09.53.51-hd8ed1ab_0.conda
-    version: 2025.09.15.09.53.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.11.24.57-hd8ed1ab_0.conda
+    version: 2025.09.15.11.24.57
   - category: main
     dependencies: {}
     hash:
-      md5: b28e0f04adca742cf1c15919b60d7a0e
-      sha256: 86bb2cec70d6ae97c0cb7c9f37f0e4e7ed9a838a19837630769fcfa1c232c172
+      md5: 363008f972587a3e7e5f894a1ed86f85
+      sha256: 3e99d6001608ec6ee26b9cac4cffdc7a512730267b8bec6b024e684bd66f6fe9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.09.53.51-hd8ed1ab_0.conda
-    version: 2025.09.15.09.53.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.11.24.57-hd8ed1ab_0.conda
+    version: 2025.09.15.11.24.57
   - category: main
     dependencies: {}
     hash:
-      md5: b28e0f04adca742cf1c15919b60d7a0e
-      sha256: 86bb2cec70d6ae97c0cb7c9f37f0e4e7ed9a838a19837630769fcfa1c232c172
+      md5: 363008f972587a3e7e5f894a1ed86f85
+      sha256: 3e99d6001608ec6ee26b9cac4cffdc7a512730267b8bec6b024e684bd66f6fe9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.09.53.51-hd8ed1ab_0.conda
-    version: 2025.09.15.09.53.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.09.15.11.24.57-hd8ed1ab_0.conda
+    version: 2025.09.15.11.24.57
   - category: main
     dependencies:
       attrs: ''
@@ -4568,46 +4568,46 @@ package:
     version: 0.116.1
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       sgmllib3k: ''
     hash:
-      md5: 5ee4b7eebc1f6b020903d01604e279c6
-      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
+      md5: 4dd03d545ff391578ab27afbeb6052cc
+      sha256: 804087fa9bd3dc9cdb7e1c9061d8738c7b7fee4a66716fe4be626137b1134631
     manager: conda
     name: feedparser
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
-    version: 6.0.11
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.12-pyhd8ed1ab_0.conda
+    version: 6.0.12
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       sgmllib3k: ''
     hash:
-      md5: 5ee4b7eebc1f6b020903d01604e279c6
-      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
+      md5: 4dd03d545ff391578ab27afbeb6052cc
+      sha256: 804087fa9bd3dc9cdb7e1c9061d8738c7b7fee4a66716fe4be626137b1134631
     manager: conda
     name: feedparser
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
-    version: 6.0.11
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.12-pyhd8ed1ab_0.conda
+    version: 6.0.12
   - category: main
     dependencies:
-      python: '>=3.9'
+      python: '>=3.10'
       sgmllib3k: ''
     hash:
-      md5: 5ee4b7eebc1f6b020903d01604e279c6
-      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
+      md5: 4dd03d545ff391578ab27afbeb6052cc
+      sha256: 804087fa9bd3dc9cdb7e1c9061d8738c7b7fee4a66716fe4be626137b1134631
     manager: conda
     name: feedparser
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
-    version: 6.0.11
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.12-pyhd8ed1ab_0.conda
+    version: 6.0.12
   - category: main
     dependencies:
       python: '>=3.9'
