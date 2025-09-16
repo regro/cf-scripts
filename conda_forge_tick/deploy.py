@@ -210,8 +210,8 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
         print("(dry run) deploying")
         return
 
-     with fold_log_lines("cleaning up disk space for deploy"):
-        clean_disk_space()
+    with fold_log_lines("cleaning up disk space for deploy"):
+       clean_disk_space()
 
     files_to_add = set()
     if dirs_to_deploy is None:
