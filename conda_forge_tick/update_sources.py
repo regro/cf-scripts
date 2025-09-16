@@ -34,6 +34,9 @@ CURL_ONLY_URL_SLUGS = [
 
 
 def urls_from_meta(meta_yaml: "RecipeTypedDict") -> set[str]:
+    if "source" not in meta_yaml:
+        return set()
+
     source: "SourceTypedDict" = meta_yaml["source"]
     sources: typing.List["SourceTypedDict"]
     if isinstance(source, collections.abc.Mapping):
@@ -178,8 +181,8 @@ class PyPI(AbstractSource):
 
     def get_url(self, meta_yaml) -> Optional[str]:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io", "files.pythonhosted.org"]
-        source_url = meta_yaml["url"]
-        if not any(s in source_url for s in url_names):
+        source_url = meta_yaml.get("url", None)
+        if source_url is None or (not any(s in source_url for s in url_names)):
             return None
         if "files.pythonhosted.org" in source_url:
             pkg = meta_yaml["url"].split("/")[-1].rsplit("-", maxsplit=1)[0]
@@ -203,10 +206,11 @@ class NPM(AbstractSource):
     name = "NPM"
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        if "registry.npmjs.org" not in meta_yaml["url"]:
+        source_url = meta_yaml.get("url", None)
+        if source_url is None or "registry.npmjs.org" not in source_url:
             return None
         # might be namespaced
-        pkg = meta_yaml["url"].split("/")[3:-2]
+        pkg = source_url.split("/")[3:-2]
         return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
     def get_version(self, url: str) -> Optional[str]:
@@ -267,7 +271,9 @@ class CRAN(AbstractSource):
 
     def get_url(self, meta_yaml) -> Optional[str]:
         self.init()
-        urls = meta_yaml["url"]
+        urls = meta_yaml.get("url", None)
+        if urls is None:
+            return None
         if not isinstance(meta_yaml["url"], list):
             urls = [urls]
         for url in urls:
@@ -581,9 +587,10 @@ class Github(VersionFromFeed):
         return None
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        if "github.com" not in meta_yaml["url"]:
+        source_url = meta_yaml.get("url", None)
+        if source_url is None or "github.com" not in source_url:
             return None
-        split_url = meta_yaml["url"].lower().split("/")
+        split_url = source_url.lower().split("/")
         version = meta_yaml["version"]
         self.set_version_prefix(version, split_url)
         package_owner = split_url[split_url.index("github.com") + 1]
@@ -595,10 +602,11 @@ class GithubReleases(AbstractSource):
     name = "GithubReleases"
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        if "github.com" not in meta_yaml["url"]:
+        source_url = meta_yaml.get("url", None)
+        if source_url is None or "github.com" not in source_url:
             return None
         # might be namespaced
-        owner, repo = meta_yaml["url"].split("/")[3:5]
+        owner, repo = source_url.split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
     def get_version(self, url: str) -> Optional[str | Literal[False]]:
@@ -637,8 +645,10 @@ class LibrariesIO(VersionFromFeed):
     name = "LibrariesIO"
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
+        urls = meta_yaml.get("url", None)
+        if urls is None:
+            return None
+        if not isinstance(urls, list):
             urls = [urls]
         for url in urls:
             if self.url_contains not in url:
@@ -709,8 +719,8 @@ class NVIDIA(AbstractSource):
         return next_ver
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        url = meta_yaml["url"]
-        if "nvidia.com" not in url:
+        url = meta_yaml.get("url", None)
+        if url is None or "nvidia.com" not in url:
             return None
         feedstock_name = meta_yaml["feedstock_name"]
         name = self.feedstock_to_package.get(feedstock_name, feedstock_name)
@@ -731,10 +741,11 @@ class CratesIO(AbstractSource):
     name = "CratesIO"
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        if "crates.io" not in meta_yaml["url"]:
+        source_url = meta_yaml.get("url", None)
+        if source_url is None or "crates.io" not in source_url:
             return None
 
-        pkg = Path(meta_yaml["url"]).parts[5]
+        pkg = Path(source_url).parts[5]
         tier = self._tier_directory(pkg)
 
         return f"https://index.crates.io/{tier}"

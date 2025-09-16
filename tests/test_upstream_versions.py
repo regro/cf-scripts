@@ -1790,7 +1790,7 @@ def test_latest_version_cratesio(tmpdir):
 
 
 def test_latest_version_pypi_files_pythonhost_url(tmpdir):
-    curr_url = "https://files.pythonhosted.org/packages/45/33/4f88384403c3974c82f0296615c6e5f5114ca3d8fd920fa3196e4d619cb0/atlas_schema-{{ version }}.tar.gz"
+    curr_url = "https://files.pythonhosted.org/packages/45/33/4f88384403c3974c82f0296615c6e5f5114ca3d8fd920fa3196e4d619cb0/atlas_schema-0.3.0.tar.gz"
     curr_ver = "0.3.0"
     name = "atlas-schema"
     ver = "0.4.0"
@@ -1807,5 +1807,31 @@ def test_latest_version_pypi_files_pythonhost_url(tmpdir):
         )
 
     attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_pypi_canonical_url(tmpdir):
+    curr_url = "https://pypi.org/packages/source/o/opencosmo/opencosmo-0.8.1.tar.gz"
+    curr_ver = "0.8.1"
+    name = "opencosmo"
+    ver = "0.9.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
 
     assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
