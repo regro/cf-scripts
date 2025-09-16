@@ -4417,59 +4417,59 @@ package:
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.116.1
+      fastapi-core: ==0.116.2
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: 78152786477103630cd4b807569b8881
-      sha256: 17c3c3cfe254932feefe6e56e528ec012afd6a95c048cef4c4231d9075c47f85
+      md5: f08a119ee16e8bdb8dbd77e9e6a945e1
+      sha256: beb8f5d6837c5ca03da964cd731c4facd715ecef4fa07ad8f789efed39dd1c27
     manager: conda
     name: fastapi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-h26c32bb_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.2-hf7056cc_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.116.1
+      fastapi-core: ==0.116.2
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: 78152786477103630cd4b807569b8881
-      sha256: 17c3c3cfe254932feefe6e56e528ec012afd6a95c048cef4c4231d9075c47f85
+      md5: f08a119ee16e8bdb8dbd77e9e6a945e1
+      sha256: beb8f5d6837c5ca03da964cd731c4facd715ecef4fa07ad8f789efed39dd1c27
     manager: conda
     name: fastapi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-h26c32bb_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.2-hf7056cc_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.116.1
+      fastapi-core: ==0.116.2
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: 78152786477103630cd4b807569b8881
-      sha256: 17c3c3cfe254932feefe6e56e528ec012afd6a95c048cef4c4231d9075c47f85
+      md5: f08a119ee16e8bdb8dbd77e9e6a945e1
+      sha256: beb8f5d6837c5ca03da964cd731c4facd715ecef4fa07ad8f789efed39dd1c27
     manager: conda
     name: fastapi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.1-h26c32bb_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.116.2-hf7056cc_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       python: ''
@@ -4522,50 +4522,50 @@ package:
     dependencies:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
       python: ''
-      starlette: '>=0.40.0,<0.48.0'
+      starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: 5553f4b6a3ee438149fdcfbdbb1c32ee
-      sha256: 7899a37f817ed589b69e3a75cb8ea144539fd5b3f0e69d0e2d9180085c852c4e
+      md5: 3d70154459d784b1b3bc9a163af21e19
+      sha256: f9bb5893b3488c5d1573ea1e48b2e4ff26ff8f8aecb60b3a62d5493e4b914f2f
     manager: conda
     name: fastapi-core
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.1-pyhe01879c_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.2-pyhcf101f3_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
-      python: '>=3.9'
-      starlette: '>=0.40.0,<0.48.0'
+      python: '>=3.10'
+      starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: 5553f4b6a3ee438149fdcfbdbb1c32ee
-      sha256: 7899a37f817ed589b69e3a75cb8ea144539fd5b3f0e69d0e2d9180085c852c4e
+      md5: 3d70154459d784b1b3bc9a163af21e19
+      sha256: f9bb5893b3488c5d1573ea1e48b2e4ff26ff8f8aecb60b3a62d5493e4b914f2f
     manager: conda
     name: fastapi-core
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.1-pyhe01879c_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.2-pyhcf101f3_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
-      python: '>=3.9'
-      starlette: '>=0.40.0,<0.48.0'
+      python: '>=3.10'
+      starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: 5553f4b6a3ee438149fdcfbdbb1c32ee
-      sha256: 7899a37f817ed589b69e3a75cb8ea144539fd5b3f0e69d0e2d9180085c852c4e
+      md5: 3d70154459d784b1b3bc9a163af21e19
+      sha256: f9bb5893b3488c5d1573ea1e48b2e4ff26ff8f8aecb60b3a62d5493e4b914f2f
     manager: conda
     name: fastapi-core
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.1-pyhe01879c_1.conda
-    version: 0.116.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.116.2-pyhcf101f3_0.conda
+    version: 0.116.2
   - category: main
     dependencies:
       python: '>=3.10'
@@ -11429,43 +11429,43 @@ package:
       ca-certificates: ''
       libgcc: '>=14'
     hash:
-      md5: ffffb341206dd0dab0c36053c048d621
-      sha256: c9f54d4e8212f313be7b02eb962d0cb13a8dae015683a403d3accd4add3e520e
+      md5: 72b3dd72e4f0b88cdacf3421313480f0
+      sha256: 8c313f79fd9408f53922441fbb4e38f065e2251840f86862f05bdf613da7980f
     manager: conda
     name: openssl
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.2-h26f9b46_0.conda
-    version: 3.5.2
+      https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.3-h26f9b46_0.conda
+    version: 3.5.3
   - category: main
     dependencies:
       __osx: '>=10.13'
       ca-certificates: ''
     hash:
-      md5: 22f5d63e672b7ba467969e9f8b740ecd
-      sha256: 8be57a11019666aa481122c54e29afd604405b481330f37f918e9fbcd145ef89
+      md5: d51f5ce62794a19fa67da1ff101bae05
+      sha256: b38470dc57c365e40cea5968f393f3d5ddd36bc779623a17b843f437fd15ea06
     manager: conda
     name: openssl
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.2-h6e31bce_0.conda
-    version: 3.5.2
+      https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.3-h230baf5_0.conda
+    version: 3.5.3
   - category: main
     dependencies:
       __osx: '>=11.0'
       ca-certificates: ''
     hash:
-      md5: bcb0d87dfbc199d0a461d2c7ca30b3d8
-      sha256: f6d1c87dbcf7b39fad24347570166dade1c533ae2d53c60a70fa4dc874ef0056
+      md5: 161d97c4c31b7851617119e6f851927f
+      sha256: c547508f11f214125fe5fc66da3d5a5dad6a9204315ee880b5ba65cdb32b6572
     manager: conda
     name: openssl
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.2-he92f556_0.conda
-    version: 3.5.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.3-h5503f6c_0.conda
+    version: 3.5.3
   - category: main
     dependencies:
       jsonschema: ''
@@ -11984,9 +11984,10 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
+      freetype: ''
       lcms2: '>=2.17,<3.0a0'
-      libfreetype: '>=2.13.3'
-      libfreetype6: '>=2.13.3'
+      libfreetype: '>=2.14.1'
+      libfreetype6: '>=2.14.1'
       libgcc: '>=14'
       libjpeg-turbo: '>=3.1.0,<4.0a0'
       libtiff: '>=4.7.0,<4.8.0a0'
@@ -11998,21 +11999,22 @@ package:
       python_abi: 3.11.*
       tk: '>=8.6.13,<8.7.0a0'
     hash:
-      md5: a36332b6f98697911d5760060f69ec87
-      sha256: 26b77626cdbc21c376ab0f7cb5e38a3fdc9cf184de30791b64972d2775e536cf
+      md5: 54537a0323ab81bb3ec8f7d52a956556
+      sha256: a81a80f78fd4ee6d316165ce3e04b449b54c971b646ff461bd274b80ba2eb97f
     manager: conda
     name: pillow
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pillow-11.3.0-py311h3df08e7_1.conda
+      https://conda.anaconda.org/conda-forge/linux-64/pillow-11.3.0-py311h3df08e7_2.conda
     version: 11.3.0
   - category: main
     dependencies:
       __osx: '>=10.13'
+      freetype: ''
       lcms2: '>=2.17,<3.0a0'
-      libfreetype: '>=2.13.3'
-      libfreetype6: '>=2.13.3'
+      libfreetype: '>=2.14.1'
+      libfreetype6: '>=2.14.1'
       libjpeg-turbo: '>=3.1.0,<4.0a0'
       libtiff: '>=4.7.0,<4.8.0a0'
       libwebp-base: '>=1.6.0,<2.0a0'
@@ -12023,21 +12025,22 @@ package:
       python_abi: 3.11.*
       tk: '>=8.6.13,<8.7.0a0'
     hash:
-      md5: 3fefb6054f6a6f70d8adcec27a0f9b64
-      sha256: 81c5c8e10eb2f42ee26fc1b795620b7462a3c8e9671b1d3a17b8d58cdd7bd89b
+      md5: 0bdacf38e695b5443c32915a37f34514
+      sha256: 1940eb93219d31f52d4f98969c15ebf4a0fd288bb0156c5893ad528ce71d265e
     manager: conda
     name: pillow
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pillow-11.3.0-py311h0d39b4b_1.conda
+      https://conda.anaconda.org/conda-forge/osx-64/pillow-11.3.0-py311h0d39b4b_2.conda
     version: 11.3.0
   - category: main
     dependencies:
       __osx: '>=11.0'
+      freetype: ''
       lcms2: '>=2.17,<3.0a0'
-      libfreetype: '>=2.13.3'
-      libfreetype6: '>=2.13.3'
+      libfreetype: '>=2.14.1'
+      libfreetype6: '>=2.14.1'
       libjpeg-turbo: '>=3.1.0,<4.0a0'
       libtiff: '>=4.7.0,<4.8.0a0'
       libwebp-base: '>=1.6.0,<2.0a0'
@@ -12048,14 +12051,14 @@ package:
       python_abi: 3.11.*
       tk: '>=8.6.13,<8.7.0a0'
     hash:
-      md5: 5022d1df0b5861946b76dc55a6c48b4a
-      sha256: 2b64066ad9b9660db1c5bc5347a01cce41384d6a4e7f698c6d1dcde067137db4
+      md5: 72a052035e0355cca5e24bb581d7340a
+      sha256: 71de25f7256b9f4d49d72abf51896c1ae4b8f5a48aafc5f067b4536f9fd66ccb
     manager: conda
     name: pillow
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pillow-11.3.0-py311h3f9ac88_1.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/pillow-11.3.0-py311h3f9ac88_2.conda
     version: 11.3.0
   - category: main
     dependencies:
@@ -16351,45 +16354,45 @@ package:
       python: ''
       typing_extensions: '>=4.10.0'
     hash:
-      md5: 7839e6127ef19c0a07fe798d9d1c436b
-      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
+      md5: 1549ff806d9b81492d14eaec12e3935d
+      sha256: 9272bccaa0d7d0b0f925e1ffdac319493c4d25a8aed81b3904f62fe38ba7b047
     manager: conda
     name: starlette
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
-    version: 0.47.3
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.48.0-pyhfdc7a7d_0.conda
+    version: 0.48.0
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
       python: '>=3.10'
       typing_extensions: '>=4.10.0'
     hash:
-      md5: 7839e6127ef19c0a07fe798d9d1c436b
-      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
+      md5: 1549ff806d9b81492d14eaec12e3935d
+      sha256: 9272bccaa0d7d0b0f925e1ffdac319493c4d25a8aed81b3904f62fe38ba7b047
     manager: conda
     name: starlette
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
-    version: 0.47.3
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.48.0-pyhfdc7a7d_0.conda
+    version: 0.48.0
   - category: main
     dependencies:
       anyio: '>=3.6.2,<5'
       python: '>=3.10'
       typing_extensions: '>=4.10.0'
     hash:
-      md5: 7839e6127ef19c0a07fe798d9d1c436b
-      sha256: 12f1e9361138d23c787b321ee0a621a7a04b3918d790e13cef29e5e57f479506
+      md5: 1549ff806d9b81492d14eaec12e3935d
+      sha256: 9272bccaa0d7d0b0f925e1ffdac319493c4d25a8aed81b3904f62fe38ba7b047
     manager: conda
     name: starlette
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/starlette-0.47.3-pyhfdc7a7d_0.conda
-    version: 0.47.3
+      https://conda.anaconda.org/conda-forge/noarch/starlette-0.48.0-pyhfdc7a7d_0.conda
+    version: 0.48.0
   - category: main
     dependencies:
       python: '>=3.9'
