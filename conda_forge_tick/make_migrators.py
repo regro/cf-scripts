@@ -4,7 +4,6 @@ import glob
 import logging
 import os
 import pprint
-import random
 import re
 import secrets
 import sys
@@ -89,9 +88,6 @@ from conda_forge_tick.utils import (
 )
 
 from .migrators_types import PackageName
-
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
 
 logger = logging.getLogger(__name__)
 
