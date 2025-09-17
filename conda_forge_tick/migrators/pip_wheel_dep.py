@@ -120,7 +120,8 @@ class PipWheelMigrator(MiniMigrator):
 
             wheel_metadata = pkginfo.get_metadata(wheel_file)
             if wheel_metadata is None:
-                raise ValueError(f"pkginfo could not parse {wheel_file}.")
+                logger.warning("Could not parse metadata from wheel %s", wheel_file)
+                return None
             wheel_metadata.extractMetadata()
             for dep in wheel_metadata.requires_dist:
                 parsed_req = Requirement(dep)
