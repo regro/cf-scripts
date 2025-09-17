@@ -13,7 +13,6 @@ from typing import (
     List,
     Literal,
     Mapping,
-    MutableMapping,
     Optional,
     Tuple,
     TypeVar,
@@ -180,7 +179,7 @@ def get_latest_version_local(
 
 def get_latest_version_containerized(
     name: str,
-    attrs: MutableMapping[str, Any],
+    attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """Given a package, return the new version information to be written into the cf-graph.
@@ -201,6 +200,7 @@ def get_latest_version_containerized(
     dict
         The new version information.
     """
+    attrs = dict(attrs)
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
@@ -256,7 +256,7 @@ def get_latest_version(
         The new version information.
     """
     if should_use_container(use_container=use_container):
-        return get_latest_version_containerized(name, dict(attrs), sources)
+        return get_latest_version_containerized(name, attrs, sources)
     else:
         return get_latest_version_local(name, attrs, sources)
 
