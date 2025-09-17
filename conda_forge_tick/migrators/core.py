@@ -135,7 +135,7 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     else:
         bad_bool = bad
 
-    return bad_bool or attrs.get("parsing_error", False)
+    return bad_bool or bool(attrs.get("parsing_error", False))
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
@@ -307,10 +307,10 @@ class Migrator:
         check_solvable: bool = True,
     ):
         if not hasattr(self, "_init_args"):
-            self._init_args = []
+            self._init_args: list[Any] = []
 
         if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {
+            self._init_kwargs: dict[str, Any] = {
                 "pr_limit": pr_limit,
                 "obj_version": obj_version,
                 "piggy_back_migrations": piggy_back_migrations,
@@ -397,7 +397,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),
+                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph should not be allowed to be None
             )
         ][:limit]
 
@@ -457,7 +457,7 @@ class Migrator:
             "MigrationUidTypedDict",
             pr_data["data"],
         )
-        already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
+        already_migrated_uids: list["MigrationUidTypedDict"] = list(
             z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
         )
         already_pred = migrator_uid in already_migrated_uids
@@ -511,7 +511,7 @@ class Migrator:
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any pre piggyback migrations, updating the feedstock.
 
         Parameters
@@ -530,7 +530,7 @@ class Migrator:
 
     def run_post_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any post piggyback migrations, updating the feedstock.
 
         Parameters
@@ -567,7 +567,7 @@ class Migrator:
         return self.migrator_uid(attrs)
 
     def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
     ) -> str:
         """Create a PR message body.
 

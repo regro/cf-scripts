@@ -17,7 +17,7 @@ from ..migrators_types import (
 class MatplotlibBase(Replacement):
     migrator_version = 0
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(self, attrs: AttrsTypedDict, not_bad_str_start: str = "") -> bool:
         # I shipped a bug where I added an entry to the migrator uid and now the
         # graph is corrupted - this is being fixed here
         def parse_already_pred() -> bool:

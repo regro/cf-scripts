@@ -4,6 +4,7 @@ import logging
 import os
 import secrets
 import time
+from collections.abc import MutableMapping
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -179,7 +180,7 @@ def get_latest_version_local(
 
 def get_latest_version_containerized(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """Given a package, return the new version information to be written into the cf-graph.
@@ -229,7 +230,7 @@ def get_latest_version_containerized(
 
 def get_latest_version(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
 ) -> Dict[str, Union[Literal[False], str]]:
@@ -356,7 +357,7 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 
 def _update_upstream_versions_sequential(
-    to_update: Iterable[Tuple[str, Mapping]],
+    to_update: Iterable[Tuple[str, MutableMapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0

@@ -1,5 +1,5 @@
 import typing
-from typing import Dict, List, Set, TypedDict, Union
+from typing import Dict, List, Literal, Set, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
@@ -80,6 +80,7 @@ class RecipeTypedDict(TypedDict, total=False):
 
 class MigrationUidTypedDict(TypedDict, total=False):
     bot_rerun: bool
+    branch: str
     migrator_name: str
     migrator_version: int
     name: str
@@ -123,6 +124,7 @@ class PRedElementTypedDict(TypedDict, total=False):
 class AttrsTypedDict_(TypedDict, total=False):
     about: AboutTypedDict
     build: BuildTypedDict
+    branch: str
     extra: ExtraTypedDict
     feedstock_name: str
     meta_yaml: "RecipeTypedDict"
@@ -141,10 +143,10 @@ class AttrsTypedDict_(TypedDict, total=False):
     outputs_names: set[str]
     PRed: List[PRedElementTypedDict]
     version_pr_info: typing.Any
+    url: str
+    parsing_error: str | Literal[False]
     # Legacy types in here
     bad: Union[bool, str]
-    # TODO: ADD in
-    #  "conda-forge.yml":
 
 
 class CondaForgeYamlContents(TypedDict, total=False):
