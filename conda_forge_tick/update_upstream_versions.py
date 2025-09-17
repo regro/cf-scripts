@@ -214,7 +214,7 @@ def get_latest_version_containerized(
     ]
     args += get_default_log_level_args(logger)
 
-    json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
+    json_blob = dumps(attrs)
 
     return run_container_operation(
         args,
