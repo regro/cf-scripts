@@ -230,7 +230,7 @@ def get_latest_version_containerized(
 
 def get_latest_version(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
 ) -> Dict[str, Union[Literal[False], str]]:
@@ -357,7 +357,7 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 
 def _update_upstream_versions_sequential(
-    to_update: Iterable[Tuple[str, Mapping]],
+    to_update: Iterable[Tuple[str, MutableMapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0
