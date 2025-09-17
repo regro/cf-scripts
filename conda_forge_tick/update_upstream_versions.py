@@ -4,6 +4,7 @@ import logging
 import os
 import secrets
 import time
+from collections.abc import MutableMapping
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -179,7 +180,7 @@ def get_latest_version_local(
 
 def get_latest_version_containerized(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """Given a package, return the new version information to be written into the cf-graph.
@@ -200,7 +201,6 @@ def get_latest_version_containerized(
     dict
         The new version information.
     """
-    attrs = dict(attrs)
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
@@ -214,7 +214,7 @@ def get_latest_version_containerized(
     ]
     args += get_default_log_level_args(logger)
 
-    json_blob = dumps(attrs)
+    json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
 
     return run_container_operation(
         args,
