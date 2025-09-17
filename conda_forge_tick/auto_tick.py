@@ -76,7 +76,6 @@ from .settings import settings
 
 logger = logging.getLogger(__name__)
 
-BOT_HOME_DIR: str = os.getcwd()
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 
 
