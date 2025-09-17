@@ -74,6 +74,7 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
+from conda_forge_tick.migrators_types import PackageName
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     CB_CONFIG,
@@ -86,8 +87,6 @@ from conda_forge_tick.utils import (
     pluck,
     yaml_safe_load,
 )
-
-from .migrators_types import PackageName
 
 logger = logging.getLogger(__name__)
 
