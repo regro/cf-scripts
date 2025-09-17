@@ -22,7 +22,7 @@ else:
 
 @dataclass
 class MigratorSessionContext:
-    """Singleton session context. There should generally only be one of these"""
+    """Singleton session context. There should generally only be one of these."""
 
     graph: DiGraph = None
     smithy_version: str = ""
@@ -37,6 +37,10 @@ class FeedstockContext:
     """
     If not provided, this is set to a default branch read from all_feedstocks.json, or 'main'.
     """
+    git_repo_owner: str = "conda-forge"
+    """
+    The owner of the upstream git repository.
+    """
 
     def __post_init__(self):
         if not self.default_branch:
@@ -47,18 +51,12 @@ class FeedstockContext:
             )
 
     @property
-    def git_repo_owner(self) -> str:
-        return "conda-forge"
-
-    @property
     def git_repo_name(self) -> str:
         return f"{self.feedstock_name}-feedstock"
 
     @property
     def git_http_ref(self) -> str:
-        """
-        A link to the feedstock's GitHub repository.
-        """
+        """A link to the feedstock's GitHub repository."""
         return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
 
     @property

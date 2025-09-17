@@ -1,27 +1,16 @@
 from __future__ import annotations
 
 import os
-import re
-import subprocess
-from pathlib import Path
 
-import pytest
+import networkx as nx
+from test_migrators import run_test_migration, run_test_yaml_migration
 from test_recipe_yaml_parsing import TEST_RECIPE_YAML_PATH
 
-from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.feedstock_parser import (
-    parse_recipe_yaml,
-    populate_feedstock_attributes,
-)
 from conda_forge_tick.migrators import (
     MigrationYaml,
-    Migrator,
-    MiniMigrator,
     Replacement,
     Version,
 )
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import frozen_to_json_friendly
 
 
 class NoFilter:
@@ -33,77 +22,17 @@ class _MigrationYaml(NoFilter, MigrationYaml):
     pass
 
 
-yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 yaml_rebuild_no_build_number = _MigrationYaml(
-    yaml_contents="hello world",
+    yaml_contents="{}",
     name="hi",
     bump_number=0,
+    total_graph=TOTAL_GRAPH,
 )
 yaml_rebuild_no_build_number.cycles = []
-
-
-def requirements_from_yaml(reqs: list) -> set[str]:
-    res = set()
-    for req in reqs:
-        if isinstance(req, dict):
-            if "pin_compatible" in req:
-                res.add(req["pin_compatible"]["name"])
-            elif "pin_subpackage" in req:
-                res.add(req["pin_subpackage"]["name"])
-            else:
-                # add if and else branch
-                res |= set(req["then"])
-                res |= set(req.get("else", []))
-        else:
-            res.add(req)
-
-    return res
-
-
-def run_test_yaml_migration(
-    m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False, is_v1=False
-):
-    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
-
-    with open(os.path.join(tmpdir, "recipe", "recipe.yaml"), "w") as f:
-        f.write(inp)
-
-    with pushd(tmpdir):
-        subprocess.run(["git", "init"])
-    # Load the recipe.yaml (this is done in the graph)
-    try:
-        pmy = parse_recipe_yaml(inp)
-    except Exception:
-        pmy = {}
-    if pmy:
-        pmy["version"] = pmy["package"]["version"]
-        pmy["req"] = set()
-        for k in ["build", "host", "run"]:
-            reqs = requirements_from_yaml(pmy.get("requirements", {}).get(k, set()))
-            pmy["req"] |= reqs
-        try:
-            pmy["recipe_yaml"] = parse_recipe_yaml(inp)
-        except Exception:
-            pmy["recipe_yaml"] = {}
-    pmy["raw_meta_yaml"] = inp
-    pmy.update(kwargs)
-
-    assert m.filter(pmy) is should_filter
-    if should_filter:
-        return
-
-    mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
-    assert mr_out == mr
-    pmy["pr_info"] = {}
-    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe/recipe.yaml")) as f:
-        actual_output = f.read()
-    assert actual_output == output
-    assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
-    with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
-        saved_migration = f.read()
-    assert saved_migration == m.yaml_contents
 
 
 def sample_yaml_rebuild() -> str:
@@ -112,8 +41,8 @@ def sample_yaml_rebuild() -> str:
     return sample_yaml_rebuild
 
 
-def test_yaml_migration_rebuild(tmpdir):
-    """Test that the build number is bumped"""
+def test_yaml_migration_rebuild(tmp_path):
+    """Test that the build number is bumped."""
     sample = sample_yaml_rebuild()
     updated_yaml_rebuild = sample.replace("number: 0", "number: 1")
 
@@ -129,12 +58,12 @@ def test_yaml_migration_rebuild(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
-        is_v1=True,
+        tmp_path=tmp_path,
+        recipe_version=1,
     )
 
 
-def test_yaml_migration_rebuild_no_buildno(tmpdir):
+def test_yaml_migration_rebuild_no_buildno(tmp_path):
     sample = sample_yaml_rebuild()
 
     run_test_yaml_migration(
@@ -149,7 +78,8 @@ def test_yaml_migration_rebuild_no_buildno(tmpdir):
             "name": "hi",
             "bot_rerun": False,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
+        recipe_version=1,
     )
 
 
@@ -157,15 +87,16 @@ def test_yaml_migration_rebuild_no_buildno(tmpdir):
 # Run Matplotlib mini-migrator                               ###
 ##################################################################
 
-version = Version(set())
+version = Version(set(), total_graph=TOTAL_GRAPH)
 
 matplotlib = Replacement(
     old_pkg="matplotlib",
     new_pkg="matplotlib-base",
     rationale=(
-        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
+        "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -183,164 +114,26 @@ class MockLazyJson:
 os.environ["RUN_URL"] = "hi world"
 
 
-def run_test_migration(
-    m: Migrator,
-    inp: str,
-    output: str,
-    kwargs: dict,
-    prb: str,
-    mr_out: dict,
-    tmpdir: str,
-    should_filter: bool = False,
-    make_body: bool = False,
-):
-    if mr_out:
-        mr_out.update(bot_rerun=False)
-
-    Path(tmpdir).joinpath("recipe.yaml").write_text(inp)
-
-    # read the conda-forge.yml
-    cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
-    cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
-
-    # Load the recipe.yaml (this is done in the graph)
-    try:
-        name = parse_recipe_yaml(inp)["package"]["name"]
-    except Exception:
-        name = "blah"
-
-    pmy = populate_feedstock_attributes(
-        name, sub_graph={}, recipe_yaml=inp, conda_forge_yaml=cf_yml
-    )
-
-    # these are here for legacy migrators
-    pmy["version"] = pmy["recipe_yaml"]["package"]["version"]
-    pmy["req"] = set()
-    for k in ["build", "host", "run"]:
-        reqs = requirements_from_yaml(pmy.get("requirements", {}).get(k, set()))
-        pmy["req"] |= reqs
-    pmy["raw_meta_yaml"] = inp
-    pmy.update(kwargs)
-
-    try:
-        if "new_version" in kwargs:
-            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
-        assert m.filter(pmy) == should_filter
-    finally:
-        pmy.pop("version_pr_info", None)
-    if should_filter:
-        return pmy
-
-    m.run_pre_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    m.run_post_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
-
-    if make_body:
-        fctx = ClonedFeedstockContext(
-            feedstock_name=name,
-            attrs=pmy,
-            local_clone_dir=Path(tmpdir),
-        )
-        m.effective_graph.add_node(name)
-        m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
-        m.pr_body(fctx)
-
-    assert mr_out == mr
-    if not mr:
-        return pmy
-
-    pmy["pr_info"] = {}
-    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe.yaml")) as f:
-        actual_output = f.read()
-
-    # strip jinja comments
-    pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub("", actual_output)
-    output = pat.sub("", output)
-    assert actual_output == output
-    # TODO: fix subgraph here (need this to be xsh file)
-    if isinstance(m, Version):
-        pass
-    else:
-        assert prb in m.pr_body(None)
-    try:
-        if "new_version" in kwargs:
-            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
-        assert m.filter(pmy) is True
-    finally:
-        pmy.pop("version_pr_info", None)
-
-    return pmy
-
-
-def run_minimigrator(
-    migrator: MiniMigrator,
-    inp: str,
-    output: str,
-    mr_out: dict,
-    tmpdir: str,
-    should_filter: bool = False,
-):
-    if mr_out:
-        mr_out.update(bot_rerun=False)
-    with open(os.path.join(tmpdir, "recipe.yaml"), "w") as f:
-        f.write(inp)
-
-    # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
-            cf_yml = fp.read()
-    else:
-        cf_yml = "{}"
-
-    # Load the recipe.yaml (this is done in the graph)
-    try:
-        name = parse_recipe_yaml(inp)["package"]["name"]
-    except Exception:
-        name = "blah"
-
-    pmy = populate_feedstock_attributes(name, {}, inp, None, cf_yml)
-    filtered = migrator.filter(pmy)
-    if should_filter and filtered:
-        return migrator
-    assert filtered == should_filter
-
-    with open(os.path.join(tmpdir, "recipe.yaml")) as f:
-        actual_output = f.read()
-    # strip jinja comments
-    pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub("", actual_output)
-    output = pat.sub("", output)
-    assert actual_output == output
-
-
-def test_generic_replacement(tmpdir):
+def test_generic_replacement(tmp_path):
     sample_matplotlib = TEST_RECIPE_YAML_PATH / "sample_matplotlib.yaml"
     sample_matplotlib = sample_matplotlib.read_text()
     sample_matplotlib_correct = sample_matplotlib.replace(
         "    - matplotlib", "    - matplotlib-base"
     )
-    # "recipe_yaml generic parsing not implemented yet" is raised here!
-    with pytest.raises(NotImplementedError):
-        run_test_migration(
-            m=matplotlib,
-            inp=sample_matplotlib,
-            output=sample_matplotlib_correct,
-            kwargs={},
-            prb="I noticed that this recipe depends on `matplotlib` instead of ",
-            mr_out={
-                "migrator_name": "Replacement",
-                "migrator_version": matplotlib.migrator_version,
-                "name": "matplotlib-to-matplotlib-base",
-            },
-            tmpdir=tmpdir,
-        )
+    sample_matplotlib_correct = sample_matplotlib_correct.replace(
+        "number: 0", "number: 1"
+    )
+    run_test_migration(
+        m=matplotlib,
+        inp=sample_matplotlib,
+        output=sample_matplotlib_correct,
+        kwargs={},
+        prb="I noticed that this recipe depends on `matplotlib` instead of ",
+        mr_out={
+            "migrator_name": "Replacement",
+            "migrator_version": matplotlib.migrator_version,
+            "name": "matplotlib-to-matplotlib-base",
+        },
+        tmp_path=tmp_path,
+        recipe_version=1,
+    )

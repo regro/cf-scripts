@@ -3,7 +3,7 @@ import os
 import typing
 from typing import Any, Literal
 
-from conda_forge_tick.migrators.core import _parse_bad_attr, _skip_due_to_schema
+from conda_forge_tick.migrators.core import _parse_bad_attr, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.replacement import Replacement
 from conda_forge_tick.utils import frozen_to_json_friendly
 
@@ -57,7 +57,7 @@ class MatplotlibBase(Replacement):
             or _is_pred
             or _is_bad
             or _no_dep
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
     def migrate(

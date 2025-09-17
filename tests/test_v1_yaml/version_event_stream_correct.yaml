@@ -1,0 +1,42 @@
+context:
+  name: event-stream
+  version: "1.6.3"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/${{ name[0] }}/${{ name }}/event_stream-${{ version }}.tar.gz
+    sha256: a5ba0297bf81109294997673e1a9ad9835f75d6d7eabe92f16f1a3c176cbe944
+  - path: npy_2_compat.h
+    target_directory: python
+
+build:
+  script: ${{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv
+  number: 0
+  skip: win
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib("c") }}
+  host:
+    - python
+    - setuptools
+    - wheel
+    - numpy
+    - pip
+  run:
+    - python
+
+about:
+  homepage: https://github.com/neuromorphicsystems/event_stream
+  summary: Read and write Event Stream (.es) files
+  license: MIT
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - Tobias-Fischer

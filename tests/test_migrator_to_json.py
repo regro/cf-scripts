@@ -3,10 +3,14 @@ import inspect
 import pprint
 
 import networkx as nx
+import pytest
 
 import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps, loads
 from conda_forge_tick.migrators import make_from_lazy_json_data
+
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 
 
 def test_migrator_to_json_dep_update_minimigrator():
@@ -51,6 +55,7 @@ def test_migrator_to_json_minimigrators_nodeps():
             and issubclass(migrator, conda_forge_tick.migrators.MiniMigrator)
             and migrator != conda_forge_tick.migrators.MiniMigrator
             and migrator != conda_forge_tick.migrators.DependencyUpdateMigrator
+            and migrator != conda_forge_tick.migrators.MiniReplacement
         ):
             migrator = migrator()
             data = migrator.to_lazy_json_data()
@@ -79,7 +84,9 @@ def test_migrator_to_json_version():
             conda_forge_tick.migrators.DependencyUpdateMigrator(["blah2"]),
             conda_forge_tick.migrators.LibboostMigrator(),
             conda_forge_tick.migrators.DuplicateLinesCleanup(),
+            conda_forge_tick.migrators.MiniReplacement(old_pkg="foo", new_pkg="bar"),
         ],
+        total_graph=TOTAL_GRAPH,
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
@@ -98,24 +105,19 @@ def test_migrator_to_json_version():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_migration_yaml_creator():
-    gx = nx.DiGraph()
-    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
-    gx.graph["outputs_lut"] = {}
-
+def test_migrator_to_json_migration_yaml_creator(test_graph):
     pname = "boost"
     pin_ver = "1.99.0"
     curr_pin = "1.70.0"
     pin_spec = "x.x"
 
     migrator = conda_forge_tick.migrators.MigrationYamlCreator(
-        pname,
-        pin_ver,
-        curr_pin,
-        pin_spec,
-        "hi",
-        gx,
-        gx,
+        package_name=pname,
+        new_pin_version=pin_ver,
+        current_pin=curr_pin,
+        pin_spec=pin_spec,
+        feedstock_name="hi",
+        total_graph=test_graph,
         blah="foo",
     )
     data = migrator.to_lazy_json_data()
@@ -142,10 +144,10 @@ def test_migrator_to_json_matplotlib_base():
         old_pkg="matplotlib",
         new_pkg="matplotlib-base",
         rationale=(
-            "Unless you need `pyqt`, recipes should depend only on "
-            "`matplotlib-base`."
+            "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
+        total_graph=TOTAL_GRAPH,
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
@@ -165,9 +167,10 @@ def test_migrator_to_json_matplotlib_base():
 
 def test_migrator_to_json_migration_yaml():
     migrator = conda_forge_tick.migrators.MigrationYaml(
-        yaml_contents="hello world",
+        yaml_contents="{}",
         name="hi",
         blah="foo",
+        total_graph=TOTAL_GRAPH,
     )
 
     data = migrator.to_lazy_json_data()
@@ -188,15 +191,15 @@ def test_migrator_to_json_migration_yaml():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_rebuild():
+def test_migrator_to_json_replacement():
     migrator = conda_forge_tick.migrators.Replacement(
         old_pkg="matplotlib",
         new_pkg="matplotlib-base",
         rationale=(
-            "Unless you need `pyqt`, recipes should depend only on "
-            "`matplotlib-base`."
+            "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
+        total_graph=TOTAL_GRAPH,
     )
 
     data = migrator.to_lazy_json_data()
@@ -218,12 +221,12 @@ def test_migrator_to_json_rebuild():
 def test_migrator_to_json_arch():
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
 
     migrator = conda_forge_tick.migrators.ArchRebuild(
         target_packages=["python"],
-        graph=gx,
         pr_limit=5,
-        name="aarch64 and ppc64le addition",
+        total_graph=gx,
     )
 
     data = migrator.to_lazy_json_data()
@@ -245,12 +248,12 @@ def test_migrator_to_json_arch():
 def test_migrator_to_json_osx_arm():
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
 
     migrator = conda_forge_tick.migrators.OSXArm(
         target_packages=["python"],
-        graph=gx,
+        total_graph=gx,
         pr_limit=5,
-        name="arm osx addition",
     )
 
     data = migrator.to_lazy_json_data()
@@ -266,4 +269,57 @@ def test_migrator_to_json_osx_arm():
         pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
     ]
     assert isinstance(migrator2, conda_forge_tick.migrators.OSXArm)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
+def test_migrator_to_json_win_arm64():
+    gx = nx.DiGraph()
+    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+    gx.graph["outputs_lut"] = {}
+
+    migrator = conda_forge_tick.migrators.WinArm64(
+        target_packages=["python"],
+        total_graph=gx,
+        pr_limit=5,
+    )
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == "WinArm64"
+    assert data["name"] == "support_windows_arm64_platform"
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, conda_forge_tick.migrators.WinArm64)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
+@pytest.mark.parametrize(
+    "klass",
+    [
+        conda_forge_tick.migrators.AddNVIDIATools,
+        conda_forge_tick.migrators.RebuildBroken,
+    ],
+)
+def test_migrator_to_json_others(klass):
+    migrator = klass(total_graph=TOTAL_GRAPH)
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == klass.__name__
+    assert data["name"] == migrator.name.replace(" ", "_")
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, klass)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data

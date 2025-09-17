@@ -1,5 +1,7 @@
 import io
 import os
+from pathlib import Path
+from typing import Iterator
 
 import pytest
 
@@ -33,6 +35,8 @@ def test_parsing_ml_jinja2():
 {% if False %}
 {% set build = build + 100 %}
 {% endif %}
+
+{# this is a comment #}
 
 package:
   name: {{ name|lower }}
@@ -95,6 +99,8 @@ build:
 {% if False %}
 {% set build = build + 100 %}
 {% endif %}
+
+# this is a comment
 
 package:
   name: {{ name|lower }}
@@ -232,6 +238,8 @@ build:
 {% if False %}
 {% set build = build + 100 %}
 {% endif %}
+
+# this is a comment
 
 package:
   name: {{ name|lower }}
@@ -1285,9 +1293,9 @@ extra:
 
 
 def test_recipe_parses_cupy():
-    recipe = r"""{% set name = "cupy" %}
-{% set version = "10.1.0" %}
-{% set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" %}
+    recipe = r"""{% set name = "cupy" -%}
+{%- set version = "10.1.0" %}
+{%- set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" -%}
 
 {% if cuda_compiler_version in (None, "None", True, False) %}
 {% set cuda_major = 0 %}
@@ -1606,18 +1614,29 @@ test:
     assert new_recipe == recipe_correct
 
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH = Path(__file__).parent / "test_yaml"
 
 
-@pytest.mark.parametrize("recipe", os.listdir(YAML_PATH))
-def test_recipe_parser_yaml_suite(recipe):
-    if (
-        recipe.endswith("_correct.yaml") and "duplicate_lines_cleanup" not in recipe
-    ) or recipe.endswith("_after_meta.yaml"):
-        with open(os.path.join(YAML_PATH, recipe)) as f:
-            recipe = f.read()
-            cm = CondaMetaYAML(recipe)
-            s = io.StringIO()
-            cm.dump(s)
-            s.seek(0)
-            assert s.read() == recipe
+def collect_all_recipes(directory: Path) -> Iterator[Path]:
+    # note: Path.walk() is available since Python 3.12
+    for dirpath, _, filenames in os.walk(directory):
+        for filename in filenames:
+            if (
+                filename.endswith("_correct.yaml")
+                and "duplicate_lines_cleanup" not in filename
+            ) or filename.endswith("_after_meta.yaml"):
+                yield Path(dirpath) / filename
+
+
+@pytest.mark.parametrize(
+    "recipe_path",
+    collect_all_recipes(YAML_PATH),
+    ids=lambda x: str(x.relative_to(YAML_PATH)),
+)
+def test_recipe_parser_yaml_suite(recipe_path: Path):
+    recipe = recipe_path.read_text()
+    cm = CondaMetaYAML(recipe)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert s.read() == recipe

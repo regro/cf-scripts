@@ -50,6 +50,11 @@ def test_feedstock_context_git_repo_owner():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
     assert context.git_repo_owner == "conda-forge"
 
+    override_git_repo_owner_context = FeedstockContext(
+        "TEST-FEEDSTOCK-NAME", demo_attrs, git_repo_owner="GIT_REPO_OWNER"
+    )
+    assert override_git_repo_owner_context.git_repo_owner == "GIT_REPO_OWNER"
+
 
 def test_feedstock_context_git_repo_name():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)

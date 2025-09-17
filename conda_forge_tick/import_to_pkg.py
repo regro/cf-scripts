@@ -1,7 +1,6 @@
 import bz2
 import hashlib
 import io
-import json
 import logging
 import os
 from collections import defaultdict
@@ -10,6 +9,7 @@ from functools import lru_cache
 from itertools import chain, groupby
 from typing import List
 
+import orjson
 import requests
 import requests.exceptions
 from conda_forge_metadata.artifact_info import get_artifact_info_as_json
@@ -18,7 +18,6 @@ from tqdm import tqdm
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
     LazyJson,
     dump,
@@ -26,6 +25,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
     load,
 )
+from conda_forge_tick.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def _get_head_letters(name):
 def _ranked_hubs_authorities() -> list[str]:
     req = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "ranked_hubs_authorities.json",
         )
     )
@@ -99,7 +99,7 @@ def _import_to_pkg_maps_cache(import_first_letters: str) -> dict[str, set[str]]:
     else:
         req = requests.get(
             os.path.join(
-                CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                settings().graph_github_backend_raw_base_url,
                 pth,
             )
         )
@@ -152,7 +152,6 @@ def map_import_to_package(import_name: str) -> str:
     pkg_name : str
         The name of the package.
     """
-
     supplying_pkgs, found_import_name = get_pkgs_for_import(import_name)
     if supplying_pkgs is None:
         return found_import_name
@@ -170,7 +169,7 @@ def map_import_to_package(import_name: str) -> str:
 
 def extract_pkg_from_import(name):
     """Provide the name of the package that matches with the import provided,
-    with the maps between the imports and artifacts and packages that matches
+    with the maps between the imports and artifacts and packages that matches.
 
     Parameters
     ----------
@@ -197,22 +196,18 @@ def extract_pkg_from_import(name):
 def _fetch_arch(arch):
     # Generate a set a urls to generate for an channel/arch combo
     try:
-        logger.info(f"fetching {arch}")
+        logger.info("fetching %s", arch)
         r = requests.get(
             f"https://conda.anaconda.org/conda-forge/{arch}/repodata.json.bz2"
         )
         r.raise_for_status()
-        repodata = json.load(bz2.BZ2File(io.BytesIO(r.content)))
+        repodata = orjson.loads(bz2.BZ2File(io.BytesIO(r.content)).read())
     except Exception as e:
-        logger.error(f"Failed to fetch {arch}: {e}")
+        logger.error("Failed to fetch %s: %s", arch, e)
         return
 
-    logger.info(
-        "    found %d .conda artifacts" % (len(repodata["packages.conda"])),
-    )
-    logger.info(
-        "    found %d .tar.bz2 artifacts" % (len(repodata["packages"])),
-    )
+    logger.info("    found %d .conda artifacts", len(repodata["packages.conda"]))
+    logger.info("    found %d .tar.bz2 artifacts", len(repodata["packages"]))
     for p in repodata["packages.conda"]:
         yield f"{arch}/{p}"
 
@@ -282,7 +277,7 @@ def _get_imports_and_files(file):
                 backend="oci",
             )
     except Exception as e:
-        logger.error(f"Failed to get artifact info for {file}: {e}")
+        logger.error("Failed to get artifact info for %s: %s", file, e)
         data = None
 
     if data is None:
@@ -327,9 +322,10 @@ def _main_import_to_pkg(max_artifacts: int):
         return
     new_files = all_files - indexed_files
     logger.info(
-        f"Found {len(new_files)} new files to index "
-        f"out of {len(all_files)} total "
-        f"({(1 - len(new_files) / len(all_files)) * 100:0.4}% indexed).",
+        "Found %d new files to index out of %d total (%.4f%% indexed).",
+        len(new_files),
+        len(all_files),
+        (1 - len(new_files) / len(all_files)) * 100 if len(all_files) else 0.0,
     )
 
     with ProcessPoolExecutor(max_workers=4) as exc:

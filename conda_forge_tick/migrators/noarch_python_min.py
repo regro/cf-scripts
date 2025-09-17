@@ -1,3 +1,4 @@
+import copy
 import functools
 import logging
 import os
@@ -11,7 +12,10 @@ from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.migrators.core import Migrator, MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import (
+    Migrator,
+    MiniMigrator,
+)
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
 
@@ -42,11 +46,107 @@ def _has_noarch_python(lines):
     return False
 
 
+def _is_comment_or_empty(line):
+    return line.strip() == "" or line.strip().startswith("#")
+
+
 def _has_build_section(lines):
+    in_requirements = False
+    indent = None
     for line in lines:
-        if line.lstrip().startswith("build:"):
+        if (
+            indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= indent
+        ):
+            in_requirements = False
+            indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+        if line.lstrip().startswith("build:") and not in_requirements:
             return True
+
     return False
+
+
+def _has_req_section(lines, section_name):
+    in_requirements = False
+    indent = None
+    for line in lines:
+        if (
+            indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= indent
+        ):
+            in_requirements = False
+            indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+        if line.lstrip().startswith(section_name + ":") and in_requirements:
+            return True
+
+    return False
+
+
+def _extract_bounds(req):
+    comma_parts = req.split(",")
+    parts = []
+    for part in comma_parts:
+        parts += part.split("|")
+    num_upper = sum("<" in part for part in parts)
+    if num_upper == 1:
+        for part in parts:
+            if "<" in part:
+                upper = part
+                break
+        upper_ver = upper.replace("<=", "").replace("<", "").strip()
+        if "<=" in upper:
+            upper_ver = upper_ver.split(".")
+            if len(upper_ver) < 2:
+                upper_ver.append("0")
+            upper_ver[-1] = str(int(upper_ver[-1]) + 1)
+            upper_ver[-1] = upper_ver[-1] + "a0"
+            upper_ver = ".".join(upper_ver)
+    elif num_upper == 0:
+        upper_ver = None
+    else:
+        raise RuntimeError(
+            f"Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    num_lower = sum(">" in part for part in parts)
+    if num_lower == 1:
+        for part in parts:
+            if ">" in part:
+                lower = part
+                break
+        lower_ver = lower.replace(">=", "").replace(">", "").strip()
+        if ">" in lower and ">=" not in lower:
+            lower_ver = lower_ver.split(".")
+            if len(lower_ver) < 2:
+                lower_ver.append("0")
+            lower_ver[-1] = str(int(lower_ver[-1]) + 1)
+            lower_ver = ".".join(lower_ver)
+    elif num_lower == 0:
+        lower_ver = None
+    else:
+        raise RuntimeError(
+            f"Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    return lower_ver, upper_ver
 
 
 def _process_req_list(section, req_list_name, new_python_req, force_apply=False):
@@ -56,6 +156,8 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
     in_section = False
     adjusted_python = False
     python_min_override = None
+    req_or_test_indent = None
+    in_req_or_test = False
     for line in section:
         lstrip_line = line.lstrip()
 
@@ -68,17 +170,36 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
             new_lines.append(line)
             continue
 
+        if (
+            req_or_test_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= req_or_test_indent
+        ):
+            in_req_or_test = False
+            req_or_test_indent = None
+
         indent = len(line) - len(lstrip_line)
         if curr_indent is None:
             curr_indent = indent
 
         if in_section:
             if indent < curr_indent:
-                if not adjusted_python and req_list_name not in ["host", "run"]:
+                if not adjusted_python and req_list_name not in [
+                    "build",
+                    "host",
+                    "run",
+                ]:
                     logger.debug("adding python to section %s", req_list_name)
                     # insert python as spec
-                    new_line = curr_indent * " " + "- python " + new_python_req + "\n"
-                    new_lines.append(new_line)
+                    _new_line = curr_indent * " " + "- python " + new_python_req + "\n"
+                    loc = -1
+                    while new_lines[loc].strip() == "":
+                        loc -= 1
+                    if loc == -1:
+                        new_lines.append(_new_line)
+                    else:
+                        loc += 1
+                        new_lines = new_lines[:loc] + [_new_line] + new_lines[loc:]
 
                 # the section ended
                 in_section = False
@@ -113,25 +234,37 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
                 if name == "python" and (force_apply or req == ""):
                     adjusted_python = True
+
+                    _new_py_req = new_python_req
+                    if req_list_name == "run":
+                        py_lower_bound, py_upper_bound = _extract_bounds(req)
+                        if py_upper_bound is not None:
+                            _new_py_req = new_python_req + f",<{py_upper_bound}"
+                        if py_lower_bound is not None:
+                            python_min_override = py_lower_bound
+
                     new_line = (
                         indent_to_keep
                         + "- python "
-                        + new_python_req
+                        + _new_py_req
                         + ("  # " + comment if comment != "" else "")
                         + "\n"
                     )
-                    if req.startswith(">="):
-                        python_min_override = req[2:].strip()
-
                 else:
                     new_line = line
         else:
-            if line.lstrip().startswith(req_list_name + ":"):
+            if line.lstrip().startswith(req_list_name + ":") and in_req_or_test:
                 logger.debug("found %s for processing req list", req_list_name)
                 in_section = True
                 found_it = True
 
             new_line = line
+
+        if line.lstrip().startswith("requirements:") or line.lstrip().startswith(
+            "test:"
+        ):
+            req_or_test_indent = len(line) - len(line.lstrip())
+            in_req_or_test = True
 
         new_lines.append(new_line)
         curr_indent = indent
@@ -180,15 +313,17 @@ def _add_test_requires(section):
     return new_lines
 
 
-def _process_section(section, force_noarch_python=False, force_apply=False):
+def _process_section(
+    section, force_noarch_python=False, force_apply=False, build_or_host="host"
+):
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section, None
 
-    found_it, section, python_min_override = _process_req_list(
-        section, "host", "{{ python_min }}", force_apply=force_apply
+    found_it, section, _ = _process_req_list(
+        section, build_or_host, "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
-    found_it, section, _ = _process_req_list(
+    found_it, section, python_min_override = _process_req_list(
         section, "run", ">={{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` to run? %s", found_it)
@@ -227,9 +362,20 @@ def _apply_noarch_python_min(
             # _process_section returns list of lines already
             _new_lines, _python_min_override = _process_section(
                 section,
-                force_noarch_python=has_global_noarch_python
-                and (not has_build_override),
+                force_noarch_python=(
+                    has_global_noarch_python
+                    and (
+                        (not has_build_override)
+                        or (has_build_override and _has_noarch_python(section))
+                    )
+                ),
                 force_apply=not preserve_existing_specs,
+                build_or_host=(
+                    "build"
+                    if not _has_req_section(section, "host")
+                    and _has_req_section(section, "build")
+                    else "host"
+                ),
             )
             new_lines += _new_lines
             if _python_min_override is not None:
@@ -267,14 +413,17 @@ def _apply_noarch_python_min(
 class NoarchPythonMinMigrator(Migrator):
     """Migrator for converting `noarch: python` recipes to the CFEP-25 syntax."""
 
+    migrator_version = 1
     bump_number = 1
+    max_solver_attempts = 3
 
     def __init__(
         self,
         *,
-        pr_limit: int = 10,
-        graph: nx.DiGraph = None,
-        effective_graph: nx.DiGraph = None,
+        pr_limit: int = 0,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
+        total_graph: nx.DiGraph | None = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
     ):
         if not hasattr(self, "_init_args"):
@@ -286,39 +435,46 @@ class NoarchPythonMinMigrator(Migrator):
                 "graph": graph,
                 "effective_graph": effective_graph,
                 "piggy_back_migrations": piggy_back_migrations,
+                "total_graph": total_graph,
             }
 
+        self.name = "noarch_python_min"
+
+        if total_graph is not None:
+            total_graph = copy.deepcopy(total_graph)
+            total_graph.clear_edges()
+
         super().__init__(
-            pr_limit,
+            pr_limit=pr_limit,
             graph=graph,
             effective_graph=effective_graph,
             piggy_back_migrations=piggy_back_migrations,
+            total_graph=total_graph,
         )
-        self.name = "noarch_python_min"
 
-        self._reset_effective_graph()
+    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+        if super().filter_not_in_migration(attrs, not_bad_str_start):
+            return True
 
-    def filter(self, attrs) -> bool:
         has_noarch_python = False
-        has_python_min = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
-            if "{{ python_min }}" in line:
-                has_python_min = True
+                break
 
-        needs_migration = has_noarch_python and (not has_python_min)
-
-        return (
-            super().filter(attrs)
-            or (not needs_migration)
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
-        )
+        return not has_noarch_python
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        # the actual migration is done via a mini-migrator so that we can
-        # apply this to other migrators as well
+        # if the feedstock has already been updated, return a migration ID
+        # and make no changes.
+        for line in attrs.get("raw_meta_yaml", "").splitlines():
+            if "{{ python_min }}" in line:
+                muid = super().migrate(recipe_dir, attrs)
+                muid["already_done"] = True
+                return muid
+
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+
         _apply_noarch_python_min(
             recipe_dir,
             attrs,
@@ -329,12 +485,12 @@ class NoarchPythonMinMigrator(Migrator):
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             textwrap.dedent(
-                """
-            This PR updates the recipe to use the `noarch: python` syntax as described in
-            [CFEP-25](https://github.com/conda-forge/cfep/blob/main/cfep-25.md). Please
-            see our [documentation](https://conda-forge.org/docs/maintainer/knowledge_base/#noarch-python)
-            for more details.
-            """,
+                """\
+This PR updates the recipe to use the `noarch: python` syntax as described in \
+[CFEP-25](https://github.com/conda-forge/cfep/blob/main/cfep-25.md). Please \
+see our [documentation](https://conda-forge.org/docs/maintainer/knowledge_base/#noarch-python) \
+for more details.
+""",
             )
         )
         return body

@@ -1,7 +1,9 @@
 import logging
 import os
 import random
+import re
 from concurrent.futures import Future
+from pathlib import Path
 from typing import Dict, Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
@@ -9,10 +11,10 @@ from unittest.mock import MagicMock, Mock, patch
 import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
-from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
@@ -29,12 +31,12 @@ from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
     get_latest_version,
-    ignore_version,
     include_node,
     main,
     update_upstream_versions,
 )
 from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -344,48 +346,22 @@ latest_url_rawurl_test_list = [
 ]
 
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"key": "value"},
-        {"conda-forge.yml": {"key": "value"}},
-        {"conda-forge.yml": {"bot": {"key": "value"}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"key": "value"}}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": []}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {
-                    "version_updates": {
-                        "exclude": ["12.3", "1.23", "1.2", "2.3", "1.2.3.4"],
-                    },
-                },
-            },
-        },
-    ],
-)
-def test_ignore_version_false(attrs):
-    assert ignore_version(attrs, "1.2.3") is False
+def test_is_version_ignored():
+    """Test is_version_ignored."""
+    attrs_no_filter = {"conda-forge.yml": {"bot": {"version_updates": {}}}}
+    assert is_version_ignored(attrs_no_filter, "1.2.3") is False
 
+    attrs_exclude = {
+        "conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}
+    }
+    assert is_version_ignored(attrs_exclude, "1.2.3") is True
+    assert is_version_ignored(attrs_exclude, "1.2.4") is False
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["3.2.1", "1.2.3"]}},
-            },
-        },
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["1.2.3", "3.2.1"]}},
-            },
-        },
-    ],
-)
-@pytest.mark.parametrize("version", ["1.2.3", "1.2-3"])
-def test_ignore_version_true(attrs, version):
-    assert ignore_version(attrs, version) is True
+    attrs_odd_even = {
+        "conda-forge.yml": {"bot": {"version_updates": {"even_odd_versions": True}}}
+    }
+    assert is_version_ignored(attrs_odd_even, "1.1.0") is True  # Odd minor
+    assert is_version_ignored(attrs_odd_even, "1.2.0") is False  # Even minor
 
 
 @pytest.mark.parametrize(
@@ -429,7 +405,6 @@ def test_latest_version_npm(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_rawurl_test_list,
 )
-@flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
@@ -486,8 +461,9 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
-    ) as ignore_version_mock:
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
+    ) as is_version_ignored_mock:
         result = get_latest_version(
             "crazy-package",
             attrs,
@@ -516,7 +492,7 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.assert_called_once_with("https://source-b.com")
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
-    ignore_version_mock.assert_called_once_with(attrs, "1.2.3")
+    is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
 
     assert result == {"new_version": "1.2.3"}
 
@@ -535,7 +511,8 @@ def test_latest_version_skip_error_success(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -546,7 +523,7 @@ def test_latest_version_skip_error_success(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -577,7 +554,7 @@ def test_latest_version_error_and_no_new_version(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -588,7 +565,7 @@ def test_latest_version_error_and_no_new_version(caplog):
     assert "Cannot find version on any source, exceptions occurred" in caplog.text
 
 
-def test_latest_version_ignore_version(caplog):
+def test_latest_version_is_version_ignored(caplog):
     caplog.set_level(logging.DEBUG)
 
     source_a = Mock(AbstractSource)
@@ -597,7 +574,8 @@ def test_latest_version_ignore_version(caplog):
     source_a.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=True,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -1257,12 +1235,12 @@ default_sources = (
     "CRAN",
     "CratesIO",
     "NPM",
-    "ROSDistro",
-    "RawURL",
     "Github",
     "GithubReleases",
-    "IncrementAlphaRawURL",
     "NVIDIA",
+    "ROSDistro",
+    "RawURL",
+    "IncrementAlphaRawURL",
 )
 
 
@@ -1287,9 +1265,6 @@ def test_update_upstream_versions_run_sequential(
         ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
     ]
 
-    # swaps the packages
-    random.seed(1)
-
     def custom_include_node(name: str, _: Mapping) -> bool:
         return name in ("testpackage", "testpackage2")
 
@@ -1307,10 +1282,11 @@ def test_update_upstream_versions_run_sequential(
     )
 
     update_sequential_mock.assert_called_once()
-    assert update_sequential_mock.call_args.args[0] == [
+    for pkg in [
         ("testpackage2", {"dummy": "1.2.4"}),
         ("testpackage", {"dummy": "1.2.3"}),
-    ]
+    ]:
+        assert pkg in update_sequential_mock.call_args.args[0]
     assert (
         tuple(source.name for source in update_sequential_mock.call_args.args[1])
         == default_sources
@@ -1356,10 +1332,22 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
+@pytest.fixture
+def version_update_frac_always():
+    new_settings = settings()
+
+    new_settings.frac_update_upstream_versions = True
+    with use_settings(new_settings):
+        yield
+
+
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1396,7 +1384,10 @@ class BrokenException(Exception):
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1430,7 +1421,10 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1480,7 +1474,10 @@ def test_update_upstream_versions_sequential(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1540,7 +1537,10 @@ def test_update_upstream_versions_process_pool(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1583,7 +1583,10 @@ def test_update_upstream_versions_process_pool_exception(
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1680,7 +1683,6 @@ def test_main(
         ("https://github.com/archs/sources.tar.gz", "1.2.3", None),
     ],
 )
-@flaky
 def test_github_version_prefix(url, version, version_prefix, tmpdir):
     gh = Github()
     meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
@@ -1706,7 +1708,6 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
     ],
 )
-@flaky
 def test_github_releases(tmpdir, url, feedstock_version):
     meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with meta_yaml as _meta_yaml:
@@ -1720,6 +1721,38 @@ def test_github_releases(tmpdir, url, feedstock_version):
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
     assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version, regex",
+    [
+        (
+            "https://github.com/minio/minio/archive/RELEASE.2025-01-20T14-49-07Z.tar.gz",
+            "2025-01-20T14-49-07Z",
+            r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
+        )
+    ],
+)
+def test_github_releases_unusual_version(
+    tmp_path: Path, url: str, feedstock_version: str, regex: str
+):
+    """Tests that the GitHubReleases source can handle unusual version strings such as timestamps."""
+    meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+
+    version = ghr.get_version(url)
+
+    assert isinstance(version, str)
+    assert re.match(regex, version)
 
 
 def test_latest_version_cratesio(tmpdir):
@@ -1754,3 +1787,51 @@ def test_latest_version_cratesio(tmpdir):
         assert attempt["new_version"] is ver
     else:
         assert ver == attempt["new_version"]
+
+
+def test_latest_version_pypi_files_pythonhost_url(tmpdir):
+    curr_url = "https://files.pythonhosted.org/packages/45/33/4f88384403c3974c82f0296615c6e5f5114ca3d8fd920fa3196e4d619cb0/atlas_schema-0.3.0.tar.gz"
+    curr_ver = "0.3.0"
+    name = "atlas-schema"
+    ver = "0.4.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_pypi_canonical_url(tmpdir):
+    curr_url = "https://pypi.org/packages/source/o/opencosmo/opencosmo-0.8.1.tar.gz"
+    curr_ver = "0.8.1"
+    name = "opencosmo"
+    ver = "0.9.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])

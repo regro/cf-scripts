@@ -1,7 +1,7 @@
 import os
 import re
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 
 
 def _slice_into_output_sections(meta_yaml_lines: list[str], attrs):
@@ -16,6 +16,12 @@ def _slice_into_output_sections(meta_yaml_lines: list[str], attrs):
     the list of lines where this output is described in the meta.yaml.
     The result will always contain an index -1 for the top-level section (
     == everything if there are no other outputs).
+
+    Raises
+    ------
+    RuntimeError
+        If the recipe contains list-style outputs, or if the number of
+        sections found does not match the number of outputs.
     """
     outputs_token_pos = None
     re_output_start = None
@@ -119,6 +125,11 @@ def _process_section(output_index, attrs, lines):
     - if boost-cpp is only a host-dep, rename to libboost-headers
     - if boost-cpp is _also_ a run-dep, rename it to libboost in host
       and remove it in run.
+
+    Raises
+    ------
+    RuntimeError
+        If the output given by output_index cannot be found in attrs.
     """
     outputs = attrs["meta_yaml"].get("outputs", [])
     if output_index == -1:
@@ -191,9 +202,7 @@ def _process_section(output_index, attrs, lines):
 
 
 def _replacer(lines, from_this, to_that, max_times=None):
-    """
-    Replaces one pattern with a string in a set of lines, up to max_times
-    """
+    """Replace one pattern with a string in a set of lines, up to max_times."""
     i = 0
     new_lines = []
     pat = re.compile(from_this)
@@ -214,9 +223,9 @@ class LibboostMigrator(MiniMigrator):
         run_req = (attrs.get("requirements", {}) or {}).get("run", set()) or set()
         all_req = set(host_req) | set(run_req)
         # filter() returns True if we _don't_ want to migrate
-        return (not bool({"boost", "boost-cpp"} & all_req)) or _skip_due_to_schema(
-            attrs, self.allowed_schema_versions
-        )
+        return (
+            not bool({"boost", "boost-cpp"} & all_req)
+        ) or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "meta.yaml")

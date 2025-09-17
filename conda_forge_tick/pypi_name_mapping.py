@@ -1,12 +1,11 @@
 """
-Builds and maintains mapping of pypi-names to conda-forge names
+Builds and maintains mapping of pypi-names to conda-forge names.
 
 1: Packages should be build from a `https://pypi.io/packages/` source
 2: Packages MUST have a test: imports section importing it
 """
 
 import functools
-import json
 import math
 import os
 import pathlib
@@ -15,6 +14,7 @@ from collections import Counter, defaultdict
 from os.path import commonprefix
 from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
 
+import orjson
 import requests
 import yaml
 from packaging.utils import NormalizedName as PypiName
@@ -23,12 +23,12 @@ from packaging.utils import canonicalize_name as canonicalize_pypi_name
 from .import_to_pkg import IMPORT_TO_PKG_DIR_CLOBBERING
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_all_keys_for_hashmap,
     loads,
 )
+from .settings import settings
 from .utils import as_iterable, load_existing_graph
 
 
@@ -107,7 +107,7 @@ def _imports_to_canonical_import(
     split_imports: Set[Tuple[str, ...]],
     parent_prefix=(),
 ) -> Union[Tuple[str, ...], Literal[""]]:
-    """Extract the canonical import name from a list of imports
+    """Extract the canonical import name from a list of imports.
 
     We have two rules.
 
@@ -190,7 +190,8 @@ def convert_to_grayskull_style_yaml(
     best_imports: Dict[str, Mapping],
 ) -> Dict[PypiName, Mapping]:
     """Convert our list style mapping to the pypi-centric version
-    required by grayskull by reindexing on the PyPI name"""
+    required by grayskull by reindexing on the PyPI name.
+    """
     package_mappings = best_imports.values()
     sorted_mappings = sorted(package_mappings, key=lambda mapping: mapping["pypi_name"])
 
@@ -244,6 +245,11 @@ def resolve_collisions(collisions: List[Mapping]) -> Mapping:
     """Given a list of colliding mappings, try to resolve the collision
     by picking out the unique mapping whose source is from the static mappings file.
     If there is a problem, then make a guess, print a warning, and continue.
+
+    Raises
+    ------
+    ValueError
+        If there are no collisions to resolve.
     """
     if len(collisions) == 0:
         raise ValueError("No collisions to resolve!")
@@ -320,7 +326,7 @@ def determine_best_matches_for_pypi_import(
             clobberers = loads(
                 requests.get(
                     os.path.join(
-                        CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                        settings().graph_github_backend_raw_base_url,
                         IMPORT_TO_PKG_DIR_CLOBBERING,
                     )
                 ).text,
@@ -347,7 +353,9 @@ def determine_best_matches_for_pypi_import(
     }
 
     def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
-        """A higher score means less preferred"""
+        """Get the score.
+        A higher score means less preferred.
+        """
         mapping_src = map_by_conda_name.get(conda_name, {}).get(
             "mapping_source",
             "other",
@@ -367,7 +375,7 @@ def determine_best_matches_for_pypi_import(
         )
 
     def score(pkg_name):
-        """Base the score on
+        """Score a package name.
 
         Packages that are hubs are preferred.
         In the event of ties, fall back to the one with the lower authority score
@@ -434,8 +442,16 @@ def main() -> None:
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+
+    def json_dump(obj, fp):
+        fp.write(
+            orjson.dumps(obj, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2).decode(
+                "utf-8"
+            )
+        )
+
     # import pdb; pdb.set_trace()
-    for dumper, suffix in ((yaml_dump, "yaml"), (json.dump, "json")):
+    for dumper, suffix in ((yaml_dump, "yaml"), (json_dump, "json")):
         with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
             dumper(grayskull_style, fp)
 

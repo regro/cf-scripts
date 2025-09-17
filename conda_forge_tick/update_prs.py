@@ -1,7 +1,7 @@
 import copy
 import hashlib
 import logging
-import random
+import secrets
 from concurrent.futures._base import as_completed
 
 import github
@@ -16,6 +16,7 @@ from conda_forge_tick.git_utils import (
     is_github_api_limit_reached,
     refresh_pr,
 )
+from conda_forge_tick.utils import get_keys_default
 
 from .executors import executor
 from .utils import load_existing_graph
@@ -24,8 +25,42 @@ from .utils import load_existing_graph
 
 logger = logging.getLogger(__name__)
 
+RNG = secrets.SystemRandom()
+
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 0.5
+
+
+def _combined_update_function(
+    pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
+) -> dict:
+    return_it = False
+
+    pr_data = refresh_pr(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    pr_data = close_out_labels(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    if remake_prs_with_conflicts:
+        pr_data = refresh_pr(pr_json, dry_run=dry_run)
+        if pr_data is not None:
+            return_it = True
+            pr_json.update(pr_data)
+
+        pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
+        if pr_data is not None:
+            return_it = True
+            pr_json.update(pr_data)
+
+    if return_it:
+        return pr_json
+    else:
+        return None
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
@@ -42,7 +77,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
     ]
 
     # this makes sure that github rate limits are dispersed
-    random.shuffle(node_ids)
+    RNG.shuffle(node_ids)
 
     with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in tqdm.tqdm(
@@ -52,18 +87,29 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
+
             if node.get("archived", False):
                 continue
+
+            remake_prs_with_conflicts = get_keys_default(
+                node,
+                ["conda-forge.yml", "bot", "remake_prs_with_conflicts"],
+                {},
+                True,
+            )
+
             prs = node.get("pr_info", {}).get("PRed", [])
             for i, migration in enumerate(prs):
-                if random.uniform(0, 1) >= KEEP_PR_FRACTION:
+                if RNG.random() >= KEEP_PR_FRACTION:
                     continue
 
                 pr_json = migration.get("PR", None)
 
                 if pr_json and pr_json["state"] != "closed":
                     _pr_json = copy.deepcopy(pr_json.data)
-                    future = pool.submit(update_function, _pr_json, dry_run)
+                    future = pool.submit(
+                        update_function, _pr_json, dry_run, remake_prs_with_conflicts
+                    )
                     futures[future] = (node_id, i, pr_json)
 
         for f in tqdm.tqdm(
@@ -79,92 +125,49 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 if res:
                     succeeded_refresh += 1
                     if (
-                        "ETag" in pr_json
-                        and "ETag" in res
-                        and pr_json["ETag"] != res["ETag"]
+                        "Last-Modified" in pr_json
+                        and "Last-Modified" in res
+                        and pr_json["Last-Modified"] != res["Last-Modified"]
                     ):
                         tqdm.tqdm.write(f"Updated PR json for {name}: {res['id']}")
                     with pr_json as attrs:
                         attrs.update(**res)
             except (github3.GitHubError, github.GithubException) as e:
-                logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
+                logger.error("GITHUB ERROR ON FEEDSTOCK: %s", name)
                 failed_refresh += 1
                 if is_github_api_limit_reached():
                     logger.warning("GitHub API error", exc_info=e)
                     break
             except (github3.exceptions.ConnectionError, github.GithubException):
-                logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
+                logger.error("GITHUB ERROR ON FEEDSTOCK: %s", name)
                 failed_refresh += 1
             except Exception:
-                import traceback
-
                 logger.critical(
-                    "ERROR ON FEEDSTOCK: {}: {} - {}".format(
-                        name,
-                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
-                        traceback.format_exc(),
-                    ),
+                    "ERROR ON FEEDSTOCK: %s: %s",
+                    name,
+                    gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
+                    exc_info=True,
                 )
                 raise
 
     return succeeded_refresh, failed_refresh
 
 
-def update_graph_pr_status(
-    gx: nx.DiGraph,
-    dry_run: bool = False,
-    job=1,
-    n_jobs=1,
-) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(refresh_pr, dry_run, gx, job, n_jobs)
-
-    logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
-    logger.info(f"JSON Refresh succeed for {succeeded_refresh} PRs")
-    return gx
-
-
-def close_labels(
+def update_pr_combined(
     gx: nx.DiGraph,
     dry_run: bool = False,
     job=1,
     n_jobs=1,
 ) -> nx.DiGraph:
     succeeded_refresh, failed_refresh = _update_pr(
-        close_out_labels,
-        dry_run,
-        gx,
-        job,
-        n_jobs,
+        _combined_update_function, dry_run, gx, job, n_jobs
     )
 
-    logger.info(f"bot re-run failed for {failed_refresh} PRs")
-    logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
-    return gx
-
-
-def close_dirty_prs(
-    gx: nx.DiGraph,
-    dry_run: bool = False,
-    job=1,
-    n_jobs=1,
-) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(
-        close_out_dirty_prs,
-        dry_run,
-        gx,
-        job,
-        n_jobs,
-    )
-
-    logger.info(f"close dirty PRs failed for {failed_refresh} PRs")
-    logger.info(f"close dirty PRs succeed for {succeeded_refresh} PRs")
+    logger.info("JSON Refresh failed for %d PRs", failed_refresh)
+    logger.info("JSON Refresh succeed for %d PRs", succeeded_refresh)
     return gx
 
 
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
     gx = load_existing_graph()
-
-    gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
-    gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
-    # This function needs to run last since it edits the actual pr json!
-    gx = close_dirty_prs(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
+    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs)

@@ -3,16 +3,19 @@ import os
 import random
 from pathlib import Path
 
+import networkx as nx
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import Version
 from conda_forge_tick.migrators.version import VersionMigrationError
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH = Path(__file__).parent / "test_yaml"
+YAML_V1_PATH = Path(__file__).parent / "test_v1_yaml"
 
 VARIANT_SOURCES_NOT_IMPLEMENTED = (
     "Sources that depend on conda build config variants are not supported yet."
@@ -80,23 +83,21 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
             "1.1.0",
             marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
         ),
+        # use conda build config variants directly to select source
+        ("polars_by_variant", "1.20.0"),
         # upstream is not available
         # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
     ],
 )
-@flaky
-def test_version_up(case, new_ver, tmpdir, caplog):
+def test_version_up(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
     )
 
-    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
-        in_yaml = fp.read()
-
-    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
-        out_yaml = fp.read()
+    in_yaml = (YAML_PATH / f"version_{case}.yaml").read_text()
+    out_yaml = (YAML_PATH / f"version_{case}_correct.yaml").read_text()
 
     kwargs = {"new_version": new_ver}
     if case == "sha1":
@@ -113,7 +114,59 @@ def test_version_up(case, new_ver, tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
+    )
+
+
+@pytest.mark.parametrize(
+    "case,new_ver",
+    [
+        ("pypi_url", "0.7.1"),
+        ("jolt", "5.2.0"),
+        ("build_number_via_context", "0.20.1"),
+        ("build_as_expr", "3.6.2"),
+        ("conditional_sources", "3.24.11"),
+        ("cranmirror", "0.3.3"),
+        ("event_stream", "1.6.3"),
+        ("selshaurl", "3.7.0"),
+        ("libssh", "0.11.1"),
+        ("polars", "1.20.0"),
+    ],
+)
+def test_version_up_v1(case, new_ver, tmp_path, caplog):
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    in_yaml = (YAML_V1_PATH / f"version_{case}.yaml").read_text()
+    out_yaml = (YAML_V1_PATH / f"version_{case}_correct.yaml").read_text()
+
+    try:
+        conda_build_config = (
+            YAML_V1_PATH / f"version_{case}_variants.yaml"
+        ).read_text()
+    except FileNotFoundError:
+        conda_build_config = None
+
+    kwargs = {"new_version": new_ver}
+    if case == "sha1":
+        kwargs["hash_type"] = "sha1"
+
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmp_path=tmp_path,
+        recipe_version=1,
+        conda_build_config=conda_build_config,
     )
 
 
@@ -127,7 +180,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         ("giturl", "7.0"),
     ],
 )
-def test_version_noup(case, new_ver, tmpdir, caplog):
+def test_version_noup(case, new_ver, tmp_path, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -147,15 +200,15 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
             kwargs={"new_version": new_ver},
             prb="Dependencies have been updated if changed",
             mr_out={},
-            tmpdir=tmpdir,
+            tmp_path=tmp_path,
         )
 
-    assert "The recipe did not change in the version migration," in str(
+    assert "The recipe did not change in the version migration," in str(e.value), (
         e.value
-    ), e.value
+    )
 
 
-def test_version_cupy(tmpdir, caplog):
+def test_version_cupy(tmp_path, caplog):
     case = "cupy"
     new_ver = "8.5.0"
     caplog.set_level(
@@ -179,11 +232,11 @@ def test_version_cupy(tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
-def test_version_rand_frac(tmpdir, caplog):
+def test_version_rand_frac(tmp_path, caplog):
     case = "aws_sdk_cpp"
     new_ver = "1.11.132"
     caplog.set_level(
@@ -216,6 +269,6 @@ def test_version_rand_frac(tmpdir, caplog):
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
     assert "random_fraction_to_keep: 0.1" in caplog.text

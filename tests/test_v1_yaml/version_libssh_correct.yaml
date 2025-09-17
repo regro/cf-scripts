@@ -1,0 +1,58 @@
+schema_version: 1
+
+context:
+  name: libssh
+  version: "0.11.1"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://www.libssh.org/files/${{ (version | split("."))[:2] | join(".") }}/${{ name }}-${{ version }}.tar.xz
+  sha256: 14b7dcc72e91e08151c58b981a7b570ab2663f630e7d2837645d5a9c612c1b79
+
+build:
+  number: 0
+  skip: not unix
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - cmake
+    - make
+  host:
+    - openssl
+    - zlib
+    - krb5
+  run_exports:
+    # We pin to a minor version due to an incompatibility
+    # between 0.8 and 0.10
+    # https://abi-laboratory.pro/index.php?view=timeline&l=libssh
+    - ${{ pin_subpackage('libssh', upper_bound='x.x') }}
+
+tests:
+  - script:
+      - test -f $PREFIX/include/libssh/libssh.h
+      - test -f $PREFIX/lib/pkgconfig/libssh.pc
+      - test -f $PREFIX/lib/libssh$SHLIB_EXT
+
+about:
+  homepage: https://libssh.org
+  license: LGPL-2.1-or-later
+  license_file: COPYING
+  summary: libssh - The SSH library
+
+  description: |
+    libssh is a multiplatform C library implementing the SSHv2 protocol
+    on client and server side. With libssh, you can remotely execute
+    programs, transfer files, use a secure and transparent tunnel,
+    manage public keys and much more ...
+  documentation: https://www.libssh.org/documentation/
+
+extra:
+  recipe-maintainers:
+    - jan-janssen
+    - matthiasdiener

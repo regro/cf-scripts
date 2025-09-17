@@ -1,12 +1,15 @@
-from flaky import flaky
+import networkx as nx
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import RUCRTCleanup, Version
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 r_ucrt_migrator = RUCRTCleanup()
 version_migrator_rbase = Version(
     set(),
     piggy_back_migrations=[r_ucrt_migrator],
+    total_graph=TOTAL_GRAPH,
 )
 
 rbase_recipe = """\
@@ -134,8 +137,7 @@ extra:
 """  # noqa
 
 
-@flaky
-def test_r_ucrt(tmpdir):
+def test_r_ucrt(tmp_path):
     run_test_migration(
         m=version_migrator_rbase,
         inp=rbase_recipe,
@@ -147,5 +149,5 @@ def test_r_ucrt(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )

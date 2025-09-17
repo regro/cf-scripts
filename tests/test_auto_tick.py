@@ -21,6 +21,7 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
+from conda_forge_tick.version_filters import filter_version
 
 demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
 
@@ -100,10 +101,7 @@ def test_prepare_feedstock_repository_repository_not_found(caplog):
 
 
 def test_prepare_feedstock_repository_complete_dry_run():
-    """
-    This test really clones the repository using the DryRunBackend.
-    """
-
+    """Really clones the repository using the DryRunBackend."""
     backend = DryRunBackend()
 
     context = FeedstockContext(
@@ -130,10 +128,7 @@ def test_prepare_feedstock_repository_complete_dry_run():
 
 
 def test_prepare_feedstock_repository_complete_fail():
-    """
-    This test really clones the repository using the DryRunBackend.
-    """
-
+    """Really clones the repository using the DryRunBackend."""
     backend = DryRunBackend()
 
     context = FeedstockContext(
@@ -342,3 +337,22 @@ def test_run_with_tmpdir(
 
     assert cloned_context.feedstock_name == context.feedstock_name
     assert cloned_context.default_branch == context.default_branch
+
+
+def test_filter_version():
+    """Test filter_version."""
+    attrs_no_filter = {"conda-forge.yml": {"bot": {"version_updates": {}}}}
+    assert filter_version(attrs_no_filter, "1.2.3") == "1.2.3"
+    assert filter_version(attrs_no_filter, False) is False
+
+    attrs_exclude = {
+        "conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}
+    }
+    assert filter_version(attrs_exclude, "1.2.3") is False
+    assert filter_version(attrs_exclude, "1.2.4") == "1.2.4"
+
+    attrs_odd_even = {
+        "conda-forge.yml": {"bot": {"version_updates": {"even_odd_versions": True}}}
+    }
+    assert filter_version(attrs_odd_even, "1.1.0") is False  # Odd minor -> filtered
+    assert filter_version(attrs_odd_even, "1.2.0") == "1.2.0"  # Even minor -> kept

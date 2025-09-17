@@ -1,0 +1,3366 @@
+{
+  "archived": false,
+  "branch": "main",
+  "conda-forge.yml": {
+    "azure": {
+      "settings_win": {
+        "variables": {
+          "SET_PAGEFILE": "True"
+        }
+      }
+    },
+    "build_platform": {
+      "linux_aarch64": "linux_64",
+      "linux_ppc64le": "linux_64",
+      "osx_arm64": "osx_64"
+    },
+    "conda_build": {
+      "pkg_format": "2"
+    },
+    "conda_forge_output_validation": true,
+    "github": {
+      "branch_name": "main",
+      "tooling_branch_name": "main"
+    },
+    "provider": {
+      "win": "azure"
+    },
+    "test": "native_and_emulated"
+  },
+  "feedstock_name": "numpy",
+  "hash_type": "sha256",
+  "linux_64_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": null,
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "fortran_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "linux_64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "linux_aarch64_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": null,
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "fortran_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "linux_aarch64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "linux_ppc64le_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": null,
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "fortran_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "linux_ppc64le_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": [
+        "f2py = numpy.f2py.f2py2e:main",
+        "numpy-config = numpy._configtool:main"
+      ],
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "fortran_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "name": "numpy",
+  "osx_64_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": null,
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "osx_64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "osx_arm64_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": null,
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "pkg-config"
+      ]
+    }
+  },
+  "osx_arm64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "outputs_names": {
+    "__set__": true,
+    "elements": [
+      "numpy"
+    ]
+  },
+  "parsing_error": false,
+  "platforms": [
+    "linux_64",
+    "linux_aarch64",
+    "linux_ppc64le",
+    "osx_64",
+    "osx_arm64",
+    "win_64"
+  ],
+  "pr_info": {
+    "__lazy_json__": "pr_info/numpy.json"
+  },
+  "raw_meta_yaml": "{% set version = \"2.2.4\" %}\n{% set dev = \"\" %}\n# numpy will by default use the ABI feature level for the first numpy version\n# that added support for the oldest currently-supported CPython version; see\n# https://github.com/numpy/numpy/blob/v2.0.0rc1/numpy/_core/include/numpy/numpyconfig.h#L124\n{% set default_abi_level = \"1.21\" %}\n\n# ensure is_freethreading gets detected as a used variable\n# [is_freethreading]\n\npackage:\n  name: numpy\n  version: {{ version }}{{ dev }}\n\nsource:\n  # The sdist distributed by numpy contains submodules; by taking the tarball\n  # from github we can everything pythran ourselves, but manually need to include\n  # the submodules (not in tarball due to dear-github/dear-github#214); for the\n  # list of modules see https://github.com/numpy/numpy/blob/main/.gitmodules\n  - url: https://github.com/numpy/numpy/archive/refs/tags/v{{ version }}{{ dev }}.tar.gz\n    sha256: 011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3\n  # https://github.com/numpy/numpy/tree/v{{ version }}/numpy/_core/src\n  - folder: numpy/_core/src/highway\n    git_url: https://github.com/google/highway.git\n    git_rev: 0b696633f9ad89497dd5532b55eaa01625ad71ca\n  # https://github.com/numpy/numpy/tree/v{{ version }}/numpy/_core/src/common\n  - folder: numpy/_core/src/common/pythoncapi-compat\n    git_url: https://github.com/python/pythoncapi-compat.git\n    git_rev: 0f1d42a10a3f594ad48894912396df31b2c2d55d\n  # https://github.com/numpy/numpy/tree/v{{ version }}/numpy/_core/src/npysort\n  - folder: numpy/_core/src/npysort/x86-simd-sort\n    git_url: https://github.com/intel/x86-simd-sort.git\n    git_rev: 9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d\n  # https://github.com/numpy/numpy/tree/v{{ version }}/numpy/_core/src/umath\n  - folder: numpy/_core/src/umath/svml\n    git_url: https://github.com/numpy/SVML.git\n    git_rev: 32bf2a98420762a63ab418aaa0a7d6e17eb9627a\n  # https://github.com/numpy/numpy/tree/v{{ version }}/numpy/fft\n  - folder: numpy/fft/pocketfft\n    git_url: https://github.com/mreineck/pocketfft.git\n    git_rev: 33ae5dc94c9cdc7f1c78346504a85de87cadaa12\n  # https://github.com/numpy/numpy/tree/v{{ version }}/vendored-meson\n  - folder: vendored-meson/meson\n    git_url: https://github.com/numpy/meson.git\n    git_rev: 0d93515fb826440d19707eee47fd92655fe2f166\n\nbuild:\n  number: 0\n  skip: true  # [py<310]\n  entry_points:\n    - f2py = numpy.f2py.f2py2e:main             # [win]\n    - numpy-config = numpy._configtool:main     # [win]\n  run_exports:\n    - numpy >={{ default_abi_level }},<3\n\nrequirements:\n  build:\n    - python                                 # [build_platform != target_platform]\n    - cross-python_{{ target_platform }}     # [build_platform != target_platform]\n    - cython                                 # [build_platform != target_platform]\n    - ninja                                  # [build_platform != target_platform]\n    - pkg-config                             # [build_platform != target_platform]\n    - {{ compiler('c') }}\n    - {{ stdlib('c') }}\n    - {{ compiler('cxx') }}\n  host:\n    - pip\n    # temporarily vendored by numpy\n    # - meson\n    - meson-python\n    - ninja\n    - pkg-config\n    - python\n    - python-build\n    - cython\n    - libblas\n    - libcblas\n    - liblapack\n  run:\n    - python\n{% if dev != '' %}\n    - _numpy_rc\n{% endif %}\n  run_constrained:\n    # enforce eviction of package from anaconda defaults\n    - numpy-base <0a0\n\n{% set tests_to_skip = \"_not_a_real_test\" %}\n# there are some tests that cannot really work in emulation, see e.g. numpy/numpy#20445\n{% set tests_to_skip = tests_to_skip + \" or Test_ARM_Features\" %}                   # [build_platform != target_platform]\n{% set tests_to_skip = tests_to_skip + \" or Test_POWER_Features\" %}                 # [build_platform != target_platform]\n# test_new_policy reruns part of test suite; including a CPU feature test that fails in emulation\n{% set tests_to_skip = tests_to_skip + \" or test_new_policy\" %}                     # [build_platform != target_platform]\n# emulation problems (apparently) on aarch\n{% set tests_to_skip = tests_to_skip + \" or (test_basic_property and float32)\" %}   # [aarch64]\n# https://github.com/numpy/numpy/issues/27045\n{% set tests_to_skip = tests_to_skip + \" or (test_regression and test_gh25784)\" %}  # [osx]\n# new test failures for 2.2.4; possibly emulation-related; see\n# https://github.com/numpy/numpy/issues/28548\n{% set tests_to_skip = tests_to_skip + \" or test_einsum_sums_float32\" %}            # [ppc64le]\n{% set tests_to_skip = tests_to_skip + \" or test_ufunc_noncontiguous[matvec]\" %}    # [ppc64le]\n{% set tests_to_skip = tests_to_skip + \" or test_accelerate_framework_sgemv_fix \" %}  # [ppc64le]\n\ntest:\n  requires:\n    - pytest\n    - pytest-timeout\n    - pytest-xdist\n    # (mostly) optional test requirements (except wheel, python-cov, mypy), see\n    # https://github.com/numpy/numpy/blob/main/requirements/test_requirements.txt\n    - cython\n    - hypothesis\n    - meson\n    - pytz\n    - setuptools <60.0.0   # [py<=311]\n    - setuptools           # [py>=312]\n    - typing_extensions\n    # some linux tests need a C/C++ compiler;\n    # extra f2py tests need a fortran compiler\n    - {{ compiler('c') }}        # [unix]\n    - {{ compiler('cxx') }}      # [unix]\n    - {{ compiler('fortran') }}  # [linux]\n    # For some cython tests\n    - pkg-config\n  commands:\n    - f2py -h\n    # numpy.test will show SIMD features of agent (in the past, there have been\n    # failures that occurred depending on presence/absence of e.g. AVX512);\n    # for signature of numpy.test see the following (note default: label='fast'),\n    # https://github.com/numpy/numpy/blob/maintenance/1.22.x/numpy/_pytesttester.py#L81-L82\n    {% set param = \"verbose=1, label='full', tests=None\" %}\n    {% set extra = \"extra_argv=['-k', 'not (\" + tests_to_skip + \")', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']\" %}\n    - python -c \"import numpy, sys; sys.exit(not numpy.test({{ param }}, {{ extra }}))\"\n  imports:\n    - numpy\n    # reference for public API is effectively PUBLIC_MODULES under\n    # https://github.com/numpy/numpy/blame/main/numpy/tests/test_public_api.py\n    - numpy.ctypeslib\n    - numpy.distutils           # [py<312]\n    - numpy.dtypes\n    - numpy.exceptions\n    - numpy.f2py\n    - numpy.fft\n    - numpy.lib\n    - numpy.lib.format\n    - numpy.lib.mixins\n    - numpy.lib.recfunctions\n    - numpy.lib.scimath\n    - numpy.lib.stride_tricks\n    - numpy.lib.npyio\n    - numpy.lib.introspect\n    - numpy.lib.array_utils\n    - numpy.linalg\n    - numpy.ma\n    - numpy.ma.extras\n    - numpy.ma.mrecords\n    - numpy.polynomial\n    - numpy.polynomial.chebyshev\n    - numpy.polynomial.hermite\n    - numpy.polynomial.hermite_e\n    - numpy.polynomial.laguerre\n    - numpy.polynomial.legendre\n    - numpy.polynomial.polynomial\n    - numpy.random\n    - numpy.testing\n    - numpy.testing.overrides\n    - numpy.typing\n    - numpy.typing.mypy_plugin\n    - numpy.version\n    # some private modules that were once upon a time\n    # determined to be useful packaging checks\n    - numpy.core.multiarray\n    - numpy.core.numeric\n    - numpy.core.umath\n    - numpy.linalg.lapack_lite\n    - numpy.random.mtrand\n\nabout:\n  home: http://numpy.org/\n  license: BSD-3-Clause\n  license_file: LICENSE.txt\n  summary: The fundamental package for scientific computing with Python.\n  doc_url: https://numpy.org/doc/stable/\n  dev_url: https://github.com/numpy/numpy\n\nextra:\n  recipe-maintainers:\n    - jakirkham\n    - msarahan\n    - pelson\n    - rgommers\n    - ocefpaf\n    - isuruf\n    - xhochy\n    - h-vetinari\n",
+  "req": {
+    "__set__": true,
+    "elements": [
+      "c_compiler_stub",
+      "c_stdlib_stub",
+      "cxx_compiler_stub",
+      "cython",
+      "libblas",
+      "libcblas",
+      "liblapack",
+      "meson-python",
+      "ninja",
+      "pip",
+      "pkg-config",
+      "python",
+      "python-build"
+    ]
+  },
+  "requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub",
+        "fortran_compiler_stub",
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  },
+  "strong_exports": false,
+  "total_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "cxx_compiler_stub",
+        "cython",
+        "fortran_compiler_stub",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions"
+      ]
+    }
+  },
+  "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz",
+  "version": "2.2.4",
+  "version_pr_info": {
+    "__lazy_json__": "version_pr_info/numpy.json"
+  },
+  "win_64_meta_yaml": {
+    "about": {
+      "dev_url": "https://github.com/numpy/numpy",
+      "doc_url": "https://numpy.org/doc/stable/",
+      "home": "http://numpy.org/",
+      "license": "BSD-3-Clause",
+      "license_file": "LICENSE.txt",
+      "summary": "The fundamental package for scientific computing with Python."
+    },
+    "build": {
+      "entry_points": [
+        "f2py = numpy.f2py.f2py2e:main",
+        "numpy-config = numpy._configtool:main"
+      ],
+      "number": "0",
+      "run_exports": [
+        "numpy >=1.21,<3"
+      ]
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "jakirkham",
+        "msarahan",
+        "pelson",
+        "rgommers",
+        "ocefpaf",
+        "isuruf",
+        "xhochy",
+        "h-vetinari"
+      ]
+    },
+    "package": {
+      "name": "numpy",
+      "version": "2.2.4"
+    },
+    "requirements": {
+      "build": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ],
+      "host": [
+        "pip",
+        "meson-python",
+        "ninja",
+        "pkg-config",
+        "python",
+        "python-build",
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack"
+      ],
+      "run": [
+        "python"
+      ],
+      "run_constrained": [
+        "numpy-base <0a0"
+      ]
+    },
+    "schema_version": 0,
+    "source": [
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      },
+      {
+        "sha256": "011a9483768b14bb00c6dab1c666f6d86f95b23036eb1e4b2b65db700f98c9a3",
+        "url": "https://github.com/numpy/numpy/archive/refs/tags/v2.2.4.tar.gz"
+      },
+      {
+        "folder": "numpy/_core/src/highway",
+        "git_rev": "0b696633f9ad89497dd5532b55eaa01625ad71ca",
+        "git_url": "https://github.com/google/highway.git"
+      },
+      {
+        "folder": "numpy/_core/src/common/pythoncapi-compat",
+        "git_rev": "0f1d42a10a3f594ad48894912396df31b2c2d55d",
+        "git_url": "https://github.com/python/pythoncapi-compat.git"
+      },
+      {
+        "folder": "numpy/_core/src/npysort/x86-simd-sort",
+        "git_rev": "9a1b616d5cd4eaf49f7664fb86ccc1d18bad2b8d",
+        "git_url": "https://github.com/intel/x86-simd-sort.git"
+      },
+      {
+        "folder": "numpy/_core/src/umath/svml",
+        "git_rev": "32bf2a98420762a63ab418aaa0a7d6e17eb9627a",
+        "git_url": "https://github.com/numpy/SVML.git"
+      },
+      {
+        "folder": "numpy/fft/pocketfft",
+        "git_rev": "33ae5dc94c9cdc7f1c78346504a85de87cadaa12",
+        "git_url": "https://github.com/mreineck/pocketfft.git"
+      },
+      {
+        "folder": "vendored-meson/meson",
+        "git_rev": "0d93515fb826440d19707eee47fd92655fe2f166",
+        "git_url": "https://github.com/numpy/meson.git"
+      }
+    ],
+    "test": {
+      "commands": [
+        "f2py -h",
+        "python -c \"import numpy, sys; sys.exit(not numpy.test(verbose=1, label='full', tests=None, extra_argv=['-k', 'not (_not_a_real_test or Test_ARM_Features or Test_POWER_Features or test_new_policy or (test_basic_property and float32) or (test_regression and test_gh25784) or test_einsum_sums_float32 or test_ufunc_noncontiguous[matvec] or test_accelerate_framework_sgemv_fix )', '-nauto', '--timeout=3000', '--durations=50', '--maxfail=100']))\""
+      ],
+      "imports": [
+        "numpy",
+        "numpy.ctypeslib",
+        "numpy.distutils",
+        "numpy.dtypes",
+        "numpy.exceptions",
+        "numpy.f2py",
+        "numpy.fft",
+        "numpy.lib",
+        "numpy.lib.format",
+        "numpy.lib.mixins",
+        "numpy.lib.recfunctions",
+        "numpy.lib.scimath",
+        "numpy.lib.stride_tricks",
+        "numpy.lib.npyio",
+        "numpy.lib.introspect",
+        "numpy.lib.array_utils",
+        "numpy.linalg",
+        "numpy.ma",
+        "numpy.ma.extras",
+        "numpy.ma.mrecords",
+        "numpy.polynomial",
+        "numpy.polynomial.chebyshev",
+        "numpy.polynomial.hermite",
+        "numpy.polynomial.hermite_e",
+        "numpy.polynomial.laguerre",
+        "numpy.polynomial.legendre",
+        "numpy.polynomial.polynomial",
+        "numpy.random",
+        "numpy.testing",
+        "numpy.testing.overrides",
+        "numpy.typing",
+        "numpy.typing.mypy_plugin",
+        "numpy.version",
+        "numpy.core.multiarray",
+        "numpy.core.numeric",
+        "numpy.core.umath",
+        "numpy.linalg.lapack_lite",
+        "numpy.random.mtrand"
+      ],
+      "requires": [
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "cython",
+        "hypothesis",
+        "meson",
+        "pytz",
+        "setuptools <60.0.0",
+        "typing_extensions",
+        "pkg-config"
+      ]
+    }
+  },
+  "win_64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": [
+        "c_compiler_stub",
+        "c_stdlib_stub",
+        "cxx_compiler_stub"
+      ]
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "libblas",
+        "libcblas",
+        "liblapack",
+        "meson-python",
+        "ninja",
+        "pip",
+        "pkg-config",
+        "python",
+        "python-build"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "cython",
+        "hypothesis",
+        "meson",
+        "pkg-config",
+        "pytest",
+        "pytest-timeout",
+        "pytest-xdist",
+        "pytz",
+        "setuptools",
+        "typing_extensions"
+      ]
+    }
+  }
+}

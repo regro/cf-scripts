@@ -1,14 +1,96 @@
+import logging
 import os
 import subprocess
+import sys
 
-from . import sensitive_env
 from .cli_context import CliContext
-from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
-from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
+from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
+from .lazy_json_backends import (
+    CF_TICK_GRAPH_DATA_HASHMAPS,
+    get_lazy_json_backends,
+)
+from .os_utils import clean_disk_space
+from .settings import settings
+from .utils import (
+    fold_log_lines,
+    get_bot_run_url,
+    load_existing_graph,
+    run_command_hiding_token,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _flush_io():
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 
 def _run_git_cmd(cmd, **kwargs):
-    return subprocess.run(["git"] + cmd, check=True, **kwargs)
+    r = subprocess.run(["git"] + cmd, check=True, **kwargs)
+    _flush_io()
+    return r
+
+
+def _parse_gh_conflicts(output):
+    files_to_commit = []
+    in_section = False
+    indent = None
+    for line in output.splitlines():
+        print(line, flush=True)
+        if not line.strip():
+            continue
+
+        if line.startswith("error:"):
+            in_section = True
+            continue
+
+        if in_section and indent is not None and not line.startswith(indent):
+            in_section = False
+            indent = None
+            continue
+
+        if in_section:
+            if indent is None:
+                indent = line[: len(line) - len(line.lstrip())]
+            fname = line.strip()
+            if os.path.exists(fname):
+                files_to_commit.append(fname)
+            continue
+
+    return files_to_commit
+
+
+def _pull_changes(batch):
+    r = subprocess.run(
+        ["git", "pull", "-s", "recursive", "-X", "theirs"],
+        text=True,
+        capture_output=True,
+    )
+    n_added = 0
+    if r.returncode != 0:
+        files_to_commit = _parse_gh_conflicts(r.stderr + "\n" + r.stdout)
+
+        for fname in files_to_commit:
+            n_added += 1
+            print(f"committing for conflicts {n_added: >5d}: {fname}", flush=True)
+            _run_git_cmd(["add", fname])
+
+        if files_to_commit:
+            _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+            _run_git_cmd(
+                [
+                    "commit",
+                    "-m",
+                    f"{_step_name} - conflicts for batch {batch: >3d} - {get_bot_run_url()}",
+                ],
+            )
+
+        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+
+    _flush_io()
+
+    return n_added
 
 
 def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
@@ -22,7 +104,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 n_added_this_batch += 1
                 n_added += 1
             except Exception as e:
-                print(e)
+                print(e, flush=True)
 
     if n_added_this_batch > 0:
         try:
@@ -35,44 +117,47 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 ],
             )
         except Exception as e:
-            print(e)
+            print(e, flush=True)
 
         # make sure the graph can load, if not we will error
         try:
             gx = load_existing_graph()
             # TODO: be more selective about which json to check
             for node, attrs in gx.nodes.items():
-                attrs["payload"]._load()
+                with attrs["payload"]:
+                    pass
             graph_ok = True
         except Exception:
             graph_ok = False
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 10 and graph_ok:
-            try:
-                print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-                _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
-            except Exception as e:
-                print(
-                    "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
-                    flush=True,
-                )
-                pass
-            print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
-            with sensitive_env() as env:
+        while status != 0 and num_try < 20 and graph_ok:
+            with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
+                try:
+                    print(">>>>>>>>>>>> git pull", flush=True)
+                    _n_added = _pull_changes(batch)
+                    n_added += _n_added
+                    n_added_this_batch += _n_added
+                except Exception as e:
+                    print(
+                        ">>>>>>>>>>>> git pull failed: %s" % repr(e),
+                        flush=True,
+                    )
+                    pass
+
+                print(">>>>>>>>>>>> git push try", flush=True)
                 status = run_command_hiding_token(
                     [
                         "git",
                         "push",
-                        "https://{token}@github.com/{deploy_repo}.git".format(
-                            token=env.get("BOT_TOKEN", ""),
-                            deploy_repo="regro/cf-graph-countyfair",
-                        ),
-                        "master",
+                        f"https://{get_bot_token()}@github.com/{settings().graph_github_backend_repo}.git",
+                        settings().graph_repo_default_branch,
                     ],
-                    token=env.get("BOT_TOKEN", ""),
+                    token=get_bot_token(),
                 )
+                if status != 0:
+                    print(">>>>>>>>>>>> git push failed", flush=True)
             num_try += 1
 
         if status != 0 or not graph_ok:
@@ -82,17 +167,51 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
     return n_added_this_batch
 
 
+def _get_files_to_delete():
+    r = subprocess.run(
+        ["git", "diff", "--name-status", "--cached"],
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    files_to_delete = set()
+    for line in r.stdout.splitlines():
+        res = line.strip().split()
+        if len(res) < 2:
+            continue
+        status, fname = res[0:2]
+        if status == "D":
+            files_to_delete.add(fname)
+    return files_to_delete
+
+
+def _get_pth_commit_message(pth):
+    """Make a nice message for stuff managed via LazyJson."""
+    step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+    msg_pth = pth
+    parts = pth.split("/")
+    if pth.endswith(".json") and (
+        len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
+    ):
+        msg_pth = f"{parts[0]}/{parts[-1]}"
+    msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
+    return msg
+
+
+def _reset_and_restore_file(pth):
+    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
+
+
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
-    """Deploy the graph to GitHub"""
+    """Deploy the graph to GitHub."""
     if ctx.dry_run:
         print("(dry run) deploying")
         return
 
-    # pull changes, add ours, make a commit
-    try:
-        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
-    except Exception as e:
-        print(e)
+    with fold_log_lines("cleaning up disk space for deploy"):
+        clean_disk_space()
 
     files_to_add = set()
     if dirs_to_deploy is None:
@@ -143,14 +262,75 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     print("found %d files to add" % len(files_to_add), flush=True)
 
-    n_added = 0
-    batch = 0
-    while files_to_add:
-        batch += 1
-        n_added += _deploy_batch(
-            files_to_add=files_to_add,
-            n_added=n_added,
-            batch=batch,
-        )
+    files_to_delete = _get_files_to_delete()
+    print("found %d files to delete" % len(files_to_delete), flush=True)
 
-    print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
+    do_git_ops = False
+    files_to_try_again = set()
+    files_done = set()
+    if len(files_to_add) + len(files_to_delete) <= 100:
+        for pth in files_to_add:
+            if do_git_ops:
+                break
+
+            try:
+                print(
+                    f"pushing file '{pth}' to the graph via the GitHub API", flush=True
+                )
+
+                msg = _get_pth_commit_message(pth)
+
+                push_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
+            except Exception as e:
+                logger.warning(
+                    "git push via API failed - trying via git CLI", exc_info=e
+                )
+                do_git_ops = True
+                files_to_try_again.add(pth)
+            else:
+                files_done.add(pth)
+
+        for pth in files_to_delete:
+            if do_git_ops:
+                break
+
+            try:
+                print(
+                    f"deleting file '{pth}' from the graph via the GitHub API",
+                    flush=True,
+                )
+
+                # make a nice message for stuff managed via LazyJson
+                msg = _get_pth_commit_message(pth)
+
+                delete_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
+            except Exception as e:
+                logger.warning(
+                    "git delete via API failed - trying via git CLI", exc_info=e
+                )
+                do_git_ops = True
+            else:
+                files_done.add(pth)
+
+    else:
+        do_git_ops = True
+
+    for pth in files_done:
+        _reset_and_restore_file(pth)
+
+    batch = 0
+    if do_git_ops:
+        files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
+        n_added = 0
+        while files_to_add:
+            batch += 1
+            n_added += _deploy_batch(
+                files_to_add=files_to_add,
+                n_added=n_added,
+                batch=batch,
+            )
+
+        print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
+    else:
+        if files_done:
+            _pull_changes(batch)

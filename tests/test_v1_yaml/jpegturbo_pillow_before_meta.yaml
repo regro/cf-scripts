@@ -1,0 +1,103 @@
+# compile smoke test failing to link python3x.lib
+# the following needs a viewer which we don't have
+# this test is a known failure with libjpeg_turbo, but only marked as such for 2.0 upstream, not 2.x, see
+# https://github.com/python-pillow/Pillow/blob/9.3.0/Tests/test_file_libtiff.py#L885-L891
+# skip test that requires an image incorrectly flagged by AV
+schema_version: 1
+
+context:
+  version: 9.3.0
+  tests_to_skip: "\"tests_to_skip + \" or test_tiff_crashes[Tests/images/crash-81154a65438ba5aaeca73fd502fa4850fbde60f8.tif]\"\""
+
+package:
+  name: pillow
+  version: ${{ version }}
+
+source:
+  url: https://github.com/python-pillow/Pillow/archive/refs/tags/${{ version }}.tar.gz
+  sha256: 188b2a5fd445b2afa05bc0c1318ce49d4335ebbb69417fbb79acaf0a0784709e
+  patches:
+    - patches/0001-Build-without-USE_WIN32_FILEIO.patch
+    # upstream CI has a quirk that needs extra quotes for py37/py38 on windows;
+    # with our compilers, this just runs into failures, so we remove them
+    - patches/0002-Do-not-quote-PILLOW_VERSION.patch
+    # windows needs help detecting webpmux & xcb
+    - patches/0003-add-WEBP_ROOT-XCB_ROOT.patch
+    # fix provided by upstream maintainer for failing test
+    - patches/0004-Added-patch-to-fix-failing-Windows-test.patch
+    # backport https://github.com/python-pillow/Pillow/pull/6853
+    - patches/0005-Relaxed-child-images-check-to-allow-for-libjpeg.patch
+
+build:
+  number: 1
+
+requirements:
+  build:
+    - if: build_platform != target_platform
+      then: python
+    - if: build_platform != target_platform
+      then: cross-python_${{ target_platform }}
+    - ${{ compiler('c') }}
+  host:
+    - python
+    - pip
+    - setuptools
+    # libraries, c.f. https://github.com/python-pillow/Pillow/blob/9.0.0/setup.py#L30-L38
+    - freetype
+    # fribidi and libimagequant disabled due to
+    # GPL discussion, see #109 and #111
+    # - fribidi
+    - jpeg
+    - qt
+    - openjpeg
+    - lcms2
+    # not available elsewhere
+    # currently disabled on windows due to libimagequant depending on llvm-openmp, see
+    # https://github.com/pytorch/pytorch/issues/72293
+    # - libimagequant  # [x86_64 and not win]
+    - libtiff
+    - libwebp
+    - libxcb
+    - tk
+    - zlib
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - PIL
+        - PIL.Image
+        - PIL.ImageCms
+  - files:
+      recipe:
+        - Tests/images
+      source:
+        - Tests/
+    requirements:
+      run:
+        - pytest
+        - pytest-timeout
+        - setuptools
+        - ${{ compiler('c') }}
+        - fsspec
+        - aiohttp
+        - requests
+    script:
+      - if: not ppc64le
+        then: pytest -v -k "not (${{ tests_to_skip }})"
+
+about:
+  license: LicenseRef-PIL
+  license_file: LICENSE
+  summary: Pillow is the friendly PIL fork by Alex Clark and Contributors
+  homepage: https://pillow.readthedocs.io
+  repository: https://github.com/python-pillow/Pillow/
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - patricksnape
+    - pelson
+    - ocefpaf
+    - h-vetinari

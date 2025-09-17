@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import itertools
-import json
 import logging
 import os
 import pprint
@@ -15,11 +14,23 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
+from collections.abc import Mapping
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    cast,
+)
 
 import jinja2
 import jinja2.sandbox
 import networkx as nx
+import orjson
 import ruamel.yaml
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
@@ -29,6 +40,8 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
+from .recipe_parser import CondaMetaYAML
+from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
@@ -171,12 +184,12 @@ def fold_log_lines(title):
 
 
 def yaml_safe_load(stream):
-    """Load a yaml doc safely"""
+    """Load a yaml doc safely."""
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
 
 
 def yaml_safe_dump(data, stream=None):
-    """Dump a yaml object"""
+    """Dump a yaml object."""
     yaml = ruamel.yaml.YAML(typ="safe", pure=True)
     yaml.default_flow_style = False
     return yaml.dump(data, stream=stream)
@@ -196,7 +209,6 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         The text of the meta.yaml with Jinja2 variables replaced.
 
     """
-
     cfg = dict(**kwargs)
 
     env = jinja2.sandbox.SandboxedEnvironment(undefined=NullUndefined)
@@ -312,7 +324,69 @@ def parse_recipe_yaml_containerized(
         args,
         input=text,
         mount_readonly=True,
+        extra_container_args=[
+            "-e",
+            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+            "-e",
+            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+        ],
     )
+
+
+def _flatten_requirement_pin_dicts(
+    recipes: list["RecipeTypedDict"],
+) -> list["RecipeTypedDict"]:
+    """
+    Flatten out any "pin" dictionaries.
+
+    The `${{ pin_subpackage(foo) }}` and `${{ pin_compatible(foo) }}` functions
+    are converted into dictionaries. However, we want to extract the name only.
+    """
+
+    def flatten_pin(s: str | Mapping[str, Any]) -> str:
+        if isinstance(s, Mapping):
+            if "pin_subpackage" in s:
+                return s["pin_subpackage"]["name"]
+            elif "pin_compatible" in s:
+                return s["pin_compatible"]["name"]
+            raise ValueError(f"Unknown pinning dict: {s}")
+        return s
+
+    def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
+        return [flatten_pin(s) for s in list]
+
+    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
+        if "requirements" in output:
+            requirements = output["requirements"]
+            for key in ["build", "host", "run"]:
+                if key in requirements:
+                    requirements[key] = flatten_requirement_list(requirements[key])
+            if "run_exports" in requirements:
+                if isinstance(requirements["run_exports"], list):
+                    requirements["run_exports"] = flatten_requirement_list(
+                        requirements["run_exports"]
+                    )
+                else:
+                    for key in requirements["run_exports"]:
+                        requirements["run_exports"][key] = flatten_requirement_list(
+                            requirements["run_exports"][key]
+                        )
+
+    for recipe in recipes:
+        if "requirements" in recipe:
+            flatten_requirements(recipe)
+
+        if "outputs" in recipe:
+            for output in recipe["outputs"]:
+                flatten_requirements(output)
+
+        if "tests" in recipe:
+            # script tests can have `run` and `build` requirements
+            for test in recipe["tests"]:
+                if "requirements" in test:
+                    flatten_requirements(test)
+
+    return recipes
 
 
 def parse_recipe_yaml_local(
@@ -339,13 +413,22 @@ def parse_recipe_yaml_local(
     dict :
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the recipe YAML rendering fails or no output recipes are found.
+    """
     rendered_recipes = _render_recipe_yaml(
         text, cbc_path=cbc_path, platform_arch=platform_arch
     )
+    if not rendered_recipes:
+        raise RuntimeError("Failed to render recipe YAML! No output recipes found!")
+
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
+    else:
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)
     parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
@@ -378,7 +461,7 @@ def _render_recipe_yaml(
     cbc_path: str | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Renders the given recipe YAML text using the `rattler-build` command-line tool.
+    Render the given recipe YAML text using the `rattler-build` command-line tool.
 
     Parameters
     ----------
@@ -394,9 +477,13 @@ def _render_recipe_yaml(
     dict[str, Any]
         The rendered recipe as a dictionary.
     """
-    variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
-    build_platform_flags = (
-        [] if platform_arch is None else ["--build-platform", platform_arch]
+    variant_config_flags = (
+        [] if cbc_path is None else ["--variant-config", str(cbc_path)]
+    )
+    target_platform_flags = (
+        []
+        if platform_arch is None or variant_config_flags
+        else ["--target-platform", platform_arch]
     )
 
     prepared_text = replace_compiler_with_stub(text)
@@ -404,13 +491,14 @@ def _render_recipe_yaml(
     res = subprocess.run(
         ["rattler-build", "build", "--render-only"]
         + variant_config_flags
-        + build_platform_flags,
+        + target_platform_flags,
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
         input=prepared_text,
         check=True,
     )
-    return [output["recipe"] for output in json.loads(res.stdout)]
+    return [output["recipe"] for output in orjson.loads(res.stdout)]
 
 
 def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -436,7 +524,7 @@ def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str,
 def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
-    """Parses validated recipes and transform them to fit `RecipeTypedDict`
+    """Parse validated recipes and transform them to fit `RecipeTypedDict`.
 
     Parameters
     ----------
@@ -448,6 +536,38 @@ def _parse_recipes(
     RecipeTypedDict
         A dict conforming to conda-build's rendered output
     """
+    # some heuristics to find the "top-level" name and version
+    # we use these in the following order
+    # 1. Does the output name match the "name" field in the context block
+    #    if present?
+    # 2. Does the output version match the "version" field in the
+    #    context block if present?
+    # 3. Does the output name match the feedstock-name in the extra
+    #    field if present?
+    if len(validated_recipes) > 1:
+        if "name" in validated_recipes[0].get("context", {}):
+            sval = validated_recipes[0]["context"]["name"]
+            skey = "name"
+        elif "version" in validated_recipes[0].get("context", {}):
+            sval = str(validated_recipes[0]["context"]["version"])
+            skey = "version"
+        elif "feedstock-name" in validated_recipes[0].get("extra", {}):
+            sval = validated_recipes[0]["extra"]["feedstock-name"]
+            skey = "name"
+        else:
+            sval = None
+            skey = None
+
+        if sval is not None and skey is not None:
+            sind = None
+            for ind, recipe in enumerate(validated_recipes):
+                if recipe.get("package", {}).get(skey, "") == sval:
+                    sind = ind
+                    break
+            if sind is not None:
+                first = validated_recipes.pop(sind)
+                validated_recipes = [first] + validated_recipes
+
     first = validated_recipes[0]
     about = first["about"]
     build = first["build"]
@@ -465,7 +585,7 @@ def _parse_recipes(
             "home": about.get("homepage"),
             "license": about.get("license"),
             "license_family": about.get("license"),
-            "license_file": about.get("license_file")[0],
+            "license_file": about.get("license_file", [None])[0],
             "summary": about.get("summary"),
         }
     )
@@ -534,6 +654,9 @@ def _parse_recipes(
         output_data.append(
             {
                 "name": None if package_output is None else package_output.get("name"),
+                "version": None
+                if package_output is None
+                else package_output.get("version"),
                 "requirements": requirements_output_data,
                 "build": build_output_data,
                 "tests": recipe.get("tests", []),
@@ -554,8 +677,7 @@ def _parse_recipes(
 
 
 def _parse_recipe_yaml_requirements(requirements) -> None:
-    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
-
+    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`.
 
     When rendering the recipe by rattler build,
     `requirements["run_exports"]["weak"]` gives a list looking like:
@@ -606,6 +728,39 @@ def _remove_none_values(d):
     if not isinstance(d, dict):
         return d
     return {k: _remove_none_values(v) for k, v in d.items() if v is not None}
+
+
+def get_recipe_schema_version(feedstock_attrs: Mapping[str, Any]) -> int:
+    """
+    Get the recipe schema version from the feedstock attributes.
+
+    Parameters
+    ----------
+    feedstock_attrs : Mapping[str, Any]
+        The feedstock attributes.
+
+    Returns
+    -------
+    int
+        The recipe version. If it does not exist in the feedstock attributes,
+        it defaults to 0.
+
+    Raises
+    ------
+    ValueError
+        If the recipe version is not an integer, i.e. the attributes are invalid.
+    """
+    version = get_keys_default(
+        feedstock_attrs,
+        ["meta_yaml", "schema_version"],
+        {},
+        0,
+    )
+
+    if not isinstance(version, int):
+        raise ValueError("Recipe version is not an integer")
+
+    return version
 
 
 def parse_meta_yaml(
@@ -733,6 +888,12 @@ def parse_meta_yaml_containerized(
             input=text,
             mount_readonly=True,
             mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
     if (cbc_path is not None and os.path.exists(cbc_path)) or (
@@ -794,6 +955,11 @@ def parse_meta_yaml_local(
     dict :
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
+
+    Raises
+    ------
+    RuntimeError
+        If parsing fails.
     """
 
     def _run(*, use_orig_cbc_path):
@@ -805,15 +971,19 @@ def parse_meta_yaml_local(
                 module=r"conda_build\.environ",
             )
 
-            class NumpyFilter(logging.Filter):
+            class RenderingFilter(logging.Filter):
                 def filter(self, record):
-                    if record.msg.startswith("No numpy version specified"):
+                    if (
+                        record.msg.startswith("No numpy version specified")
+                        or record.msg.startswith("Setting build platform")
+                        or record.msg.startswith("Setting build arch")
+                    ):
                         return False
                     return True
 
-            np_filter = NumpyFilter()
+            rendering_filter = RenderingFilter()
             try:
-                logging.getLogger("conda_build.metadata").addFilter(np_filter)
+                logging.getLogger("conda_build.metadata").addFilter(rendering_filter)
 
                 return _parse_meta_yaml_impl(
                     text,
@@ -825,12 +995,12 @@ def parse_meta_yaml_local(
                     orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
                 )
             finally:
-                logging.getLogger("conda_build.metadata").removeFilter(np_filter)
+                logging.getLogger("conda_build.metadata").removeFilter(rendering_filter)
 
     try:
         return _run(use_orig_cbc_path=True)
     except (SystemExit, Exception):
-        logger.debug("parsing w/ conda_build_config.yaml failed! " "trying without...")
+        logger.debug("parsing w/ conda_build_config.yaml failed! trying without...")
         try:
             return _run(use_orig_cbc_path=False)
         except (SystemExit, Exception) as e:
@@ -875,12 +1045,10 @@ def _parse_meta_yaml_impl(
 
             def _run_parsing():
                 logger.debug(
-                    "parsing for platform %s with cbc %s and arch %s"
-                    % (
-                        platform,
-                        cbc_path,
-                        arch,
-                    ),
+                    "parsing for platform %s with cbc %s and arch %s",
+                    platform,
+                    cbc_path,
+                    arch,
                 )
                 config = conda_build.config.get_or_merge_config(
                     None,
@@ -1043,7 +1211,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx, edges="links")
     links = nld["links"]
-    links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+    links2 = sorted(links, key=lambda x: f"{x['source']}{x['target']}")
     nld["links"] = links2
 
     lzj = LazyJson(filename)
@@ -1067,8 +1235,15 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     If empty JSON is encountered, a ValueError is raised.
     If you expect the graph to be possibly empty JSON (i.e. not initialized), use load_graph.
 
-    :return: the graph
-    :raises ValueError if the file contains empty JSON (or did not exist before)
+    Returns
+    -------
+    nx.DiGraph
+        The graph loaded from the file.
+
+    Raises
+    ------
+    ValueError
+        If the file contains empty JSON.
     """
     gx = load_graph(filename)
     if gx is None:
@@ -1077,13 +1252,14 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
 
 
 def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
-    """
-    Load the graph from a file using the lazy json backend.
+    """Load the graph from a file using the lazy json backend.
     If the file does not exist, it is initialized with empty JSON.
     If you expect the graph to be non-empty JSON, use load_existing_graph.
 
-    :return: the graph, or None if the file is empty JSON (or
-    :raises FileNotFoundError if the file does not exist
+    Returns
+    -------
+    nx.DiGraph or None
+        The graph, or None if the file is empty JSON
     """
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
@@ -1141,16 +1317,19 @@ def as_iterable(x: T) -> Tuple[T]: ...
 
 @typing.no_type_check
 def as_iterable(iterable_or_scalar):
-    """Utility for converting an object to an iterable.
+    """Convert an object into an iterable.
+
     Parameters
     ----------
     iterable_or_scalar : anything
+
     Returns
     -------
     l : iterable
         If `obj` was None, return the empty tuple.
         If `obj` was not iterable returns a 1-tuple containing `obj`.
         Otherwise return `obj`
+
     Notes
     -----
     Although both string types and dictionaries are iterable in Python, we are
@@ -1158,7 +1337,7 @@ def as_iterable(iterable_or_scalar):
     returns (dict, ) and as_iterable(string) returns (string, )
 
     Examples
-    ---------
+    --------
     >>> as_iterable(1)
     (1,)
     >>> as_iterable([1, 2, 3])
@@ -1168,7 +1347,6 @@ def as_iterable(iterable_or_scalar):
     >>> as_iterable({'a': 1})
     ({'a': 1}, )
     """
-
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):
@@ -1232,20 +1410,39 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
-def run_command_hiding_token(args: list[str], token: str) -> int:
-    """
-    Run a command and hide the token in the output.
+def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
+    """Run a command and hide the token in the output.
 
     Prints the outputs (stdout and stderr) of the subprocess.CompletedProcess object.
     The token or tokens will be replaced with a string of asterisks of the same length.
 
     If stdout or stderr is None, it will not be printed.
 
-    :param args: The command to run.
-    :param token: The token to hide in the output.
-    :return: The return code of the command.
+    Parameters
+    ----------
+    args
+        The command to run.
+    token
+        The token to hide in the output.
+    kwargs
+        additional arguments for subprocess.run
+
+    Returns
+    -------
+    int
+        The return code of the command.
+
+    Raises
+    ------
+    ValueError
+        If the kwargs contain 'text', 'stdout', or 'stderr'.
     """
-    p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if kwargs.keys() & {"text", "stdout", "stderr"}:
+        raise ValueError("text, stdout, and stderr are not allowed in kwargs")
+
+    p = subprocess.run(
+        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+    )
 
     out, err = p.stdout, p.stderr
 
@@ -1258,3 +1455,87 @@ def run_command_hiding_token(args: list[str], token: str) -> int:
         out_dev.flush()
 
     return p.returncode
+
+
+def _is_comment_or_empty(line):
+    return line.strip() == "" or line.strip().startswith("#")
+
+
+def extract_section_from_yaml_text(
+    yaml_text: str,
+    section_name: str,
+    exclude_requirements: bool = False,
+) -> list[str]:
+    """Extract a section from YAML as text.
+
+    Parameters
+    ----------
+    yaml_text : str
+        The raw YAML text.
+    section_name : str
+        The section name to extract.
+    exclude_requirements : bool, optional
+        If True, exclude any sections in a `requirements` block. Set to
+        True if you want to extract the `build` section but not the `requirements.build`
+        section. Default is False.
+
+    Returns
+    -------
+    list[str]
+        A list of strings for the extracted sections.
+    """
+    # normalize the indents etc.
+    try:
+        yaml_text = CondaMetaYAML(yaml_text).dumps()
+    except Exception as e:
+        logger.debug(
+            "Failed to normalize the YAML text due to error %s. We will try to parse anyways!",
+            repr(e),
+        )
+        pass
+
+    lines = yaml_text.splitlines()
+
+    in_requirements = False
+    requirements_indent = None
+    section_indent = None
+    section_start = None
+    found_sections = []
+
+    for loc, line in enumerate(lines):
+        if (
+            section_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= section_indent
+        ):
+            if (not exclude_requirements) or (
+                exclude_requirements and not in_requirements
+            ):
+                found_sections.append("\n".join(lines[section_start:loc]))
+            section_indent = None
+            section_start = None
+
+        if line.lstrip().startswith(f"{section_name}:"):
+            section_indent = len(line) - len(line.lstrip())
+            section_start = loc
+
+        # blocks for detecting if we are in requirements
+        # these blocks have to come after the blocks above since a section can end
+        # with the 'requirements:' line and that is OK.
+        if (
+            requirements_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= requirements_indent
+        ):
+            in_requirements = False
+            requirements_indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            requirements_indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+    if section_start is not None:
+        if (not exclude_requirements) or (exclude_requirements and not in_requirements):
+            found_sections.append("\n".join(lines[section_start:]))
+
+    return found_sections

@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
@@ -10,12 +10,16 @@ if typing.TYPE_CHECKING:
 
 
 class DuplicateLinesCleanup(MiniMigrator):
+    # duplicate keys are an error in v1 recipes
+    allowed_schema_versions = {0}
     regex_to_check = {
         "noarch: generic": re.compile(r"^\s*noarch:\s*generic\s*$"),
         "noarch: python": re.compile(r"^\s*noarch:\s*python\s*$"),
     }
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
         # we are not handling outputs here since they can make things confusing
         if "outputs" in attrs.get("meta_yaml", ""):
             return True
@@ -23,7 +27,9 @@ class DuplicateLinesCleanup(MiniMigrator):
         raw_yaml = attrs.get("raw_meta_yaml", "")
         for line in raw_yaml.splitlines():
             if any(r.match(line) for r in self.regex_to_check.values()):
-                return False or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+                return False or skip_migrator_due_to_schema(
+                    attrs, self.allowed_schema_versions
+                )
 
         return True
 

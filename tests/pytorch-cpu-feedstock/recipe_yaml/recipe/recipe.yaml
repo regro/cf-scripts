@@ -78,8 +78,8 @@ outputs:
         - future
         - six
         - cffi
-        - mkl-devel ${{ mkl }}
-        - mkl ${{ mkl }}
+        - mkl-devel ${{ mkl }}.*
+        - mkl ${{ mkl }}.*
         - libblas * *_mkl
         - typing
         - if: unix
@@ -87,7 +87,7 @@ outputs:
         - if: unix
           then: pkg-config
       run:
-        - mkl ${{ mkl }}
+        - mkl ${{ mkl }}.*
         - libblas * *_mkl
         - if: osx
           then: llvm-openmp

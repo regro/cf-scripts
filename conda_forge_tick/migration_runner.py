@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import shutil
@@ -6,6 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+import orjson
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -20,6 +20,11 @@ from conda_forge_feedstock_ops.os_utils import (
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -133,15 +138,19 @@ def run_migration_containerized(
         perms = get_user_execute_permissions(feedstock_dir)
         with open(
             os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
-            "w",
+            "wb",
         ) as f:
-            json.dump(perms, f)
+            f.write(orjson.dumps(perms))
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         mfile = os.path.join(tmpdir, "migrator.json")
@@ -172,7 +181,14 @@ def run_migration_containerized(
                 if isinstance(node_attrs, LazyJson)
                 else dumps(node_attrs)
             ),
-            extra_container_args=["-e", "RUN_URL"],
+            extra_container_args=[
+                "-e",
+                "RUN_URL",
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         sync_dirs(
@@ -229,9 +245,11 @@ def run_migration_local(
           - pr_title: The PR title for the migration.
           - pr_body: The PR body for the migration.
     """
-
-    # it would be better if we don't re-instantiate ClonedFeedstockContext ourselves and let
-    # FeedstockContext.reserve_clone_directory be the only way to create a ClonedFeedstockContext
+    # Instead of mimicking the ClonedFeedstockContext which is already available in the call hierarchy of this function,
+    # we should instead pass the ClonedFeedstockContext object to this function. This would allow the following issue.
+    # POSSIBLE BUG: The feedstock_ctx object is mimicked and any attributes not listed here might have incorrect
+    # default values that were actually overridden. FOR EXAMPLE, DO NOT use the git_repo_owner attribute of the
+    # feedstock_ctx object below. Instead, refactor to make this function accept a ClonedFeedstockContext object.
     feedstock_ctx = ClonedFeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,

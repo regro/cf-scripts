@@ -1,7 +1,6 @@
 import collections.abc
 import hashlib
 import io
-import json
 import logging
 import os
 import pprint
@@ -9,10 +8,12 @@ import re
 import shutil
 import tempfile
 import traceback
+from pathlib import Path
 from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
+import orjson
 import requests
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
@@ -29,6 +30,11 @@ from conda_forge_feedstock_ops.os_utils import (
 from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.lazy_json_backends import loads
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.utils import sanitize_string
 
@@ -116,7 +122,7 @@ def _compile_all_selectors(cmeta: Any, src: str):
     return set(selectors)
 
 
-def _try_url_and_hash_it(url: str, hash_type: str):
+def _try_url_and_hash_it(url: str, hash_type: str) -> str | None:
     logger.debug("downloading url: %s", url)
 
     try:
@@ -134,14 +140,39 @@ def _try_url_and_hash_it(url: str, hash_type: str):
 
 
 def _render_jinja2(tmpl, context):
-    return (
-        jinja2.sandbox.SandboxedEnvironment(undefined=jinja2.StrictUndefined)
-        .from_string(tmpl)
-        .render(**context)
-    )
+    env = jinja2.sandbox.SandboxedEnvironment(undefined=jinja2.StrictUndefined)
+
+    # We need to add the split filter to support v1 recipes
+    def split_filter(value, sep):
+        return value.split(sep)
+
+    env.filters["split"] = split_filter
+
+    return env.from_string(tmpl).render(**context)
 
 
 def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any):
+    """
+    Try to get a new version from the PyPI API. The returned URL might use a different
+    format (host) than the original URL template, e.g. `https://files.pythonhosted.org/`
+    instead of `https://pypi.io/`.
+
+    Parameters
+    ----------
+    url_tmpl : str
+        The URL template to try to update.
+    context : dict
+        The context to render the URL template.
+    hash_type : str
+        The hash type to use.
+
+    Returns
+    -------
+    new_url_tmpl : str or None
+        The new URL template if found.
+    new_hash : str or None
+        The new hash if found.
+    """
     if "version" not in context:
         return None, None
 
@@ -152,20 +183,36 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
         return None, None
 
     orig_pypi_name = None
-    orig_pypi_name_candidates = [
-        url_tmpl.split("/")[-2],
-        context.get("name", None),
-        (cmeta.meta.get("package", {}) or {}).get("name", None),
-    ]
-    if "outputs" in cmeta.meta:
-        for output in cmeta.meta["outputs"]:
-            output = output or {}
-            orig_pypi_name_candidates.append(output.get("name", None))
+
+    # this is a v0 recipe
+    if hasattr(cmeta, "meta"):
+        orig_pypi_name_candidates = [
+            url_tmpl.split("/")[-2],
+            context.get("name", None),
+            (cmeta.meta.get("package", {}) or {}).get("name", None),
+        ]
+        if "outputs" in cmeta.meta:
+            for output in cmeta.meta["outputs"]:
+                output = output or {}
+                orig_pypi_name_candidates.append(output.get("name", None))
+    else:
+        # this is a v1 recipe
+        orig_pypi_name_candidates = [
+            url_tmpl.split("/")[-2],
+            context.get("name", None),
+            cmeta.get("package", {}).get("name", None),
+        ]
+        # for v1 recipe compatibility
+        if "outputs" in cmeta:
+            if package_name := output.get("package", {}).get("name", None):
+                orig_pypi_name_candidates.append(package_name)
+
     orig_pypi_name_candidates = sorted(
         {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
         key=lambda x: len(x),
     )
     logger.info("PyPI name candidates: %s", orig_pypi_name_candidates)
+
     for _orig_pypi_name in orig_pypi_name_candidates:
         if _orig_pypi_name is None:
             continue
@@ -219,11 +266,11 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
     if "name" in context:
         for tmpl in [
             "{{ name }}",
-            "{{ name.lower() }}",
-            "{{ name.replace('-', '_') }}",
-            "{{ name.replace('_', '-') }}",
-            "{{ name.replace('-', '_').lower() }}",
-            "{{ name.replace('_', '-').lower() }}",
+            "{{ name | lower }}",
+            "{{ name | replace('-', '_') }}",
+            "{{ name | replace('_', '-') }}",
+            "{{ name | replace('-', '_') | lower }}",
+            "{{ name | replace('_', '-') | lower }}",
         ]:
             if pypi_name == _render_jinja2(tmpl, context) + "-":
                 name_tmpl = tmpl
@@ -264,6 +311,7 @@ def _get_new_url_tmpl_and_hash(
         logger.info("initial rendered URL: %s", url)
     except jinja2.UndefinedError:
         logger.info("initial URL template does not render")
+        url = None
         pass
 
     if url != url_tmpl:
@@ -557,15 +605,27 @@ def update_version_feedstock_dir(
         )
 
 
-def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type):
-    with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as f:
-        raw_meta_yaml = f.read()
-    updated_meta_yaml, errors = update_version(
-        raw_meta_yaml, version, hash_type=hash_type
-    )
+def _update_version_feedstock_dir_local(
+    feedstock_dir, version, hash_type
+) -> (bool, set):
+    feedstock_path = Path(feedstock_dir)
+
+    recipe_path = None
+    recipe_path_v0 = feedstock_path / "recipe" / "meta.yaml"
+    recipe_path_v1 = feedstock_path / "recipe" / "recipe.yaml"
+    if recipe_path_v0.exists():
+        recipe_path = recipe_path_v0
+        updated_meta_yaml, errors = update_version(
+            recipe_path_v0.read_text(), version, hash_type=hash_type
+        )
+    elif recipe_path_v1.exists():
+        recipe_path = recipe_path_v1
+        updated_meta_yaml, errors = update_version_v1(feedstock_dir, version, hash_type)
+    else:
+        return False, {"no recipe found"}
+
     if updated_meta_yaml is not None:
-        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "w") as f:
-            f.write(updated_meta_yaml)
+        recipe_path.write_text(updated_meta_yaml)
 
     return updated_meta_yaml is not None, errors
 
@@ -580,15 +640,19 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
         perms = get_user_execute_permissions(feedstock_dir)
         with open(
             os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
-            "w",
+            "wb",
         ) as f:
-            json.dump(perms, f)
+            f.write(orjson.dumps(perms))
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
-        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.debug(
-            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+            "host feedstock dir %s: %s", feedstock_dir, os.listdir(feedstock_dir)
+        )
+        logger.debug(
+            "copied host feedstock dir %s: %s",
+            tmp_feedstock_dir,
+            os.listdir(tmp_feedstock_dir),
         )
 
         args = [
@@ -606,6 +670,12 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
             mount_readonly=False,
             mount_dir=tmpdir,
             json_loads=loads,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
         sync_dirs(
@@ -625,8 +695,110 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
     return data["updated"], data["errors"]
 
 
-def update_version(raw_meta_yaml, version, hash_type="sha256"):
+def update_version_v1(
+    feedstock_dir: str, version: str, hash_type: str
+) -> (str | None, set[str]):
     """Update the version in a recipe.
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The feedstock directory to update.
+    version : str
+        The new version of the recipe.
+    hash_type : str
+        The kind of hash used on the source.
+
+    Returns
+    -------
+    recipe_text : str or None
+        The text of the updated recipe.yaml. Will be None if there is an error.
+    errors : set of str
+    """
+    # extract all the URL sources from a given recipe / feedstock directory
+    from rattler_build_conda_compat.loader import load_yaml
+    from rattler_build_conda_compat.recipe_sources import render_all_sources
+
+    feedstock_dir = Path(feedstock_dir)
+    recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
+    recipe_text = recipe_path.read_text()
+    recipe_yaml = load_yaml(recipe_text)
+    variants = feedstock_dir.glob(".ci_support/*.yaml")
+    # load all variants
+    variants = [load_yaml(variant.read_text()) for variant in variants]
+    if not len(variants):
+        # if there are no variants, then we need to add an empty one
+        variants = [{}]
+
+    rendered_sources = render_all_sources(
+        recipe_yaml, variants, override_version=version
+    )
+
+    # mangle the version if it is R
+    for source in rendered_sources:
+        if isinstance(source.template, list):
+            if any([_is_r_url(t) for t in source.template]):
+                version = version.replace("_", "-")
+        else:
+            if _is_r_url(source.template):
+                version = version.replace("_", "-")
+
+    # update the version with a regex replace
+    for line in recipe_text.splitlines():
+        if match := re.match(r"^(\s+)version:\s.*$", line):
+            indentation = match.group(1)
+            recipe_text = recipe_text.replace(
+                line, f'{indentation}version: "{version}"'
+            )
+            break
+
+    for source in rendered_sources:
+        # update the hash value
+        urls = source.url
+        # zip url and template
+        if not isinstance(urls, list):
+            urls = zip([urls], [source.template])
+        else:
+            urls = zip(urls, source.template)
+
+        found_hash = False
+        for url, template in urls:
+            if source.sha256 is not None:
+                hash_type = "sha256"
+            elif source.md5 is not None:
+                hash_type = "md5"
+
+            # convert to regular jinja2 template
+            cb_template = template.replace("${{", "{{")
+            new_tmpl, new_hash = _get_new_url_tmpl_and_hash(
+                cb_template,
+                source.context,
+                hash_type,
+                recipe_yaml,
+            )
+
+            if new_hash is not None:
+                if hash_type == "sha256":
+                    recipe_text = recipe_text.replace(source.sha256, new_hash)
+                else:
+                    recipe_text = recipe_text.replace(source.md5, new_hash)
+                found_hash = True
+
+                # convert back to v1 minijinja template
+                new_tmpl = new_tmpl.replace("{{", "${{")
+                if new_tmpl != template:
+                    recipe_text = recipe_text.replace(template, new_tmpl)
+
+                break
+
+        if not found_hash:
+            return None, {"could not find a hash for the source"}
+
+    return recipe_text, set()
+
+
+def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]):
+    """Update the version in a v0 recipe.
 
     Parameters
     ----------

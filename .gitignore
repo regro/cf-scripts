@@ -21,6 +21,7 @@ docs/_build/
 
 node_attrs/*
 graph.json
+!tests_integration/resources/empty-graph/graph.json
 pr_json/*
 pr_status/*
 status/*
@@ -58,3 +59,8 @@ versions/*
 pixi.lock
 pixi.toml
 .ruff_cache/
+.repodata_cache/
+venv
+oryx-build-commands.txt
+.env
+.DS_Store

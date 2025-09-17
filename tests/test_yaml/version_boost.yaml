@@ -7,8 +7,8 @@ package:
 
 source:
   fn:  {{ filename }}
-  url: https://boostorg.jfrog.io/artifactory/main/release/{{ version }}/source/{{ filename }}
-  sha256: 59c9b274bc451cf91a9ba1dd2c7fdcaf5d60b1b3aa83f2c9fa143417cc660722
+  url: https://archives.boost.io/release/{{ version }}/source/{{ filename }}
+  sha256: 59c9b274bc451cf91a9ba1dd2c7fdcaf5d60b1b3aa83f2c9fa143417cc660721
   patches:
     # related to https://github.com/boostorg/build/pull/291
     - fix-include-dir.patch  # [py3k and py<38]

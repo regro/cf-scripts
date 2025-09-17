@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from typing import Optional
 
@@ -84,9 +83,6 @@ def main(
     ctx.debug = debug
     ctx.dry_run = dry_run
 
-    if ctx.debug:
-        os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
-
     if online:
         logger.info("Running in online mode")
         click_context.with_resource(
@@ -114,16 +110,29 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, update the nodes and edges in the graph. Otherwise, only update the node attrs.",
 )
+@click.option(
+    "--schema-migration-only",
+    is_flag=True,
+    help="If given, only migrate the schema of the node attrs.",
+)
 @pass_context
 def make_graph(
-    ctx: CliContext, job: int, n_jobs: int, update_nodes_and_edges: bool
+    ctx: CliContext,
+    job: int,
+    n_jobs: int,
+    update_nodes_and_edges: bool,
+    schema_migration_only: bool,
 ) -> None:
     from . import make_graph
 
     check_job_param_relative(job, n_jobs)
 
     make_graph.main(
-        ctx, job=job, n_jobs=n_jobs, update_nodes_and_edges=update_nodes_and_edges
+        ctx,
+        job=job,
+        n_jobs=n_jobs,
+        update_nodes_and_edges=update_nodes_and_edges,
+        schema_migration_only=schema_migration_only,
     )
 
 
@@ -229,9 +238,7 @@ def make_import_to_package_mapping(
     ctx: CliContext,
     max_artifacts: int,
 ) -> None:
-    """
-    Make the import to package mapping.
-    """
+    """Make the import to package mapping."""
     from . import import_to_pkg
 
     import_to_pkg.main(ctx, max_artifacts)
@@ -242,12 +249,47 @@ def make_import_to_package_mapping(
 def make_migrators(
     ctx: CliContext,
 ) -> None:
-    """
-    Make the migrators.
-    """
+    """Make the migrators."""
     from . import make_migrators as _make_migrators
 
     _make_migrators.main(ctx)
+
+
+@main.command(name="react-to-event")
+@click.option(
+    "--event",
+    required=True,
+    help="The event to react to.",
+    type=click.Choice(["pr", "push"]),
+)
+@click.option(
+    "--uid",
+    required=True,
+    help=(
+        "The unique identifier of the event. It is the PR "
+        "id for PR events or the feedstock name for push events"
+    ),
+    type=str,
+)
+@pass_context
+def react_to_event(
+    ctx: CliContext,
+    event: str,
+    uid: str,
+) -> None:
+    """React to an event."""
+    from .events import react_to_event
+
+    react_to_event(ctx, event, uid)
+
+
+@main.command(name="clean-disk-space")
+@click.option("--ci-service", required=True, type=click.Choice(["github-actions"]))
+def clean_disk_space(ci_service) -> None:
+    """Clean up disk space on CI services."""
+    from .os_utils import clean_disk_space
+
+    clean_disk_space(ci_service)
 
 
 if __name__ == "__main__":

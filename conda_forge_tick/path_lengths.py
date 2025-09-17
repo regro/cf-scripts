@@ -1,7 +1,4 @@
-"""
-Functions to find the longest paths between nodes in a graph.
-
-"""
+"""Functions to find the longest paths between nodes in a graph."""
 
 from collections import defaultdict
 from copy import deepcopy
@@ -34,7 +31,6 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
         The nodes of `graph` in topological sort order.
 
     """
-
     g2 = deepcopy(graph)
     order: List[T] = []
     for source in sorted(sources):
@@ -68,7 +64,6 @@ def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
         values are the lengths of the longest path from `source`.
 
     """
-
     dist = {node: -float("inf") for node in graph}
     dist[source] = 0
     visited = []
@@ -101,7 +96,6 @@ def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
         nodes in `graph` with longest path length equal to the key.
 
     """
-
     g2 = deepcopy(graph)
     desc = nx.algorithms.descendants(graph, source)
     for node in graph.nodes:

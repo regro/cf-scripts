@@ -1,17 +1,21 @@
 import os
 
+import networkx as nx
 import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import MatplotlibBase
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 MPLB = MatplotlibBase(
     old_pkg="matplotlib",
     new_pkg="matplotlib-base",
     rationale=(
-        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
+        "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
+    total_graph=TOTAL_GRAPH,
 )
 
 
@@ -22,14 +26,15 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
     "existing_yums",
     [tuple(), ("blah",), ("blah", "xorg-x11-server-Xorg"), ("xorg-x11-server-Xorg",)],
 )
-def test_matplotlib_base(existing_yums, tmpdir):
+def test_matplotlib_base(existing_yums, tmp_path):
     with open(os.path.join(YAML_PATH, "mplb.yaml")) as fp:
         in_yaml = fp.read()
 
     with open(os.path.join(YAML_PATH, "mplb_correct.yaml")) as fp:
         out_yaml = fp.read()
 
-    yum_pth = os.path.join(tmpdir, "yum_requirements.txt")
+    tmp_path.joinpath("recipe").mkdir()
+    yum_pth = tmp_path / "recipe/yum_requirements.txt"
 
     if len(existing_yums) > 0:
         with open(yum_pth, "w") as fp:
@@ -47,7 +52,7 @@ def test_matplotlib_base(existing_yums, tmpdir):
             "migrator_version": MPLB.migrator_version,
             "name": "matplotlib-to-matplotlib-base",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
     with open(yum_pth) as fp:

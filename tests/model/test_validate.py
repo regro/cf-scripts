@@ -1,3 +1,4 @@
+import json
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -28,16 +29,11 @@ After fixing the issue, you can remove the feedstock from the list.
 
 NODE_ATTRS_BAD_FEEDSTOCKS = {
     "gmatelastoplasticqpot3d",  # missing platforms
-    "semi-ate-stdf",  # missing platforms
     "thrust",  # missing platforms
     "cub",  # missing platforms
-    "mamba",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
-    "napari",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
     "birka",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
     "xsimd",  # recipe/meta.yaml about.doc_url has a typo in the URL scheme
-    "pytao",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
     "anyqt",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
-    "cubed",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "condastats",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "pytermgui",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "torcpy",  # recipe/meta.yaml about.dev_url has typo
@@ -49,35 +45,18 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "mp_time_split",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "shippinglabel",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "cddlib",  # recipe/meta.yaml about.doc_url has "ftp" URL scheme (and is unreachable)
-    "vs2008_runtime",  # node attributes error: build.skip is true for non-Windows, but osx and linux are platforms
     "everett",  # recipe/meta.yaml about.dev_url has invalid URL scheme
     "scheil",  # recipe/meta.yaml about.doc_url is not a valid URL
     "llspy-slm",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
-    "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
-    "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "textual-fastdatatable",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "sqlalchemy-drill",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "alibabacloud-openapi-util",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "dnspython",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
-    "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
-    "jupyter_core",  # `conda-forge.yml`.abi_migration_branches is unexpected, should be moved to `conda-forge.yml`.bot
     "bamnostic",  # unrecognized field `conda-forge.yml`.build
-    "r-v8",  # unrecognized field `conda-forge.yml`.github.win
-    "python-utils",  # unrecognized field `conda-forge.yml`.dependencies
     "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
     "sketchnu",  # `conda-forge.yml`.conda_build.pkg_format may not be None
     "sense2vec",  # `conda-forge.yml`.channels is unexpected
     "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
     # see https://github.com/conda-forge/conda-smithy/issues/1863 for the top-level build platform fields
-    "uarray",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
-    "libsimpleitk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "pnab",  # missing build number in the recipe/meta.yaml
 }
 
@@ -86,9 +65,7 @@ PR_INFO_BAD_FEEDSTOCKS = {
     "font-ttf-noto-emoji",  # PRed.0.data.version is not a valid conda version
 }
 
-VERSION_PR_INFO_BAD_FEEDSTOCKS = {
-    "r-rgdal",  # mismatched versions in new_version_errors and new_version_attempts
-}
+VERSION_PR_INFO_BAD_FEEDSTOCKS = {}
 
 
 @dataclass
@@ -188,6 +165,17 @@ def pytest_generate_tests(metafunc):
 
 
 def test_model_valid(model: PerPackageModel, valid_feedstock: str):
+    try:
+        node_attrs_pth = get_sharded_path(f"node_attrs/{valid_feedstock}.json")
+        with open(node_attrs_pth) as f:
+            node_attrs = f.read()
+        data = json.loads(node_attrs)
+    except FileNotFoundError:
+        data = None
+
+    if data is not None and data.get("archived", False):
+        pytest.xfail("archived feedstocks need not be valid")
+
     path = get_sharded_path(model.base_path / f"{valid_feedstock}.json")
     try:
         with open(path) as f:
@@ -196,6 +184,13 @@ def test_model_valid(model: PerPackageModel, valid_feedstock: str):
         if model.must_exist:
             raise
         pytest.skip(f"{path} does not exist")
+
+    if (
+        data is not None
+        and model.model is NodeAttributes
+        and (data.get("meta_yaml", {}) or {}).get("schema_version", 0) == 1
+    ):
+        pytest.xfail("recipes using schema version 1 cannot yet be validated")
 
     model.model.validate_json(node_attrs)
 

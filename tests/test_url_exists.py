@@ -1,15 +1,6 @@
-import random
-import time
-
 import pytest
-from flaky import flaky
 
 from conda_forge_tick.update_sources import url_exists
-
-
-def delay_rerun(*args):
-    time.sleep(random.random() * 2)
-    return True
 
 
 @pytest.mark.parametrize(
@@ -21,7 +12,11 @@ def delay_rerun(*args):
             "http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.6p1.tar.gz",
             True,
         ),
-        ("https://eups.lsst.codes/stack/src/tags/w_2021_07.list", True),
+        pytest.param(
+            "https://eups.lsst.codes/stack/src/tags/w_2021_07.list",
+            True,
+            marks=pytest.mark.xfail(reason="expired HTTPS certificate"),
+        ),
         pytest.param(
             "https://downloads.sourceforge.net/project/healpix/Healpix_3.31/Healpix_3.31_2016Aug26.tar.gz",  # noqa
             True,
@@ -59,7 +54,6 @@ def delay_rerun(*args):
         ),
     ],
 )
-@flaky(max_runs=4, rerun_filter=delay_rerun)
 def test_url_exists(url, exists):
     # sourceforge seems slow enough to time out in our tests?
     if "sourceforge" in url:

@@ -14,7 +14,7 @@ class SensitiveEnv:
         self.classified_info = {}
 
     def hide_env_vars(self):
-        """Remove sensitive env vars"""
+        """Remove sensitive env vars."""
         self.classified_info.update(
             {
                 k: os.environ.pop(k, self.classified_info.get(k, None))
@@ -23,7 +23,7 @@ class SensitiveEnv:
         )
 
     def reveal_env_vars(self):
-        """Restore sensitive env vars"""
+        """Restore sensitive env vars."""
         os.environ.update(
             **{k: v for k, v in self.classified_info.items() if v is not None}
         )
@@ -31,7 +31,8 @@ class SensitiveEnv:
     @contextmanager
     def sensitive_env(self):
         """Add sensitive keys to environ if needed, when ctx is finished remove keys and update the sensitive env
-        in case any were updated inside the ctx"""
+        in case any were updated inside the ctx.
+        """
         self.reveal_env_vars()
         yield os.environ
         self.hide_env_vars()

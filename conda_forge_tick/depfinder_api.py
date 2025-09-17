@@ -123,7 +123,7 @@ def simple_import_to_pkg_map(
     ignore=None,
     custom_namespaces=None,
 ):
-    """Provide the map between all the imports and their possible packages
+    """Provide the map between all the imports and their possible packages.
 
     Parameters
     ----------

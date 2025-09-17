@@ -3,20 +3,27 @@ import logging
 import os
 import pprint
 import tempfile
+from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Literal, Union
 
 import requests
+from grayskull.config import Configuration
+from grayskull.utils import generate_recipe
+from ruamel.yaml import YAML
+from souschef.recipe import Recipe
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
 from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
+from conda_forge_tick.settings import settings
+from conda_forge_tick.utils import get_recipe_schema_version
 
 try:
     from grayskull.main import create_python_recipe
@@ -24,6 +31,15 @@ except ImportError:
     from grayskull.__main__ import create_python_recipe
 
 logger = logging.getLogger(__name__)
+
+yaml = YAML()
+yaml.default_flow_style = False
+yaml.block_seq_indent = True
+yaml.indent(mapping=2, sequence=4, offset=2)
+yaml.width = 4096
+
+EnvDepComparison = dict[Literal["df_minus_cf", "cf_minus_df"], set[str]]
+DepComparison = dict[Literal["host", "run"], EnvDepComparison]
 
 
 SECTIONS_TO_PARSE = ["host", "run"]
@@ -67,7 +83,7 @@ RANKINGS = []
 for _ in range(10):
     r = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "ranked_hubs_authorities.json",
         )
     )
@@ -198,6 +214,12 @@ def get_dep_updates_and_hints(
         to understand its contents.
     hint : str
         The dependency update hint.
+
+
+    Raises
+    ------
+    ValueError
+        If the update kind is not supported.
     """
     if update_deps == "disabled":
         # no dependency updates or hinting
@@ -294,27 +316,9 @@ def merge_dep_comparisons(dep1, dep2):
     return d
 
 
-def make_grayskull_recipe(attrs, version_key="version"):
-    """Make a grayskull recipe given bot node attrs.
-
-    Parameters
-    ----------
-    attrs : dict or LazyJson
-        The node attrs.
-    version_key : str, optional
-        The version key to use from the attrs. Default is "version".
-
-    Returns
-    -------
-    recipe : str
-        The generated grayskull recipe as a string.
-    """
-    if version_key not in attrs:
-        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
-    else:
-        pkg_version = attrs[version_key]
-
-    src = attrs["meta_yaml"].get("source", {}) or {}
+def _modify_package_name_from_github(orig_name, src):
+    # if a package source comes from github, adjust the package name
+    # for sending to create_python_recipe, so grayskull can find metadata
     if isinstance(src, dict):
         src = [src]
     is_pypi = False
@@ -345,7 +349,7 @@ def make_grayskull_recipe(attrs, version_key="version"):
         is_pypi = True
 
     if is_pypi:
-        pkg_name = attrs["name"]
+        return orig_name
     elif is_github:
         url_parts = github_url.split("/")
         if len(url_parts) < 5:
@@ -353,9 +357,33 @@ def make_grayskull_recipe(attrs, version_key="version"):
                 "github url %s for grayskull dep update is too short! assuming pypi...",
                 github_url,
             )
-            pkg_name = attrs["name"]
+            return orig_name
         else:
-            pkg_name = "/".join(url_parts[:5])
+            return "/".join(url_parts[:5])
+
+
+def make_grayskull_recipe(attrs, version_key="version"):
+    """Make a grayskull recipe given bot node attrs.
+
+    Parameters
+    ----------
+    attrs : dict or LazyJson
+        The node attrs.
+    version_key : str, optional
+        The version key to use from the attrs. Default is "version".
+
+    Returns
+    -------
+    recipe : str
+        The generated grayskull recipe as a string.
+    """
+    if version_key not in attrs:
+        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
+    else:
+        pkg_version = attrs[version_key]
+
+    src = attrs["meta_yaml"].get("source", {}) or {}
+    pkg_name = _modify_package_name_from_github(attrs["name"], src)
 
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(
@@ -388,6 +416,45 @@ def make_grayskull_recipe(attrs, version_key="version"):
     return out
 
 
+def _generate_grayskull_recipe_v1(recipe: Recipe, configuration: Configuration) -> str:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        generate_recipe(
+            recipe=recipe,
+            config=configuration,
+            folder_path=temp_dir,
+            use_v1_format=True,
+        )
+        return (Path(temp_dir) / configuration.name / "recipe.yaml").read_text()
+
+
+def _validate_grayskull_recipe_v1(recipe: Recipe):
+    # The new v1 recipe format allows for complex structures as requirements, not just strings.
+    # For example, '{'if': 'linux', 'then': 'numpy'}'.
+    # This is hard to integrate into the remainder of the dependency update process downstream,
+    # so we skip recipes affected by this for now.
+    for environment in ["host", "run"]:
+        for requirement in recipe.yaml["requirements"][environment]:
+            if not isinstance(requirement, str):
+                raise ValueError(
+                    f"Requirement in '{environment}' environment is not a string: '{requirement}'"
+                )
+
+
+def _make_grayskull_recipe_v1(
+    package_name: str, package_version: str, package_is_noarch: bool
+) -> str:
+    recipe, config = create_python_recipe(
+        pkg_name=package_name,
+        version=package_version,
+        download=False,
+        is_strict_cf=True,
+        from_local_sdist=False,
+        is_arch=not package_is_noarch,
+    )
+    _validate_grayskull_recipe_v1(recipe=recipe)
+    return _generate_grayskull_recipe_v1(recipe=recipe, configuration=config)
+
+
 def get_grayskull_comparison(attrs, version_key="version"):
     """Get the dependency comparison between the recipe and grayskull.
 
@@ -402,11 +469,33 @@ def get_grayskull_comparison(attrs, version_key="version"):
     -------
     d : dict
         The dependency comparison with conda-forge.
-    """
-    gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
 
-    # load the feedstock with the grayskull meta_yaml
-    new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+    Raises
+    ------
+    ValueError
+        When a v1 recipe contains requirements that we are unable to process.
+    """
+    recipe_schema_version = get_recipe_schema_version(attrs)
+    if recipe_schema_version == 0:
+        grayskull_recipe = make_grayskull_recipe(attrs, version_key=version_key)
+        new_attrs = load_feedstock(
+            attrs.get("feedstock_name"), {}, meta_yaml=grayskull_recipe
+        )
+    elif recipe_schema_version == 1:
+        recipe = attrs["meta_yaml"]
+        src = recipe.get("source", {}) or {}
+        pkg_name = _modify_package_name_from_github(recipe["package"]["name"], src)
+        grayskull_recipe = _make_grayskull_recipe_v1(
+            package_name=pkg_name,
+            package_version=attrs["version_pr_info"][version_key],
+            package_is_noarch=bool(recipe["build"].get("noarch")),
+        )
+        new_attrs = load_feedstock(
+            attrs.get("feedstock_name"), {}, recipe_yaml=grayskull_recipe
+        )
+    else:
+        raise ValueError(f"Unknown recipe schema version: '{recipe_schema_version}'.")
+
     d: dict[str, dict[str, set[str]]] = {}
     for section in SECTIONS_TO_PARSE:
         gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
@@ -423,7 +512,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
         d[section]["cf_minus_df"] = cf_minus_df
         d[section]["df_minus_cf"] = df_minus_cf
 
-    return d, gs_recipe
+    return d, grayskull_recipe
 
 
 def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
@@ -578,6 +667,83 @@ def _gen_key_selector(dct, key):
             yield k
 
 
+@dataclass
+class Patch:
+    before: str | None = None
+    after: str | None = None
+
+
+def _env_dep_comparison_to_patches(
+    env_dep_comparison: EnvDepComparison,
+) -> dict[str, Patch]:
+    deps_to_remove = copy.copy(env_dep_comparison["cf_minus_df"])
+    deps_to_add = copy.copy(env_dep_comparison["df_minus_cf"])
+    patches: dict[str, Patch] = defaultdict(Patch)
+    for dep in deps_to_add:
+        package = dep.split(" ")[0]
+        patches[package] = Patch(after=dep)
+    for dep in deps_to_remove:
+        package = dep.split(" ")[0]
+        patches[package].before = dep
+    return patches
+
+
+def is_expression_requirement(dep: str) -> bool:
+    return dep.startswith(r"${{")
+
+
+def _apply_env_dep_comparison(
+    deps: list[str], env_dep_comparison: EnvDepComparison
+) -> list[str]:
+    """Apply updates to dependency list while maintaining original package order."""
+    new_deps = copy.copy(deps)
+    patches = _env_dep_comparison_to_patches(env_dep_comparison)
+    for package, patch in patches.items():
+        # Do not touch Python itself - too finicky.
+        if package == "python":
+            continue
+        # Do not try to replace expressions.
+        if patch.before is not None and is_expression_requirement(patch.before):
+            continue
+        # Add new package.
+        if patch.before is None:
+            new_deps.append(patch.after)
+        # Remove old package.
+        elif patch.after is None:
+            new_deps.remove(patch.before)
+        # Update existing package.
+        else:
+            new_deps[new_deps.index(patch.before)] = patch.after
+    return new_deps
+
+
+def _is_multi_output_v1_recipe(recipe: dict) -> bool:
+    return "outputs" in recipe
+
+
+def _is_v1_recipe_okay_for_dep_updates(recipe: dict) -> bool:
+    return not _is_multi_output_v1_recipe(recipe=recipe)
+
+
+def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
+    new_recipe = copy.deepcopy(recipe)
+    if not _is_v1_recipe_okay_for_dep_updates(recipe):
+        return new_recipe
+
+    for section in SECTIONS_TO_UPDATE:
+        new_recipe["requirements"][section] = _apply_env_dep_comparison(
+            recipe["requirements"][section], dep_comparison[section]
+        )
+
+    return new_recipe
+
+
+def _get_v1_recipe_file_if_exists(recipe_dir: Path) -> Path | None:
+    if (recipe_file := Path(recipe_dir).joinpath("recipe.yaml")).is_file():
+        return recipe_file
+    return None
+
+
 def apply_dep_update(recipe_dir, dep_comparison):
     """Update a recipe given a dependency comparison.
 
@@ -588,6 +754,12 @@ def apply_dep_update(recipe_dir, dep_comparison):
     dep_comparison : dict
         The dependency comparison.
     """
+    if recipe_file := _get_v1_recipe_file_if_exists(recipe_dir):
+        recipe = yaml.load(recipe_file.read_text())
+        if (new_recipe := _apply_dep_update_v1(recipe, dep_comparison)) != recipe:
+            with recipe_file.open("w") as f:
+                yaml.dump(new_recipe, f)
+        return
     recipe_pth = os.path.join(recipe_dir, "meta.yaml")
     with open(recipe_pth) as fp:
         lines = fp.readlines()

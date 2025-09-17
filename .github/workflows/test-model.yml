@@ -22,20 +22,26 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
+      - name: stop me if needed
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
       - name: configure conda, install code, and clone cf-graph
+        if: ${{ ! env.CI_SKIP }}
         run: |
           pip install --no-deps --no-build-isolation -e .
           git clone --depth=1 https://github.com/regro/cf-graph-countyfair.git cf-graph
 
       - name: conda info and env
+        if: ${{ ! env.CI_SKIP }}
         run: |
           echo "=================================================================="
           echo "=================================================================="
@@ -47,6 +53,7 @@ jobs:
           conda list
 
       - name: run pytest (model)
+        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-graph
           # for pull requests, a failed model test should not be a failed check

@@ -1,12 +1,12 @@
 import collections.abc
 import io
-import json
 import re
 from typing import Any, List, Union
 
 import jinja2
 import jinja2.meta
 import jinja2.sandbox
+import orjson
 from ruamel.yaml import YAML
 
 CONDA_SELECTOR = "__###conda-selector###__"
@@ -40,14 +40,26 @@ ONLY_SELECTOR_RE = re.compile(r"^\s*#\s*\[(.*)\]")
 # this one matches bad yaml syntax with a selector on a multiline string start
 BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 
+# this one finds set statements that have adjustments to newlines via {%- or -%}
+# they cause problems with the parser and so we remove those
+BAD_JINJA2_SET_STATEMENT = re.compile(
+    r"^\s*({%-\s+set\s+.*?=.*?-?%}|{%-?\s+set\s+.*?=.*?-%})\s*(#.*)?$"
+)
+
 
 def _get_yaml_parser(typ="jinja2"):
-    """yaml parser that is jinja2 aware"""
+    """Yaml parser that is jinja2 aware."""
     # using a function here so settings are always the same
-    parser = YAML(typ=typ)
+
+    def represent_none(self, data):
+        return self.represent_scalar("tag:yaml.org,2002:null", "")
+
+    parser = YAML(typ=typ)  # spellchecker:disable-line
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
     parser.preserve_quotes = True
+    parser.representer.ignore_aliases = lambda x: True
+    parser.representer.add_representer(type(None), represent_none)
     return parser
 
 
@@ -152,7 +164,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
 
 
 def _munge_line(line: str) -> str:
-    """turn lines like
+    """Turn lines like.
 
         key: val  # [sel]
 
@@ -182,7 +194,7 @@ def _munge_line(line: str) -> str:
 
 
 def _unmunge_line(line: str) -> str:
-    """turn lines like
+    """Turn lines like.
 
         key__###conda-selector###__sel: val
 
@@ -237,7 +249,7 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
 
 
 def _munge_multiline_jinja2(lines):
-    """puts a comment slug in front of any multiline jinja2 statements"""
+    """Put a comment slug in front of any multiline jinja2 statements."""
     in_statement = False
     special_end_slug_re = []
     new_lines = []
@@ -273,7 +285,7 @@ def _munge_multiline_jinja2(lines):
 
 
 def _unmunge_multiline_jinja2(lines):
-    """removes a comment slug in front of any multiline jinja2 statements"""
+    """Remove a comment slug in front of any multiline jinja2 statements."""
     start_slug = "# {# " + JINJA2_ML_SLUG
     start = len(start_slug)
     stop = len(" #}\n")
@@ -287,8 +299,8 @@ def _unmunge_multiline_jinja2(lines):
 
 
 def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
-    """recursively iterate through dictionary / list and replace any instance
-    in any string of `<{` with '{{'
+    """Recursively iterate through dictionary / list and replace any instance
+    in any string of `<{` with '{{'.
     """
     if isinstance(meta, collections.abc.MutableMapping):
         for key, val in meta.items():
@@ -305,8 +317,8 @@ def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, 
 
 
 def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
-    """recursively iterate through dictionary / list and replace any instance
-    in any string of `{{` with '<{'
+    """Recursively iterate through dictionary / list and replace any instance
+    in any string of `{{` with '<{'.
     """
     if isinstance(meta, collections.abc.MutableMapping):
         for key, val in meta.items():
@@ -368,7 +380,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     + "{% set "
                     + var.strip()
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}  # ["
                     + sel
                     + "]\n"
@@ -385,7 +397,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     + "{% set "
                     + var.strip()
                     + " = "
-                    + json.dumps(jinja2_vars[var.strip()])
+                    + orjson.dumps(jinja2_vars[var.strip()]).decode("utf-8")
                     + " %}"
                     + end
                 )
@@ -412,7 +424,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     "{% set "
                     + _key
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}"
                     + "  # ["
                     + selector
@@ -423,7 +435,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                     "{% set "
                     + key
                     + " = "
-                    + json.dumps(jinja2_vars[key])
+                    + orjson.dumps(jinja2_vars[key]).decode("utf-8")
                     + " %}"
                     + "\n",
                 )
@@ -448,7 +460,7 @@ def _build_jinja2_expr_tmp(jinja2_exprs):
 
 
 def _remove_quoted_jinja2_vars(lines):
-    """Remove any quoted jinja2 vars from the lines.
+    r"""Remove any quoted jinja2 vars from the lines.
 
     Sometimes people write
 
@@ -480,6 +492,38 @@ def _remove_quoted_jinja2_vars(lines):
             new_lines[-1] = re.sub(r"}}['\"]", "}}", new_lines[-1])
         else:
             new_lines.append(line)
+    return new_lines
+
+
+def _remove_bad_jinja2_set_statements(lines):
+    """Remove any jinja2 set statements that have bad newline adjustments
+    by removing the adjustments.
+
+    This function turns things like
+
+        {%- set var = val -%}
+
+    into
+
+        {% set var = val %}
+    """
+    new_lines = []
+    for line in lines:
+        if BAD_JINJA2_SET_STATEMENT.match(line):
+            new_lines.append(line.replace("{%-", "{%").replace("-%}", "%}"))
+        else:
+            new_lines.append(line)
+    return new_lines
+
+
+def _munge_jinj2_comments(lines):
+    """Turn any jinja2 comments: `{# #}` into yaml comments."""
+    new_lines = []
+    for line in lines:
+        if line.lstrip().startswith("{#") and line.rstrip().endswith("#}"):
+            line = line.replace("{#", "#").replace("#}", "")
+            line = line.rstrip() + "\n"
+        new_lines.append(line)
     return new_lines
 
 
@@ -537,6 +581,12 @@ class CondaMetaYAML:
         # pre-munge odd syntax that we do not want
         lines = list(io.StringIO(meta_yaml).readlines())
 
+        # turn jinja2 comments in yaml ones
+        lines = _munge_jinj2_comments(lines)
+
+        # remove bad jinja2 set statements
+        lines = _remove_bad_jinja2_set_statements(lines)
+
         # remove multiline jinja2 statements
         lines = _munge_multiline_jinja2(lines)
 
@@ -570,8 +620,8 @@ class CondaMetaYAML:
         self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)
 
     def eval_jinja2_exprs(self, jinja2_vars):
-        """Using a set of values for the jinja2 vars, evaluate the
-        jinja2 template to get any jinja2 expression values.
+        """Evaluate the jinja2 template to get any jinja2 expression values,
+        using a set of values for the jinja2 vars.
 
         Parameters
         ----------
@@ -617,7 +667,7 @@ class CondaMetaYAML:
         return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
 
     def dumps(self):
-        """Dump the recipe to a string"""
+        """Dump the recipe to a string."""
         buff = io.StringIO()
         self.dump(buff)
         buff.seek(0)

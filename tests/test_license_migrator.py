@@ -1,11 +1,13 @@
-from flaky import flaky
+import networkx as nx
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import LicenseMigrator, Version
 from conda_forge_tick.migrators.license import _munge_licenses
 
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
 LM = LicenseMigrator()
-VER_LM = Version(set(), piggy_back_migrations=[LM])
+VER_LM = Version(set(), piggy_back_migrations=[LM], total_graph=TOTAL_GRAPH)
 
 version_license = """\
 {% set version = "0.8" %}
@@ -275,7 +277,7 @@ extra:
 """  # noqa
 
 
-def test_version_license_correct(tmpdir):
+def test_version_license_correct(tmp_path):
     run_test_migration(
         m=VER_LM,
         inp=version_license,
@@ -287,7 +289,7 @@ def test_version_license_correct(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
 
 
@@ -302,8 +304,7 @@ def test_munge_licenses():
     assert spdx == "MIT OR GPL-2.0-or-later"
 
 
-@flaky
-def test_version_license_correct_r(tmpdir):
+def test_version_license_correct_r(tmp_path):
     run_test_migration(
         m=VER_LM,
         inp=r_recipe,
@@ -315,5 +316,5 @@ def test_version_license_correct_r(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.9.2",
         },
-        tmpdir=tmpdir,
+        tmp_path=tmp_path,
     )
