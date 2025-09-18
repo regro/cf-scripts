@@ -1,8 +1,7 @@
 import copy
 import os
-import typing
 from textwrap import dedent
-from typing import Any, Optional, Sequence
+from typing import Any, Collection, Literal, Optional, Sequence
 
 import networkx as nx
 
@@ -11,6 +10,7 @@ from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
 )
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, get_outputs_lut
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
@@ -20,9 +20,6 @@ from conda_forge_tick.utils import (
 )
 
 from .migration_yaml import all_noarch
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 MIGRATION_SUPPORT_DIRS = [
     os.path.join(
@@ -120,7 +117,7 @@ class ArchRebuild(GraphMigrator):
         name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):
@@ -190,7 +187,7 @@ class ArchRebuild(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
 
@@ -242,8 +239,8 @@ class _CrossCompileRebuild(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = set()
-    excluded_dependencies = set()
+    ignored_packages: set[str] = set()
+    excluded_dependencies: set[str] = set()
 
     @property
     def additional_keys(self):
@@ -350,7 +347,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
 

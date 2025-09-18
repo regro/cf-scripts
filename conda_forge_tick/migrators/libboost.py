@@ -4,7 +4,7 @@ import re
 from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 
 
-def _slice_into_output_sections(meta_yaml_lines, attrs):
+def _slice_into_output_sections(meta_yaml_lines: list[str], attrs):
     """
     Turn a recipe into slices corresponding to the outputs.
 
@@ -83,7 +83,7 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     final_sections = {}
     final_sections[-1] = sections[-1]  # we always keep the first global section
     final_output_index = 0
-    carried_lines = []
+    carried_lines: list[str] = []
     for output_index in range(len(sections) - 1):
         section = sections[output_index]
         if any(re_name.match(line) for line in section):

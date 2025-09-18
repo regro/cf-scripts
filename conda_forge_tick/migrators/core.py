@@ -7,9 +7,10 @@ import re
 import secrets
 import typing
 from pathlib import Path
-from typing import Any, List, Sequence, Set
+from typing import Any, List, Literal, Sequence, Set
 
 import networkx as nx
+import numpy as np
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -22,10 +23,10 @@ from conda_forge_tick.utils import (
     pluck,
 )
 
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
-
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     else:
         bad_bool = bad
 
-    return bad_bool or attrs.get("parsing_error", False)
+    return bad_bool or bool(attrs.get("parsing_error", False))
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
@@ -306,10 +307,10 @@ class Migrator:
         check_solvable: bool = True,
     ):
         if not hasattr(self, "_init_args"):
-            self._init_args = []
+            self._init_args: list[Any] = []
 
         if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {
+            self._init_kwargs: dict[str, Any] = {
                 "pr_limit": pr_limit,
                 "obj_version": obj_version,
                 "piggy_back_migrations": piggy_back_migrations,
@@ -396,7 +397,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),
+                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph should not be allowed to be None
             )
         ][:limit]
 
@@ -456,7 +457,7 @@ class Migrator:
             "MigrationUidTypedDict",
             pr_data["data"],
         )
-        already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
+        already_migrated_uids: list["MigrationUidTypedDict"] = list(
             z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
         )
         already_pred = migrator_uid in already_migrated_uids
@@ -510,7 +511,7 @@ class Migrator:
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any pre piggyback migrations, updating the feedstock.
 
         Parameters
@@ -529,7 +530,7 @@ class Migrator:
 
     def run_post_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any post piggyback migrations, updating the feedstock.
 
         Parameters
@@ -548,7 +549,7 @@ class Migrator:
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
@@ -566,7 +567,7 @@ class Migrator:
         return self.migrator_uid(attrs)
 
     def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
     ) -> str:
         """Create a PR message body.
 
@@ -648,14 +649,35 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name."""
+        """Determine migration order.
+
+        The feedstocks are reverse sorted by
+
+            - number of decedents if not a failed migration and not a leaf node
+            - a random number in [0, 1] if not failed and a leaf node
+            - a random number in [0, val] if failed
+
+        where val is
+
+            bfac = 10.0
+            min((1.0 + bfac * log10(num descendents + 1)) * 0.5, 1.0)
+
+        This formula has the effect of
+
+            - deprioritizing failed nodes by an overall amount (0.5 means there is a
+              ~33% percent chance a failed node appears ahead of a non-failed node)
+            - boosting failed migrators by a bit if they have a lot of descendents
+            - never letting any failed node get ahead of non-failed, non-leaf nodes
+
+        Ties are sorted randomly.
+        """
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _not_has_error(node):
+        def _not_has_error_func(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
                 "pr_info",
                 {},
@@ -676,13 +698,23 @@ class Migrator:
             else:
                 return 1
 
+        _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
+        bfac = 10.0
+        boost = {
+            node: 1.0 + (bfac * np.log10(len(nx.descendants(total_graph, node)) + 1))
+            for node in list(graph.nodes)
+        }
+
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                _not_has_error(x),
                 (
                     RNG.random()
-                    if not _not_has_error(x)
+                    * (1.0 if _not_has_error[x] else min(boost[x] * 0.5, 1.0))
+                    if (
+                        (not _not_has_error[x])
+                        or len(nx.descendants(total_graph, x)) == 0
+                    )
                     else len(nx.descendants(total_graph, x))
                 ),
                 RNG.random(),

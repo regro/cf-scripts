@@ -25,7 +25,13 @@ from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
 from .settings import settings
-from .utils import as_iterable, dump_graph, load_graph, sanitize_string
+from .utils import (
+    as_iterable,
+    dump_graph,
+    load_existing_graph,
+    load_graph,
+    sanitize_string,
+)
 
 # from conda_forge_tick.profiler import profiling
 
@@ -206,7 +212,7 @@ def _build_graph_process_pool(
         n_tot = len(futures)
         n_left = len(futures)
         start = time.time()
-        eta = -1
+        eta = -1.0
         for f in as_completed(futures):
             n_left -= 1
             if n_left % 10 == 0:
@@ -374,7 +380,7 @@ def main(
     logger.info("archived nodes: %d", len(archived_names))
 
     if update_nodes_and_edges:
-        gx = load_graph()
+        gx = load_existing_graph()
 
         new_names = [name for name in names if name not in gx.nodes]
         for name in names:

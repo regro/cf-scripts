@@ -586,7 +586,7 @@ class StaticLibMigrator(GraphMigrator):
             "**Please note that if you close this PR we presume that "
             "the feedstock has been rebuilt, so if you are going to "
             "perform the rebuild yourself don't close this PR until "
-            "the your rebuild has been merged.**\n\n"
+            "the rebuild has been merged.**\n\n"
             "<hr>"
             "".format(
                 name=name,

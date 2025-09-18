@@ -1,15 +1,8 @@
-import json
 from pathlib import Path
 
 from fastapi import APIRouter
 
 from ..base_classes import AbstractIntegrationTestHelper, TestCase
-
-PYPI_SIMPLE_API_RESPONSE = json.loads(
-    Path(__file__)
-    .parent.joinpath("resources/pypi_simple_api_response.json")
-    .read_text()
-)
 
 
 class VersionUpdate(TestCase):
@@ -33,7 +26,7 @@ class VersionUpdate(TestCase):
         helper.overwrite_feedstock_contents("pydantic", feedstock_v1_dir, branch="1.x")
 
     def validate(self, helper: AbstractIntegrationTestHelper):
-        helper.assert_version_pr_present(
+        helper.assert_version_pr_present_v0(
             "pydantic",
             new_version="2.10.2",
             new_hash="2bc2d7f17232e0841cbba4641e65ba1eb6fafb3a08de3a091ff3ce14a197c4fa",

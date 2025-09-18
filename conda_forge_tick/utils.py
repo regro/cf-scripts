@@ -46,7 +46,7 @@ from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settin
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
 
-    from conda_forge_tick.migrators_types import RecipeTypedDict
+from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,6 @@ import re
 import secrets
 import sys
 import time
-import typing
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -16,12 +15,8 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
-    Union,
     cast,
 )
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import PackageName
 
 import networkx as nx
 import tqdm
@@ -79,6 +74,7 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
+from conda_forge_tick.migrators_types import PackageName
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     CB_CONFIG,
@@ -187,7 +183,7 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
-    alt_migrator: Union[Migrator, None] = None,
+    alt_migrator: type[Replacement] | None = None,
 ) -> None:
     """Add a migrator to replace one package with another.
 
@@ -333,6 +329,10 @@ def add_rebuild_migration_yaml(
     if migration_name == "jpeg_to_libjpeg_turbo":
         piggy_back_migrations.append(
             MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+        )
+    if migration_name == "libxml2214":
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg="libxml2", new_pkg="libxml2-devel")
         )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())

@@ -669,7 +669,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
         return dumps(data["value"])
 
 
-LAZY_JSON_BACKENDS = {
+LAZY_JSON_BACKENDS: dict[str, type[LazyJsonBackend]] = {
     "file": FileLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
     "github": GithubLazyJsonBackend,

@@ -19,20 +19,18 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
+from conda_forge_tick.migrators_types import (
+    PackageName,
+    RecipeTypedDict,
+    RequirementsTypedDict,
+    TestTypedDict,
+)
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
     settings,
 )
-
-if typing.TYPE_CHECKING:
-    from mypy_extensions import TestTypedDict
-
-    from conda_forge_tick.migrators_types import RecipeTypedDict
-
-    from .migrators_types import PackageName, RequirementsTypedDict
-
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import (
     as_iterable,
     parse_meta_yaml,
@@ -48,7 +46,7 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # that would be available in a bootstrapping scenario
 # for these nodes, we only use the bootstrap requirements
 # to build graph edges
-BOOTSTRAP_MAPPINGS = {}
+BOOTSTRAP_MAPPINGS: dict = {}
 
 
 def _dedupe_list_ordered(list_with_dupes):
@@ -87,7 +85,7 @@ def _get_requirements(
     host: bool = True,
     run: bool = True,
     outputs_to_keep: Optional[Set["PackageName"]] = None,
-) -> "Set[PackageName]":
+) -> set[PackageName]:
     """Get the list of recipe requirements from a meta.yaml dict.
 
     Parameters
@@ -108,7 +106,7 @@ def _get_requirements(
     """
     kw = dict(build=build, host=host, run=run)
     if outputs_to_keep:
-        reqs = set()
+        reqs: set[PackageName] = set()
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
         for output in outputs_:
             if output.get("name") in outputs_to_keep:
@@ -127,7 +125,7 @@ def _parse_requirements(
     build: bool = True,
     host: bool = True,
     run: bool = True,
-) -> typing.MutableSet["PackageName"]:
+) -> set["PackageName"]:
     """Flatten a YAML requirements section into a list of names."""
     if not req:  # handle None as empty
         return set()
@@ -156,7 +154,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
         metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
 
     for block in metas:
-        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        req: "RequirementsTypedDict" | list = block.get("requirements", {}) or {}  # type: ignore[assignment]
         if isinstance(req, list):
             requirements_dict["run"].update(set(req))
             continue
@@ -165,7 +163,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
                 list(as_iterable(req.get(section, []) or [])),
             )
 
-        test: "TestTypedDict" = block.get("test", {}) or {}
+        test: "TestTypedDict" = block.get("test", {}) or {}  # type: ignore[assignment]
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
 

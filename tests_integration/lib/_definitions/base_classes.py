@@ -71,7 +71,7 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
-    def assert_version_pr_present(
+    def assert_version_pr_present_v0(
         self,
         feedstock: str,
         new_version: str,
@@ -80,7 +80,7 @@ class AbstractIntegrationTestHelper(ABC):
         old_hash: str,
     ) -> None:
         """
-        Assert that the bot has opened a version update PR.
+        Assert that the bot has opened a version update PR for a v0 recipe.
 
         Parameters
         ----------
@@ -95,6 +95,63 @@ class AbstractIntegrationTestHelper(ABC):
         old_hash
             The old SHA-256 source artifact hash, to check that it no longer appears in the recipe.
 
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
+    def assert_version_pr_present_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        new_hash: str,
+        old_version: str,
+        old_hash: str,
+    ):
+        """
+        Assert that the bot has opened a version update PR for a v1 recipe.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        new_version
+            The new version that is expected.
+        new_hash
+            The new SHA-256 source artifact hash.
+        old_version
+            The old version of the feedstock, to check that it no longer appears in the recipe.
+        old_hash
+            The old SHA-256 source artifact hash, to check that it no longer appears in the recipe.
+
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
+    def assert_new_run_requirements_equal_v1(
+        self,
+        feedstock: str,
+        new_version: str,
+        run_requirements: list[str],
+    ):
+        """
+        Assert that the new run requirements in the version update PR match our expectations.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        new_version
+            The new version that is expected.
+        run_requirements
+            A list of requirements.
 
         Raises
         ------

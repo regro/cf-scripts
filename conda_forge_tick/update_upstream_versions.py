@@ -4,6 +4,7 @@ import logging
 import os
 import secrets
 import time
+from collections.abc import MutableMapping
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -49,6 +50,7 @@ from conda_forge_tick.update_sources import (
     ROSDistro,
 )
 from conda_forge_tick.utils import get_keys_default, load_existing_graph
+from conda_forge_tick.version_filters import is_version_ignored
 
 T = TypeVar("T")
 
@@ -56,32 +58,6 @@ T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
-
-
-def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
-    """Check if a version should be ignored based on the `conda-forge.yml` file.
-
-    Parameters
-    ----------
-    attrs
-        The node attributes.
-    version
-        The version to check.
-
-    Returns
-    -------
-    bool
-        True if the version should be ignored, False otherwise.
-    """
-    versions_to_ignore = get_keys_default(
-        attrs,
-        ["conda-forge.yml", "bot", "version_updates", "exclude"],
-        {},
-        [],
-    )
-    return (
-        version.replace("-", ".") in versions_to_ignore or version in versions_to_ignore
-    )
 
 
 def get_latest_version_local(
@@ -193,7 +169,7 @@ def get_latest_version_local(
         logger.debug("Upstream: Could not find version on any source")
         return version_data
 
-    if ignore_version(attrs, new_version):
+    if is_version_ignored(attrs, new_version):
         logger.debug(
             "Ignoring version %s because it is in the exclude list.", new_version
         )
@@ -204,7 +180,7 @@ def get_latest_version_local(
 
 def get_latest_version_containerized(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """Given a package, return the new version information to be written into the cf-graph.
@@ -254,7 +230,7 @@ def get_latest_version_containerized(
 
 def get_latest_version(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
 ) -> Dict[str, Union[Literal[False], str]]:
@@ -381,7 +357,7 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 
 def _update_upstream_versions_sequential(
-    to_update: Iterable[Tuple[str, Mapping]],
+    to_update: Iterable[Tuple[str, MutableMapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0

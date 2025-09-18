@@ -4,9 +4,8 @@ import os
 import re
 import secrets
 import time
-import typing
 from collections import defaultdict
-from typing import Any, List, Optional, Sequence, Set
+from typing import Any, Collection, Literal, Optional, Sequence, Set
 
 import networkx as nx
 
@@ -28,8 +27,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 RNG = secrets.SystemRandom()
 logger = logging.getLogger(__name__)
@@ -177,8 +175,8 @@ class MigrationYaml(GraphMigrator):
         total_graph: nx.DiGraph | None = None,
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["PackageName"]] = None,
+        top_level: Set["PackageName"] | None = None,
+        cycles: Optional[Collection["PackageName"]] = None,
         migration_number: Optional[int] = None,
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
@@ -422,7 +420,7 @@ class MigrationYaml(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         # if conda-forge-pinning update the pins and close the migration
         if attrs.get("name", "") == "conda-forge-pinning":
             # read up the conda build config
@@ -620,7 +618,7 @@ class MigrationYamlCreator(Migrator):
         pr_limit: int = 0,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,
-        pinnings: Optional[List[int]] = None,
+        pinnings: list[str] | None = None,
         **kwargs: Any,
     ):
         if pinnings is None:
@@ -685,7 +683,7 @@ class MigrationYamlCreator(Migrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         migration_yaml_dict = {
             "__migrator": {
                 "build_number": 1,

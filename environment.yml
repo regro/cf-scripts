@@ -21,13 +21,14 @@ dependencies:
   - conda-package-handling
   - conda-smithy >=3.34.1
   - conda-build >=3.24.0
+  - conda-recipe-manager >=0.6.1
   - curl
   - depfinder
   - distributed
   - fastapi
   - feedparser
   - frozendict
-  - git
+  - git <2.50
   - github3.py
   - grayskull >=2.5
   - jinja2
@@ -76,3 +77,4 @@ dependencies:
   - pytest-split
   - setuptools_scm >=8
   - python-build
+  - mypy

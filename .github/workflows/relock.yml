@@ -13,7 +13,7 @@ jobs:
     name: relock
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -27,10 +27,11 @@ jobs:
         run: |
           python autotick-bot/stop_me_if_needed.py
 
-      - uses: conda-incubator/relock-conda@1187b776400478c5ff35d4cf423da23a80bbdd4c # v24
+      - uses: conda-incubator/relock-conda@a8b8069d836fe698eabaa7e0d1474b35529e5455 # v25
         if: ${{ ! env.CI_SKIP }}
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           automerge: true
           skip-if-pr-exists: true
           git-user-name: regro-cf-autotick-bot
+          merge-as-admin-packages: 'conda-forge-pinning'
