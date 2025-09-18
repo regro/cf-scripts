@@ -767,7 +767,7 @@ class NVIDIA(AbstractSource):
             pattern=r"redistrib_[0-9]+\.[0-9]+\.[0-9]+\.json<"
         )
         result = re.findall(redistrib_pattern, html_content)
-        stripped_results = [x.removesuffix(".json").split("_")[1] for x in result]
+        stripped_results = [x.removesuffix(".json<").split("_")[1] for x in result]
         stripped_results.sort(key=Version, reverse=True)
         logger.debug("Found the following NVIDIA release JSON: %s", stripped_results)
         release_version = stripped_results[0]
