@@ -171,9 +171,16 @@ class VersionFromFeed(AbstractSource, abc.ABC):
                 continue
             # Extract version number starting at the first digit.
             sval = re.search(r"(\d+[^\s]*)", ver)
-            if sval is not None:
-                ver = sval.group(0)
-                vers.append(ver)
+            if sval is None:
+                continue
+
+            ver = sval.group(0)
+            try:
+                VersionOrder(ver.replace("-", "."))
+            except Exception:
+                continue
+
+            vers.append(ver)
         if vers:
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
         else:
@@ -197,7 +204,18 @@ class PyPI(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        most_recent_version = r.json()["info"]["version"].strip()
+        if not r.ok:
+            return None
+
+        try:
+            jblob = r.json()
+        except Exception:
+            return None
+
+        if "info" not in jblob or "version" not in jblob["info"]:
+            return None
+
+        most_recent_version = jblob["info"]["version"].strip()
         if not r.ok or parse_version(most_recent_version).is_prerelease:
             # if ALL releases are prereleases return the version
             if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
