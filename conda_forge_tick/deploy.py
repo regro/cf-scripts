@@ -2,7 +2,6 @@ import logging
 import os
 import subprocess
 import sys
-from collections.abc import Iterable
 
 from .cli_context import CliContext
 from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
@@ -94,11 +93,10 @@ def _pull_changes(batch):
     return n_added
 
 
-def _deploy_batch(*, files_to_add: Iterable[str], batch, n_added, max_per_batch=200):
+def _deploy_batch(*, files_to_add: set[str], batch, n_added, max_per_batch=200):
     n_added_this_batch = 0
-    files_queue = list(files_to_add)
-    while files_queue and n_added_this_batch < max_per_batch:
-        file = files_queue.pop()
+    while files_to_add and n_added_this_batch < max_per_batch:
+        file = files_to_add.pop()
         if file and os.path.exists(file):
             try:
                 print(f"committing {n_added: >5d}: {file}", flush=True)
