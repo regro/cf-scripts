@@ -459,7 +459,7 @@ def _update_upstream_versions_process_pool(
             # writing out file
             lazyjson = LazyJson(f"versions/{node}.json")
             with lazyjson as version_attrs:
-                changed = version_attrs.data == version_data
+                changed = version_attrs.data != version_data
                 version_attrs.clear()
                 version_attrs.update(version_data)
 
