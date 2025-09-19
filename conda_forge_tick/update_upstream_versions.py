@@ -464,7 +464,11 @@ def _update_upstream_versions_process_pool(
                 version_attrs.update(version_data)
 
             if changed:
-                sync_lazy_json_object(version_attrs, "file", ["github_api"])
+                try:
+                    sync_lazy_json_object(version_attrs, "file", ["github_api"])
+                except Exception:
+                    # will sync in deploy later if this fails
+                    pass
 
 
 @functools.lru_cache(maxsize=1)
