@@ -39,3 +39,8 @@ repos:
       - id: ruff-check
         args: [ --fix ]
       - id: ruff-format
+
+  - repo: https://github.com/conda-incubator/pre-commit-mirrors-mypy
+    rev: 1.18.1
+    hooks:
+      - id: mypy-conda
