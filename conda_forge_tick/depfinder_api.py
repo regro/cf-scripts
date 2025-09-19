@@ -32,6 +32,7 @@ from collections import defaultdict
 from concurrent.futures._base import as_completed
 from concurrent.futures.thread import ThreadPoolExecutor
 from fnmatch import fnmatch
+from typing import Any
 
 from depfinder.inspection import iterate_over_library
 from depfinder.stdliblist import builtin_modules as _builtin_modules
@@ -69,8 +70,8 @@ def report_conda_forge_names_from_import_map(
         "questionable no match",
         "required no match",
     ]
-    report = {k: set() for k in report_keys}
-    import_to_pkg = {k: {} for k in report_keys}
+    report: dict[str, Any] = {k: set() for k in report_keys}
+    import_to_pkg: dict[str, Any] = {k: {} for k in report_keys}
     futures = {}
 
     with ThreadPoolExecutor() as pool:
@@ -146,13 +147,13 @@ def simple_import_to_pkg_map(
     # run depfinder on source code
     if ignore is None:
         ignore = []
-    total_imports_list = []
+    total_imports_list: list[dict[str, Any]] = []
     for _, _, c in iterate_over_library(
         path_to_source_code,
         custom_namespaces=custom_namespaces,
     ):
         total_imports_list.append(c.total_imports)
-    total_imports = defaultdict(dict)
+    total_imports: dict[str, Any] = defaultdict(dict)
     for total_import in total_imports_list:
         for name, md in total_import.items():
             total_imports[name].update(md)

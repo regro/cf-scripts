@@ -29,8 +29,8 @@ repos:
       - id: typos
         exclude: |
           (?x)^(
-            ^tests_integration\/definitions\/.*\/resources\/.*|
-            ^docs\/assets\/.*
+            tests_integration\/definitions\/.*\/resources\/.*|
+            docs\/assets\/.*
           )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -46,7 +46,6 @@ repos:
       - id: mypy-conda
         exclude: |
           (?x)^(
-            ^tests\/.*|
-            ^tests_integration\/.*|
-            ^conda_forge_tick\/.*
+            conda_forge_tick\/[f-z].*|
+            tests\/[f-z].*
           )$

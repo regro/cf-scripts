@@ -1,15 +1,10 @@
 import json
+from enum import StrEnum
 from inspect import cleandoc
 from pathlib import Path
 from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
-
-try:
-    from enum import StrEnum
-except ImportError:
-    from backports.strenum import StrEnum
-
 
 CF_TICK_SCHEMA_FILE = Path(__file__).resolve().parent / "cf_tick_schema.json"
 
