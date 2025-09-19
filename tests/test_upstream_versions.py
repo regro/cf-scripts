@@ -423,7 +423,7 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
-        assert attempt["new_version"] is ver
+        assert attempt["new_version"] is None
     else:
         assert ver == attempt["new_version"]
 
