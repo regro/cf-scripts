@@ -41,7 +41,7 @@ else:
     print(f"found current version: {curr_version_line}", file=sys.stderr, flush=True)
 
     # figure out if we bump the major, minor or patch version
-    major_minor, patch = curr_version_line.rsplit(".", 1)
+    major_minor, patch = curr_version_line.rsplit(".", 1)  # type: ignore[union-attr]
     now_major_minor = f"{now.year}.{now.month}"
     if major_minor == now_major_minor:
         new_version = f"{major_minor}.{int(patch) + 1}"
