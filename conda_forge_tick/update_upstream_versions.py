@@ -12,7 +12,6 @@ from typing import (
     Iterable,
     Iterator,
     List,
-    Literal,
     Mapping,
     Optional,
     Tuple,
@@ -64,7 +63,7 @@ def get_latest_version_local(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -81,7 +80,7 @@ def get_latest_version_local(
     dict
         The new version information.
     """
-    version_data: Dict[str, Union[Literal[False], str]] = {"new_version": False}
+    version_data: Dict[str, Union[None, str]] = {"new_version": None}
 
     if name == "ca-policy-lcg":
         logger.warning(
@@ -173,7 +172,7 @@ def get_latest_version_local(
         logger.debug(
             "Ignoring version %s because it is in the exclude list.", new_version
         )
-        version_data["new_version"] = False
+        version_data["new_version"] = None
 
     return version_data
 
@@ -182,7 +181,7 @@ def get_latest_version_containerized(
     name: str,
     attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     **This function runs the version parsing in a container.**
@@ -233,7 +232,7 @@ def get_latest_version(
     attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -363,7 +362,7 @@ def _update_upstream_versions_sequential(
     node_count = 0
     for node, attrs in to_update:
         # checking each node
-        version_data: Dict[str, Union[Literal[False], str]] = {}
+        version_data: Dict[str, Union[None, str]] = {}
 
         # New version request
         try:
