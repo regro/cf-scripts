@@ -1,5 +1,5 @@
 import typing
-from typing import Dict, List, Literal, Set, TypedDict, Union
+from typing import List, Literal, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
@@ -121,42 +121,40 @@ class PRedElementTypedDict(TypedDict, total=False):
     PR: PR_TD
 
 
-class AttrsTypedDict_(TypedDict, total=False):
-    about: AboutTypedDict
-    build: BuildTypedDict
-    branch: str
-    extra: ExtraTypedDict
-    feedstock_name: str
-    meta_yaml: "RecipeTypedDict"
-    package: PackageTypedDict
-    raw_meta_yaml: str
-    req: Set[str]
-    name: str
-    platforms: List[str]
-    pr_info: typing.Any
-    requirements: RequirementsTypedDict
-    source: SourceTypedDict
-    test: TestTypedDict
-    version: str
-    new_version: Union[str, bool]
-    archived: bool
-    outputs_names: set[str]
-    PRed: List[PRedElementTypedDict]
-    version_pr_info: typing.Any
-    url: str
-    parsing_error: str | Literal[False]
-    # Legacy types in here
-    bad: Union[bool, str]
-
-
 class CondaForgeYamlContents(TypedDict, total=False):
-    provider: Dict[str, str]
+    bot: dict[str, typing.Any]
+    provider: dict[str, str]
 
 
-CondaForgeYaml = TypedDict(
-    "CondaForgeYaml", {"conda-forge.yml": CondaForgeYamlContents}
+AttrsTypedDict = TypedDict(
+    "AttrsTypedDict",
+    {
+        "about": AboutTypedDict,
+        "build": BuildTypedDict,
+        "branch": str,
+        "conda-forge.yml": CondaForgeYamlContents,
+        "extra": ExtraTypedDict,
+        "feedstock_name": str,
+        "meta_yaml": RecipeTypedDict,
+        "package": PackageTypedDict,
+        "raw_meta_yaml": str,
+        "req": set[str],
+        "name": str,
+        "platforms": List[str],
+        "pr_info": typing.Any,
+        "requirements": RequirementsTypedDict,
+        "source": SourceTypedDict,
+        "test": TestTypedDict,
+        "version": str,
+        "new_version": str | bool,
+        "archived": bool,
+        "outputs_names": set[str],
+        "PRed": list[PRedElementTypedDict],
+        "version_pr_info": typing.Any,
+        "url": str,
+        "parsing_error": str | Literal[False],
+        # Legacy types in here
+        "bad": Union[bool, str],
+    },
+    total=False,
 )
-
-
-class AttrsTypedDict(AttrsTypedDict_, CondaForgeYaml):
-    pass

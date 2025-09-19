@@ -99,9 +99,9 @@ def write_version_migrator_status(migrator, mctx):
                 )
                 if _ok_version(version_from_data):
                     if _ok_version(version_from_attrs):
-                        new_version = max(
+                        new_version: str | bool = max(
                             [version_from_data, version_from_attrs],
-                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                            key=lambda x: VersionOrder(x.replace("-", ".")),  # type: ignore[union-attr]
                         )
                     else:
                         new_version = version_from_data
@@ -130,7 +130,7 @@ def write_version_migrator_status(migrator, mctx):
                 if new_version_is_ok:
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
-                        out["queued"][node] = new_version
+                        out["queued"][node] = new_version  # type: ignore[assignment]
                     else:
                         out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
                             "new_version_errors",

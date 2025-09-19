@@ -175,6 +175,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
 
     def hkeys(self, name: str) -> List[str]:
         jlen = len(".json")
+        fnames: Iterable[str]
         if name == "lazy_json":
             fnames = glob.glob("*.json")
             fnames = set(fnames) - {

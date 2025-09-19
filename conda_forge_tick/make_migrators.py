@@ -114,7 +114,7 @@ DEFAULT_MINI_MIGRATORS = [
 
 
 def _make_mini_migrators_with_defaults(
-    extra_mini_migrators: list[MiniMigrator] = None,
+    extra_mini_migrators: list[MiniMigrator] | None = None,
 ) -> list[MiniMigrator]:
     extra_mini_migrators = extra_mini_migrators or []
     for klass in DEFAULT_MINI_MIGRATORS:
@@ -125,7 +125,7 @@ def _make_mini_migrators_with_defaults(
 
 def _compute_migrator_pr_limit(
     migrator: Migrator, nominal_pr_limit: int
-) -> (int, int, float):
+) -> tuple[int, int, float]:
     # adaptively set PR limits based on the number of PRs made so far
     number_pred = 0
     for _, v in migrator.graph.nodes.items():
