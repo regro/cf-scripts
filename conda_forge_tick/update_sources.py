@@ -171,9 +171,16 @@ class VersionFromFeed(AbstractSource, abc.ABC):
                 continue
             # Extract version number starting at the first digit.
             sval = re.search(r"(\d+[^\s]*)", ver)
-            if sval is not None:
-                ver = sval.group(0)
-                vers.append(ver)
+            if sval is None:
+                continue
+
+            ver = sval.group(0)
+            try:
+                VersionOrder(ver.replace("-", "."))
+            except Exception:
+                continue
+
+            vers.append(ver)
         if vers:
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
         else:
@@ -197,12 +204,23 @@ class PyPI(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        most_recent_version = r.json()["info"]["version"].strip()
+        if not r.ok:
+            return None
+
+        try:
+            jblob = r.json()
+        except Exception:
+            return None
+
+        if "info" not in jblob or "version" not in jblob["info"]:
+            return None
+
+        most_recent_version = jblob["info"]["version"].strip()
         if not r.ok or parse_version(most_recent_version).is_prerelease:
             # if ALL releases are prereleases return the version
             if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
                 return most_recent_version
-            return False
+            return None
         return most_recent_version
 
 
@@ -220,11 +238,11 @@ class NPM(AbstractSource):
     def get_version(self, url: str) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
-            return False
+            return None
         latest = r.json()["dist-tags"].get("latest", "").strip()
         # If it is a pre-release don't give back the pre-release version
         if not len(latest) or parse_version(latest).is_prerelease:
-            return False
+            return None
 
         return latest
 
@@ -623,7 +641,7 @@ class GithubReleases(AbstractSource):
     def get_version(self, url: str) -> Optional[str | Literal[False]]:
         r = requests.get(url)
         if not r.ok:
-            return False
+            return None
         # "/releases/latest" redirects to "/releases/tag/<tag name>"
         url_components = r.url.split("/")
         latest = "/".join(url_components[url_components.index("releases") + 2 :])
@@ -634,7 +652,7 @@ class GithubReleases(AbstractSource):
                 or latest == "latest"
                 or parse_version(latest).is_prerelease
             ):
-                return False
+                return None
         except InvalidVersion:
             # version strings violating the Python spec are supported
             pass
@@ -779,6 +797,8 @@ class NVIDIA(AbstractSource):
         stripped_results = [x.removesuffix(".json<").split("_")[1] for x in result]
         stripped_results.sort(key=Version, reverse=True)
         logger.debug("Found the following NVIDIA release JSON: %s", stripped_results)
+        if len(stripped_results) < 1:
+            return None
         release_version = stripped_results[0]
 
         # Fetch library details from developer archive
