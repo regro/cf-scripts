@@ -423,13 +423,13 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
-        assert attempt["new_version"] is ver
+        assert attempt["new_version"] is None
     else:
         assert ver == attempt["new_version"]
 
 
 def test_latest_version_ca_policy_lcg(capfd, caplog):
-    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": None}
     out, err = capfd.readouterr()
     all_output = out + err
     for record in caplog.records:
@@ -587,7 +587,7 @@ def test_latest_version_is_version_ignored(caplog):
     assert "Using URL https://source-a.com" in caplog.text
     assert "Ignoring version 1.2.3" in caplog.text
 
-    assert result == {"new_version": False}
+    assert result == {"new_version": None}
 
 
 def test_latest_version_no_sources_are_skipped(caplog):
