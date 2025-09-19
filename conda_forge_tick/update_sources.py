@@ -525,6 +525,13 @@ class BaseRawURL(AbstractSource):
                     count = count + 1
                     current_ver = next_ver
                     new_sha256 = get_sha256(url_to_use)
+                    if new_sha256 is None:
+                        logger.debug(
+                            "skipping url %s because it did not has",
+                            url_to_use,
+                        )
+                        return None
+
                     if new_sha256 == current_sha256 or new_sha256 in new_content:
                         logger.debug(
                             "skipping url %s because it returned the same hash",
