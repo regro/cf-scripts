@@ -21,9 +21,12 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
+from conda_forge_tick.migrators_types import AttrsTypedDict
 from conda_forge_tick.version_filters import filter_version
 
-demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
+demo_attrs: AttrsTypedDict = {
+    "conda-forge.yml": {"provider": {"default_branch": "main"}}
+}
 
 
 def test_prepare_feedstock_repository_success():
@@ -341,7 +344,9 @@ def test_run_with_tmpdir(
 
 def test_filter_version():
     """Test filter_version."""
-    attrs_no_filter = {"conda-forge.yml": {"bot": {"version_updates": {}}}}
+    attrs_no_filter: AttrsTypedDict = {
+        "conda-forge.yml": {"bot": {"version_updates": {}}}
+    }
     assert filter_version(attrs_no_filter, "1.2.3") == "1.2.3"
     assert filter_version(attrs_no_filter, False) is False
 

@@ -7,6 +7,7 @@ import pprint
 import shutil
 import subprocess
 import tempfile
+from typing import Any
 
 import conda_smithy
 import networkx as nx
@@ -601,7 +602,7 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
 
 
 yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
-yaml_rebuild.cycles = []
+yaml_rebuild.cycles = set()
 
 
 @pytest.mark.skipif(
@@ -618,7 +619,7 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
         subprocess.run(["git", "init", "-b", "main"])
     # Load the meta.yaml (this is done in the graph)
     try:
-        pmy = parse_meta_yaml(sample_yaml_rebuild)
+        pmy: dict[str, Any] = parse_meta_yaml(sample_yaml_rebuild)  # type: ignore[assignment]
     except Exception:
         pmy = {}
     if pmy:

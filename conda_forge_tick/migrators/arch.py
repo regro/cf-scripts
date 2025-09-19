@@ -129,7 +129,9 @@ class ArchRebuild(GraphMigrator):
                     fname = os.path.join(d, "arch_rebuild.txt")
                     if os.path.exists(fname):
                         break
-
+                assert fname is not None, (
+                    "Could not find arch_rebuild.txt in migration support dirs"
+                )
                 with open(fname) as f:
                     target_packages = set(f.read().split())
 

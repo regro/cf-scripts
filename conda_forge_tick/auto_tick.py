@@ -497,7 +497,8 @@ def run_with_tmpdir(
         )
 
 
-def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson:
+def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
+    pr_lazy_json: LazyJson | Literal[False]
     if pr_data:
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
@@ -599,7 +600,9 @@ def run(
         )
 
         # spoof this so it looks like the package is done
-        pr_data = get_spoofed_closed_pr_info()
+        pr_data: PullRequestData | PullRequestInfoSpecial | None = (
+            get_spoofed_closed_pr_info()
+        )
         pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
         _reset_pre_pr_migrator_fields(
             context.attrs, migrator_name, is_version=is_version_migration
@@ -644,9 +647,8 @@ def run(
             migration_run_data["pr_title"].replace("[bot-automerge]", "").strip()
         )
 
-    pr_data: PullRequestData | PullRequestInfoSpecial | None
     """
-    The PR data for the PR that was created. The contents of this variable
+    pr_data is the PR data for the PR that was created. The contents of this variable
     will be stored in the bot's database. None means: We don't update the PR data.
     """
     if (

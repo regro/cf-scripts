@@ -129,7 +129,7 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     """Overlook some bad entries."""
-    bad = attrs.get("pr_info", {}).get("bad", False)
+    bad = attrs.get("pr_info", {}).get("bad", False)  # type: ignore[call-overload]
     if isinstance(bad, str):
         bad_bool = not bad.startswith(not_bad_str_start)
     else:
@@ -267,7 +267,7 @@ class Migrator:
     - total_graph: The entire graph of conda-forge feedstocks.
     """
 
-    name: str
+    name: str | None
 
     rerender = True
 
@@ -458,18 +458,19 @@ class Migrator:
             pr_data["data"],
         )
         already_migrated_uids: list["MigrationUidTypedDict"] = list(
-            z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
+            z["data"]
+            for z in attrs.get("pr_info", {}).get("PRed", [])  # type: ignore[call-overload]
         )
         already_pred = migrator_uid in already_migrated_uids
         if already_pred:
             ind = already_migrated_uids.index(migrator_uid)
             logger.debug("%s: already PRed: uid: %s", __name, migrator_uid)
-            if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
+            if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:  # type: ignore[call-overload]
                 if isinstance(
-                    attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
+                    attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],  # type: ignore[call-overload]
                     LazyJson,
                 ):
-                    with attrs.get("pr_info", {}).get("PRed", [])[ind][
+                    with attrs.get("pr_info", {}).get("PRed", [])[ind][  # type: ignore[call-overload]
                         "PR"
                     ] as mg_attrs:
                         logger.debug(

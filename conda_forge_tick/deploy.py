@@ -93,7 +93,7 @@ def _pull_changes(batch):
     return n_added
 
 
-def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
+def _deploy_batch(*, files_to_add: set[str], batch, n_added, max_per_batch=200):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
         file = files_to_add.pop()
@@ -204,7 +204,7 @@ def _reset_and_restore_file(pth):
     subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
 
 
-def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
+def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
     """Deploy the graph to GitHub."""
     if ctx.dry_run:
         print("(dry run) deploying")
@@ -320,7 +320,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     batch = 0
     if do_git_ops:
-        files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
+        files_to_add = (files_to_add - files_done) | files_to_try_again
         n_added = 0
         while files_to_add:
             batch += 1
