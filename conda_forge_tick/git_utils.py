@@ -10,6 +10,7 @@ import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from datetime import datetime
 from email import utils
 from functools import cached_property
@@ -181,7 +182,7 @@ class GitCli:
     @lock_git_operation()
     def _run_git_command(
         self,
-        cmd: list[str | Path],
+        cmd: Sequence[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
         suppress_all_output: bool = False,
@@ -220,26 +221,20 @@ class GitCli:
             raise FileNotFoundError(
                 f"Working directory {working_directory} does not exist."
             )
-        git_command = ["git"] + cmd
+        git_command = ["git"] + list(cmd)
 
         if not suppress_all_output:
             logger.debug("Running git command: %s", git_command)
-
-        # stdout and stderr are piped to devnull if suppress_all_output is True
-        stdout_args = (
-            {"stdout": subprocess.PIPE}
-            if not suppress_all_output
-            else {"stdout": subprocess.DEVNULL}
-        )
-        stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
 
         try:
             p = subprocess.run(
                 git_command,
                 check=check_error,
                 cwd=working_directory,
-                **stdout_args,
-                **stderr_args,
+                stdout=subprocess.PIPE
+                if not suppress_all_output
+                else subprocess.DEVNULL,
+                stderr=None if not suppress_all_output else subprocess.DEVNULL,
                 text=True,
             )
         except subprocess.CalledProcessError as e:
@@ -1189,9 +1184,11 @@ class GitHubBackend(GitPlatformBackend):
             self._sync_default_branch(owner, repo_name)
             return
 
-        repo = self._get_repo(owner, repo_name)
-
         logger.debug("Forking %s/%s.", owner, repo_name)
+        repo = self._get_repo(owner, repo_name)
+        assert repo is not None, (
+            "Since owner and repo_name are both not None, repo cannot be None."
+        )
         repo.create_fork()
 
         # Sleep to make sure the fork is created before we go after it
@@ -1520,7 +1517,7 @@ def is_github_api_limit_reached() -> bool:
 
 
 @lock_git_operation()
-def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
+def delete_branch(pr_json: LazyJson | dict, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
         print(f"dry run: deleting ref {ref}")
@@ -1654,7 +1651,7 @@ def lazy_update_pr_json(
     max_time=MAX_GITHUB_TIMEOUT,
 )
 def refresh_pr(
-    pr_json: LazyJson,
+    pr_json: LazyJson | dict,
     dry_run: bool = False,
 ) -> Optional[dict]:
     if pr_json["state"] != "closed":
@@ -1704,7 +1701,7 @@ def get_pr_obj_from_pr_json(
     max_time=MAX_GITHUB_TIMEOUT,
 )
 def close_out_labels(
-    pr_json: LazyJson,
+    pr_json: LazyJson | dict,
     dry_run: bool = False,
 ) -> Optional[dict]:
     # run this twice so we always have the latest info (eg a thing was already closed)
@@ -1745,7 +1742,7 @@ def close_out_labels(
 
 
 def close_out_dirty_prs(
-    pr_json: LazyJson,
+    pr_json: LazyJson | dict,
     dry_run: bool = False,
 ) -> Optional[dict]:
     # run this twice so we always have the latest info (eg a thing was already closed)
@@ -1804,7 +1801,7 @@ def close_out_dirty_prs(
 
 def _get_pth_blob_sha_and_content(
     pth: str, repo: github.Repository.Repository
-) -> (str | None, str | None):
+) -> tuple[str | None, str | None]:
     try:
         cnt = repo.get_contents(pth)
         # I was using the decoded_content attribute here, but it seems that

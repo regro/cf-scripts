@@ -163,9 +163,9 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
                 list(as_iterable(req.get(section, []) or [])),
             )
 
-        test: "TestTypedDict" = block.get("test", {}) or {}  # type: ignore[assignment]
-        requirements_dict["test"].update(test.get("requirements", []) or [])
-        requirements_dict["test"].update(test.get("requires", []) or [])
+        test_block: "TestTypedDict" = block.get("test", {}) or {}  # type: ignore[assignment]
+        requirements_dict["test"].update(test_block.get("requirements", []) or [])
+        requirements_dict["test"].update(test_block.get("requires", []) or [])
 
         if "tests" in block:
             for test in block.get("tests", []):
@@ -408,7 +408,7 @@ def populate_feedstock_attributes(
 
                 # collapse them down
                 logger.debug("collapsing reqs for %s", name)
-                final_cfgs = {}
+                final_cfgs: dict = {}
                 for plat_arch, varyml in zip(plat_archs, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
@@ -451,7 +451,7 @@ def populate_feedstock_attributes(
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
-    yaml_dict = ChainDB(*sorted_variant_yamls)
+    yaml_dict = ChainDB(*sorted_variant_yamls)  # type: ignore[arg-type]
     if not yaml_dict:
         logger.error("Something odd happened when parsing recipe %s", name)
         node_attrs["parsing_error"] = (
@@ -505,7 +505,7 @@ def populate_feedstock_attributes(
     # TODO: Write schema for dict
     # TODO: remove this
     req = _get_requirements(
-        yaml_dict,
+        yaml_dict,  # type: ignore[arg-type]
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
     )
     node_attrs["req"] = req

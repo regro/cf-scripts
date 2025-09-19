@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import contextlib
 import functools
@@ -14,14 +16,11 @@ from collections.abc import Callable, Collection, MutableMapping
 from typing import (
     IO,
     Any,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
+    Self,
     Set,
-    Union,
 )
 
 import github
@@ -75,12 +74,12 @@ def get_sharded_path(file_path, n_dirs=CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS):
 class LazyJsonBackend(ABC):
     @contextlib.contextmanager
     @abstractmethod
-    def transaction_context(self) -> "Iterator[LazyJsonBackend]":
+    def transaction_context(self) -> Iterator[Self]:
         pass
 
     @contextlib.contextmanager
     @abstractmethod
-    def snapshot_context(self) -> "Iterator[LazyJsonBackend]":
+    def snapshot_context(self) -> Iterator[Self]:
         pass
 
     @abstractmethod
@@ -96,7 +95,7 @@ class LazyJsonBackend(ABC):
         pass
 
     @abstractmethod
-    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+    def hmget(self, name: str, keys: Iterable[str]) -> list[str]:
         pass
 
     @abstractmethod
@@ -104,7 +103,7 @@ class LazyJsonBackend(ABC):
         pass
 
     @abstractmethod
-    def hkeys(self, name: str) -> List[str]:
+    def hkeys(self, name: str) -> list[str]:
         pass
 
     def hsetnx(self, name: str, key: str, value: str) -> bool:
@@ -119,18 +118,18 @@ class LazyJsonBackend(ABC):
         pass
 
     @abstractmethod
-    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+    def hgetall(self, name: str, hashval: bool = False) -> dict[str, str]:
         pass
 
 
 class FileLazyJsonBackend(LazyJsonBackend):
     @contextlib.contextmanager
-    def transaction_context(self) -> "Iterator[FileLazyJsonBackend]":
+    def transaction_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
     @contextlib.contextmanager
-    def snapshot_context(self) -> "Iterator[FileLazyJsonBackend]":
+    def snapshot_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
@@ -148,10 +147,10 @@ class FileLazyJsonBackend(LazyJsonBackend):
         for key, value in mapping.items():
             self.hset(name, key, value)
 
-    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+    def hmget(self, name: str, keys: Iterable[str]) -> list[str]:
         return [self.hget(name, key) for key in keys]
 
-    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+    def hgetall(self, name: str, hashval: bool = False) -> dict[str, str]:
         return {
             key: (
                 hashlib.sha256(self.hget(name, key).encode("utf-8")).hexdigest()
@@ -173,7 +172,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
             capture_output=True,
         )
 
-    def hkeys(self, name: str) -> List[str]:
+    def hkeys(self, name: str) -> list[str]:
         jlen = len(".json")
         fnames: Iterable[str]
         if name == "lazy_json":
@@ -237,11 +236,13 @@ class GithubLazyJsonBackend(LazyJsonBackend):
                 "is not recommended.",
             )
 
-    def transaction_context(self) -> "Iterator[GithubLazyJsonBackend]":
+    @contextlib.contextmanager
+    def transaction_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
-    def snapshot_context(self) -> "Iterator[GithubLazyJsonBackend]":
+    @contextlib.contextmanager
+    def snapshot_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
@@ -266,13 +267,13 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
         self._ignore_write()
 
-    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+    def hmget(self, name: str, keys: Iterable[str]) -> list[str]:
         return [self.hget(name, key) for key in keys]
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
         self._ignore_write()
 
-    def hkeys(self, name: str) -> List[str]:
+    def hkeys(self, name: str) -> list[str]:
         """
         Not implemented for GithubLazyJsonBackend.
         Raises an error.
@@ -293,7 +294,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         r.raise_for_status()
         return r.text
 
-    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+    def hgetall(self, name: str, hashval: bool = False) -> dict[str, str]:
         """
         Not implemented for GithubLazyJsonBackend.
         Raises an error.
@@ -328,12 +329,12 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         self._repo = self._gh.get_repo(settings().graph_github_backend_repo)
 
     @contextlib.contextmanager
-    def transaction_context(self) -> "Iterator[FileLazyJsonBackend]":
+    def transaction_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
     @contextlib.contextmanager
-    def snapshot_context(self) -> "Iterator[FileLazyJsonBackend]":
+    def snapshot_context(self) -> Iterator[Self]:
         # context not required
         yield self
 
@@ -409,10 +410,10 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         for key, value in mapping.items():
             self.hset(name, key, value)
 
-    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+    def hmget(self, name: str, keys: Iterable[str]) -> list[str]:
         return [self.hget(name, key) for key in keys]
 
-    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+    def hgetall(self, name: str, hashval: bool = False) -> dict[str, str]:
         raise NotImplementedError(
             "hgetall not implemented for GithubAPILazyJsonBackend. "
             "You cannot use the GithubAPILazyJsonBackend as "
@@ -470,7 +471,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         for key in keys:
             self._hdel_one(name, key)
 
-    def hkeys(self, name: str) -> List[str]:
+    def hkeys(self, name: str) -> list[str]:
         raise NotImplementedError(
             "hkeys not implemented for GithubAPILazyJsonBackend. "
             "You cannot use the GithubAPILazyJsonBackend as "
@@ -487,14 +488,14 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
             "Authorization": f"Bearer {get_bot_token()}",
         }
 
-        ntries = 10
+        n_tries = 10
 
         # exponential backoff will be base ** tr
-        # we fail at ntries - 1 so the last time we
+        # we fail at n_tries - 1 so the last time we
         # compute the backoff is at ntries - 2
-        base = math.exp(math.log(60.0) / (ntries - 2.0))
+        base = math.exp(math.log(60.0) / (n_tries - 2.0))
 
-        for tr in range(ntries):
+        for tr in range(n_tries):
             try:
                 cnts = requests.get(
                     f"https://api.github.com/repos/{settings().graph_github_backend_repo}/contents/{pth}",
@@ -506,13 +507,15 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 logger.warning(
                     "failed to pull '%s' - trying %d more times",
                     pth,
-                    ntries - tr - 1,
+                    n_tries - tr - 1,
                     exc_info=e,
                 )
-                if tr == ntries - 1:
+                if tr == n_tries - 1:
                     raise e
                 else:
                     time.sleep(base**tr)
+
+        assert False, "There is at least one try, so this cannot be reached."
 
 
 @functools.lru_cache(maxsize=128)
@@ -543,11 +546,11 @@ def get_graph_data_mongodb_client():
 
 
 class MongoDBLazyJsonBackend(LazyJsonBackend):
-    _session = None
-    _snapshot_session = None
+    _session: Any = None
+    _snapshot_session: Any = None
 
     @contextlib.contextmanager
-    def transaction_context(self) -> "Iterator[MongoDBLazyJsonBackend]":
+    def transaction_context(self) -> Iterator[Self]:
         try:
             if self.__class__._session is None:
                 client = get_graph_data_mongodb_client()
@@ -562,7 +565,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             self.__class__._session = None
 
     @contextlib.contextmanager
-    def snapshot_context(self) -> "Iterator[MongoDBLazyJsonBackend]":
+    def snapshot_context(self) -> Iterator[Self]:
         try:
             if self.__class__._snapshot_session is None:
                 client = get_graph_data_mongodb_client()
@@ -945,8 +948,8 @@ class LazyJson(MutableMapping):
 
     def __init__(self, file_name: str):
         self.file_name = file_name
-        self._data: Optional[dict] = None
-        self._data_hash_at_load = None
+        self._data: dict | None = None
+        self._data_hash_at_load: str | None = None
         self._in_context = False
         fparts = os.path.split(self.file_name)
         if len(fparts[0]) > 0:
@@ -974,6 +977,7 @@ class LazyJson(MutableMapping):
     def clear(self):
         assert self._in_context
         self._load()
+        assert self._data is not None
         self._data.clear()
 
     def __len__(self) -> int:
@@ -1006,8 +1010,8 @@ class LazyJson(MutableMapping):
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
                 backend.hsetnx(self.hashmap, self.node, dumps({}))
                 data_str = backend.hget(self.hashmap, self.node)
-                if isinstance(data_str, bytes):
-                    data_str = data_str.decode("utf-8")
+                if isinstance(data_str, bytes):  # type: ignore[unreachable]
+                    data_str = data_str.decode("utf-8")  # type: ignore[unreachable]
 
                 # cache it locally for later
                 if (
@@ -1063,7 +1067,7 @@ class LazyJson(MutableMapping):
         state["_data_hash_at_load"] = None
         return state
 
-    def __enter__(self) -> "LazyJson":
+    def __enter__(self) -> LazyJson:
         self._in_context = True
         return self
 
@@ -1101,7 +1105,7 @@ def default(obj: Any) -> Any:
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
-def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
+def object_hook(dct: dict) -> LazyJson | set | dict:
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
         return LazyJson(dct["__lazy_json__"])
@@ -1114,7 +1118,7 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 def dumps(
     obj: Any,
-    default: "Callable[[Any], Any]" = default,
+    default: Callable[[Any], Any] = default,
 ) -> str:
     """Return a JSON string from a Python object."""
     return orjson.dumps(
@@ -1127,15 +1131,14 @@ def dumps(
 def dump(
     obj: Any,
     fp: IO[str],
-    default: "Callable[[Any], Any]" = default,
+    default: Callable[[Any], Any] = default,
 ) -> None:
-    """Return a JSON string from a Python object."""
-    return fp.write(dumps(obj, default=default))
+    fp.write(dumps(obj, default=default))
 
 
 def _call_object_hook(
     data: Any,
-    object_hook: "Callable[[dict], Any]",
+    object_hook: Callable[[dict], Any],
 ) -> Any:
     """Recursively calls object_hook depth-first."""
     if isinstance(data, list):
@@ -1148,7 +1151,7 @@ def _call_object_hook(
         return data
 
 
-def loads(s: str, object_hook: "Callable[[dict], Any]" = object_hook) -> dict:
+def loads(s: str, object_hook: Callable[[dict], Any] = object_hook) -> dict:
     """Load a string as JSON, with appropriate object hooks."""
     data = orjson.loads(s)
     if object_hook is not None:
@@ -1158,7 +1161,7 @@ def loads(s: str, object_hook: "Callable[[dict], Any]" = object_hook) -> dict:
 
 def load(
     fp: IO[str],
-    object_hook: "Callable[[dict], Any]" = object_hook,
+    object_hook: Callable[[dict], Any] = object_hook,
 ) -> dict:
     """Load a file object as JSON, with appropriate object hooks."""
     return loads(fp.read())

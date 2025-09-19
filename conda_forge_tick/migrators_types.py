@@ -76,6 +76,7 @@ class RecipeTypedDict(TypedDict, total=False):
     source: "SourceTypedDict"
     test: "TestTypedDict"
     outputs: List[MetaYamlOutputs]
+    schema_version: int
 
 
 class MigrationUidTypedDict(TypedDict, total=False):
