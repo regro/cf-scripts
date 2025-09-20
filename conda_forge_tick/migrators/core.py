@@ -681,7 +681,7 @@ class Migrator:
 
         seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
         now = int(time.time()) * seconds_to_days
-        base = 4 / 24.0  # 4 hours in days
+        base = 2 / 24.0  # 4 hours in days
 
         def _get_last_attempt_ts_and_try(node):
             attempts = (
@@ -720,7 +720,7 @@ class Migrator:
 
         def _attempt_pr(node):
             last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
-            return now > last_bot_attempt_ts + (base * (2**retries_so_far))
+            return now > last_bot_attempt_ts + (base * (2 ** min(retries_so_far, 6)))
 
         return sorted(
             list(graph.nodes),
