@@ -321,8 +321,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
     hashmap data across backends.
     """
 
-    _exp_backoff_base = 2.0
-    _exp_backoff_ntries = 10
+    _exp_backoff_base: float = 2.0
+    _exp_backoff_ntries: int = 10
 
     def __init__(self):
         from conda_forge_tick.git_utils import github_client
