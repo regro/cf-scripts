@@ -711,11 +711,11 @@ class Migrator:
                 )
                 if ts is None:
                     # one hour per attempt
-                    return now - (3600 * attempts)
-                else:
-                    return ts
+                    ts = now - (3600 * attempts)
             else:
-                return -math.inf
+                ts = -math.inf
+
+            return (ts, attempts)
 
         def _attempt_pr(node):
             last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
