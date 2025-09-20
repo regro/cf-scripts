@@ -679,8 +679,9 @@ class Migrator:
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        now = int(time.time())
-        base = 4 * 3600  # 4 hours
+        seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
+        now = int(time.time()) * seconds_to_days
+        base = 4 / 24.0  # 4 hours in days
 
         def _get_last_attempt_ts_and_try(node):
             attempts = (
@@ -715,7 +716,7 @@ class Migrator:
             else:
                 ts = -math.inf
 
-            return (ts, attempts)
+            return (ts * seconds_to_days, attempts)
 
         def _attempt_pr(node):
             last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
