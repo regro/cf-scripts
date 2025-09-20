@@ -3,14 +3,15 @@
 import contextlib
 import copy
 import logging
+import math
 import re
 import secrets
+import time
 import typing
 from pathlib import Path
 from typing import Any, List, Literal, Sequence, Set
 
 import networkx as nx
-import numpy as np
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -678,11 +679,18 @@ class Migrator:
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _not_has_error_func(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pr_info",
-                {},
-            ).get("pre_pr_migrator_status", {}) and (
+        def _get_last_attempt_ts_and_try(node):
+            return (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempt_ts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    -math.inf,
+                ),
                 total_graph.nodes[node]["payload"]
                 .get("pr_info", {})
                 .get(
@@ -691,33 +699,21 @@ class Migrator:
                 )
                 .get(
                     migrator_name,
-                    self.max_solver_attempts,
-                )
-                >= self.max_solver_attempts
-            ):
-                return 0
-            else:
-                return 1
+                    0,
+                ),
+            )
 
-        _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
-        bfac = 10.0
-        boost = {
-            node: 1.0 + (bfac * np.log10(len(nx.descendants(total_graph, node)) + 1))
-            for node in list(graph.nodes)
-        }
+        now = int(time.time())
+        base = 4 * 3600  # 4 hours
+
+        def _attempt_pr(node):
+            last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
+            return now > last_bot_attempt_ts + (base * (2**retries_so_far))
 
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                (
-                    RNG.random()
-                    * (1.0 if _not_has_error[x] else min(boost[x] * 0.5, 1.0))
-                    if (
-                        (not _not_has_error[x])
-                        or len(nx.descendants(total_graph, x)) == 0
-                    )
-                    else len(nx.descendants(total_graph, x))
-                ),
+                len(nx.descendants(total_graph, x)) if _attempt_pr(x) else RNG.random(),
                 RNG.random(),
             ),
             reverse=True,
