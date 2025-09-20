@@ -173,27 +173,26 @@ def _migrate_schema(name, sub_graph):
                     if key in sub_graph:
                         pri[key].update(sub_graph.pop(key))
 
-                # populate migrator attempts if they are not there
-                for mn in pri[pre_key]:
-                    if mn not in pri[pre_key_att]:
-                        pri[pre_key_att][mn] = 1
-
     with lazy_json_transaction():
         with sub_graph["pr_info"] as pri:
             for mn in pri[pre_key].keys():
                 if mn not in pri[pre_key_att]:
                     pri[pre_key_att][mn] = 1
                 if mn not in pri[pre_key_att_ts]:
-                    # set the attempt to one hour ago
-                    pri[pre_key_att_ts][mn] = int(time.time()) - 3600.0
+                    # set the attempt to one hour ago per try
+                    pri[pre_key_att_ts][mn] = (
+                        int(time.time()) - pri[pre_key_att][mn] * 3600.0
+                    )
 
         with sub_graph["version_pr_info"] as vpri:
             for mn in vpri["new_version_errors"].keys():
                 if mn not in vpri["new_version_attempts"]:
                     vpri["new_version_attempts"][mn] = 1
                 if mn not in vpri["new_version_attempt_ts"]:
-                    # set the attempt to one hour ago
-                    vpri["new_version_attempt_ts"][mn] = int(time.time()) - 3600.0
+                    # set the attempt to one hour ago per try
+                    vpri["new_version_attempt_ts"][mn] = (
+                        int(time.time()) - vpri["new_version_attempts"][mn] * 3600.0
+                    )
 
     keys_to_move = [
         "PRed",
