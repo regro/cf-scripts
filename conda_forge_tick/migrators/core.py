@@ -679,18 +679,11 @@ class Migrator:
         else:
             migrator_name = self.__class__.__name__.lower()
 
+        now = int(time.time())
+        base = 4 * 3600  # 4 hours
+
         def _get_last_attempt_ts_and_try(node):
-            return (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempt_ts",
-                    {},
-                )
-                .get(
-                    migrator_name,
-                    -math.inf,
-                ),
+            attempts = (
                 total_graph.nodes[node]["payload"]
                 .get("pr_info", {})
                 .get(
@@ -700,11 +693,29 @@ class Migrator:
                 .get(
                     migrator_name,
                     0,
-                ),
+                )
             )
 
-        now = int(time.time())
-        base = 4 * 3600  # 4 hours
+            if attempts > 0:
+                ts = (
+                    total_graph.nodes[node]["payload"]
+                    .get("pr_info", {})
+                    .get(
+                        "pre_pr_migrator_attempt_ts",
+                        {},
+                    )
+                    .get(
+                        migrator_name,
+                        None,
+                    )
+                )
+                if ts is None:
+                    # one hour per attempt
+                    return now - (3600 * attempts)
+                else:
+                    return ts
+            else:
+                return -math.inf
 
         def _attempt_pr(node):
             last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
