@@ -724,7 +724,9 @@ class Migrator:
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                len(nx.descendants(total_graph, x)) if _attempt_pr(x) else RNG.random(),
+                len(nx.descendants(total_graph, x)) + 1
+                if _attempt_pr(x)
+                else RNG.random(),
                 RNG.random(),
             ),
             reverse=True,
