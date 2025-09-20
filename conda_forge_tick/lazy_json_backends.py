@@ -6,7 +6,6 @@ import functools
 import glob
 import hashlib
 import logging
-import math
 import os
 import subprocess
 import time
@@ -322,6 +321,9 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
     hashmap data across backends.
     """
 
+    _exp_backoff_base = 2.0
+    _exp_backoff_ntries = 10
+
     def __init__(self):
         from conda_forge_tick.git_utils import github_client
 
@@ -359,14 +361,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         pth = get_sharded_path(filename)
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
-        ntries = 10
-
-        # exponential backoff will be base ** tr
-        # we fail at ntries - 1 so the last time we
-        # compute the backoff is at ntries - 2
-        base = math.exp(math.log(60.0) / (ntries - 2.0))
-
-        for tr in range(ntries):
+        # exponential backoff will be self._exp_backoff_base**tr
+        for tr in range(self._exp_backoff_ntries):
             try:
                 try:
                     _cnts = self._repo.get_contents(pth)
@@ -398,13 +394,13 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 logger.warning(
                     "failed to push '%s' - trying %d more times",
                     filename,
-                    ntries - tr - 1,
+                    self._exp_backoff_ntries - tr - 1,
                     exc_info=e,
                 )
-                if tr == ntries - 1:
+                if tr == self._exp_backoff_ntries - 1:
                     raise e
                 else:
-                    time.sleep(base**tr)
+                    time.sleep(self._exp_backoff_base**tr)
 
     def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
         for key, value in mapping.items():
@@ -432,14 +428,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         pth = get_sharded_path(filename)
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
-        ntries = 10
-
-        # exponential backoff will be base ** tr
-        # we fail at ntries - 1 so the last time we
-        # compute the backoff is at ntries - 2
-        base = math.exp(math.log(60.0) / (ntries - 2.0))
-
-        for tr in range(ntries):
+        # exponential backoff will be self._exp_backoff_base**tr
+        for tr in range(self._exp_backoff_ntries):
             try:
                 try:
                     _cnts = self._repo.get_contents(pth)
@@ -459,13 +449,13 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 logger.warning(
                     "failed to delete '%s' - trying %d more times",
                     filename,
-                    ntries - tr - 1,
+                    self._exp_backoff_ntries - tr - 1,
                     exc_info=e,
                 )
-                if tr == ntries - 1:
+                if tr == self._exp_backoff_ntries - 1:
                     raise e
                 else:
-                    time.sleep(base**tr)
+                    time.sleep(self._exp_backoff_base**tr)
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
         for key in keys:
@@ -488,14 +478,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
             "Authorization": f"Bearer {get_bot_token()}",
         }
 
-        n_tries = 10
-
-        # exponential backoff will be base ** tr
-        # we fail at n_tries - 1 so the last time we
-        # compute the backoff is at ntries - 2
-        base = math.exp(math.log(60.0) / (n_tries - 2.0))
-
-        for tr in range(n_tries):
+        # exponential backoff will be self._exp_backoff_base**tr
+        for tr in range(self._exp_backoff_ntries):
             try:
                 cnts = requests.get(
                     f"https://api.github.com/repos/{settings().graph_github_backend_repo}/contents/{pth}",
@@ -507,13 +491,13 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 logger.warning(
                     "failed to pull '%s' - trying %d more times",
                     pth,
-                    n_tries - tr - 1,
+                    self._exp_backoff_ntries - tr - 1,
                     exc_info=e,
                 )
-                if tr == n_tries - 1:
+                if tr == self._exp_backoff_ntries - 1:
                     raise e
                 else:
-                    time.sleep(base**tr)
+                    time.sleep(self._exp_backoff_base**tr)
 
         assert False, "There is at least one try, so this cannot be reached."
 
