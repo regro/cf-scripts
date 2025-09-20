@@ -24,6 +24,12 @@ class VersionPrInfo(StrictBaseModel):
     increases the count by a fraction that is specified in auto_tick.run (03/2024: 0.2).
     """
 
+    new_version_attempt_ts: NoneIsEmptyDict[str, int] = {}
+    """
+    Mapping (version -> timestamp) of the timestamp as `int(time.time())` of most recent
+    attempt to make the version PR.
+    """
+
     new_version_errors: NoneIsEmptyDict[str, str] = {}
     """
     Mapping (version -> error message) to describe the errors that occurred when trying to update the versions in the
@@ -41,6 +47,17 @@ class VersionPrInfo(StrictBaseModel):
         if wrong_versions:
             raise ValueError(
                 f"new_version_errors contains at least one version not in new_version_attempts: {wrong_versions}"
+            )
+
+        wrong_versions = [
+            version
+            for version in self.new_version_errors
+            if version not in self.new_version_attempt_ts
+        ]
+
+        if wrong_versions:
+            raise ValueError(
+                f"new_version_errors contains at least one version not in new_version_attempt_ts: {wrong_versions}"
             )
 
 
