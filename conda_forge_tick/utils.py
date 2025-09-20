@@ -15,6 +15,7 @@ import typing
 import warnings
 from collections import defaultdict
 from collections.abc import Mapping
+from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -232,7 +233,7 @@ def parse_recipe_yaml(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -245,7 +246,7 @@ def parse_recipe_yaml(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
@@ -281,7 +282,7 @@ def parse_recipe_yaml_containerized(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -295,7 +296,7 @@ def parse_recipe_yaml_containerized(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
 
     Returns
@@ -315,7 +316,7 @@ def parse_recipe_yaml_containerized(
         args += ["--platform-arch", platform_arch]
 
     if cbc_path is not None:
-        args += ["--cbc-path", cbc_path]
+        args += ["--cbc-path", str(cbc_path)]
 
     if for_pinning:
         args += ["--for-pinning"]
@@ -393,7 +394,7 @@ def parse_recipe_yaml_local(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -405,7 +406,7 @@ def parse_recipe_yaml_local(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
 
     Returns
@@ -458,7 +459,7 @@ def replace_compiler_with_stub(text: str) -> str:
 def _render_recipe_yaml(
     text: str,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: str | Path | None = None,
 ) -> list[dict[str, Any]]:
     """
     Render the given recipe YAML text using the `rattler-build` command-line tool.
@@ -469,7 +470,7 @@ def _render_recipe_yaml(
         The recipe YAML text to render.
     platform : str, optional
         The platform (e.g., 'linux', 'osx', 'win').
-    cbc_path : str, optional
+    cbc_path : str | Path, optional
         The path to global pinning file.
 
     Returns
