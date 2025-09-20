@@ -106,8 +106,13 @@ def _increment_pre_pr_migrator_attempt(attrs, migrator_name, *, is_version):
             if version not in vpri["new_version_attempts"]:
                 vpri["new_version_attempts"][version] = 0
             vpri["new_version_attempts"][version] += 1
+
+            if "new_version_attempt_ts" not in vpri:
+                vpri["new_version_attempt_ts"] = {}
+            vpri["new_version_attempt_ts"][version] = int(time.time())
     else:
         pre_key_att = "pre_pr_migrator_attempts"
+        pre_key_att_ts = "pre_pr_migrator_attempt_ts"
 
         with attrs["pr_info"] as pri:
             if pre_key_att not in pri:
@@ -116,19 +121,28 @@ def _increment_pre_pr_migrator_attempt(attrs, migrator_name, *, is_version):
                 pri[pre_key_att][migrator_name] = 0
             pri[pre_key_att][migrator_name] += 1
 
+            if pre_key_att_ts not in pri:
+                pri[pre_key_att_ts] = {}
+            pri[pre_key_att_ts][migrator_name] = int(time.time())
+
 
 def _reset_pre_pr_migrator_fields(attrs, migrator_name, *, is_version):
     if is_version:
         with attrs["version_pr_info"] as vpri:
             version = vpri["new_version"]
-            for _key in ["new_version_errors", "new_version_attempts"]:
+            for _key in [
+                "new_version_errors",
+                "new_version_attempts",
+                "new_version_attempt_ts",
+            ]:
                 if _key in vpri and version in vpri[_key]:
                     vpri[_key].pop(version)
     else:
         pre_key = "pre_pr_migrator_status"
         pre_key_att = "pre_pr_migrator_attempts"
+        pre_key_att_ts = "pre_pr_migrator_attempt_ts"
         with attrs["pr_info"] as pri:
-            for _key in [pre_key, pre_key_att]:
+            for _key in [pre_key, pre_key_att, pre_key_att_ts]:
                 if _key in pri and migrator_name in pri[_key]:
                     pri[_key].pop(migrator_name)
 

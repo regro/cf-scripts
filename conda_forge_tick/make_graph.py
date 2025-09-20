@@ -92,12 +92,20 @@ def _add_required_lazy_json_refs(attrs, name):
             attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
 
     with attrs["version_pr_info"] as vpri:
-        for key in ["new_version_attempts", "new_version_errors"]:
+        for key in [
+            "new_version_attempts",
+            "new_version_errors",
+            "new_version_attempt_ts",
+        ]:
             if key not in vpri:
                 vpri[key] = {}
 
     with attrs["pr_info"] as pri:
-        for key in ["pre_pr_migrator_status", "pre_pr_migrator_attempts"]:
+        for key in [
+            "pre_pr_migrator_status",
+            "pre_pr_migrator_attempts",
+            "pre_pr_migrator_attempt_ts",
+        ]:
             if key not in pri:
                 pri[key] = {}
 
@@ -137,7 +145,11 @@ def _migrate_schema(name, sub_graph):
         with lazy_json_transaction():
             sub_graph.pop("last_updated")
 
-    vpri_move_keys = ["new_version_attempts", "new_version_errors"]
+    vpri_move_keys = [
+        "new_version_attempts",
+        "new_version_errors",
+        "new_version_attempt_ts",
+    ]
     if any(key in sub_graph for key in vpri_move_keys):
         with lazy_json_transaction():
             with sub_graph["version_pr_info"] as vpri:
@@ -152,7 +164,8 @@ def _migrate_schema(name, sub_graph):
 
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
-    pri_move_keys = [pre_key, pre_key_att]
+    pre_key_att_ts = "pre_pr_migrator_attempt_ts"
+    pri_move_keys = [pre_key, pre_key_att, pre_key_att_ts]
     if any(key in sub_graph for key in pri_move_keys):
         with lazy_json_transaction():
             with sub_graph["pr_info"] as pri:
@@ -170,11 +183,17 @@ def _migrate_schema(name, sub_graph):
             for mn in pri[pre_key].keys():
                 if mn not in pri[pre_key_att]:
                     pri[pre_key_att][mn] = 1
+                if mn not in pri[pre_key_att_ts]:
+                    # set the attempt to one hour ago
+                    pri[pre_key_att_ts][mn] = int(time.time()) - 3600.0
 
         with sub_graph["version_pr_info"] as vpri:
             for mn in vpri["new_version_errors"].keys():
                 if mn not in vpri["new_version_attempts"]:
                     vpri["new_version_attempts"][mn] = 1
+                if mn not in vpri["new_version_attempt_ts"]:
+                    # set the attempt to one hour ago
+                    vpri["new_version_attempt_ts"][mn] = int(time.time()) - 3600.0
 
     keys_to_move = [
         "PRed",

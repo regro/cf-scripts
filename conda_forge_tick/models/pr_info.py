@@ -104,8 +104,9 @@ class MigrationPullRequestData(StrictBaseModel):
 
     migrator_name: MigratorName
     """
-    The name of the migrator that created the PR. As opposed to `pre_pr_migrator_status` and `pre_pr_migrator_attempts`
-    below, the names of migrators appear here with spaces and not necessarily in lowercase.
+    The name of the migrator that created the PR. As opposed to `pre_pr_migrator_status`, `pre_pr_migrator_attempt_ts`,
+    and `pre_pr_migrator_attempts` below, the names of migrators appear here with spaces and not necessarily in
+    lowercase.
     """
 
     migrator_version: int
@@ -313,11 +314,25 @@ class PrInfoValid(StrictBaseModel):
     If a migration is eventually successful, the corresponding key is removed from the dictionary.
     """
 
+    pre_pr_migrator_attempt_ts: NoneIsEmptyDict[str, int] = {}
+    """
+    A dictionary (migration name -> timestamp) of the timestamp as `int(time.time())` of most recent
+    attempt to make the migration PR.
+
+    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
+
+    If a migration is eventually successful, the corresponding key is removed from the dictionary.
+    """
+
     @model_validator(mode="after")
     def check_pre_pr_migrations(self) -> Self:
         if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempts.keys():
             raise ValueError(
                 "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempts must match."
+            )
+        if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempt_ts.keys():
+            raise ValueError(
+                "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempt_ts must match."
             )
         return self
 
