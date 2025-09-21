@@ -75,8 +75,6 @@ class AddNVIDIATools(Migrator):
 
     rerender = True
 
-    max_solver_attempts = 3
-
     migrator_version = 1
 
     allow_empty_commits = False

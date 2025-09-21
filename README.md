@@ -149,12 +149,6 @@ __migrator:
   # from issuing PRs that will fail to build.
   check_solvable: true
 
-  # The max_solver_attempts controls how many times the bot will try to issue a PR (and
-  # fail due to unsolvable environments) before it deprioritizes the migration of the feedstock.
-  # Once all feedstocks without failed solver attempts have been tried, the bot will randomly
-  # retry the failed feedstocks.
-  max_solver_attempts: 3
-
   # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
   # this many tries.
   force_pr_after_solver_attempts: 10

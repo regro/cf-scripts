@@ -415,7 +415,6 @@ class NoarchPythonMinMigrator(Migrator):
 
     migrator_version = 1
     bump_number = 1
-    max_solver_attempts = 3
 
     def __init__(
         self,

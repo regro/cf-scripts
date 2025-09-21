@@ -184,7 +184,6 @@ class MigrationYaml(GraphMigrator):
         check_solvable=True,
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
-        max_solver_attempts=3,
         effective_graph: nx.DiGraph | None = None,
         force_pr_after_solver_attempts=10,
         longterm=False,
@@ -208,7 +207,6 @@ class MigrationYaml(GraphMigrator):
                 "check_solvable": check_solvable,
                 "conda_forge_yml_patches": conda_forge_yml_patches,
                 "ignored_deps_per_node": ignored_deps_per_node,
-                "max_solver_attempts": max_solver_attempts,
                 "effective_graph": effective_graph,
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
@@ -225,7 +223,6 @@ class MigrationYaml(GraphMigrator):
         self.conda_forge_yml_patches = conda_forge_yml_patches
         self.loaded_yaml = yaml_safe_load(self.yaml_contents)
         self.bump_number = bump_number
-        self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
         self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
         self.paused = paused

@@ -204,6 +204,12 @@ def make_from_lazy_json_data(data):
             for mini_migrator in kwargs["piggy_back_migrations"]
         ]
 
+    # this keyword was removed from the class init,
+    # so we have to remove it here in case it is still
+    # in the bot metadata
+    if "max_solver_attempts" in kwargs:
+        del kwargs["max_solver_attempts"]
+
     return cls(*data["args"], **kwargs)
 
 
@@ -271,8 +277,6 @@ class Migrator:
     name: str | None
 
     rerender = True
-
-    max_solver_attempts = 3
 
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
