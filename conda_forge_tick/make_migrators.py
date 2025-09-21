@@ -422,6 +422,10 @@ def migration_factory(
                 ),
                 FORCE_PR_AFTER_SOLVER_ATTEMPTS,
             )
+            # max_solver_attempts was removed from the migrator classes
+            # so we remove it from the config here too
+            if "max_solver_attempts" in migrator_config:
+                del migrator_config["max_solver_attempts"]
 
             age = time.time() - loaded_yaml.get("migrator_ts", time.time())
             age /= 24 * 60 * 60
