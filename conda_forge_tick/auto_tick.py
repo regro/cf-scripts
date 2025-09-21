@@ -733,7 +733,7 @@ def run(
     return migrate_return_value, pr_lazy_json
 
 
-def _compute_time_per_migrator(migrators):
+def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
     # we weight each migrator by the number of available nodes to migrate with a
     # a penalty for attempts and accounting for the pr_limit
     # the variables below are
@@ -758,7 +758,7 @@ def _compute_time_per_migrator(migrators):
                     migrator_name=get_migrator_name(migrator),
                     is_version=isinstance(migrator, Version),
                 )
-                if _attempts < getattr(migrator, "max_solver_attempts", 3):
+                if _attempts < max_attempts_for_share:
                     num_to_do += 1.0
 
         num_nodes_not_tried.append(num_to_do)

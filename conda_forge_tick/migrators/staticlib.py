@@ -410,7 +410,6 @@ class StaticLibMigrator(GraphMigrator):
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
-        max_solver_attempts=3,
         effective_graph: nx.DiGraph | None = None,
         force_pr_after_solver_attempts=10,
         longterm=False,
@@ -427,7 +426,6 @@ class StaticLibMigrator(GraphMigrator):
                 "bump_number": bump_number,
                 "piggy_back_migrations": piggy_back_migrations,
                 "check_solvable": check_solvable,
-                "max_solver_attempts": max_solver_attempts,
                 "effective_graph": effective_graph,
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
@@ -438,7 +436,6 @@ class StaticLibMigrator(GraphMigrator):
         self.top_level = set()
         self.cycles = set()
         self.bump_number = bump_number
-        self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
         self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
         self.paused = paused

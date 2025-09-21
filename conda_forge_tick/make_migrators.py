@@ -95,7 +95,6 @@ RNG = secrets.SystemRandom()
 PR_LIMIT = 5
 PR_ATTEMPT_LIMIT_FACTOR = 2
 MAX_PR_LIMIT = 20
-MAX_SOLVER_ATTEMPTS = 3
 FORCE_PR_AFTER_SOLVER_ATTEMPTS = 10
 CHECK_SOLVABLE_TIMEOUT = 30  # in days
 DEFAULT_MINI_MIGRATORS = [
@@ -295,7 +294,6 @@ def add_rebuild_migration_yaml(
     config: dict,
     migration_name: str,
     nominal_pr_limit: int = PR_LIMIT,
-    max_solver_attempts: int = 3,
     force_pr_after_solver_attempts: int = FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     paused: bool = False,
 ) -> None:
@@ -356,7 +354,6 @@ def add_rebuild_migration_yaml(
         total_graph=gx,
         pr_limit=nominal_pr_limit,
         piggy_back_migrations=piggy_back_migrations,
-        max_solver_attempts=max_solver_attempts,
         force_pr_after_solver_attempts=force_pr_after_solver_attempts,
         paused=paused,
         **config,
@@ -378,7 +375,6 @@ def add_rebuild_migration_yaml(
     final_config = {}
     final_config.update(config)
     final_config["pr_limit"] = migrator.pr_limit
-    final_config["max_solver_attempts"] = max_solver_attempts
     print("final config:\n", pprint.pformat(final_config), flush=True)
     migrators.append(migrator)
 
@@ -419,10 +415,6 @@ def migration_factory(
             migrator_config = loaded_yaml.get("__migrator", {})
             paused = migrator_config.pop("paused", False)
             _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
-            max_solver_attempts = min(
-                migrator_config.pop("max_solver_attempts", MAX_SOLVER_ATTEMPTS),
-                MAX_SOLVER_ATTEMPTS,
-            )
             force_pr_after_solver_attempts = min(
                 migrator_config.pop(
                     "force_pr_after_solver_attempts",
@@ -430,6 +422,10 @@ def migration_factory(
                 ),
                 FORCE_PR_AFTER_SOLVER_ATTEMPTS,
             )
+            # max_solver_attempts was removed from the migrator classes
+            # so we remove it from the config here too
+            if "max_solver_attempts" in migrator_config:
+                del migrator_config["max_solver_attempts"]
 
             age = time.time() - loaded_yaml.get("migrator_ts", time.time())
             age /= 24 * 60 * 60
@@ -464,7 +460,6 @@ def migration_factory(
                 migration_name=os.path.splitext(yaml_file)[0],
                 config=migrator_config,
                 nominal_pr_limit=_pr_limit,
-                max_solver_attempts=max_solver_attempts,
                 force_pr_after_solver_attempts=force_pr_after_solver_attempts,
                 paused=paused,
             )
