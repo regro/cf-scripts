@@ -283,7 +283,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
     do_git_ops = False
     files_to_try_again = set()
     files_done = set()
-    if len(files_to_add) + len(files_to_delete) <= 100:
+    if len(files_to_add) + len(files_to_delete) <= 200:
         for pth in files_to_add:
             if do_git_ops:
                 break
