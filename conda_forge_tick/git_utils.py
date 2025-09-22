@@ -5,6 +5,7 @@ import copy
 import enum
 import logging
 import math
+import secrets
 import subprocess
 import textwrap
 import threading
@@ -83,6 +84,8 @@ PR_KEYS_TO_KEEP = {
     "head": {"ref": None},
     "base": {"repo": {"name": None}},
 }
+
+RNG = secrets.SystemRandom()
 
 
 def get_bot_token() -> str:
@@ -1829,12 +1832,9 @@ def push_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
     with open(pth) as f:
         data = f.read()
 
-    ntries = 10
-
-    # exponential backoff will be base ** tr
-    # we fail at ntries - 1 so the last time we
-    # compute the backoff is at ntries - 2
-    base = math.exp(math.log(60.0) / (ntries - 2.0))
+    ntries = 17
+    base = 1.5
+    rfrac = 0.5
 
     for tr in range(ntries):
         try:
@@ -1862,13 +1862,19 @@ def push_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
                 "failed to push '%s' - trying %d more times",
                 pth,
                 ntries - tr - 1,
-                exc_info=e,
             )
             if tr == ntries - 1:
+                logger.warning(
+                    "failed to push '%s'",
+                    pth,
+                    exc_info=e,
+                )
                 raise e
             else:
                 # exponential backoff
-                time.sleep(base**tr)
+                interval = base**tr
+                interval = rfrac * interval + (rfrac * RNG.uniform(0, 1) * interval)
+                time.sleep(interval)
 
 
 def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
@@ -1883,12 +1889,9 @@ def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
     msg : str
         The commit message.
     """
-    ntries = 10
-
-    # exponential backoff will be base ** tr
-    # we fail at ntries - 1 so the last time we
-    # compute the backoff is at ntries - 2
-    base = math.exp(math.log(60.0) / (ntries - 2.0))
+    ntries = 17
+    base = 1.5
+    rfrac = 0.5
 
     for tr in range(ntries):
         try:
@@ -1910,10 +1913,17 @@ def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
                 "failed to delete '%s' - trying %d more times",
                 pth,
                 ntries - tr - 1,
-                exc_info=e,
             )
             if tr == ntries - 1:
+                logger.warning(
+                    "failed to delete '%s'",
+                    pth,
+                    exc_info=e,
+                )
                 raise e
             else:
                 # exponential backoff
-                time.sleep(base**tr)
+                # exponential backoff
+                interval = base**tr
+                interval = rfrac * interval + (rfrac * RNG.uniform(0, 1) * interval)
+                time.sleep(interval)
