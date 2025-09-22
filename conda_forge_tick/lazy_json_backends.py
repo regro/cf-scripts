@@ -7,6 +7,7 @@ import glob
 import hashlib
 import logging
 import os
+import secrets
 import subprocess
 import time
 import urllib
@@ -32,6 +33,9 @@ from .executors import lock_git_operation
 from .settings import settings
 
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
+
 
 CF_TICK_GRAPH_DATA_USE_FILE_CACHE = (
     False
@@ -321,8 +325,9 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
     hashmap data across backends.
     """
 
-    _exp_backoff_base: float = 2.0
-    _exp_backoff_ntries: int = 10
+    _exp_backoff_base: float = 1.5
+    _exp_backoff_ntries: int = 17
+    _exp_backoff_rfrac = 0.5
 
     def __init__(self):
         from conda_forge_tick.git_utils import github_client
@@ -395,12 +400,20 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                     "failed to push '%s' - trying %d more times",
                     filename,
                     self._exp_backoff_ntries - tr - 1,
-                    exc_info=e,
                 )
                 if tr == self._exp_backoff_ntries - 1:
+                    logger.warning(
+                        "failed to push '%s'",
+                        filename,
+                        exc_info=e,
+                    )
                     raise e
                 else:
-                    time.sleep(self._exp_backoff_base**tr)
+                    interval = self._exp_backoff_base**tr
+                    interval = self._exp_backoff_rfrac * interval + (
+                        self._exp_backoff_rfrac * RNG.uniform(0, 1) * interval
+                    )
+                    time.sleep(interval)
 
     def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
         for key, value in mapping.items():
@@ -450,12 +463,20 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                     "failed to delete '%s' - trying %d more times",
                     filename,
                     self._exp_backoff_ntries - tr - 1,
-                    exc_info=e,
                 )
                 if tr == self._exp_backoff_ntries - 1:
+                    logger.warning(
+                        "failed to delete '%s'",
+                        filename,
+                        exc_info=e,
+                    )
                     raise e
                 else:
-                    time.sleep(self._exp_backoff_base**tr)
+                    interval = self._exp_backoff_base**tr
+                    interval = self._exp_backoff_rfrac * interval + (
+                        self._exp_backoff_rfrac * RNG.uniform(0, 1) * interval
+                    )
+                    time.sleep(interval)
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
         for key in keys:
@@ -492,12 +513,20 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                     "failed to pull '%s' - trying %d more times",
                     pth,
                     self._exp_backoff_ntries - tr - 1,
-                    exc_info=e,
                 )
                 if tr == self._exp_backoff_ntries - 1:
+                    logger.warning(
+                        "failed to pull '%s'",
+                        pth,
+                        exc_info=e,
+                    )
                     raise e
                 else:
-                    time.sleep(self._exp_backoff_base**tr)
+                    interval = self._exp_backoff_base**tr
+                    interval = self._exp_backoff_rfrac * interval + (
+                        self._exp_backoff_rfrac * RNG.uniform(0, 1) * interval
+                    )
+                    time.sleep(interval)
 
         assert False, "There is at least one try, so this cannot be reached."
 
