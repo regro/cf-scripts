@@ -1,7 +1,9 @@
 import logging
 import os
+import secrets
 import subprocess
 import sys
+import time
 
 from .cli_context import CliContext
 from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
@@ -19,6 +21,8 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
 
 
 def _flush_io():
@@ -93,7 +97,15 @@ def _pull_changes(batch):
     return n_added
 
 
-def _deploy_batch(*, files_to_add: set[str], batch, n_added, max_per_batch=200):
+def _deploy_batch(
+    *,
+    files_to_add: set[str],
+    batch,
+    n_added,
+    max_per_batch=200,
+    exp_backoff_base: float = 1.4,
+    exp_backoff_rfrac: float = 0.5,
+):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
         file = files_to_add.pop()
@@ -158,6 +170,9 @@ def _deploy_batch(*, files_to_add: set[str], batch, n_added, max_per_batch=200):
                 )
                 if status != 0:
                     print(">>>>>>>>>>>> git push failed", flush=True)
+                    interval = exp_backoff_base**num_try
+                    interval = interval * exp_backoff_rfrac * (1.0 + RNG.uniform(0, 1))
+                    time.sleep(interval)
             num_try += 1
 
         if status != 0 or not graph_ok:
