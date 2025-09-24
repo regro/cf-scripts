@@ -22,6 +22,7 @@ from conda_forge_tick.update_sources import (
     CratesIO,
     Github,
     GithubReleases,
+    GitTags,
     PyPI,
     RawURL,
     next_version,
@@ -35,10 +36,11 @@ from conda_forge_tick.update_upstream_versions import (
     main,
     update_upstream_versions,
 )
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -1387,6 +1389,7 @@ default_sources = (
     "GithubReleases",
     "NVIDIA",
     "ROSDistro",
+    "GitTags",
     "RawURL",
     "IncrementAlphaRawURL",
 )
@@ -1941,6 +1944,43 @@ def test_latest_version_cratesio(tmpdir):
         assert attempt["new_version"] is ver
     else:
         assert ver == attempt["new_version"]
+
+
+@pytest.mark.parametrize(
+    "yaml_path",
+    [
+        pytest.param(YAML_PATH, id="meta.yaml"),
+        pytest.param(YAML_PATH_V1, id="recipe.yaml"),
+    ],
+)
+def test_latest_version_gittags(tmpdir, yaml_path):
+    name = "libtirpc"
+    recipe_path = os.path.join(yaml_path, "libtirpc-gittags.yaml")
+    curr_ver = "1.3.6"
+    new_ver = "1.3.7"
+    source = GitTags()
+
+    with open(recipe_path) as fd:
+        inp = fd.read()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        yml = (
+            parse_recipe_yaml(inp, use_container=False)
+            if yaml_path == YAML_PATH_V1
+            else parse_meta_yaml(inp, use_container=False)
+        )
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": yml,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+    assert new_ver == attempt["new_version"]
 
 
 def test_latest_version_pypi_files_pythonhost_url(tmpdir):

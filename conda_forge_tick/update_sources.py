@@ -590,6 +590,45 @@ class IncrementAlphaRawURL(BaseRawURL):
         return super().get_url(meta_yaml)
 
 
+class GitTags(AbstractSource):
+    name = "GitTags"
+
+    def get_url(self, meta_yaml):
+        return meta_yaml.get("meta_yaml", {}).get("source", {}).get("git_url", None)
+
+    def get_version(self, url):
+        try:
+            output = subprocess.check_output(
+                ["git", "ls-remote", "--tags", url], text=True
+            )
+        except Exception:
+            return None
+        # Output looks like this, and we only want '25.7.0'
+        # 6614653b1d9bdbffcef55e338d3220daed70c7f8        refs/tags/25.7.0
+        versions = []
+        for line in output.splitlines():
+            if not line.strip():
+                continue
+            fields = line.split(None, 1)
+            if len(fields) != 2:
+                continue
+            tag = fields[1]
+            # we will strip everything before the first digit
+            first_digit = next((i for i, c in enumerate(tag) if c.isdigit()), None)
+            if first_digit is None:
+                continue
+            version = tag[first_digit:].replace("-", ".")
+            try:
+                VersionOrder(version)
+            except Exception:
+                continue
+            else:
+                versions.append(version)
+        if versions:
+            return max(versions, key=VersionOrder)
+        return None
+
+
 class Github(VersionFromFeed):
     name = "Github"
     version_prefix = None
