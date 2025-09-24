@@ -1974,7 +1974,9 @@ def test_latest_version_gittags(tmpdir, yaml_path):
             {
                 "feedstock_name": name,
                 "version": curr_ver,
-                "raw_recipe_yaml" if yaml_path == YAML_PATH_V1 else "raw_meta_yaml": inp,
+                "raw_recipe_yaml"
+                if yaml_path == YAML_PATH_V1
+                else "raw_meta_yaml": inp,
                 "recipe_yaml" if yaml_path == YAML_PATH_V1 else "meta_yaml": yml,
             },
         )
