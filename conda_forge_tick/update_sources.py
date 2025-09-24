@@ -594,11 +594,7 @@ class GitTags(AbstractSource):
     name = "GitTags"
 
     def get_url(self, meta_yaml):
-        return (
-            (meta_yaml.get("meta_yaml") or meta_yaml.get("recipe_yaml", {}))
-            .get("source", {})
-            .get("git_url", None)
-        )
+        return meta_yaml.get("meta_yaml", {}).get("source", {}).get("git_url", None)
 
     def get_version(self, url):
         try:
