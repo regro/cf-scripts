@@ -601,26 +601,36 @@ class GitTags(AbstractSource):
         )
 
     def get_version(self, url):
-        output = subprocess.check_output(["git", "ls-remote", "--tags", url], text=True)
+        try:
+            output = subprocess.check_output(
+                ["git", "ls-remote", "--tags", url], text=True
+            )
+        except Exception:
+            return None
         # Output looks like this, and we only want '25.7.0'
         # 6614653b1d9bdbffcef55e338d3220daed70c7f8        refs/tags/25.7.0
         versions = []
         for line in output.splitlines():
             if not line.strip():
                 continue
-            tag = line.split(None, 1)[1]
+            fields = line.split(None, 1)
+            if len(fields) != 2:
+                continue
+            tag = fields[1]
             # we will strip everything before the first digit
-            first_digit = next(
-                (i for i, c in enumerate(tag) if c.isdigit()), len("refs/tags/")
-            )
+            first_digit = next((i for i, c in enumerate(tag) if c.isdigit()), None)
+            if first_digit is None:
+                continue
             version = tag[first_digit:].replace("-", ".")
             try:
-                parse_version(version)
-            except InvalidVersion:
+                VersionOrder(version)
+            except Exception:
                 continue
             else:
                 versions.append(version)
-        return max(versions, key=VersionOrder)
+        if versions:
+            return max(versions, key=VersionOrder)
+        return None
 
 
 class Github(VersionFromFeed):
