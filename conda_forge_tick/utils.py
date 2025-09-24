@@ -614,6 +614,8 @@ def _parse_recipes(
             "patches": source[0].get("patches"),
             "sha256": source[0].get("sha256"),
             "url": source[0].get("url"),
+            "git_url": source[0].get("git"),
+            "git_rev": source[0].get("tag"),
         }
 
     requirements_data = (
