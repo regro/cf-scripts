@@ -1969,7 +1969,6 @@ def test_latest_version_gittags(tmpdir, yaml_path):
             if yaml_path == YAML_PATH_V1
             else parse_meta_yaml(inp, use_container=False)
         )
-        _pmy.update(yml["source"])
         _pmy.update(
             {
                 "feedstock_name": name,

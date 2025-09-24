@@ -594,7 +594,11 @@ class GitTags(AbstractSource):
     name = "GitTags"
 
     def get_url(self, meta_yaml):
-        return meta_yaml.get("git_url")
+        return (
+            (meta_yaml.get("meta_yaml") or meta_yaml.get("recipe_yaml", {}))
+            .get("source", {})
+            .get("git_url")
+        )
 
     def get_version(self, url):
         output = subprocess.check_output(["git", "ls-remote", "--tags", url], text=True)
