@@ -1389,6 +1389,7 @@ default_sources = (
     "GithubReleases",
     "NVIDIA",
     "ROSDistro",
+    "GitTags",
     "RawURL",
     "IncrementAlphaRawURL",
 )
