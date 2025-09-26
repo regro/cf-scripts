@@ -491,7 +491,7 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_url.assert_called_once_with(attrs)
     assert "Using URL https://source-b.com" in caplog.text
 
-    source_b.get_version.assert_called_once_with("https://source-b.com")
+    source_b.get_version.assert_called_once_with("https://source-b.com", attrs)
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
     is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
