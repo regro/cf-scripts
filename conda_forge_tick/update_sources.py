@@ -144,7 +144,8 @@ class AbstractSource(abc.ABC):
         can be added to help debug errors.
 
         The implementation should use the `is_version_ignored` function to ensure the
-        returned version is not supposed to be ignored by the bot.
+        returned version is not supposed to be ignored by the bot. If the version is
+        ignored, return None if there are no other valid versions.
 
         Parameters
         ----------
@@ -156,7 +157,7 @@ class AbstractSource(abc.ABC):
         Returns
         -------
         version
-            The version as a string or None if there is an error.
+            The version as a string or None if there is an error or the version is ignored.
         """
         pass
 
