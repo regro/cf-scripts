@@ -26,6 +26,7 @@ from conda_forge_tick.migrators_types import (
     SourceTypedDict,
 )
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.version_filters import is_version_ignored
 
 from .hashing import hash_url
 
@@ -135,17 +136,22 @@ class AbstractSource(abc.ABC):
     name: str
 
     @abc.abstractmethod
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         """Get the version given a url.
 
         This method should catch all errors and return None if an
         error is caught. Logging statements at the DEBUG level
         can be added to help debug errors.
 
+        The implementation should use the `is_version_ignored` function to ensure the
+        returned version is not supposed to be ignored by the bot.
+
         Parameters
         ----------
         url
             The url used to find the version.
+        node_attrs
+            The feedstock node attributes.
 
         Returns
         -------
@@ -195,7 +201,7 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         "pc",
     ]
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         data = feedparser.parse(url)
         if data["bozo"] == 1:
             return None
@@ -216,6 +222,9 @@ class VersionFromFeed(AbstractSource, abc.ABC):
             try:
                 VersionOrder(ver.replace("-", "."))
             except Exception:
+                continue
+
+            if is_version_ignored(node_attrs, ver):
                 continue
 
             vers.append(ver)
@@ -239,7 +248,7 @@ class PyPI(AbstractSource):
             pkg = node_attrs["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
         if not r.ok:
@@ -254,11 +263,14 @@ class PyPI(AbstractSource):
             return None
 
         most_recent_version = jblob["info"]["version"].strip()
-        if not r.ok or parse_version(most_recent_version).is_prerelease:
+        if parse_version(most_recent_version).is_prerelease:
             # if ALL releases are prereleases return the version
-            if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
-                return most_recent_version
+            if not all(parse_version(v).is_prerelease for v in r.json()["releases"]):
+                return None
+
+        if is_version_ignored(node_attrs, most_recent_version):
             return None
+
         return most_recent_version
 
 
@@ -273,13 +285,17 @@ class NPM(AbstractSource):
         pkg = source_url.split("/")[3:-2]
         return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return None
         latest = r.json()["dist-tags"].get("latest", "").strip()
         # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or parse_version(latest).is_prerelease:
+        if (
+            not len(latest)
+            or parse_version(latest).is_prerelease
+            or is_version_ignored(node_attrs, latest)
+        ):
             return None
 
         return latest
@@ -347,8 +363,15 @@ class CRAN(AbstractSource):
                 return None
         return None
 
-    def get_version(self, url: str) -> Optional[str]:
-        return str(url[1]).replace("-", "_") if url[1] else None
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+        if not url[1]:
+            return None
+
+        ver = str(url[1]).replace("-", "_")
+        if is_version_ignored(node_attrs, ver):
+            return None
+
+        return ver
 
 
 ROS_DISTRO_INDEX: Optional[dict] = None
@@ -425,8 +448,13 @@ class ROSDistro(AbstractSource):
 
         return final_url
 
-    def get_version(self, url: str):
-        return self.version_url_cache[url]
+    def get_version(self, url: str, node_attrs: AttrsTypedDict):
+        ver = self.version_url_cache[url]
+
+        if is_version_ignored(node_attrs, ver):
+            return None
+
+        return ver
 
 
 def get_sha256(url: str) -> Optional[str]:
@@ -521,6 +549,10 @@ class BaseRawURL(AbstractSource):
             for next_ver in self.next_ver_func(current_ver):
                 logger.debug("trying version: %s", next_ver)
 
+                if is_version_ignored(node_attrs, next_ver):
+                    logger.debug("version is ignored - skipping!")
+                    continue
+
                 if has_version_jinja2:
                     _new_lines = []
                     for ln in content.splitlines():
@@ -604,7 +636,7 @@ class BaseRawURL(AbstractSource):
 
         return None
 
-    def get_version(self, url: str) -> str:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str:
         return url
 
 
@@ -634,7 +666,7 @@ class GitTags(AbstractSource):
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         try:
             output = subprocess.check_output(
                 ["git", "ls-remote", "--tags", url], text=True
@@ -660,8 +692,12 @@ class GitTags(AbstractSource):
                 VersionOrder(version)
             except Exception:
                 continue
-            else:
-                versions.append(version)
+
+            if is_version_ignored(node_attrs, version):
+                continue
+
+            versions.append(version)
+
         if versions:
             return max(versions, key=VersionOrder)
         return None
@@ -715,7 +751,7 @@ class GithubReleases(AbstractSource):
         owner, repo = source_url.split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return None
@@ -740,6 +776,10 @@ class GithubReleases(AbstractSource):
         # Extract version number starting at the first digit.
         if match := re.search(r"(\d+[^\s]*)", latest):
             latest = match.group(0)
+
+        if is_version_ignored(node_attrs, latest):
+            return None
+
         return latest
 
 
@@ -842,7 +882,7 @@ class NVIDIA(AbstractSource):
         logger.debug("The NVIDIA redist URL should be %s", result)
         return result
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         """Get latest version of a package by scraping nvidia.com JSONs.
 
         url should be an address of the following form: "https://developer.download.
@@ -887,6 +927,9 @@ class NVIDIA(AbstractSource):
         # Extract version from library details
         lib_info = json_data[slug]
 
+        if is_version_ignored(node_attrs, lib_info["version"]):
+            return None
+
         return lib_info["version"]
 
 
@@ -903,7 +946,7 @@ class CratesIO(AbstractSource):
 
         return f"https://index.crates.io/{tier}"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
 
         if not r.ok:
@@ -912,6 +955,13 @@ class CratesIO(AbstractSource):
         # the response body is a newline-delimited JSON stream, with the latest version
         # being the last line
         latest = orjson.loads(r.text.splitlines()[-1])
+
+        ver = latest.get("vers")
+        if ver is None:
+            return None
+
+        if is_version_ignored(node_attrs, ver):
+            return None
 
         return latest.get("vers")
 

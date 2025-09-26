@@ -1877,7 +1877,9 @@ def test_github_releases(tmpdir, url, feedstock_version):
 
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
-    assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+    assert VersionOrder(ghr.get_version(url, meta_yaml)) > VersionOrder(
+        feedstock_version
+    )
 
 
 @pytest.mark.parametrize(
@@ -1906,7 +1908,7 @@ def test_github_releases_unusual_version(
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
 
-    version = ghr.get_version(url)
+    version = ghr.get_version(url, meta_yaml)
 
     assert isinstance(version, str)
     assert re.match(regex, version)
