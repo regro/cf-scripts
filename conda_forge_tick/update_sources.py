@@ -136,10 +136,44 @@ class AbstractSource(abc.ABC):
 
     @abc.abstractmethod
     def get_version(self, url: str) -> Optional[str]:
+        """Get the version given a url.
+
+        This method should catch all errors and return None if an
+        error is caught. Logging statements at the DEBUG level
+        can be added to help debug errors.
+
+        Parameters
+        ----------
+        url
+            The url used to find the version.
+
+        Returns
+        -------
+        version
+            The version as a string or None if there is an error.
+        """
         pass
 
     @abc.abstractmethod
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        """Get a url from which to fetch the latest version given the feedstock's
+        node attributes.
+
+        This method should catch all errors and return None if an
+        error is caught. Logging statements at the DEBUG level
+        can be added to help debug errors.
+
+        Parameters
+        ----------
+        node_attrs
+            The feedstock node attributes.
+
+        Returns
+        -------
+        url
+            The url to pass to get `get_version`. Returns None if there is an
+            error.
+        """
         pass
 
 
