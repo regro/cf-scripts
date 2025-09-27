@@ -10,7 +10,7 @@ import typing
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Iterator, List, Literal, Optional
+from typing import Iterator, List, Optional
 
 import feedparser
 import orjson
@@ -20,8 +20,13 @@ from conda.models.version import VersionOrder
 from packaging.version import InvalidVersion, Version
 from packaging.version import parse as parse_version
 
-from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
+from conda_forge_tick.migrators_types import (
+    AttrsTypedDict,
+    RecipeTypedDict,
+    SourceTypedDict,
+)
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.version_filters import is_version_ignored
 
 from .hashing import hash_url
 
@@ -35,7 +40,7 @@ CURL_ONLY_URL_SLUGS = [
 ]
 
 
-def urls_from_meta(meta_yaml: "RecipeTypedDict") -> set[str]:
+def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
     if "source" not in meta_yaml:
         return set()
 
@@ -131,11 +136,51 @@ class AbstractSource(abc.ABC):
     name: str
 
     @abc.abstractmethod
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+        """Get the version given a url.
+
+        This method should catch all errors and return None if an
+        error is caught. Logging statements at the DEBUG level
+        can be added to help debug errors.
+
+        The implementation should use the `is_version_ignored` function to ensure the
+        returned version is not supposed to be ignored by the bot. If the version is
+        ignored, return None if there are no other valid versions.
+
+        Parameters
+        ----------
+        url
+            The url used to find the version.
+        node_attrs
+            The feedstock node attributes.
+
+        Returns
+        -------
+        version
+            The version as a string or None if there is an error or the version is ignored.
+        """
         pass
 
     @abc.abstractmethod
-    def get_url(self, meta_yaml) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        """Get a url from which to fetch the latest version given the feedstock's
+        node attributes.
+
+        This method should catch all errors and return None if an
+        error is caught. Logging statements at the DEBUG level
+        can be added to help debug errors.
+
+        Parameters
+        ----------
+        node_attrs
+            The feedstock node attributes.
+
+        Returns
+        -------
+        url
+            The url to pass to get `get_version`. Returns None if there is an
+            error.
+        """
         pass
 
 
@@ -157,7 +202,7 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         "pc",
     ]
 
-    def get_version(self, url) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         data = feedparser.parse(url)
         if data["bozo"] == 1:
             return None
@@ -180,6 +225,9 @@ class VersionFromFeed(AbstractSource, abc.ABC):
             except Exception:
                 continue
 
+            if is_version_ignored(node_attrs, ver):
+                continue
+
             vers.append(ver)
         if vers:
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
@@ -190,18 +238,18 @@ class VersionFromFeed(AbstractSource, abc.ABC):
 class PyPI(AbstractSource):
     name = "PyPI"
 
-    def get_url(self, meta_yaml) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io", "files.pythonhosted.org"]
-        source_url = meta_yaml.get("url", None)
+        source_url = node_attrs.get("url", None)
         if source_url is None or (not any(s in source_url for s in url_names)):
             return None
         if "files.pythonhosted.org" in source_url:
-            pkg = meta_yaml["url"].split("/")[-1].rsplit("-", maxsplit=1)[0]
+            pkg = node_attrs["url"].split("/")[-1].rsplit("-", maxsplit=1)[0]
         else:
-            pkg = meta_yaml["url"].split("/")[6]
+            pkg = node_attrs["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
-    def get_version(self, url) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
         if not r.ok:
@@ -216,32 +264,39 @@ class PyPI(AbstractSource):
             return None
 
         most_recent_version = jblob["info"]["version"].strip()
-        if not r.ok or parse_version(most_recent_version).is_prerelease:
+        if parse_version(most_recent_version).is_prerelease:
             # if ALL releases are prereleases return the version
-            if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
-                return most_recent_version
+            if not all(parse_version(v).is_prerelease for v in r.json()["releases"]):
+                return None
+
+        if is_version_ignored(node_attrs, most_recent_version):
             return None
+
         return most_recent_version
 
 
 class NPM(AbstractSource):
     name = "NPM"
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        source_url = meta_yaml.get("url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        source_url = node_attrs.get("url", None)
         if source_url is None or "registry.npmjs.org" not in source_url:
             return None
         # might be namespaced
         pkg = source_url.split("/")[3:-2]
         return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return None
         latest = r.json()["dist-tags"].get("latest", "").strip()
         # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or parse_version(latest).is_prerelease:
+        if (
+            not len(latest)
+            or parse_version(latest).is_prerelease
+            or is_version_ignored(node_attrs, latest)
+        ):
             return None
 
         return latest
@@ -291,17 +346,17 @@ class CRAN(AbstractSource):
                 records.setdefault(p.lower(), (p, None))
         return records
 
-    def get_url(self, meta_yaml) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         self.init()
-        urls = meta_yaml.get("url", None)
+        urls = node_attrs.get("url", None)
         if urls is None:
             return None
-        if not isinstance(meta_yaml["url"], list):
+        if not isinstance(node_attrs["url"], list):
             urls = [urls]
         for url in urls:
             if self.url_contains not in url:
                 continue
-            # alternatively: pkg = meta_yaml["name"].split("r-", 1)[-1]
+            # alternatively: pkg = node_attrs["name"].split("r-", 1)[-1]
             pkg = url.split("/")[6].lower()
             if pkg in CRAN_INDEX:
                 return CRAN_INDEX[pkg]
@@ -309,8 +364,15 @@ class CRAN(AbstractSource):
                 return None
         return None
 
-    def get_version(self, url) -> Optional[str]:
-        return str(url[1]).replace("-", "_") if url[1] else None
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+        if not url[1]:
+            return None
+
+        ver = str(url[1]).replace("-", "_")
+        if is_version_ignored(node_attrs, ver):
+            return None
+
+        return ver
 
 
 ROS_DISTRO_INDEX: Optional[dict] = None
@@ -361,14 +423,14 @@ class ROSDistro(AbstractSource):
                 logger.exception("ROS Distro initialization failed")
                 ROS_DISTRO_INDEX = {}
 
-    def get_url(self, meta_yaml: "RecipeTypedDict") -> Optional[str]:
-        if not meta_yaml["name"].startswith("ros-"):
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        if not node_attrs["name"].startswith("ros-"):
             return None
 
         self.init()
 
         toplevel_package, package = ROS_DISTRO_INDEX["melodic"]["reverse"][
-            meta_yaml["name"]
+            node_attrs["name"]
         ]
 
         p_dict = ROS_DISTRO_INDEX["melodic"]["forward"][toplevel_package]
@@ -387,8 +449,13 @@ class ROSDistro(AbstractSource):
 
         return final_url
 
-    def get_version(self, url):
-        return self.version_url_cache[url]
+    def get_version(self, url: str, node_attrs: AttrsTypedDict):
+        ver = self.version_url_cache[url]
+
+        if is_version_ignored(node_attrs, ver):
+            return None
+
+        return ver
 
 
 def get_sha256(url: str) -> Optional[str]:
@@ -399,7 +466,7 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout=5) -> bool:
+def url_exists(url: str, timeout: int | float = 5) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
@@ -453,14 +520,14 @@ class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
     next_ver_func = None
 
-    def get_url(self, attrs) -> Optional[str]:
-        if "feedstock_name" not in attrs:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        if "feedstock_name" not in node_attrs:
             return None
-        if "version" not in attrs:
+        if "version" not in node_attrs:
             return None
 
         # TODO: pull this from the graph itself
-        content = attrs["raw_meta_yaml"]
+        content = node_attrs["raw_meta_yaml"]
 
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
@@ -469,9 +536,9 @@ class BaseRawURL(AbstractSource):
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
-        orig_urls = urls_from_meta(attrs["meta_yaml"])
+        orig_urls = urls_from_meta(node_attrs["meta_yaml"])
         logger.debug("orig urls: %s", orig_urls)
-        current_ver = attrs["version"]
+        current_ver = node_attrs["version"]
         current_sha256 = None
         orig_ver = current_ver
         found = True
@@ -482,6 +549,10 @@ class BaseRawURL(AbstractSource):
             found = False
             for next_ver in self.next_ver_func(current_ver):
                 logger.debug("trying version: %s", next_ver)
+
+                if is_version_ignored(node_attrs, next_ver):
+                    logger.debug("version is ignored - skipping!")
+                    continue
 
                 if has_version_jinja2:
                     _new_lines = []
@@ -495,7 +566,7 @@ class BaseRawURL(AbstractSource):
                     new_content = "\n".join(_new_lines)
                 else:
                     new_content = content.replace(orig_ver, next_ver)
-                if attrs["meta_yaml"].get("schema_version", 0) == 0:
+                if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
                     new_meta = parse_recipe_yaml(new_content)
@@ -510,7 +581,7 @@ class BaseRawURL(AbstractSource):
                     # this URL looks bad if these things happen
                     if (
                         str(new_meta["package"]["version"]) != next_ver
-                        or attrs.get("url", "") == url
+                        or node_attrs.get("url", "") == url
                         or url in orig_urls
                     ):
                         logger.debug(
@@ -520,7 +591,7 @@ class BaseRawURL(AbstractSource):
                             'str(new_meta["package"]["version"]) != next_ver',
                             str(new_meta["package"]["version"]) != next_ver,
                             'meta_yaml["url"] == url',
-                            attrs.get("url", "") == url,
+                            node_attrs.get("url", "") == url,
                             "url in orig_urls",
                             url in orig_urls,
                         )
@@ -566,7 +637,7 @@ class BaseRawURL(AbstractSource):
 
         return None
 
-    def get_version(self, url: str) -> str:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str:
         return url
 
 
@@ -580,23 +651,23 @@ class IncrementAlphaRawURL(BaseRawURL):
     next_ver_func = functools.partial(next_version, increment_alpha=True)
     feedstock_ok_list = ["openssl", "tzcode", "tzdata", "jpeg", "cddlib"]
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "feedstock_name" not in meta_yaml:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        if "feedstock_name" not in node_attrs:
             return None
 
-        if meta_yaml["feedstock_name"] not in self.feedstock_ok_list:
+        if node_attrs["feedstock_name"] not in self.feedstock_ok_list:
             return None
 
-        return super().get_url(meta_yaml)
+        return super().get_url(node_attrs)
 
 
 class GitTags(AbstractSource):
     name = "GitTags"
 
-    def get_url(self, meta_yaml):
-        return meta_yaml.get("meta_yaml", {}).get("source", {}).get("git_url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)
 
-    def get_version(self, url):
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         try:
             output = subprocess.check_output(
                 ["git", "ls-remote", "--tags", url], text=True
@@ -622,8 +693,12 @@ class GitTags(AbstractSource):
                 VersionOrder(version)
             except Exception:
                 continue
-            else:
-                versions.append(version)
+
+            if is_version_ignored(node_attrs, version):
+                continue
+
+            versions.append(version)
+
         if versions:
             return max(versions, key=VersionOrder)
         return None
@@ -654,12 +729,12 @@ class Github(VersionFromFeed):
 
         return None
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        source_url = meta_yaml.get("url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        source_url = node_attrs.get("url", None)
         if source_url is None or "github.com" not in source_url:
             return None
         split_url = source_url.lower().split("/")
-        version = meta_yaml["version"]
+        version = node_attrs["version"]
         self.set_version_prefix(version, split_url)
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
@@ -669,15 +744,15 @@ class Github(VersionFromFeed):
 class GithubReleases(AbstractSource):
     name = "GithubReleases"
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        source_url = meta_yaml.get("url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        source_url = node_attrs.get("url", None)
         if source_url is None or "github.com" not in source_url:
             return None
         # might be namespaced
         owner, repo = source_url.split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
-    def get_version(self, url: str) -> Optional[str | Literal[False]]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return None
@@ -702,6 +777,10 @@ class GithubReleases(AbstractSource):
         # Extract version number starting at the first digit.
         if match := re.search(r"(\d+[^\s]*)", latest):
             latest = match.group(0)
+
+        if is_version_ignored(node_attrs, latest):
+            return None
+
         return latest
 
 
@@ -712,8 +791,8 @@ class GithubReleases(AbstractSource):
 class LibrariesIO(VersionFromFeed):
     name = "LibrariesIO"
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml.get("url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        urls = node_attrs.get("url", None)
         if urls is None:
             return None
         if not isinstance(urls, list):
@@ -730,7 +809,7 @@ class NVIDIA(AbstractSource):
 
     name = "NVIDIA"
 
-    def get_url(self, meta_yaml: dict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         """Generate metadata needed to get the latest version of an NVIDIA redist.
 
         We actually return a URL plus other information needed to fetch the latest package
@@ -764,7 +843,7 @@ class NVIDIA(AbstractSource):
         The returned url is not actually valid since we return the json slug that we need
         by separating it with #.
         """
-        url = meta_yaml.get("url", None)
+        url = node_attrs.get("url", None)
         if url is None or "developer.download.nvidia.com/compute" not in url:
             logger.debug(
                 "The source URL did not contain developer.download.nvidia.com/compute."
@@ -773,29 +852,29 @@ class NVIDIA(AbstractSource):
         logger.debug("The source URL contains deveoper.download.nvidia.com/compute.")
 
         logger.debug("Searching for a NVIDIA URL compute-subdir.")
-        if "compute-subdir" in meta_yaml["meta_yaml"]["extra"]:
+        if "compute-subdir" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found explicit extra/compute-subdir.")
-            nvidia_compute_subdir = meta_yaml["meta_yaml"]["extra"]["compute-subdir"]
-        elif "feedstock-name" in meta_yaml["meta_yaml"]["extra"]:
+            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["compute-subdir"]
+        elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_compute_subdir = meta_yaml["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
         else:
             logger.debug("Found the feedstock's name.")
-            nvidia_compute_subdir = meta_yaml["feedstock_name"]
+            nvidia_compute_subdir = node_attrs["feedstock_name"]
         logger.debug("The compute-subdir for NVIDIA URL is %s.", nvidia_compute_subdir)
 
         logger.debug("Searching for a NVIDIA URL redist-json-name.")
-        if "redist-json-name" in meta_yaml["meta_yaml"]["extra"]:
+        if "redist-json-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found explicit extra/compute-subdir.")
-            nvidia_redist_json_name = meta_yaml["meta_yaml"]["extra"][
+            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"][
                 "redist-json-name"
             ]
-        elif "feedstock-name" in meta_yaml["meta_yaml"]["extra"]:
+        elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_redist_json_name = meta_yaml["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
         else:
             logger.debug("Found the feedstock's name.")
-            nvidia_redist_json_name = meta_yaml["feedstock_name"]
+            nvidia_redist_json_name = node_attrs["feedstock_name"]
         logger.debug(
             "The compute-subdir for NVIDIA URL is %s.", nvidia_redist_json_name
         )
@@ -804,7 +883,7 @@ class NVIDIA(AbstractSource):
         logger.debug("The NVIDIA redist URL should be %s", result)
         return result
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         """Get latest version of a package by scraping nvidia.com JSONs.
 
         url should be an address of the following form: "https://developer.download.
@@ -849,14 +928,17 @@ class NVIDIA(AbstractSource):
         # Extract version from library details
         lib_info = json_data[slug]
 
+        if is_version_ignored(node_attrs, lib_info["version"]):
+            return None
+
         return lib_info["version"]
 
 
 class CratesIO(AbstractSource):
     name = "CratesIO"
 
-    def get_url(self, meta_yaml) -> Optional[str]:
-        source_url = meta_yaml.get("url", None)
+    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+        source_url = node_attrs.get("url", None)
         if source_url is None or "crates.io" not in source_url:
             return None
 
@@ -865,7 +947,7 @@ class CratesIO(AbstractSource):
 
         return f"https://index.crates.io/{tier}"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         r = requests.get(url)
 
         if not r.ok:
@@ -874,6 +956,13 @@ class CratesIO(AbstractSource):
         # the response body is a newline-delimited JSON stream, with the latest version
         # being the last line
         latest = orjson.loads(r.text.splitlines()[-1])
+
+        ver = latest.get("vers")
+        if ver is None:
+            return None
+
+        if is_version_ignored(node_attrs, ver):
+            return None
 
         return latest.get("vers")
 

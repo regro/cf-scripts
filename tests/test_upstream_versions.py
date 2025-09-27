@@ -491,7 +491,7 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_url.assert_called_once_with(attrs)
     assert "Using URL https://source-b.com" in caplog.text
 
-    source_b.get_version.assert_called_once_with("https://source-b.com")
+    source_b.get_version.assert_called_once_with("https://source-b.com", attrs)
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
     is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
@@ -1877,7 +1877,9 @@ def test_github_releases(tmpdir, url, feedstock_version):
 
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
-    assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+    assert VersionOrder(ghr.get_version(url, meta_yaml)) > VersionOrder(
+        feedstock_version
+    )
 
 
 @pytest.mark.parametrize(
@@ -1906,7 +1908,7 @@ def test_github_releases_unusual_version(
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
 
-    version = ghr.get_version(url)
+    version = ghr.get_version(url, meta_yaml)
 
     assert isinstance(version, str)
     assert re.match(regex, version)

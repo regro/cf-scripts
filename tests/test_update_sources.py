@@ -62,7 +62,7 @@ class TestCratesIOGetVersion:
         tier = CratesIO._tier_directory(pkg)
         url = f"https://index.crates.io/{tier}"
 
-        actual = CratesIO().get_version(url)
+        actual = CratesIO().get_version(url, {})
         expected = "0.0.3"
 
         assert actual == expected
@@ -72,7 +72,7 @@ class TestCratesIOGetVersion:
         tier = CratesIO._tier_directory(pkg)
         url = f"https://index.crates.io/{tier}"
 
-        result = CratesIO().get_version(url)
+        result = CratesIO().get_version(url, {})
         assert result is None
 
     @patch("conda_forge_tick.update_sources.requests.get")
@@ -87,5 +87,5 @@ class TestCratesIOGetVersion:
         mock_response.text = '{"name": "syn"}'
         mock_get.return_value = mock_response
 
-        result = CratesIO().get_version(url)
+        result = CratesIO().get_version(url, {})
         assert result is None

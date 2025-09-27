@@ -141,7 +141,7 @@ def get_latest_version_local(
             if url is None:
                 continue
             logger.debug("Using URL %s", url)
-            ver = source.get_version(url)
+            ver = source.get_version(url, attrs)
             if not ver:
                 logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
