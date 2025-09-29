@@ -8,6 +8,7 @@ platforms:
 dependencies:
   - attrs
   - backoff
+  - bcrypt<5  # https://stackoverflow.com/a/79776608
   - cachecontrol
   - cachetools
   - click
