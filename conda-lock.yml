@@ -4432,59 +4432,59 @@ package:
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.117.1
+      fastapi-core: ==0.118.0
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: f74002366867c600c024c14be7bb4ae4
-      sha256: df0a6c55d260a593eda9a2a9a8b449d7c4ed83a8f9bda62141ced68d17f61459
+      md5: 1910a83e6c0739f49ba6c98f2ca96bb0
+      sha256: 1f12267b8618e3f7a942ae21c188247e6712a55e4e707ece7a2b9d9c42aabe5e
     manager: conda
     name: fastapi
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.117.1-h2caf129_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.118.0-h793b878_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.117.1
+      fastapi-core: ==0.118.0
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: f74002366867c600c024c14be7bb4ae4
-      sha256: df0a6c55d260a593eda9a2a9a8b449d7c4ed83a8f9bda62141ced68d17f61459
+      md5: 1910a83e6c0739f49ba6c98f2ca96bb0
+      sha256: 1f12267b8618e3f7a942ae21c188247e6712a55e4e707ece7a2b9d9c42aabe5e
     manager: conda
     name: fastapi
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.117.1-h2caf129_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.118.0-h793b878_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       email_validator: ''
       fastapi-cli: ''
-      fastapi-core: ==0.117.1
+      fastapi-core: ==0.118.0
       httpx: ''
       jinja2: ''
       python-multipart: ''
       uvicorn-standard: ''
     hash:
-      md5: f74002366867c600c024c14be7bb4ae4
-      sha256: df0a6c55d260a593eda9a2a9a8b449d7c4ed83a8f9bda62141ced68d17f61459
+      md5: 1910a83e6c0739f49ba6c98f2ca96bb0
+      sha256: 1f12267b8618e3f7a942ae21c188247e6712a55e4e707ece7a2b9d9c42aabe5e
     manager: conda
     name: fastapi
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.117.1-h2caf129_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-0.118.0-h793b878_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       python: ''
@@ -4540,15 +4540,15 @@ package:
       starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: a7af759a18a154829a3d596f4de5ed93
-      sha256: 62df4f7ede72134f3b48fb44307bcbcbeb26b0c3add37af6990f0b1c7b8d589a
+      md5: 3d67e25a1bdd778bed9f671905fa759b
+      sha256: 1159932f5c03c798a4978bee070268ae52c34f8adc57fc7d74941aa7b6f34dfa
     manager: conda
     name: fastapi-core
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.117.1-pyhcf101f3_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.118.0-pyhcf101f3_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
@@ -4556,15 +4556,15 @@ package:
       starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: a7af759a18a154829a3d596f4de5ed93
-      sha256: 62df4f7ede72134f3b48fb44307bcbcbeb26b0c3add37af6990f0b1c7b8d589a
+      md5: 3d67e25a1bdd778bed9f671905fa759b
+      sha256: 1159932f5c03c798a4978bee070268ae52c34f8adc57fc7d74941aa7b6f34dfa
     manager: conda
     name: fastapi-core
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.117.1-pyhcf101f3_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.118.0-pyhcf101f3_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       pydantic: '>=1.7.4,!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0'
@@ -4572,15 +4572,15 @@ package:
       starlette: '>=0.40.0,<0.49.0'
       typing_extensions: '>=4.8.0'
     hash:
-      md5: a7af759a18a154829a3d596f4de5ed93
-      sha256: 62df4f7ede72134f3b48fb44307bcbcbeb26b0c3add37af6990f0b1c7b8d589a
+      md5: 3d67e25a1bdd778bed9f671905fa759b
+      sha256: 1159932f5c03c798a4978bee070268ae52c34f8adc57fc7d74941aa7b6f34dfa
     manager: conda
     name: fastapi-core
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.117.1-pyhcf101f3_0.conda
-    version: 0.117.1
+      https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.118.0-pyhcf101f3_0.conda
+    version: 0.118.0
   - category: main
     dependencies:
       python: '>=3.10'
@@ -10606,49 +10606,49 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      libgcc: '>=13'
+      libgcc: '>=14'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 6565a715337ae279e351d0abd8ffe88a
-      sha256: 0291d90706ac6d3eea73e66cd290ef6d805da3fad388d1d476b8536ec92ca9a8
+      md5: 0954f1a6a26df4a510b54f73b2a0345c
+      sha256: 66c072c37aefa046f3fd4ca69978429421ef9e8a8572e19de534272a6482e997
     manager: conda
     name: markupsafe
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/markupsafe-3.0.2-py311h2dc5d0c_1.conda
-    version: 3.0.2
+      https://conda.anaconda.org/conda-forge/linux-64/markupsafe-3.0.3-py311h3778330_0.conda
+    version: 3.0.3
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 1d6596ca7c7b66215c5c0d58b3cb0dd3
-      sha256: e9965b5d4c29b17b1512035b24a7c126ed7bdb6b39103b52cae099d5bb4194a9
+      md5: 37b12b2523c1ef48318330b33410567b
+      sha256: 28c82f7087027a72989cd030d1bb75da289da07ca2a17fe8db1d495fd6ee01f1
     manager: conda
     name: markupsafe
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/markupsafe-3.0.2-py311ha3cf9ac_1.conda
-    version: 3.0.2
+      https://conda.anaconda.org/conda-forge/osx-64/markupsafe-3.0.3-py311he13f9b5_0.conda
+    version: 3.0.3
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 249e2f6f5393bb6b36b3d3a3eebdcdf9
-      sha256: 4f738a7c80e34e5e5d558e946b06d08e7c40e3cc4bdf08140bf782c359845501
+      md5: df124303925c7ad5d7eb15179d38c4e3
+      sha256: c6b20ca60d739f78525dff778292f7011454befda2cc3e1a725ded897fbf9b33
     manager: conda
     name: markupsafe
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/markupsafe-3.0.2-py311h4921393_1.conda
-    version: 3.0.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/markupsafe-3.0.3-py311ha9b3269_0.conda
+    version: 3.0.3
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
