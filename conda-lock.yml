@@ -13,9 +13,9 @@
 version: 1
 metadata:
   content_hash:
-    osx-arm64: d7386929af075de33af1a9dbe3667a84d816ccac405e200f863f97ae9f1a5b5b
-    linux-64: fd8a769b91c4e11a131f98160f36979fe4962036c2eca4c70d2d3ab0cde4e68c
-    osx-64: b2a497577f43f5dd60698d69ba8de78dfd4364399301ce05366918547a390112
+    osx-arm64: 9bc9c0eb694f9daaff74560e9b5392947b970109edc9f8d57ae7dc2a7d937ea4
+    linux-64: 4746c4d8b3dcec89888fcdb8e5cd29296cbcd5815eb6ddaf7ac430fa639849cf
+    osx-64: afe25ac2889e03fda7d2e6f67b6e5090549611a3858bd0e6cfe388df3a26e866
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -665,7 +665,7 @@ package:
   category: main
   optional: false
 - name: bcrypt
-  version: 5.0.0
+  version: 4.3.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -673,38 +673,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/bcrypt-5.0.0-py311h902ca64_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/bcrypt-4.3.0-py311h902ca64_2.conda
   hash:
-    md5: efd25d13f36cf308c0aad577e30756fd
-    sha256: aa0013acd0d0acb6971130667e9e9d7d2587a1785722a94183952ffb28b104d5
+    md5: a38a9c54436b8c434efdbeefdb2321de
+    sha256: 3b8f244e416324c7c5ce17807c44da9b9d9ae4db9ab50329e9c408b298ca91d4
   category: main
   optional: false
 - name: bcrypt
-  version: 5.0.0
+  version: 4.3.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/bcrypt-5.0.0-py311hd2a4513_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/bcrypt-4.3.0-py311hd3d88a1_2.conda
   hash:
-    md5: 61571f7217997b528a3d98bfd0961efc
-    sha256: e3646b8c93cc6b38f075dc5ad91bc7acc1cde9cba9ae10298be94850444aa71b
+    md5: 84047424fc198521bb06af78da690ef9
+    sha256: d194ff5296c718a1fd68b3acdd86c45c76698b2292b67797fe8cd27da512f3fb
   category: main
   optional: false
 - name: bcrypt
-  version: 5.0.0
+  version: 4.3.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/bcrypt-5.0.0-py311h71babbd_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/bcrypt-4.3.0-py311h1c3fc1a_2.conda
   hash:
-    md5: 4fe332d645e3536d8295b53925e3d3b5
-    sha256: 5df7af7bcfe8b8c21362f5751fffc18af81232275eaa3b91ba31c041a65aa1cf
+    md5: 2f35f4574ada623ca2ae6e0843c53600
+    sha256: c2fd37a65dc126e615a711c2bbc0f40c589a9f0784444b3bfdf550aab3dade72
   category: main
   optional: false
 - name: beautifulsoup4
@@ -2267,12 +2267,13 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.9.111
+  version: 2025.9.116
   manager: conda
   platform: linux-64
   dependencies:
     attrs: ''
     backoff: ''
+    bcrypt: <5
     cachecontrol: ''
     cachetools: ''
     click: ''
@@ -2325,19 +2326,20 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.111-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.116-pyhd8ed1ab_0.conda
   hash:
-    md5: 46e592e9d911d7b29d4ecd67128d16d7
-    sha256: 7a0aa7334c8fbb5a63c5e1d684ed018e7baa1afde91178f4c5066399694af79e
+    md5: 2bae2c7a345e1bc2f530409c9143441a
+    sha256: 6635dc702dfb2364289d820727c9028a1613969b7958811b91610f2f41f744fb
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.9.111
+  version: 2025.9.116
   manager: conda
   platform: osx-64
   dependencies:
     attrs: ''
     backoff: ''
+    bcrypt: <5
     cachecontrol: ''
     cachetools: ''
     click: ''
@@ -2390,19 +2392,20 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.111-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.116-pyhd8ed1ab_0.conda
   hash:
-    md5: 46e592e9d911d7b29d4ecd67128d16d7
-    sha256: 7a0aa7334c8fbb5a63c5e1d684ed018e7baa1afde91178f4c5066399694af79e
+    md5: 2bae2c7a345e1bc2f530409c9143441a
+    sha256: 6635dc702dfb2364289d820727c9028a1613969b7958811b91610f2f41f744fb
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.9.111
+  version: 2025.9.116
   manager: conda
   platform: osx-arm64
   dependencies:
     attrs: ''
     backoff: ''
+    bcrypt: <5
     cachecontrol: ''
     cachetools: ''
     click: ''
@@ -2455,10 +2458,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.111-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.9.116-pyhd8ed1ab_0.conda
   hash:
-    md5: 46e592e9d911d7b29d4ecd67128d16d7
-    sha256: 7a0aa7334c8fbb5a63c5e1d684ed018e7baa1afde91178f4c5066399694af79e
+    md5: 2bae2c7a345e1bc2f530409c9143441a
+    sha256: 6635dc702dfb2364289d820727c9028a1613969b7958811b91610f2f41f744fb
   category: main
   optional: false
 - name: conda-index
