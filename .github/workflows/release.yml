@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
+      - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -48,7 +48,7 @@ jobs:
           echo "NEXT=${NEXT}" >> "$GITHUB_OUTPUT"
 
       - name: log into ghcr.io
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         if: ${{ ! env.CI_SKIP }}
         with:
           registry: ${{ env.REGISTRY }}
