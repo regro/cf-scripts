@@ -1928,7 +1928,7 @@ package:
   category: main
   optional: false
 - name: conda-build
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -1957,14 +1957,14 @@ package:
     requests: ''
     ripgrep: ''
     tqdm: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.7.0-py311h38be061_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.9.0-py311h38be061_0.conda
   hash:
-    md5: f5f848833b9c0472f68767e2c0fd1ca0
-    sha256: f7505a3601742cace6d588d14201d99eb2d9e9b43c6d518588e547f6f2890fb6
+    md5: d2f6bb29850c6e0ef7f41fbff30bbc03
+    sha256: f3845ad532707c9815856e948eec160729d913faa0951e3e04ae38e2829b90d0
   category: main
   optional: false
 - name: conda-build
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -1993,14 +1993,14 @@ package:
     requests: ''
     ripgrep: ''
     tqdm: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.7.0-py311h6eed73b_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.9.0-py311h6eed73b_0.conda
   hash:
-    md5: c1bb509081ae1b4cd3802ea64681b412
-    sha256: 21b397c207b4f96a1008705db66b4447718be8275172a61686160756ed739029
+    md5: 4c55a44f6ff51cc4bc92f20875191eec
+    sha256: b8e56169910c3a0d2bbaeebc322799c1f6906dcb10b36d4c2c53aa4238fa3ffd
   category: main
   optional: false
 - name: conda-build
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2029,10 +2029,10 @@ package:
     requests: ''
     ripgrep: ''
     tqdm: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.7.0-py311h267d04e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.9.0-py311h267d04e_0.conda
   hash:
-    md5: f4a864b6357cf859c5db1a15d443844a
-    sha256: 43691f2593766dc3dbc1be957dbb8932eb123d5398be572da10c4a356be3e4eb
+    md5: 98e14dde039c58288716790e7abc7cad
+    sha256: b41c4c9b14a2fa3e5a67e7cfabd268df3d9a461fc6554ab2bcdf57bc0ea5db4d
   category: main
   optional: false
 - name: conda-forge-feedstock-check-solvable
