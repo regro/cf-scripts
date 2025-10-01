@@ -2234,36 +2234,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.01.10.09.12
+  version: 2025.10.01.17.11.50
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.10.09.12-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.17.11.50-hd8ed1ab_0.conda
   hash:
-    md5: 8203029190d3729db20aa387894b6655
-    sha256: 3f52fa8f4cbbe6dd359d1b0dfd94b04383b44eccfa0b46c28dc3114be5933ea1
+    md5: 11db9bee97b197b3a1d16bade99276e8
+    sha256: 8046b36a76a3220f57b90a19479a79d2c9b25ea95ce6235f17c3672722ec9d78
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.01.10.09.12
+  version: 2025.10.01.17.11.50
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.10.09.12-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.17.11.50-hd8ed1ab_0.conda
   hash:
-    md5: 8203029190d3729db20aa387894b6655
-    sha256: 3f52fa8f4cbbe6dd359d1b0dfd94b04383b44eccfa0b46c28dc3114be5933ea1
+    md5: 11db9bee97b197b3a1d16bade99276e8
+    sha256: 8046b36a76a3220f57b90a19479a79d2c9b25ea95ce6235f17c3672722ec9d78
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.01.10.09.12
+  version: 2025.10.01.17.11.50
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.10.09.12-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.01.17.11.50-hd8ed1ab_0.conda
   hash:
-    md5: 8203029190d3729db20aa387894b6655
-    sha256: 3f52fa8f4cbbe6dd359d1b0dfd94b04383b44eccfa0b46c28dc3114be5933ea1
+    md5: 11db9bee97b197b3a1d16bade99276e8
+    sha256: 8046b36a76a3220f57b90a19479a79d2c9b25ea95ce6235f17c3672722ec9d78
   category: main
   optional: false
 - name: conda-forge-tick
@@ -10892,16 +10892,16 @@ package:
   category: main
   optional: false
 - name: openssl
-  version: 3.5.3
+  version: 3.5.4
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     ca-certificates: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.3-h230baf5_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/openssl-3.5.4-h230baf5_0.conda
   hash:
-    md5: f601470d724024fec8dbb98a2dd5b39c
-    sha256: 8eeb0d7e01784c1644c93947ba5e6e55d79f9f9c8dd53b33a6523efb93afd56c
+    md5: 075eaad78f96bbf5835952afbe44466e
+    sha256: 3ce8467773b2472b2919412fd936413f05a9b10c42e52c27bbddc923ef5da78a
   category: main
   optional: false
 - name: openssl
