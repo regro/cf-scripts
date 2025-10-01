@@ -10878,17 +10878,17 @@ package:
   category: main
   optional: false
 - name: openssl
-  version: 3.5.3
+  version: 3.5.4
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     ca-certificates: ''
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.3-h26f9b46_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.4-h26f9b46_0.conda
   hash:
-    md5: 4fc6c4c88da64c0219c0c6c0408cedd4
-    sha256: 0572be1b7d3c4f4c288bb8ab1cb6007b5b8b9523985b34b862b5222dea3c45f5
+    md5: 14edad12b59ccbfa3910d42c72adc2a0
+    sha256: e807f3bad09bdf4075dbb4168619e14b0c0360bacb2e12ef18641a834c8c5549
   category: main
   optional: false
 - name: openssl
@@ -10905,16 +10905,16 @@ package:
   category: main
   optional: false
 - name: openssl
-  version: 3.5.3
+  version: 3.5.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     ca-certificates: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.3-h5503f6c_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.4-h5503f6c_0.conda
   hash:
-    md5: 4b23b1e2aa9d81b16204e1304241ccae
-    sha256: d5499ee2611a0ca9d84e9d60a5978d1f17350e94915c89026f5d9346ccf0a987
+    md5: 71118318f37f717eefe55841adb172fd
+    sha256: f0512629f9589392c2fb9733d11e753d0eab8fc7602f96e4d7f3bd95c783eb07
   category: main
   optional: false
 - name: oras-py
@@ -14150,42 +14150,42 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.0
+  version: 0.47.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    openssl: '>=3.5.2,<4.0a0'
+    openssl: '>=3.5.3,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.0-h60886be_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.1-h60886be_0.conda
   hash:
-    md5: 98366f1ada223a785f0dc24ed211a99c
-    sha256: aa71bcaf81c71da4a9137777249970c426a37afd46b7960b3e8c397f553a7f40
+    md5: b1ecad9508aa5523751df500e54284a8
+    sha256: 4730229fa76c24691de2a7421a8211dce90e0fc95b20e3606786ee54895f3fe8
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.0
+  version: 0.47.1
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.47.0-h9113d71_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.47.1-h9113d71_0.conda
   hash:
-    md5: b2f5ad0a287f0712c23abb0f45fbce6d
-    sha256: 03d8c45aec0e1d8e4485a54e7e61e464ecc4752c1ec6e8fdd5458c226988eba8
+    md5: ada75e77b4397753cec56166bf4a1e96
+    sha256: 12cd35b8782630a1719f512c9079e98ed56d0558d8a530b1fb8bc49414f531c9
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.0
+  version: 0.47.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.47.0-h8d80559_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.47.1-h8d80559_0.conda
   hash:
-    md5: dd3bf0dde45e18b8644b97a401f08ba2
-    sha256: d747d7d36bd38d37f6e80cb78358c373fb5776147e21f9da4121e736f9212796
+    md5: 962eddefe8c786fe5044a96948b8b44b
+    sha256: 116333d2860b4438a1a7b2afc65bc1d761a9b5347a0a75d87e97c828a6fd78b1
   category: main
   optional: false
 - name: rattler-build-conda-compat
