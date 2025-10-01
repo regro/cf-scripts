@@ -1832,7 +1832,7 @@ package:
   category: main
   optional: false
 - name: conda
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -1857,14 +1857,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.7.0-py311h38be061_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.9.0-py311h38be061_0.conda
   hash:
-    md5: d44166980455ab05a2d140cbc5abe102
-    sha256: 37394fa147720f23919e0bfcb7e222f0b6b6dd97d5e4d976a2a4141e25ab6beb
+    md5: 8759f7e3c67981406688458ca03a9c85
+    sha256: ea850357eb821f9ede1e606a96d090fe5ae74322902c0d1543cbed9a74338a40
   category: main
   optional: false
 - name: conda
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -1889,14 +1889,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.7.0-py311h6eed73b_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.9.0-py311h6eed73b_0.conda
   hash:
-    md5: 427a2e73fdb5b1d83d2c32f445cf0437
-    sha256: 18e4958c82d8dcad28dd6e63721702972f09d16353922e5a4e8706f9d8a5a79b
+    md5: bc4cee79dd83563a35d2e0565e0e2d87
+    sha256: b4faec65e7e15ca6421985adb9c57a53aae66e5f32a5fbff75850ba07e8ef0c0
   category: main
   optional: false
 - name: conda
-  version: 25.7.0
+  version: 25.9.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1921,10 +1921,10 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.7.0-py311h267d04e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.9.0-py311h267d04e_0.conda
   hash:
-    md5: 07c980cfa4455466e041d06cebf0f7a9
-    sha256: c4a958ff4a2dad153c93d4febdaf66b637519d052c308ee73f2f004cbd97a93d
+    md5: f57264823f05180f5f40e126399eca18
+    sha256: 2d4083df12b7c5ceaedd1e3cfeb50dc2c99c88936829e1fba36ac60f7435fbd3
   category: main
   optional: false
 - name: conda-build
@@ -9650,10 +9650,10 @@ package:
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-21.1.2-h472b3d1_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-21.1.2-h472b3d1_2.conda
   hash:
-    md5: b5254429fe03d4ea04e24e6b0f832b82
-    sha256: 942957d7542245bfec07a260b417d857a5e6ef7f1cd69a225ce8b422332e854b
+    md5: 3c88b2d75fdc2535db3fbe13a2d2d33f
+    sha256: 70549081f7a69904e2e56ced6d13c2e5d656c7a0519243bb98039373e034c3a1
   category: main
   optional: false
 - name: llvm-openmp
@@ -9662,10 +9662,10 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-21.1.2-h4a912ad_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-21.1.2-h4a912ad_2.conda
   hash:
-    md5: bff90cf0868f902007fba7a2296f8b92
-    sha256: 67c7df2cdc08b5a13e72647fbc1294b1288508faf8150a66a48c68154d86fa56
+    md5: 0203b5856c77eaa4d4b73ea3926a77a0
+    sha256: df6d6e539dfb6c4ca4964b7cb9dcb74eb04f42782ee71e5aed06d0eef64c694a
   category: main
   optional: false
 - name: llvm-tools
