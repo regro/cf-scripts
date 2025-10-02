@@ -1809,7 +1809,7 @@ extra:
     s = io.StringIO()
     cm.dump(s)
     s.seek(0)
-    assert s.read() == recipe_parsed
+    assert s.read() == recipe
 
 
 def test_recipe_parses_strings_colons_quotes():
