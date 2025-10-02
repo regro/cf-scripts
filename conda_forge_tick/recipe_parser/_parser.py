@@ -230,7 +230,12 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
     for line in lines:
         if (
             len(line.lstrip()) > 0
-            and line.lstrip()[0] == "?"
+            and (
+                (len(line.split()) > 1 and line.split()[0:2] == ["-", "?"])
+                or (
+                    len(line.split()) > 0 and line.split()[0] == "?"
+                )
+            )
             and ":" not in line
             and CONDA_SELECTOR in line
         ):
