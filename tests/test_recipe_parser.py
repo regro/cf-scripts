@@ -1803,7 +1803,7 @@ extra:
     - conda-forge/cuda
     - kvoronin
   feedstock-name: libcudss
-""" # noqa
+"""  # noqa
 
     cm = CondaMetaYAML(recipe)
     s = io.StringIO()
