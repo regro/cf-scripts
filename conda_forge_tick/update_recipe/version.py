@@ -306,6 +306,9 @@ def _get_new_url_tmpl_and_hash(
         "processing URL template: %s",
         url_tmpl,
     )
+    if context:
+        logger.info("rendering URL w/ jinja2 context: %s", pprint.pformat(context))
+
     try:
         url = _render_jinja2(url_tmpl, context)
         logger.info("initial rendered URL: %s", url)
@@ -719,6 +722,9 @@ def update_version_v1(
     from rattler_build_conda_compat.loader import load_yaml
     from rattler_build_conda_compat.recipe_sources import render_all_sources
 
+    updated_version = True
+    errors = set()
+
     feedstock_dir = Path(feedstock_dir)
     recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
     recipe_text = recipe_path.read_text()
@@ -733,6 +739,9 @@ def update_version_v1(
     rendered_sources = render_all_sources(
         recipe_yaml, variants, override_version=version
     )
+    if not rendered_sources:
+        errors.add("no source sections were found in the rendered recipe")
+        return None, errors
 
     # mangle the version if it is R
     for source in rendered_sources:
@@ -744,14 +753,23 @@ def update_version_v1(
                 version = version.replace("_", "-")
 
     # update the version with a regex replace
+    updated_version_via_regex = False
     for line in recipe_text.splitlines():
         if match := re.match(r"^(\s+)version:\s.*$", line):
             indentation = match.group(1)
             recipe_text = recipe_text.replace(
                 line, f'{indentation}version: "{version}"'
             )
+            updated_version_via_regex = True
             break
 
+    if not updated_version_via_regex:
+        errors.add(
+            f"could not update `version` key in `context` section in recipe.yaml to '{version}'"
+        )
+        return None, errors
+
+    updated_version = True
     for source in rendered_sources:
         # update the hash value
         urls = source.url
@@ -761,7 +779,7 @@ def update_version_v1(
         else:
             urls = zip(urls, source.template)
 
-        found_hash = False
+        new_hash = None
         for url, template in urls:
             if source.sha256 is not None:
                 hash_type = "sha256"
@@ -778,11 +796,13 @@ def update_version_v1(
             )
 
             if new_hash is not None:
+                logger.info("new URL template: %s", new_tmpl)
+                logger.info("new URL hash: %s", new_hash)
+
                 if hash_type == "sha256":
                     recipe_text = recipe_text.replace(source.sha256, new_hash)
                 else:
                     recipe_text = recipe_text.replace(source.md5, new_hash)
-                found_hash = True
 
                 # convert back to v1 minijinja template
                 new_tmpl = new_tmpl.replace("{{", "${{")
@@ -790,11 +810,17 @@ def update_version_v1(
                     recipe_text = recipe_text.replace(template, new_tmpl)
 
                 break
+            else:
+                errors.add("could not hash URL template '%s'" % cb_template)
 
-        if not found_hash:
-            return None, {"could not find a hash for the source"}
+        updated_version &= new_hash is not None
 
-    return recipe_text, set()
+    logger.info("updated|errors: %r|%r", updated_version, errors)
+
+    if not updated_version:
+        return None, errors
+    else:
+        return recipe_text, set()
 
 
 def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]):

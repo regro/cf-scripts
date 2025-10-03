@@ -131,6 +131,7 @@ def test_version_up(case, new_ver, tmp_path, caplog):
         ("selshaurl", "3.7.0"),
         ("libssh", "0.11.1"),
         ("polars", "1.20.0"),
+        ("svcore", "0.2025.40"),
     ],
 )
 def test_version_up_v1(case, new_ver, tmp_path, caplog):
