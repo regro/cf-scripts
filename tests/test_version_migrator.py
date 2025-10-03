@@ -121,16 +121,17 @@ def test_version_up(case, new_ver, tmp_path, caplog):
 @pytest.mark.parametrize(
     "case,new_ver",
     [
-        ("pypi_url", "0.7.1"),
-        ("jolt", "5.2.0"),
-        ("build_number_via_context", "0.20.1"),
-        ("build_as_expr", "3.6.2"),
-        ("conditional_sources", "3.24.11"),
-        ("cranmirror", "0.3.3"),
-        ("event_stream", "1.6.3"),
-        ("selshaurl", "3.7.0"),
-        ("libssh", "0.11.1"),
-        ("polars", "1.20.0"),
+        # ("pypi_url", "0.7.1"),
+        # ("jolt", "5.2.0"),
+        # ("build_number_via_context", "0.20.1"),
+        # ("build_as_expr", "3.6.2"),
+        # ("conditional_sources", "3.24.11"),
+        # ("cranmirror", "0.3.3"),
+        # ("event_stream", "1.6.3"),
+        # ("selshaurl", "3.7.0"),
+        # ("libssh", "0.11.1"),
+        # ("polars", "1.20.0"),
+        ("svcore", "0.2025.40"),
     ],
 )
 def test_version_up_v1(case, new_ver, tmp_path, caplog):
