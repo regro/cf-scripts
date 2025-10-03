@@ -126,25 +126,35 @@ def _increment_pre_pr_migrator_attempt(attrs, migrator_name, *, is_version):
             pri[pre_key_att_ts][migrator_name] = int(time.time())
 
 
+def _reset_version_pre_pr_migrator_fields(vpri, version=None):
+    if version is None:
+        version = vpri["new_version"]
+    for _key in [
+        "new_version_errors",
+        "new_version_attempts",
+        "new_version_attempt_ts",
+    ]:
+        if _key in vpri and version in vpri[_key]:
+            vpri[_key].pop(version)
+
+
+def _reset_migrator_pre_pr_migrator_fields(pri, migrator_name):
+    for _key in [
+        "pre_pr_migrator_status",
+        "pre_pr_migrator_attempts",
+        "pre_pr_migrator_attempt_ts",
+    ]:
+        if _key in pri and migrator_name in pri[_key]:
+            pri[_key].pop(migrator_name)
+
+
 def _reset_pre_pr_migrator_fields(attrs, migrator_name, *, is_version):
     if is_version:
         with attrs["version_pr_info"] as vpri:
-            version = vpri["new_version"]
-            for _key in [
-                "new_version_errors",
-                "new_version_attempts",
-                "new_version_attempt_ts",
-            ]:
-                if _key in vpri and version in vpri[_key]:
-                    vpri[_key].pop(version)
+            _reset_version_pre_pr_migrator_fields(vpri)
     else:
-        pre_key = "pre_pr_migrator_status"
-        pre_key_att = "pre_pr_migrator_attempts"
-        pre_key_att_ts = "pre_pr_migrator_attempt_ts"
         with attrs["pr_info"] as pri:
-            for _key in [pre_key, pre_key_att, pre_key_att_ts]:
-                if _key in pri and migrator_name in pri[_key]:
-                    pri[_key].pop(migrator_name)
+            _reset_migrator_pre_pr_migrator_fields(pri, migrator_name)
 
 
 def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
@@ -1223,6 +1233,7 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
         with node["payload"] as payload:
             if payload.get("archived", False):
                 continue
+
             with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
                 # reset bad
                 pri["bad"] = False
@@ -1255,6 +1266,15 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                 name,
                                 migration["data"],
                             )
+
+                            if __pri is pri:
+                                _reset_migrator_pre_pr_migrator_fields(
+                                    pri, migration["data"]["name"]
+                                )
+                            else:
+                                _reset_version_pre_pr_migrator_fields(
+                                    vpri, version=migration["data"]["version"]
+                                )
 
 
 def _update_nodes_with_new_versions(gx):
