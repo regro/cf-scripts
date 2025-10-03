@@ -16,7 +16,9 @@ from conda_forge_tick.migrators.core import (
     GraphMigrator,
     Migrator,
     MiniMigrator,
+    cut_graph_to_target_packages,
     get_outputs_lut,
+    load_target_packages,
 )
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
@@ -187,8 +189,13 @@ class MigrationYaml(GraphMigrator):
         force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
+        whitelist_file: Optional[str] = None,
         **kwargs: Any,
     ):
+        if whitelist_file is not None:
+            target_packages = load_target_packages(whitelist_file)
+            cut_graph_to_target_packages(total_graph, target_packages)
+
         if not hasattr(self, "_init_args"):
             self._init_args = [yaml_contents, name]
 
