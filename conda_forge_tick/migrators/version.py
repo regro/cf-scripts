@@ -1,8 +1,11 @@
+import contextlib
 import copy
 import functools
 import logging
+import math
 import random
 import secrets
+import time
 import warnings
 from pathlib import Path
 from typing import Any, List, Literal, Sequence
@@ -502,6 +505,58 @@ class Version(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
+        """Determine version migration order.
+
+        Feedstocks are retried/sorted using exponential backoff.
+
+        The feedstocks are reverse sorted by
+
+            - parents before children
+            - feedstocks that have passed the
+              time-based threshold for the next retry
+
+        Ties are sorted randomly.
+        """
+        seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
+        now = int(time.time()) * seconds_to_days
+        base = 2 / 24.0  # 2 hours in days
+
+        @functools.lru_cache(maxsize=1024)
+        def _get_last_attempt_ts_and_try(node):
+            with total_graph.nodes[node]["payload"] as attrs:
+                with attrs.get(
+                    "version_pr_info", contextlib.nullcontext(enter_result={})
+                ) as vpri:
+                    new_version = vpri.get("new_version", "")
+
+                    attempts = vpri.get(
+                        "new_version_attempts",
+                        {},
+                    ).get(
+                        new_version,
+                        0,
+                    )
+
+                    if attempts > 0:
+                        ts = vpri.get(
+                            "new_version_attempt_ts",
+                            {},
+                        ).get(
+                            new_version,
+                            None,
+                        )
+                        if ts is None:
+                            # one hour per attempt
+                            ts = now - (3600 * attempts)
+                    else:
+                        ts = -math.inf
+
+            return (ts * seconds_to_days, attempts)
+
+        def _attempt_pr(node):
+            last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
+            return now > last_bot_attempt_ts + (base * (2 ** min(retries_so_far, 6)))
+
         @functools.lru_cache(maxsize=1024)
         def _has_solver_checks(node):
             with graph.nodes[node]["payload"] as attrs:
@@ -511,30 +566,6 @@ class Version(Migrator):
                     {},
                     False,
                 )
-
-        @functools.lru_cache(maxsize=1024)
-        def _get_attempts_nr(node):
-            with graph.nodes[node]["payload"] as attrs:
-                with attrs["version_pr_info"] as vpri:
-                    new_version = vpri.get("new_version", "")
-                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
-            return min(attempts, 3)
-
-        def _get_attempts_r(node, seen):
-            seen |= {node}
-            attempts = _get_attempts_nr(node)
-            for d in nx.descendants(graph, node):
-                if d not in seen:
-                    attempts = max(attempts, _get_attempts_r(d, seen))
-            return attempts
-
-        @functools.lru_cache(maxsize=1024)
-        def _get_attempts(node):
-            if _has_solver_checks(node):
-                seen: set = set()
-                return _get_attempts_r(node, seen)
-            else:
-                return _get_attempts_nr(node)
 
         def _desc_cmp(node1, node2):
             if _has_solver_checks(node1) and _has_solver_checks(node2):
@@ -551,7 +582,7 @@ class Version(Migrator):
         return sorted(
             sorted(
                 sorted(nodes_to_sort, key=lambda x: RNG.random()),
-                key=_get_attempts,
+                key=lambda x: (0 if _attempt_pr(x) else 1),
             ),
             key=functools.cmp_to_key(_desc_cmp),
         )

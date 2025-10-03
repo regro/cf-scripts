@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import functools
 import logging
 import math
 import re
@@ -657,23 +658,13 @@ class Migrator:
     ) -> Sequence["PackageName"]:
         """Determine migration order.
 
+        Feedstocks are retried/sorted using exponential backoff.
+
         The feedstocks are reverse sorted by
 
-            - number of decedents if not a failed migration and not a leaf node
-            - a random number in [0, 1] if not failed and a leaf node
-            - a random number in [0, val] if failed
-
-        where val is
-
-            bfac = 10.0
-            min((1.0 + bfac * log10(num descendents + 1)) * 0.5, 1.0)
-
-        This formula has the effect of
-
-            - deprioritizing failed nodes by an overall amount (0.5 means there is a
-              ~33% percent chance a failed node appears ahead of a non-failed node)
-            - boosting failed migrators by a bit if they have a lot of descendents
-            - never letting any failed node get ahead of non-failed, non-leaf nodes
+            - number of decedents if the feedstock passes its
+              time-based threshold for the next retry
+            - a random number in [0, val] if it is not yet time to be retried
 
         Ties are sorted randomly.
         """
@@ -687,38 +678,33 @@ class Migrator:
         now = int(time.time()) * seconds_to_days
         base = 2 / 24.0  # 2 hours in days
 
+        @functools.lru_cache(maxsize=1024)
         def _get_last_attempt_ts_and_try(node):
-            attempts = (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempts",
-                    {},
-                )
-                .get(
-                    migrator_name,
-                    0,
-                )
-            )
-
-            if attempts > 0:
-                ts = (
-                    total_graph.nodes[node]["payload"]
-                    .get("pr_info", {})
-                    .get(
-                        "pre_pr_migrator_attempt_ts",
+            with total_graph.nodes[node]["payload"] as attrs:
+                with attrs.get(
+                    "pr_info", contextlib.nullcontext(enter_result={})
+                ) as pri:
+                    attempts = pri.get(
+                        "pre_pr_migrator_attempts",
                         {},
-                    )
-                    .get(
+                    ).get(
                         migrator_name,
-                        None,
+                        0,
                     )
-                )
-                if ts is None:
-                    # one hour per attempt
-                    ts = now - (3600 * attempts)
-            else:
-                ts = -math.inf
+
+                    if attempts > 0:
+                        ts = pri.get(
+                            "pre_pr_migrator_attempt_ts",
+                            {},
+                        ).get(
+                            migrator_name,
+                            None,
+                        )
+                        if ts is None:
+                            # one hour per attempt
+                            ts = now - (3600 * attempts)
+                    else:
+                        ts = -math.inf
 
             return (ts * seconds_to_days, attempts)
 
