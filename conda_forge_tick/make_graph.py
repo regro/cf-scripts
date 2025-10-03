@@ -180,7 +180,7 @@ def _migrate_schema(name, sub_graph):
                     pri[pre_key_att][mn] = 1
                 if mn not in pri[pre_key_att_ts]:
                     # set the attempt to one hour ago per try
-                    pri[pre_key_att_ts][mn] = (
+                    pri[pre_key_att_ts][mn] = int(
                         int(time.time()) - pri[pre_key_att][mn] * 3600.0
                     )
 
@@ -190,7 +190,7 @@ def _migrate_schema(name, sub_graph):
                     vpri["new_version_attempts"][mn] = 1
                 if mn not in vpri["new_version_attempt_ts"]:
                     # set the attempt to one hour ago per try
-                    vpri["new_version_attempt_ts"][mn] = (
+                    vpri["new_version_attempt_ts"][mn] = int(
                         int(time.time()) - vpri["new_version_attempts"][mn] * 3600.0
                     )
 
