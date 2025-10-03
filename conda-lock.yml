@@ -2854,7 +2854,7 @@ package:
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.6.4
+  version: 0.7.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -2869,14 +2869,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 3f0db62c907de90c6e895c3141e4adaa
-    sha256: 2e8c01385aa045799d6bea8fb71a89b8f7a5a9ce80ebe9c262e56e6c01268519
+    md5: 60d21634fa6d3c3a540d6da22c6b27c5
+    sha256: 4f84cb69c71d6340115ca8eaa4c0327d4ac6a2e86e3e50812858e84b7c970cb2
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.6.4
+  version: 0.7.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -2891,14 +2891,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 3f0db62c907de90c6e895c3141e4adaa
-    sha256: 2e8c01385aa045799d6bea8fb71a89b8f7a5a9ce80ebe9c262e56e6c01268519
+    md5: 60d21634fa6d3c3a540d6da22c6b27c5
+    sha256: 4f84cb69c71d6340115ca8eaa4c0327d4ac6a2e86e3e50812858e84b7c970cb2
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.6.4
+  version: 0.7.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2913,10 +2913,10 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.6.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 3f0db62c907de90c6e895c3141e4adaa
-    sha256: 2e8c01385aa045799d6bea8fb71a89b8f7a5a9ce80ebe9c262e56e6c01268519
+    md5: 60d21634fa6d3c3a540d6da22c6b27c5
+    sha256: 4f84cb69c71d6340115ca8eaa4c0327d4ac6a2e86e3e50812858e84b7c970cb2
   category: main
   optional: false
 - name: conda-smithy
@@ -6237,42 +6237,42 @@ package:
   category: main
   optional: false
 - name: identify
-  version: 2.6.14
+  version: 2.6.15
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
     ukkonen: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.14-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.15-pyhd8ed1ab_0.conda
   hash:
-    md5: 34a8172d191193030438d7b30bcdeaf5
-    sha256: b7fc614777da38244ff36da51f9417822d6507a7b6a8da27aba579490941d160
+    md5: 25f954b7dae6dd7b0dc004dab74f1ce9
+    sha256: 32d5007d12e5731867908cbf5345f5cd44a6c8755a2e8e63e15a184826a51f82
   category: main
   optional: false
 - name: identify
-  version: 2.6.14
+  version: 2.6.15
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
     ukkonen: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.14-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.15-pyhd8ed1ab_0.conda
   hash:
-    md5: 34a8172d191193030438d7b30bcdeaf5
-    sha256: b7fc614777da38244ff36da51f9417822d6507a7b6a8da27aba579490941d160
+    md5: 25f954b7dae6dd7b0dc004dab74f1ce9
+    sha256: 32d5007d12e5731867908cbf5345f5cd44a6c8755a2e8e63e15a184826a51f82
   category: main
   optional: false
 - name: identify
-  version: 2.6.14
+  version: 2.6.15
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
     ukkonen: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.14-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.15-pyhd8ed1ab_0.conda
   hash:
-    md5: 34a8172d191193030438d7b30bcdeaf5
-    sha256: b7fc614777da38244ff36da51f9417822d6507a7b6a8da27aba579490941d160
+    md5: 25f954b7dae6dd7b0dc004dab74f1ce9
+    sha256: 32d5007d12e5731867908cbf5345f5cd44a6c8755a2e8e63e15a184826a51f82
   category: main
   optional: false
 - name: idna
