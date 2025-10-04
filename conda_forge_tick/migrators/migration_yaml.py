@@ -189,7 +189,7 @@ class MigrationYaml(GraphMigrator):
         force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
-        whitelist_file: Optional[str] = None,
+        allowlist_file: Optional[str] = None,
         **kwargs: Any,
     ):
         if whitelist_file is not None:
