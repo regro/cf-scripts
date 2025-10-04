@@ -1270,13 +1270,34 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                             if __pri is pri:
                                 if "name" in migration["data"]:
                                     __name = migration["data"]["name"]
-                                else:
+                                elif "migrator_name" in migration["data"]:
                                     __name = migration["data"]["migrator_name"].lower()
-                                _reset_migrator_pre_pr_migrator_fields(pri, __name)
+                                else:
+                                    __name = None
+                                    logger.warning(
+                                        "BOT-RERUN %s: Could not extract migrator name for migration: %s"
+                                        "\nPre-pr migration status will not be reset!",
+                                        name,
+                                        migration["data"],
+                                    )
+
+                                if __name is not None:
+                                    _reset_migrator_pre_pr_migrator_fields(pri, __name)
                             else:
-                                _reset_version_pre_pr_migrator_fields(
-                                    vpri, version=migration["data"]["version"]
-                                )
+                                if "version" in migration["data"]:
+                                    __name = migration["data"]["version"]
+                                else:
+                                    __name = None
+                                    logger.warning(
+                                        "BOT-RERUN %s: Could not extract migrator name for migration: %s\n"
+                                        "Pre-pr migration status will not be reset!",
+                                        name,
+                                        migration["data"],
+                                    )
+                                if __name is not None:
+                                    _reset_version_pre_pr_migrator_fields(
+                                        vpri, version=__name
+                                    )
 
 
 def _update_nodes_with_new_versions(gx):
