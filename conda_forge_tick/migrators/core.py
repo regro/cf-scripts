@@ -5,6 +5,7 @@ import copy
 import functools
 import logging
 import math
+import os
 import re
 import secrets
 import time
@@ -30,10 +31,50 @@ from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
 
+MIGRATION_SUPPORT_DIRS = [
+    Path(os.environ["CONDA_PREFIX"]) / "share" / "conda-forge" / "migration_support",
+    # Deprecated
+    Path(os.environ["CONDA_PREFIX"]) / "share" / "conda-forge" / "migrations",
+]
+
 
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
+
+
+def load_target_packages(package_list_file: str) -> Set[str]:
+    # We are constraining the scope of this migrator
+    fname = None
+    for d in MIGRATION_SUPPORT_DIRS:
+        fname = d / package_list_file
+        if fname.exists():
+            break
+
+    assert fname is not None, (
+        f"Could not find {package_list_file} in migration support dirs"
+    )
+
+    with fname.open() as f:
+        target_packages = set(f.read().split())
+
+    return target_packages
+
+
+def cut_graph_to_target_packages(graph, target_packages):
+    """Cut the graph to only the target packages.
+
+    **operates in place**
+    """
+    packages = target_packages.copy()
+    for target in target_packages:
+        if target in graph.nodes:
+            packages.update(nx.ancestors(graph, target))
+    for node in list(graph.nodes.keys()):
+        if node not in packages:
+            pluck(graph, node)
+    # post-plucking cleanup
+    graph.remove_edges_from(nx.selfloop_edges(graph))
 
 
 def skip_migrator_due_to_schema(
