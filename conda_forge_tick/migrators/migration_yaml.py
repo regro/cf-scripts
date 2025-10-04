@@ -192,8 +192,8 @@ class MigrationYaml(GraphMigrator):
         allowlist_file: Optional[str] = None,
         **kwargs: Any,
     ):
-        if whitelist_file is not None:
-            target_packages = load_target_packages(whitelist_file)
+        if allowlist_file is not None:
+            target_packages = load_target_packages(allowlist_file)
             cut_graph_to_target_packages(total_graph, target_packages)
 
         if not hasattr(self, "_init_args"):
