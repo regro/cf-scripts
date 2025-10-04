@@ -65,6 +65,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
     get_migrator_name,
+    get_migrator_name_from_pr_data,
     load_existing_graph,
     sanitize_string,
 )
@@ -1267,14 +1268,14 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                 migration["data"],
                             )
 
-                            if __pri is pri:
-                                _reset_migrator_pre_pr_migrator_fields(
-                                    pri, migration["data"]["name"]
-                                )
-                            else:
-                                _reset_version_pre_pr_migrator_fields(
-                                    vpri, version=migration["data"]["version"]
-                                )
+                            __name = get_migrator_name_from_pr_data(migration)
+                            if __name is not None:
+                                if __pri is pri:
+                                    _reset_migrator_pre_pr_migrator_fields(pri, __name)
+                                else:
+                                    _reset_version_pre_pr_migrator_fields(
+                                        vpri, version=__name
+                                    )
 
 
 def _update_nodes_with_new_versions(gx):
