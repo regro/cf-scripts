@@ -1396,6 +1396,22 @@ def get_migrator_name(migrator):
     return migrator_name
 
 
+def get_migrator_name_from_pr_data(migration):
+    """Get the canonical name of a migration from the PR data."""
+    if "version" in migration["data"]:
+        return migration["data"]["version"]
+    elif "name" in migration["data"]:
+        return migration["data"]["name"]
+    elif "migrator_name" in migration["data"]:
+        return migration["data"]["migrator_name"].lower()
+    else:
+        logger.warning(
+            "Could not extract migrator name for migration: %s",
+            migration["data"],
+        )
+        return None
+
+
 @contextlib.contextmanager
 def change_log_level(logger, new_level):
     """Context manager to temporarily change the logging level of a logger."""

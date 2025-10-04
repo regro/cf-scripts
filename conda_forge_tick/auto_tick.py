@@ -65,6 +65,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
     get_migrator_name,
+    get_migrator_name_from_pr_data,
     load_existing_graph,
     sanitize_string,
 )
@@ -1267,34 +1268,11 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                 migration["data"],
                             )
 
-                            if __pri is pri:
-                                if "name" in migration["data"]:
-                                    __name = migration["data"]["name"]
-                                elif "migrator_name" in migration["data"]:
-                                    __name = migration["data"]["migrator_name"].lower()
-                                else:
-                                    __name = None
-                                    logger.warning(
-                                        "BOT-RERUN %s: Could not extract migrator name for migration: %s"
-                                        "\nPre-pr migration status will not be reset!",
-                                        name,
-                                        migration["data"],
-                                    )
-
-                                if __name is not None:
+                            __name = get_migrator_name_from_pr_data(migration)
+                            if __name is not None:
+                                if __pri is pri:
                                     _reset_migrator_pre_pr_migrator_fields(pri, __name)
-                            else:
-                                if "version" in migration["data"]:
-                                    __name = migration["data"]["version"]
                                 else:
-                                    __name = None
-                                    logger.warning(
-                                        "BOT-RERUN %s: Could not extract migrator name for migration: %s\n"
-                                        "Pre-pr migration status will not be reset!",
-                                        name,
-                                        migration["data"],
-                                    )
-                                if __name is not None:
                                     _reset_version_pre_pr_migrator_fields(
                                         vpri, version=__name
                                     )
