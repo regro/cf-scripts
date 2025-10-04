@@ -1268,9 +1268,11 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                             )
 
                             if __pri is pri:
-                                _reset_migrator_pre_pr_migrator_fields(
-                                    pri, migration["data"]["name"]
-                                )
+                                if "name" in migration["data"]:
+                                    __name = migration["data"]["name"]
+                                else:
+                                    __name = migration["data"]["migrator_name"].lower()
+                                _reset_migrator_pre_pr_migrator_fields(pri, __name)
                             else:
                                 _reset_version_pre_pr_migrator_fields(
                                     vpri, version=migration["data"]["version"]
