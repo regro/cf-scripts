@@ -148,6 +148,9 @@ class About(ValidatedBaseModel):
     description: str | None = None
     dev_url: AnyHttpUrl | GitUrl | EmptyStringIsNone | None = None
     doc_url: AnyHttpUrl | EmptyStringIsNone | None = None
+    """Note! Both dev_url and doc_url are supposed to URLs. However, currently
+    conda-forge's tooling does not enforce this constraint.
+    """
     home: str | EmptyStringIsNone | None = None
     """
     Note! According to the conda documentation, this should be a single (!) URL.
