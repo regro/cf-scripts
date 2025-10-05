@@ -1402,6 +1402,8 @@ def get_migrator_name_from_pr_data(migration):
         return migration["data"]["version"]
     elif "name" in migration["data"]:
         return migration["data"]["name"]
+    elif "pin_version" in migration["data"]:
+        return migration["data"]["pin_version"]
     elif "migrator_name" in migration["data"]:
         return migration["data"]["migrator_name"].lower()
     else:
