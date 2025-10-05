@@ -1295,8 +1295,7 @@ def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFrie
 def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     if fz is None:
         return None
-    keys = sorted(list(fz.keys()))
-    d = {"keys": keys, "data": dict(fz)}
+    d = {"data": dict(fz)}
     if pr:
         d["PR"] = pr
     return d

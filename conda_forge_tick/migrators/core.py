@@ -124,7 +124,7 @@ def _make_migrator_graph(graph, migrator, effective=False, pluck_nodes=True):
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
     lst = []
     for pr in pred:
-        d: "JsonFriendly" = {"data": pr["data"], "keys": pr["keys"]}
+        d: "JsonFriendly" = {"data": pr["data"]}
         lst.append(d)
     return lst
 
