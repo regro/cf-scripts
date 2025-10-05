@@ -142,9 +142,6 @@ jobs:
         if: ${{ ! env.CI_SKIP }}
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
-          if [[ -f .test_durations ]]; then
-            cp .test_durations .test_durations.${{ matrix.group }}
-          fi
           pytest \
             -v \
             -n 3 \
