@@ -58,6 +58,10 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     # see https://github.com/conda-forge/conda-smithy/issues/1863 for the top-level build platform fields
     "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "pnab",  # missing build number in the recipe/meta.yaml
+    "python-metatensor-core",  # invalid urls in about section
+    "python-metatensor-torch",  # invalid urls in about section
+    "freva-rest-server",  # invalud urls in about section
+    "gocryptfs",  # invalud urls in about section
 }
 
 PR_INFO_BAD_FEEDSTOCKS = {
