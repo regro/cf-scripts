@@ -60,8 +60,8 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "pnab",  # missing build number in the recipe/meta.yaml
     "python-metatensor-core",  # invalid urls in about section
     "python-metatensor-torch",  # invalid urls in about section
-    "freva-rest-server",  # invalud urls in about section
-    "gocryptfs",  # invalud urls in about section
+    "freva-rest-server",  # invalid urls in about section
+    "gocryptfs",  # invalid urls in about section
 }
 
 PR_INFO_BAD_FEEDSTOCKS = {
