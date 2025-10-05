@@ -222,10 +222,6 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      - name: stop me if needed
-        run: |
-          python autotick-bot/stop_me_if_needed.py
-
       - name: configure conda and install code
         if: ${{ ! env.CI_SKIP }}
         run: |
@@ -362,10 +358,6 @@ jobs:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
-
-      - name: stop me if needed
-        run: |
-          python autotick-bot/stop_me_if_needed.py
 
       - name: download coverage artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
