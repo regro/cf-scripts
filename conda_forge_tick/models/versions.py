@@ -9,7 +9,7 @@ class VersionsValid(StrictBaseModel):
     The latest upstream version found by the update_upstream_versions component.
     This value is read by the version migrator to perform the actual version bump.
 
-    False or None indicates a problem in finding the next version or that the version migrator
+    None indicates a problem in finding the next version or that the version migrator
     should not perform a version bump (e.g., because the latest version should be skipped).
     """
 
