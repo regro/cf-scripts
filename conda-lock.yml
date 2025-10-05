@@ -2234,36 +2234,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.04.03.00.01
+  version: 2025.10.05.00.13.54
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.04.03.00.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.05.00.13.54-hd8ed1ab_0.conda
   hash:
-    md5: 07e355874ec3f4c4b1ef33da9833f71d
-    sha256: ca1e1dd779f1962ebc5ede189ef0f246eb4d5bc7f887c37badc14cb64df9038e
+    md5: d6229619664eaa0c6f4d95dfa8f4b5d3
+    sha256: 8844a01dadc5f4dd87ca7315609ae2a8586a86b123b851f034dceb23e8e087cf
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.04.03.00.01
+  version: 2025.10.05.00.13.54
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.04.03.00.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.05.00.13.54-hd8ed1ab_0.conda
   hash:
-    md5: 07e355874ec3f4c4b1ef33da9833f71d
-    sha256: ca1e1dd779f1962ebc5ede189ef0f246eb4d5bc7f887c37badc14cb64df9038e
+    md5: d6229619664eaa0c6f4d95dfa8f4b5d3
+    sha256: 8844a01dadc5f4dd87ca7315609ae2a8586a86b123b851f034dceb23e8e087cf
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.04.03.00.01
+  version: 2025.10.05.00.13.54
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.04.03.00.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.05.00.13.54-hd8ed1ab_0.conda
   hash:
-    md5: 07e355874ec3f4c4b1ef33da9833f71d
-    sha256: ca1e1dd779f1962ebc5ede189ef0f246eb4d5bc7f887c37badc14cb64df9038e
+    md5: d6229619664eaa0c6f4d95dfa8f4b5d3
+    sha256: 8844a01dadc5f4dd87ca7315609ae2a8586a86b123b851f034dceb23e8e087cf
   category: main
   optional: false
 - name: conda-forge-tick
@@ -12620,14 +12620,14 @@ package:
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    graphviz: '>=13.1.1,<14.0a0'
+    graphviz: '>=13.1.2,<14.0a0'
     libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/pygraphviz-1.14-py311hf824169_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pygraphviz-1.14-py311hf824169_2.conda
   hash:
-    md5: f3597105ed18acd84b3f965975fd665f
-    sha256: b32ddbf6f531e0c18807ffbab1c56d058940c51cd40b65ec73633cbd7ee8025f
+    md5: bdbf68f8f0eac7e4194a90ca55e76427
+    sha256: fd3547b570f90c793d7d790ed657db925ed2f83f207e56d667d1435ea2134898
   category: main
   optional: false
 - name: pygraphviz
@@ -12636,13 +12636,13 @@ package:
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-    graphviz: '>=13.1.1,<14.0a0'
+    graphviz: '>=13.1.2,<14.0a0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/pygraphviz-1.14-py311hcebe98e_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pygraphviz-1.14-py311hcebe98e_2.conda
   hash:
-    md5: 97a13c2cd67b09373b98cd4c61edd7dc
-    sha256: e4ebd9fdbae01e0646a650904c5e92a4abe8bed8cff50c1b113f270ca84c18ac
+    md5: 7e7c18aa3c429f567ba6f737968a91d0
+    sha256: 15e95e168809963ef7748ee2ad7ec62e5ed2af8eedb1db4681d5fab629399d82
   category: main
   optional: false
 - name: pygraphviz
@@ -12651,13 +12651,13 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    graphviz: '>=13.1.1,<14.0a0'
+    graphviz: '>=13.1.2,<14.0a0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pygraphviz-1.14-py311hcada031_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pygraphviz-1.14-py311hcada031_2.conda
   hash:
-    md5: fef7aabed7dbe10589605ccaa802f654
-    sha256: 95585b15775ce5c35cc692537ae579df489078f3faa97b3bb11787777ce727dd
+    md5: 1a2b2342327253787db017026a217b01
+    sha256: ac30b51658297df161d0c649f99a712d123739a8fdb466c84080f611f598d991
   category: main
   optional: false
 - name: pyjwt
