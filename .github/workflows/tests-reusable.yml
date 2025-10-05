@@ -128,7 +128,7 @@ jobs:
             test-durations-${{ github.ref }}-
             test-durations-
 
-      - name: run pytest
+      - name: post-process test durations
         if: ${{ ! env.CI_SKIP }}
         run: |
           if [[ -f .test_durations ]]; then
