@@ -30,10 +30,6 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      - name: stop me if needed
-        run: |
-          python autotick-bot/stop_me_if_needed.py
-
       - name: configure conda, install code, and clone cf-graph
         if: ${{ ! env.CI_SKIP }}
         run: |
