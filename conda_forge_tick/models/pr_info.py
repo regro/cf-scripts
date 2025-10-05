@@ -9,7 +9,6 @@ from conda_forge_tick.models.common import (
     NoneIsEmptyDict,
     PrJsonLazyJsonReference,
     StrictBaseModel,
-    before_validator_ensure_dict,
 )
 from conda_forge_tick.models.pr_json import PullRequestDataValid, PullRequestInfoSpecial
 
@@ -195,45 +194,6 @@ class MigrationPullRequest(StrictBaseModel):
     """
 
     data: MigrationPullRequestData
-
-    # noinspection PyNestedDecorators
-    @model_validator(mode="before")
-    @classmethod
-    def validate_keys(cls, input_data: Any) -> Any:
-        """
-        Validate the keys field against the data field.
-
-        The current implementation uses a field "keys" which is a list of all keys present in the
-        MigrationPullRequestData object, duplicating them. This list is redundant and should be removed.
-        The consistency of this field is validated here, after which it is removed.
-
-        Raises
-        ------
-        ValueError
-            If the keys field or the data field is missing, has the wrong type
-            or the keys field does not exactly match the keys of the data field.
-        """
-        input_data = before_validator_ensure_dict(input_data)
-
-        if "keys" not in input_data:
-            raise ValueError("The keys field is missing.")
-        if "data" not in input_data:
-            raise ValueError("The data field is missing.")
-
-        keys = input_data.pop("keys")
-        if not isinstance(keys, list):
-            raise ValueError("The keys field must be a list.")
-
-        data = input_data["data"]
-        if not isinstance(data, dict):
-            raise ValueError("The data field must be a dictionary.")
-
-        if set(keys) != set(data.keys()):
-            raise ValueError(
-                "The keys field must exactly contain all keys of the data field."
-            )
-
-        return input_data
 
 
 class ExceptionInfo(StrictBaseModel):
