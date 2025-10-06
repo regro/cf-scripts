@@ -775,7 +775,7 @@ class Migrator:
         else:
             extra_name = ""
 
-        return self.__class__.name + extra_name
+        return self.__class__.__name__ + extra_name
 
     @property
     def report_name(self):

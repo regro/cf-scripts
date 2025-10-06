@@ -1384,19 +1384,19 @@ def get_bot_run_url():
     return os.environ.get("RUN_URL", "")
 
 
-def get_migrator_name_from_pr_data(migration):
+def get_migrator_report_name_from_pr_data(migration):
     """Get the canonical name of a migration from the PR data."""
     if "version" in migration["data"]:
         return migration["data"]["version"]
     elif "name" in migration["data"]:
-        return migration["data"]["name"]
+        return migration["data"]["name"].lower().replace(" ", "")
     elif "pin_version" in migration["data"]:
         return migration["data"]["pin_version"]
     elif "migrator_name" in migration["data"]:
         return migration["data"]["migrator_name"].lower()
     else:
         logger.warning(
-            "Could not extract migrator name for migration: %s",
+            "Could not extract migrator report name for migration: %s",
             migration["data"],
         )
         return None
