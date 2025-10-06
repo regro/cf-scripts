@@ -36,7 +36,6 @@ from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
-    get_migrator_name,
     load_existing_graph,
 )
 from conda_forge_tick.version_filters import filter_version
@@ -169,7 +168,7 @@ def graph_migrator_status(
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Get the migrator progress for a given migrator."""
-    migrator_name = get_migrator_name(migrator)
+    migrator_name = migrator.unique_name
 
     num_viz = 0
 
@@ -450,11 +449,7 @@ def main() -> None:
         if isinstance(migrator, MigrationYamlCreator):
             continue
 
-        if hasattr(migrator, "name"):
-            assert isinstance(migrator.name, str)
-            migrator_name = migrator.name.lower().replace(" ", "")
-        else:
-            migrator_name = migrator.__class__.__name__.lower()
+        migrator_name = migrator.unique_name
 
         print(
             "================================================================",

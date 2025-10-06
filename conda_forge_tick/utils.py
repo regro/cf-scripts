@@ -1384,17 +1384,6 @@ def get_bot_run_url():
     return os.environ.get("RUN_URL", "")
 
 
-def get_migrator_name(migrator):
-    """Get the canonical name of a migrator."""
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
-    else:
-        migrator_name = migrator.__class__.__name__.lower()
-
-    return migrator_name
-
-
 def get_migrator_name_from_pr_data(migration):
     """Get the canonical name of a migration from the PR data."""
     if "version" in migration["data"]:

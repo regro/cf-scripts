@@ -25,7 +25,6 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
-    get_migrator_name,
     get_recipe_schema_version,
 )
 
@@ -571,7 +570,7 @@ class StaticLibMigrator(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        name = get_migrator_name(self)
+        name = self.unique_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
         additional_body = (
             "This PR has been triggered in an effort to update "
