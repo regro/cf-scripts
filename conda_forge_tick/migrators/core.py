@@ -172,7 +172,7 @@ def _migrator_hash(klass, args, kwargs):
 
 def _make_migrator_lazy_json_name(mgr, data):
     return (
-        mgr.unique_name
+        mgr.report_name
         + (
             ""
             if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
@@ -249,6 +249,17 @@ class MiniMigrator:
             The node attributes
         """
         return
+
+    @property
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        return migrator_name
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
@@ -610,7 +621,7 @@ class Migrator:
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         """Create a commit message."""
-        return f"migration: {self.unique_name}"
+        return f"migration: {self.report_name}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         """Get the PR title."""
@@ -666,7 +677,7 @@ class Migrator:
 
         Ties are sorted randomly.
         """
-        migrator_name = self.unique_name
+        migrator_name = self.report_name
 
         seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
         now = int(time.time()) * seconds_to_days
@@ -767,8 +778,8 @@ class Migrator:
         return self.__class__.name + extra_name
 
     @property
-    def unique_name(self):
-        """The unique name of the migrator used in PR attempt tracking data."""
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
         if hasattr(self, "name"):
             assert isinstance(self.name, str)
             migrator_name = self.name.lower().replace(" ", "")

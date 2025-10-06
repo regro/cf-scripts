@@ -570,7 +570,7 @@ class StaticLibMigrator(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        name = self.unique_name
+        name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
         additional_body = (
             "This PR has been triggered in an effort to update "

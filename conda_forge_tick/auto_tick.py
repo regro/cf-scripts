@@ -362,7 +362,7 @@ def _is_solvability_check_needed(
     migrator_check_solvable = getattr(migrator, "check_solvable", True)
     pr_attempts = _get_pre_pr_migrator_attempts(
         context.attrs,
-        migrator_name=migrator.unique_name,
+        migrator_name=migrator.report_name,
         is_version=isinstance(migrator, Version),
     )
     max_pr_attempts = getattr(
@@ -424,7 +424,7 @@ def _handle_solvability_error(
 
     _set_pre_pr_migrator_error(
         context.attrs,
-        migrator.unique_name,
+        migrator.report_name,
         _solver_err_str,
         is_version=isinstance(migrator, Version),
     )
@@ -473,7 +473,7 @@ def _check_and_process_solvability(
     if solvable:
         _reset_pre_pr_migrator_fields(
             context.attrs,
-            migrator.unique_name,
+            migrator.report_name,
             is_version=isinstance(migrator, Version),
         )
         return True
@@ -579,7 +579,7 @@ def run(
     ValueError
         If an unexpected response is received from the GitHub API.
     """
-    migrator_name = migrator.unique_name
+    migrator_name = migrator.report_name
     is_version_migration = isinstance(migrator, Version)
     _increment_pre_pr_migrator_attempt(
         context.attrs,
@@ -765,7 +765,7 @@ def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
             with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
                 _attempts = _get_pre_pr_migrator_attempts(
                     attrs,
-                    migrator_name=migrator.unique_name,
+                    migrator_name=migrator.report_name,
                     is_version=isinstance(migrator, Version),
                 )
                 if _attempts < max_attempts_for_share:
@@ -1038,7 +1038,7 @@ def _run_migrator(
     _mg_start = time.time()
     initial_working_dir = os.getcwd()
 
-    migrator_name = migrator.unique_name
+    migrator_name = migrator.report_name
 
     with fold_log_lines(
         f"migrations for {migrator.two_part_name}\n",

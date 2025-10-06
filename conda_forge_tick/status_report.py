@@ -168,7 +168,7 @@ def graph_migrator_status(
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Get the migrator progress for a given migrator."""
-    migrator_name = migrator.unique_name
+    migrator_name = migrator.report_name
 
     num_viz = 0
 
@@ -449,7 +449,7 @@ def main() -> None:
         if isinstance(migrator, MigrationYamlCreator):
             continue
 
-        migrator_name = migrator.unique_name
+        migrator_name = migrator.report_name
 
         print(
             "================================================================",

@@ -459,7 +459,7 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        name = self.unique_name
+        name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
