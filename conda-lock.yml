@@ -14189,7 +14189,7 @@ package:
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.6
+  version: 1.4.8
   manager: conda
   platform: linux-64
   dependencies:
@@ -14200,14 +14200,14 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.8-pyhd8ed1ab_0.conda
   hash:
-    md5: 7fd68f1237ae16298639766d3017f3ae
-    sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
+    md5: 6e9438d988afb0e21fabe7d06503aea8
+    sha256: 82300a0c537a29986c071b920d79fc42a430ba0a3bf56862a6cad9a7ac1f26fb
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.6
+  version: 1.4.8
   manager: conda
   platform: osx-64
   dependencies:
@@ -14218,14 +14218,14 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.8-pyhd8ed1ab_0.conda
   hash:
-    md5: 7fd68f1237ae16298639766d3017f3ae
-    sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
+    md5: 6e9438d988afb0e21fabe7d06503aea8
+    sha256: 82300a0c537a29986c071b920d79fc42a430ba0a3bf56862a6cad9a7ac1f26fb
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.6
+  version: 1.4.8
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -14236,10 +14236,10 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.6-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.8-pyhd8ed1ab_0.conda
   hash:
-    md5: 7fd68f1237ae16298639766d3017f3ae
-    sha256: 3a84cf1dfb1fed8e86a87ba5469bf355836fc191eb6487b3471010761574785e
+    md5: 6e9438d988afb0e21fabe7d06503aea8
+    sha256: 82300a0c537a29986c071b920d79fc42a430ba0a3bf56862a6cad9a7ac1f26fb
   category: main
   optional: false
 - name: readline
