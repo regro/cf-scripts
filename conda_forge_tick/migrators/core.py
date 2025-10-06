@@ -171,11 +171,10 @@ def _migrator_hash(klass, args, kwargs):
 
 
 def _make_migrator_lazy_json_name(mgr, data):
-    return (
-        mgr.name
-        if hasattr(mgr, "name")
-        else mgr.__class__.__name__
-        + (
+    if hasattr(mgr, "name"):
+        return mgr.report_name
+    else:
+        return mgr.report_name + (
             ""
             if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
             else "_h"
@@ -185,7 +184,6 @@ def _make_migrator_lazy_json_name(mgr, data):
                 data["kwargs"],
             )
         )
-    ).replace(" ", "_")
 
 
 def make_from_lazy_json_data(data):
@@ -251,6 +249,17 @@ class MiniMigrator:
             The node attributes
         """
         return
+
+    @property
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        return migrator_name
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
@@ -612,7 +621,7 @@ class Migrator:
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         """Create a commit message."""
-        return f"migration: {self.__class__.__name__}"
+        return f"migration: {self.report_name}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         """Get the PR title."""
@@ -668,11 +677,7 @@ class Migrator:
 
         Ties are sorted randomly.
         """
-        if hasattr(self, "name"):
-            assert isinstance(self.name, str)
-            migrator_name = self.name.lower().replace(" ", "")
-        else:
-            migrator_name = self.__class__.__name__.lower()
+        migrator_name = self.report_name
 
         seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
         now = int(time.time()) * seconds_to_days
@@ -762,14 +767,26 @@ class Migrator:
         increment = getattr(self, "bump_number", 1)
         return old_number + increment
 
-    @classmethod
-    def migrator_label(cls) -> dict:
-        # This is the label that the bot will attach to a pr made by the bot
-        return {
-            "name": f"bot-{cls.__name__.lower()}",
-            "description": (cls.__doc__ or "").strip(),
-            "color": "#6c64ff",
-        }
+    @property
+    def two_part_name(self):
+        """The two-part name of the migrator (e.g. 'MigrationYAML-python312' or 'Version')."""
+        if hasattr(self, "name") and self.name:
+            extra_name = "-%s" % self.name
+        else:
+            extra_name = ""
+
+        return self.__class__.__name__ + extra_name
+
+    @property
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        return migrator_name
 
 
 class GraphMigrator(Migrator):

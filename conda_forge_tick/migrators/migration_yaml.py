@@ -22,7 +22,6 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     get_bot_run_url,
     get_keys_default,
-    get_migrator_name,
     yaml_safe_dump,
     yaml_safe_load,
 )
@@ -460,7 +459,7 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        name = get_migrator_name(self)
+        name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
