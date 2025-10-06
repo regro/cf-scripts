@@ -64,8 +64,7 @@ from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
     get_bot_run_url,
-    get_migrator_name,
-    get_migrator_name_from_pr_data,
+    get_migrator_report_name_from_pr_data,
     load_existing_graph,
     sanitize_string,
 )
@@ -363,7 +362,7 @@ def _is_solvability_check_needed(
     migrator_check_solvable = getattr(migrator, "check_solvable", True)
     pr_attempts = _get_pre_pr_migrator_attempts(
         context.attrs,
-        migrator_name=get_migrator_name(migrator),
+        migrator_name=migrator.report_name,
         is_version=isinstance(migrator, Version),
     )
     max_pr_attempts = getattr(
@@ -425,7 +424,7 @@ def _handle_solvability_error(
 
     _set_pre_pr_migrator_error(
         context.attrs,
-        get_migrator_name(migrator),
+        migrator.report_name,
         _solver_err_str,
         is_version=isinstance(migrator, Version),
     )
@@ -474,7 +473,7 @@ def _check_and_process_solvability(
     if solvable:
         _reset_pre_pr_migrator_fields(
             context.attrs,
-            get_migrator_name(migrator),
+            migrator.report_name,
             is_version=isinstance(migrator, Version),
         )
         return True
@@ -580,7 +579,7 @@ def run(
     ValueError
         If an unexpected response is received from the GitHub API.
     """
-    migrator_name = get_migrator_name(migrator)
+    migrator_name = migrator.report_name
     is_version_migration = isinstance(migrator, Version)
     _increment_pre_pr_migrator_attempt(
         context.attrs,
@@ -766,7 +765,7 @@ def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
             with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
                 _attempts = _get_pre_pr_migrator_attempts(
                     attrs,
-                    migrator_name=get_migrator_name(migrator),
+                    migrator_name=migrator.report_name,
                     is_version=isinstance(migrator, Version),
                 )
                 if _attempts < max_attempts_for_share:
@@ -1039,19 +1038,10 @@ def _run_migrator(
     _mg_start = time.time()
     initial_working_dir = os.getcwd()
 
-    migrator_name = get_migrator_name(migrator)
-
-    if hasattr(migrator, "name"):
-        extra_name = "-%s" % migrator.name
-    else:
-        extra_name = ""
+    migrator_name = migrator.report_name
 
     with fold_log_lines(
-        "migrations for %s%s\n"
-        % (
-            migrator.__class__.__name__,
-            extra_name,
-        ),
+        f"migrations for {migrator.two_part_name}\n",
     ):
         good_prs = 0
         tried_prs = 0
@@ -1095,11 +1085,10 @@ def _run_migrator(
                 )
 
         print(
-            "found %d nodes for migration %s%s"
+            "found %d nodes for migration %s"
             % (
                 len(effective_graph.nodes),
-                migrator.__class__.__name__,
-                extra_name,
+                migrator.two_part_name,
             ),
             flush=True,
         )
@@ -1112,10 +1101,9 @@ def _run_migrator(
     for node_name in possible_nodes:
         with (
             fold_log_lines(
-                "%s%s IS MIGRATING %s"
+                "%s IS MIGRATING %s"
                 % (
-                    migrator.__class__.__name__.upper(),
-                    extra_name,
+                    migrator.two_part_name,
                     node_name,
                 )
             ),
@@ -1164,10 +1152,9 @@ def _run_migrator(
                         continue
 
                     with fold_log_lines(
-                        "%s%s IS MIGRATING %s:%s"
+                        "%s IS MIGRATING %s:%s"
                         % (
-                            migrator.__class__.__name__.upper(),
-                            extra_name,
+                            migrator.two_part_name,
                             fctx.feedstock_name,
                             base_branch,
                         )
@@ -1268,7 +1255,7 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                 migration["data"],
                             )
 
-                            __name = get_migrator_name_from_pr_data(migration)
+                            __name = get_migrator_report_name_from_pr_data(migration)
                             if __name is not None:
                                 if __pri is pri:
                                     _reset_migrator_pre_pr_migrator_fields(pri, __name)
@@ -1405,16 +1392,10 @@ def main(ctx: CliContext) -> None:
             migrators,
         )
         for i, migrator in enumerate(migrators):
-            if hasattr(migrator, "name"):
-                extra_name = "-%s" % migrator.name
-            else:
-                extra_name = ""
-
             print(
-                "    %s%s: %d to try (%d total left)- gets %f seconds (%f percent)"
+                "    %s: %d to try (%d total left)- gets %f seconds (%f percent)"
                 % (
-                    migrator.__class__.__name__,
-                    extra_name,
+                    migrator.two_part_name,
                     num_nodes_not_tried[i],
                     num_nodes[i],
                     time_per_migrator[i],

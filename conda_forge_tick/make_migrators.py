@@ -878,6 +878,39 @@ def add_nvtools_migrator(
         migrators[-1].pr_limit = pr_limit
 
 
+def _make_version_migrator(
+    gx: nx.DiGraph,
+    dry_run: bool = False,
+) -> Version:
+    with fold_log_lines("making version migrator"):
+        print("building package import maps and version migrator", flush=True)
+        python_nodes = {
+            n for n, v in gx.nodes("payload") if "python" in v.get("req", "")
+        }
+        python_nodes.update(
+            [
+                k
+                for node_name, node in gx.nodes("payload")
+                for k in node.get("outputs_names", [])
+                if node_name in python_nodes
+            ],
+        )
+        version_migrator = Version(
+            python_nodes=python_nodes,
+            total_graph=gx,
+            pr_limit=PR_LIMIT * 2,
+            piggy_back_migrations=_make_mini_migrators_with_defaults(
+                extra_mini_migrators=[
+                    PipWheelMigrator(),
+                    DependencyUpdateMigrator(python_nodes),
+                    StdlibMigrator(),
+                ],
+            ),
+        )
+
+    return version_migrator
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -914,34 +947,10 @@ def initialize_migrators(
     migration_factory(pinning_migrators, gx)
     create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
 
-    with fold_log_lines("making version migrator"):
-        print("building package import maps and version migrator", flush=True)
-        python_nodes = {
-            n for n, v in gx.nodes("payload") if "python" in v.get("req", "")
-        }
-        python_nodes.update(
-            [
-                k
-                for node_name, node in gx.nodes("payload")
-                for k in node.get("outputs_names", [])
-                if node_name in python_nodes
-            ],
-        )
-        version_migrator = Version(
-            python_nodes=python_nodes,
-            total_graph=gx,
-            pr_limit=PR_LIMIT * 2,
-            piggy_back_migrations=_make_mini_migrators_with_defaults(
-                extra_mini_migrators=[
-                    PipWheelMigrator(),
-                    DependencyUpdateMigrator(python_nodes),
-                    StdlibMigrator(),
-                ],
-            ),
-        )
+    version_migrator = _make_version_migrator(gx, dry_run=dry_run)
 
-        RNG.shuffle(pinning_migrators)
-        migrators = [version_migrator] + migrators + pinning_migrators
+    RNG.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
 
     with fold_log_lines("migration graph sizes"):
         print("rebuild migration graph sizes:", flush=True)
@@ -972,14 +981,8 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     -------
     migrators : list of Migrator
         The list of migrators to run in the correct randomized order.
-
-    Raises
-    ------
-    RuntimeError
-        If no version migrator is found in the migrators directory.
     """
     migrators = []
-    version_migrator = None
     pinning_migrators = []
     longterm_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
@@ -995,7 +998,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
                 continue
 
             if isinstance(migrator, Version):
-                version_migrator = migrator
+                pass
             elif isinstance(migrator, MigrationYamlCreator) or isinstance(
                 migrator, MigrationYaml
             ):
@@ -1006,8 +1009,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
             else:
                 migrators.append(migrator)
 
-    if version_migrator is None:
-        raise RuntimeError("No version migrator found in the migrators directory!")
+    version_migrator = _make_version_migrator(load_existing_graph())
 
     RNG.shuffle(pinning_migrators)
     RNG.shuffle(longterm_migrators)
@@ -1047,6 +1049,10 @@ def dump_migrators(migrators: MutableSequence[Migrator], dry_run: bool = False) 
         for migrator in tqdm.tqdm(
             migrators, desc="dumping migrators", ncols=80, total=len(migrators)
         ):
+            # skip dumping the version migrator since we remake it on the fly
+            if isinstance(migrator, Version):
+                continue
+
             try:
                 data = migrator.to_lazy_json_data()
                 if data["name"] in new_migrators:
