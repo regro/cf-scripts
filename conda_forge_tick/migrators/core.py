@@ -171,16 +171,19 @@ def _migrator_hash(klass, args, kwargs):
 
 
 def _make_migrator_lazy_json_name(mgr, data):
-    return mgr.report_name + (
-        ""
-        if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
-        else "_h"
-        + _migrator_hash(
-            data["class"],
-            data["args"],
-            data["kwargs"],
+    if hasattr(mgr, "name"):
+        return mgr.report_name
+    else:
+        return mgr.report_name + (
+            ""
+            if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
+            else "_h"
+            + _migrator_hash(
+                data["class"],
+                data["args"],
+                data["kwargs"],
+            )
         )
-    )
 
 
 def make_from_lazy_json_data(data):

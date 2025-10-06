@@ -129,7 +129,7 @@ def test_migrator_to_json_migration_yaml_creator(test_graph):
 
     assert data["__migrator__"] is True
     assert data["class"] == "MigrationYamlCreator"
-    assert data["name"].startswith(pname + "pinning")
+    assert data["name"] == pname + "pinning"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -155,7 +155,7 @@ def test_migrator_to_json_matplotlib_base():
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == "MatplotlibBase"
-    assert data["name"].startswith("matplotlib-to-matplotlib-base")
+    assert data["name"] == "matplotlib-to-matplotlib-base"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -181,7 +181,7 @@ def test_migrator_to_json_migration_yaml():
 
     assert data["__migrator__"] is True
     assert data["class"] == "MigrationYaml"
-    assert data["name"].startswith("hi")
+    assert data["name"] == "hi"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -208,7 +208,7 @@ def test_migrator_to_json_replacement():
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == "Replacement"
-    assert data["name"].startswith("matplotlib-to-matplotlib-base")
+    assert data["name"] == "matplotlib-to-matplotlib-base"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -235,7 +235,7 @@ def test_migrator_to_json_arch():
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == "ArchRebuild"
-    assert data["name"].startswith("aarch64andppc64leaddition")
+    assert data["name"] == "aarch64andppc64leaddition"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -262,7 +262,7 @@ def test_migrator_to_json_osx_arm():
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == "OSXArm"
-    assert data["name"].startswith("armosxaddition")
+    assert data["name"] == "armosxaddition"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -289,7 +289,7 @@ def test_migrator_to_json_win_arm64():
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == "WinArm64"
-    assert data["name"].startswith("supportwindowsarm64platform")
+    assert data["name"] == "supportwindowsarm64platform"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
@@ -315,7 +315,7 @@ def test_migrator_to_json_others(klass):
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
     assert data["class"] == klass.__name__
-    assert data["name"].startswith(migrator.name.lower().replace(" ", ""))
+    assert data["name"] == migrator.name.lower().replace(" ", "")
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
