@@ -14153,42 +14153,42 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.48.0
+  version: 0.47.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    openssl: '>=3.5.4,<4.0a0'
+    openssl: '>=3.5.3,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.48.0-h60886be_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.1-h60886be_0.conda
   hash:
-    md5: 698681ef93c9d82935b082c3d1a429d5
-    sha256: 15af4088e70f43b4d0c14c309ee1047943949044a65b71cc847f6be6810e18ff
+    md5: b1ecad9508aa5523751df500e54284a8
+    sha256: 4730229fa76c24691de2a7421a8211dce90e0fc95b20e3606786ee54895f3fe8
   category: main
   optional: false
 - name: rattler-build
-  version: 0.48.0
+  version: 0.47.1
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.48.0-h9113d71_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.47.1-h9113d71_0.conda
   hash:
-    md5: 55dac41c36231268e443d3c4654775a6
-    sha256: fb25d3b2e84577fc91f4f59fc5cbe422ee6d9585be2e0e77a32955ffd40f434e
+    md5: ada75e77b4397753cec56166bf4a1e96
+    sha256: 12cd35b8782630a1719f512c9079e98ed56d0558d8a530b1fb8bc49414f531c9
   category: main
   optional: false
 - name: rattler-build
-  version: 0.48.0
+  version: 0.47.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.48.0-h8d80559_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.47.1-h8d80559_0.conda
   hash:
-    md5: 1fa436db1566f55c5bb9b325c2f89d65
-    sha256: 1c5a5ba47e5f3ea6ed437de96fcea4c0977770d2bc0e97ffca553e1b8a918a73
+    md5: 962eddefe8c786fe5044a96948b8b44b
+    sha256: 116333d2860b4438a1a7b2afc65bc1d761a9b5347a0a75d87e97c828a6fd78b1
   category: main
   optional: false
 - name: rattler-build-conda-compat
