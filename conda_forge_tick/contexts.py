@@ -103,6 +103,28 @@ class FeedstockContext:
                 local_clone_dir=local_clone_dir,
             )
 
+    @contextmanager
+    def with_attrs_branch(self, base_branch: str) -> Iterator[FeedstockContext]:
+        """Set the "branch" key in the feedstock `attrs` property to `base_branch`
+        temporarily, restoring the state of `attrs` on exit.
+        """
+        # record current state
+        if "branch" in self.attrs:
+            has_attrs_branch = True
+            orig_branch = self.attrs["branch"]
+        else:
+            has_attrs_branch = False
+
+        self.attrs["branch"] = base_branch
+
+        yield self
+
+        # reset branch
+        if has_attrs_branch:
+            self.attrs["branch"] = orig_branch
+        else:
+            del self.attrs["branch"]
+
 
 @dataclass(frozen=True, kw_only=True)
 class ClonedFeedstockContext(FeedstockContext):
