@@ -1117,12 +1117,6 @@ def _run_migrator(
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
-            if "branch" in attrs:
-                has_attrs_branch = True
-                orig_branch = attrs.get("branch")
-            else:
-                has_attrs_branch = False
-                orig_branch = None
 
             fctx = FeedstockContext(
                 feedstock_name=attrs["feedstock_name"],
@@ -1137,46 +1131,44 @@ def _run_migrator(
 
             try:
                 for base_branch in base_branches:
-                    # skip things that do not get migrated
-                    attrs["branch"] = base_branch
-                    if migrator.filter(attrs):
-                        if (
-                            logging.getLogger("conda_forge_tick").getEffectiveLevel()
-                            > logging.DEBUG
+                    with fctx.with_attrs_branch(base_branch):
+                        # skip things that do not get migrated
+                        if migrator.filter(attrs):
+                            if (
+                                logging.getLogger(
+                                    "conda_forge_tick"
+                                ).getEffectiveLevel()
+                                > logging.DEBUG
+                            ):
+                                with change_log_level("conda_forge_tick", "DEBUG"):
+                                    migrator.filter(attrs)
+                            logger.info(
+                                "skipping node %s w/ branch %s", node_name, base_branch
+                            )
+                            continue
+
+                        with fold_log_lines(
+                            "%s IS MIGRATING %s:%s"
+                            % (
+                                migrator.two_part_name,
+                                fctx.feedstock_name,
+                                base_branch,
+                            )
                         ):
-                            with change_log_level("conda_forge_tick", "DEBUG"):
-                                migrator.filter(attrs)
-                        logger.info(
-                            "skipping node %s w/ branch %s", node_name, base_branch
-                        )
-                        continue
-
-                    with fold_log_lines(
-                        "%s IS MIGRATING %s:%s"
-                        % (
-                            migrator.two_part_name,
-                            fctx.feedstock_name,
-                            base_branch,
-                        )
-                    ):
-                        tried_prs += 1
-                        good_prs, break_loop = _run_migrator_on_feedstock_branch(
-                            attrs=attrs,
-                            base_branch=base_branch,
-                            migrator=migrator,
-                            fctx=fctx,
-                            git_backend=git_backend,
-                            mctx=mctx,
-                            migrator_name=migrator_name,
-                            good_prs=good_prs,
-                        )
-                        if break_loop:
-                            break
+                            tried_prs += 1
+                            good_prs, break_loop = _run_migrator_on_feedstock_branch(
+                                attrs=attrs,
+                                base_branch=base_branch,
+                                migrator=migrator,
+                                fctx=fctx,
+                                git_backend=git_backend,
+                                mctx=mctx,
+                                migrator_name=migrator_name,
+                                good_prs=good_prs,
+                            )
+                            if break_loop:
+                                break
             finally:
-                # reset branch
-                if has_attrs_branch:
-                    attrs["branch"] = orig_branch
-
                 # do this but it is crazy
                 gc.collect()
 

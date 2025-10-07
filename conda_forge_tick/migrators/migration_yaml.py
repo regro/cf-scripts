@@ -547,8 +547,11 @@ class MigrationYaml(GraphMigrator):
             add_slug = ""
 
         title = self.commit_message(feedstock_ctx).splitlines()[0]
-
-        return add_slug + title
+        branch = feedstock_ctx.attrs.get("branch", "main")
+        if branch not in ["main", "master"]:
+            return add_slug + f"[`{branch}`] " + title
+        else:
+            return add_slug + title
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
