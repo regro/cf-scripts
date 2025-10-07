@@ -11517,44 +11517,44 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.55.0
+  version: 0.56.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-    openssl: '>=3.5.2,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.55.0-h3760c50_0.conda
+    openssl: '>=3.5.4,<4.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.56.0-h3760c50_0.conda
   hash:
-    md5: 2aad3a772287c570cc6dcb54374e3ae9
-    sha256: cbe5a86994e8335f64e649bbc598b0636e47dbbae01514085182f6ddbaaf368b
+    md5: a983a26f613223783d173fdb7b07176c
+    sha256: 792c71d908567e4db8a29847a19828afb6765af1cc241f64c08caa7e14f76531
   category: main
   optional: false
 - name: pixi
-  version: 0.55.0
+  version: 0.56.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-64/pixi-0.55.0-h0a75221_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pixi-0.56.0-h0a75221_0.conda
   hash:
-    md5: e99aa8af387d9687358482dbb7075329
-    sha256: 662702f24de21357bbe99c8e55c64178ec743df686c8ffddd022886c04b4ab20
+    md5: 3628d6ddd5b9b58917f2b38375daf61f
+    sha256: 2dcd1df520e7e70ec4b253669a65c1cbbe5ee6210ad235de2bce5b7071ef54f6
   category: main
   optional: false
 - name: pixi
-  version: 0.55.0
+  version: 0.56.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.55.0-h42c5e41_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.56.0-h42c5e41_0.conda
   hash:
-    md5: 8e3385e42e5c99518f1388bd16539838
-    sha256: b8e40aaf8bca23f77f410a9b2485f5779bc1425b2652985f122cd75052476ff3
+    md5: 27fb43e2a98d0fd976bf09e1e4088bbd
+    sha256: 731d49be5c8e7b4daa75739fb0e533a94492daf798d225f964b0bacc5293d1e3
   category: main
   optional: false
 - name: pixman
@@ -14153,42 +14153,42 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.1
+  version: 0.48.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    openssl: '>=3.5.3,<4.0a0'
+    openssl: '>=3.5.4,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.1-h60886be_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.48.0-h60886be_0.conda
   hash:
-    md5: b1ecad9508aa5523751df500e54284a8
-    sha256: 4730229fa76c24691de2a7421a8211dce90e0fc95b20e3606786ee54895f3fe8
+    md5: 698681ef93c9d82935b082c3d1a429d5
+    sha256: 15af4088e70f43b4d0c14c309ee1047943949044a65b71cc847f6be6810e18ff
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.1
+  version: 0.48.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.47.1-h9113d71_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.48.0-h9113d71_0.conda
   hash:
-    md5: ada75e77b4397753cec56166bf4a1e96
-    sha256: 12cd35b8782630a1719f512c9079e98ed56d0558d8a530b1fb8bc49414f531c9
+    md5: 55dac41c36231268e443d3c4654775a6
+    sha256: fb25d3b2e84577fc91f4f59fc5cbe422ee6d9585be2e0e77a32955ffd40f434e
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.1
+  version: 0.48.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.47.1-h8d80559_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.48.0-h8d80559_0.conda
   hash:
-    md5: 962eddefe8c786fe5044a96948b8b44b
-    sha256: 116333d2860b4438a1a7b2afc65bc1d761a9b5347a0a75d87e97c828a6fd78b1
+    md5: 1fa436db1566f55c5bb9b325c2f89d65
+    sha256: 1c5a5ba47e5f3ea6ed437de96fcea4c0977770d2bc0e97ffca553e1b8a918a73
   category: main
   optional: false
 - name: rattler-build-conda-compat
