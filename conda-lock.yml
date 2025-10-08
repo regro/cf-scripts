@@ -14153,18 +14153,18 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.47.1
+  version: 0.48.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    openssl: '>=3.5.3,<4.0a0'
+    openssl: '>=3.5.4,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.47.1-h60886be_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.48.1-h60886be_0.conda
   hash:
-    md5: b1ecad9508aa5523751df500e54284a8
-    sha256: 4730229fa76c24691de2a7421a8211dce90e0fc95b20e3606786ee54895f3fe8
+    md5: d177d6e10968344d682cad9543793d0e
+    sha256: cc788e52f2a110067691df47019792af2b221117a8fe1e47e573de38ce68e9c2
   category: main
   optional: false
 - name: rattler-build
