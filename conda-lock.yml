@@ -12389,42 +12389,42 @@ package:
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.10.5
+  version: 2.10.6
   manager: conda
   platform: linux-64
   dependencies:
     pydantic: '>=2.5.2'
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: 0c628c32458ba07d5b08499e4d001ad8
-    sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.10.5
+  version: 2.10.6
   manager: conda
   platform: osx-64
   dependencies:
     pydantic: '>=2.5.2'
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: 0c628c32458ba07d5b08499e4d001ad8
-    sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.10.5
+  version: 2.10.6
   manager: conda
   platform: osx-arm64
   dependencies:
     pydantic: '>=2.5.2'
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.5-pyh3cfb1c2_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: 0c628c32458ba07d5b08499e4d001ad8
-    sha256: 53255cd725f9574788c97c177fefe3a13b8d08343833fd5422451a51754ddd10
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-settings
