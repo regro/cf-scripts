@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import github
 import github3
-import github3.repos
 import networkx as nx
 import orjson
 import tqdm

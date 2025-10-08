@@ -149,7 +149,7 @@ about:
   summary: |
     Multithreaded serialization of compressed data frames using the 'fst' format. The
     'fst' format allows for random access of stored data and compression with the LZ4
-    and ZSTD compressors created by Yann Collet. The ZSTD compression library is owned
+    and ZSTD compressors created by Yann Collect. The ZSTD compression library is owned
     by Facebook Inc.
   license_family: AGPL
 
@@ -161,10 +161,10 @@ extra:
 # Package: fst
 # Type: Package
 # Title: Lightning Fast Serialization of Data Frames for R
-# Description: Multithreaded serialization of compressed data frames using the 'fst' format. The 'fst' format allows for random access of stored data and compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD compression library is owned by Facebook Inc.
+# Description: Multithreaded serialization of compressed data frames using the 'fst' format. The 'fst' format allows for random access of stored data and compression with the LZ4 and ZSTD compressors created by Yann Collect. The ZSTD compression library is owned by Facebook Inc.
 # Version: 0.9.0
 # Date: 2019-04-02
-# Authors@R: c( person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")), person("Yann", "Collet", role = c("ctb", "cph"), comment = "Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"), person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
+# Authors@R: c( person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")), person("Yann", "Collect", role = c("ctb", "cph"), comment = "Yann Collect is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"), person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
 # LazyData: true
 # Depends: R (>= 3.0.0)
 # Imports: Rcpp
@@ -173,12 +173,12 @@ extra:
 # RoxygenNote: 6.1.1
 # Suggests: testthat, bit64, data.table, lintr, nanotime, crayon
 # License: AGPL-3 | file LICENSE
-# Copyright: This package includes sources from the LZ4 library written by Yann Collet, sources of the ZSTD library owned by Facebook, Inc. and sources of the fstlib library owned by Mark Klik
+# Copyright: This package includes sources from the LZ4 library written by Yann Collect, sources of the ZSTD library owned by Facebook, Inc. and sources of the fstlib library owned by Mark Klik
 # URL: https://fstpackage.github.io
 # BugReports: https://github.com/fstpackage/fst/issues
 # NeedsCompilation: yes
 # Packaged: 2019-04-02 12:51:58 UTC; Mark
-# Author: Mark Klik [aut, cre, cph], Yann Collet [ctb, cph] (Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4), Facebook, Inc. [cph] (Bundled ZSTD code)
+# Author: Mark Klik [aut, cre, cph], Yann Collect [ctb, cph] (Yann Collect is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4), Facebook, Inc. [cph] (Bundled ZSTD code)
 # Maintainer: Mark Klik <markklik@gmail.com>
 # Repository: CRAN
 # Date/Publication: 2019-04-09 04:43:13 UTC
@@ -238,7 +238,7 @@ about:
   summary: |
     Multithreaded serialization of compressed data frames using the 'fst' format. The
     'fst' format allows for random access of stored data and compression with the LZ4
-    and ZSTD compressors created by Yann Collet. The ZSTD compression library is owned
+    and ZSTD compressors created by Yann Collect. The ZSTD compression library is owned
     by Facebook Inc.
   license_family: AGPL
 
@@ -253,10 +253,10 @@ extra:
 # Package: fst
 # Type: Package
 # Title: Lightning Fast Serialization of Data Frames for R
-# Description: Multithreaded serialization of compressed data frames using the 'fst' format. The 'fst' format allows for random access of stored data and compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD compression library is owned by Facebook Inc.
+# Description: Multithreaded serialization of compressed data frames using the 'fst' format. The 'fst' format allows for random access of stored data and compression with the LZ4 and ZSTD compressors created by Yann Collect. The ZSTD compression library is owned by Facebook Inc.
 # Version: 0.9.0
 # Date: 2019-04-02
-# Authors@R: c( person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")), person("Yann", "Collet", role = c("ctb", "cph"), comment = "Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"), person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
+# Authors@R: c( person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")), person("Yann", "Collect", role = c("ctb", "cph"), comment = "Yann Collect is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"), person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
 # LazyData: true
 # Depends: R (>= 3.0.0)
 # Imports: Rcpp
@@ -265,12 +265,12 @@ extra:
 # RoxygenNote: 6.1.1
 # Suggests: testthat, bit64, data.table, lintr, nanotime, crayon
 # License: AGPL-3 | file LICENSE
-# Copyright: This package includes sources from the LZ4 library written by Yann Collet, sources of the ZSTD library owned by Facebook, Inc. and sources of the fstlib library owned by Mark Klik
+# Copyright: This package includes sources from the LZ4 library written by Yann Collect, sources of the ZSTD library owned by Facebook, Inc. and sources of the fstlib library owned by Mark Klik
 # URL: https://fstpackage.github.io
 # BugReports: https://github.com/fstpackage/fst/issues
 # NeedsCompilation: yes
 # Packaged: 2019-04-02 12:51:58 UTC; Mark
-# Author: Mark Klik [aut, cre, cph], Yann Collet [ctb, cph] (Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4), Facebook, Inc. [cph] (Bundled ZSTD code)
+# Author: Mark Klik [aut, cre, cph], Yann Collect [ctb, cph] (Yann Collect is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4), Facebook, Inc. [cph] (Bundled ZSTD code)
 # Maintainer: Mark Klik <markklik@gmail.com>
 # Repository: CRAN
 # Date/Publication: 2019-04-09 04:43:13 UTC
