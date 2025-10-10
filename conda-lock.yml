@@ -1832,7 +1832,7 @@ package:
   category: main
   optional: false
 - name: conda
-  version: 25.9.0
+  version: 25.9.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1857,14 +1857,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.9.0-py311h38be061_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.9.1-py311h38be061_0.conda
   hash:
-    md5: a4effcdfc65758ccbcfeb0ae7ef9a29f
-    sha256: fdb5af1da8af0e9edb8de1b57117503059ce974a61a9d8e033eeaf9d7ff68782
+    md5: 6d2e5856a4a3d51370c750938e9d502a
+    sha256: 3afe2757f8d4885dca575fd33a41521548955ba18ae77199dd6103787e5766b6
   category: main
   optional: false
 - name: conda
-  version: 25.9.0
+  version: 25.9.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -1889,14 +1889,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.9.0-py311h6eed73b_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.9.1-py311h6eed73b_0.conda
   hash:
-    md5: dce74c26eeb822d876fbb1ba057ced69
-    sha256: 8a9663f28d9f39babbbae2b1ad48d2f69f45b7dc6ff76760bb648611124661ec
+    md5: ff30dcb66e170a0cf422efd0edf0317b
+    sha256: 506d15da6c4e7a7188e98e8cc6d8e178ae6ee74e957008161b91969bfb36034f
   category: main
   optional: false
 - name: conda
-  version: 25.9.0
+  version: 25.9.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1921,10 +1921,10 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.9.0-py311h267d04e_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.9.1-py311h267d04e_0.conda
   hash:
-    md5: fcb06050273964ae63077821ea4003c3
-    sha256: 066b92c7f2468539be74e2e171b57b12489a3c4ddd02860b84704a5afde74eac
+    md5: f7f7212b5dbe17c53562609f5b884b91
+    sha256: 2ce0c6e4640acbf096d780ed39e722dbab4af5c89caf5c8d04ab7a5ec28cba26
   category: main
   optional: false
 - name: conda-build
@@ -8686,17 +8686,17 @@ package:
     libgcc: '>=14'
     libsolv: '>=0.7.35,<0.8.0a0'
     libstdcxx: '>=14'
-    nlohmann_json: '>=3.11.3,<3.11.4.0a0'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     simdjson: '>=4.0.7,<4.1.0a0'
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libmamba-2.3.2-hae34dd5_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libmamba-2.3.2-hae34dd5_2.conda
   hash:
-    md5: 0d007783a3bc981d98613023c5024b95
-    sha256: 076c794defe20c4ba4700903b182a210b9f57409ef6accb952debfd84f09e3df
+    md5: b0cfdfd4632cc769a1ca211ecfc1093c
+    sha256: 8d6f1cae31cf9f672e9ccac00d0660bcc13c4457466996247e97e53b1137e68a
   category: main
   optional: false
 - name: libmamba
@@ -8711,17 +8711,17 @@ package:
     libcurl: '>=8.14.1,<9.0a0'
     libcxx: '>=19'
     libsolv: '>=0.7.35,<0.8.0a0'
-    nlohmann_json: '>=3.11.3,<3.11.4.0a0'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     simdjson: '>=4.0.7,<4.1.0a0'
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libmamba-2.3.2-h87c5c07_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libmamba-2.3.2-h87c5c07_2.conda
   hash:
-    md5: 00f80a8ef58290fa39c1ed64568b9d4f
-    sha256: 6388d40d312f7da0c520ce31d702152974003ce33fa8bb0469be7e0706fbc475
+    md5: bd39faa7663078df078e5c1638c630a6
+    sha256: 154b80716e44683ea677ca97e232b2aa0bc07970654c1e74926ebcd32f4b1f16
   category: main
   optional: false
 - name: libmamba
@@ -8736,17 +8736,17 @@ package:
     libcurl: '>=8.14.1,<9.0a0'
     libcxx: '>=19'
     libsolv: '>=0.7.35,<0.8.0a0'
-    nlohmann_json: '>=3.11.3,<3.11.4.0a0'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     simdjson: '>=4.0.7,<4.1.0a0'
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-2.3.2-hbdbd6ab_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-2.3.2-hbdbd6ab_2.conda
   hash:
-    md5: f0b199b611aaeb4879d39a435ec941f2
-    sha256: e00ec157942d5e5a868f52f35d82454a59f1eff887c8d75c717a6e7988a4578b
+    md5: 5270e0d1466fb043bfaeeb293f575c93
+    sha256: 84ad7ecb3d752cf9f562730b190410d2ad15ab83b19983421f08491e8cd3812f
   category: main
   optional: false
 - name: libmambapy
@@ -8759,16 +8759,17 @@ package:
     libgcc: '>=14'
     libmamba: '>=2.3.2,<2.4.0a0'
     libstdcxx: '>=14'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     pybind11-abi: '4'
     python: ''
     python_abi: 3.11.*
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libmambapy-2.3.2-py311ha3794d1_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libmambapy-2.3.2-py311h52fc1f4_2.conda
   hash:
-    md5: fe0010f19c1bf50fffe517c6978bbd71
-    sha256: f70cf0cbb5cf73b8ecd27227d7ad8a30d518054253e9921121e4bbd5b2abe6d3
+    md5: bbd22564bc6a3c1ab444cb44da546efc
+    sha256: 0c71fe26a7fa5cdb3e9b284b35dc737f8fd51b1ef4f8b88bc0be1d23a553df21
   category: main
   optional: false
 - name: libmambapy
@@ -8780,16 +8781,17 @@ package:
     fmt: '>=11.2.0,<11.3.0a0'
     libcxx: '>=19'
     libmamba: '>=2.3.2,<2.4.0a0'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     pybind11-abi: '4'
     python: ''
     python_abi: 3.11.*
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libmambapy-2.3.2-py311hfa1bd04_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libmambapy-2.3.2-py311h2207124_2.conda
   hash:
-    md5: 4914a7aadc5a0828588158e6800f42a0
-    sha256: 5316e391d8d5fd38dc1f598d3eb460d3708df80146434c8cb66dce7539a36c73
+    md5: f2f339411e425768d43ced234ce27073
+    sha256: 964581e0318f052ef8dfc55b818fa0b00fdf0c4e8679452966e9ce64d74ffe11
   category: main
   optional: false
 - name: libmambapy
@@ -8801,16 +8803,17 @@ package:
     fmt: '>=11.2.0,<11.3.0a0'
     libcxx: '>=19'
     libmamba: '>=2.3.2,<2.4.0a0'
+    nlohmann_json-abi: 3.12.0
     openssl: '>=3.5.4,<4.0a0'
     pybind11-abi: '4'
     python: 3.11.*
     python_abi: 3.11.*
     yaml-cpp: '>=0.8.0,<0.9.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libmambapy-2.3.2-py311h84d1de4_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libmambapy-2.3.2-py311he8fd636_2.conda
   hash:
-    md5: f8cf9fc55d00bb8dcaba2574d7060987
-    sha256: d711fdfb55303d45155c8032e9ee8a07bfb4043a1636de27f27c798d0e6d916d
+    md5: 8566bec5bb1e34520bc81854196c8657
+    sha256: a7181d6d25824a32f6d237b58cd48b4ca6a6852c639fcadfeaece2e93c28da3a
   category: main
   optional: false
 - name: libnghttp2
@@ -9890,10 +9893,10 @@ package:
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/mamba-2.3.2-h56e88d8_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/mamba-2.3.2-h4a52834_2.conda
   hash:
-    md5: 2d6c28689994049979979c40c930c603
-    sha256: 7333c65077ee9acd3b490c16b0c742ba9aa75dc617a3b27dd1e2459127935456
+    md5: 0e6c861326fd1fe1bed0d840c142d736
+    sha256: 9743e65e5945e2ea9efa06dc049ba69324156e863c55f5b5a7b5cf206447d744
   category: main
   optional: false
 - name: mamba
@@ -9907,10 +9910,10 @@ package:
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/mamba-2.3.2-h5355ebf_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/mamba-2.3.2-hbfd6720_2.conda
   hash:
-    md5: a54e70f89f17545b89c27687dee6f507
-    sha256: e06156f4529aa493caf54328db271926f584d8b7ad2a1d7b0310a3cb2cf8a2aa
+    md5: c09a48f9d95f554a535923bf84b8d138
+    sha256: f6d5a874e8a49bf562fd4d8a70854a769243e33fb23467231398b9826e2755df
   category: main
   optional: false
 - name: mamba
@@ -9924,10 +9927,10 @@ package:
     reproc: '>=14.2,<15.0a0'
     reproc-cpp: '>=14.2,<15.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/mamba-2.3.2-h23fd3a7_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/mamba-2.3.2-h4b78589_2.conda
   hash:
-    md5: 09ba43478da4db8528c1b15239c5f9f1
-    sha256: 82cd5bc18e82d68406de68ec9ed10661b5725537198e72a6db25cb13907c4632
+    md5: 048c139db0ec86ae92f22f40d65e78c6
+    sha256: 4745da5f9c351bc7ec3cf0071f3860c13872f8ef7fc32ab48a1a00e2a9a37df0
   category: main
   optional: false
 - name: markdown-it-py
@@ -10652,44 +10655,37 @@ package:
     sha256: 02019191a2597865940394ff42418b37bc585a03a1c643d7cea9981774de2128
   category: main
   optional: false
-- name: nlohmann_json
-  version: 3.11.3
+- name: nlohmann_json-abi
+  version: 3.12.0
   manager: conda
   platform: linux-64
-  dependencies:
-    __glibc: '>=2.17,<3.0.a0'
-    libgcc-ng: '>=12'
-    libstdcxx-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/nlohmann_json-3.11.3-he02047a_1.conda
+  dependencies: {}
+  url: https://conda.anaconda.org/conda-forge/noarch/nlohmann_json-abi-3.12.0-h0f90c79_1.conda
   hash:
-    md5: e46f7ac4917215b49df2ea09a694a3fa
-    sha256: ce4bcced4f8eea71b7cac8bc3daac097abf7a5792f278cd811dedada199500c1
+    md5: 59659d0213082bc13be8500bab80c002
+    sha256: 2a909594ca78843258e4bda36e43d165cda844743329838a29402823c8f20dec
   category: main
   optional: false
-- name: nlohmann_json
-  version: 3.11.3
+- name: nlohmann_json-abi
+  version: 3.12.0
   manager: conda
   platform: osx-64
-  dependencies:
-    __osx: '>=10.13'
-    libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-64/nlohmann_json-3.11.3-hf036a51_1.conda
+  dependencies: {}
+  url: https://conda.anaconda.org/conda-forge/noarch/nlohmann_json-abi-3.12.0-h0f90c79_1.conda
   hash:
-    md5: 00c3efa95b3a010ee85bc36aac6ab2f6
-    sha256: 41b1aa2a67654917c9c32a5f0111970b11cfce49ed57cf44bba4aefdcd59e54b
+    md5: 59659d0213082bc13be8500bab80c002
+    sha256: 2a909594ca78843258e4bda36e43d165cda844743329838a29402823c8f20dec
   category: main
   optional: false
-- name: nlohmann_json
-  version: 3.11.3
+- name: nlohmann_json-abi
+  version: 3.12.0
   manager: conda
   platform: osx-arm64
-  dependencies:
-    __osx: '>=11.0'
-    libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/nlohmann_json-3.11.3-h00cdb27_1.conda
+  dependencies: {}
+  url: https://conda.anaconda.org/conda-forge/noarch/nlohmann_json-abi-3.12.0-h0f90c79_1.conda
   hash:
-    md5: d2dee849c806430eee64d3acc98ce090
-    sha256: 3f4e6a4fa074bb297855f8111ab974dab6d9f98b7d4317d4dd46f8687ee2363b
+    md5: 59659d0213082bc13be8500bab80c002
+    sha256: 2a909594ca78843258e4bda36e43d165cda844743329838a29402823c8f20dec
   category: main
   optional: false
 - name: nodeenv
