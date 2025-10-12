@@ -186,10 +186,11 @@ class CombineV1ConditionsMigrator(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         recipe_path = Path(recipe_dir) / "recipe.yaml"
         parser = _get_yaml_parser(typ="rt")
-        with recipe_path.open() as f:
-            yaml = parser.load(f)
+        if recipe_path.exists():
+            with recipe_path.open() as f:
+                yaml = parser.load(f)
 
-        yaml = combine_conditions(yaml)
+            yaml = combine_conditions(yaml)
 
-        with recipe_path.open("w") as f:
-            parser.dump(yaml, f)
+            with recipe_path.open("w") as f:
+                parser.dump(yaml, f)
