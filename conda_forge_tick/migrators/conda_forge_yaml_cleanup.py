@@ -45,7 +45,6 @@ class CondaForgeYAMLCleanup(MiniMigrator):
             smithy_yaml = smithy_get_yaml(allow_duplicate_keys=True)
             with open(cfg_path) as fp:
                 cfg = smithy_yaml.load(fp.read())
-            smithy_yaml = smithy_get_yaml(allow_duplicate_keys=False)
             with open(cfg_path, "w") as fp:
                 smithy_yaml.dump(cfg, fp)
 
