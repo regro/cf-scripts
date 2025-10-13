@@ -15074,90 +15074,90 @@ package:
   category: main
   optional: false
 - name: setuptools-scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: linux-64
   dependencies:
     importlib-metadata: ''
     packaging: '>=20.0'
-    python: '>=3.9'
+    python: '>=3.10'
     setuptools: '>=45'
     tomli: '>=1.0.0'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.1-pyhd8ed1ab_0.conda
   hash:
-    md5: ad8f901272d56cfb6bf22bb89e9be59b
-    sha256: 3cfaa3ab1a96fb9bd8debb007604d93576cfa5ec57c01d44567fc5a8b6cf414c
+    md5: bad3afa4af7915d6cbda6aab33ab5bb5
+    sha256: 3d5512288748f24160d766a6ad4cf1a950e95c29b253fd880d554610307b5a2a
   category: main
   optional: false
 - name: setuptools-scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: osx-64
   dependencies:
     importlib-metadata: ''
     packaging: '>=20.0'
-    python: '>=3.9'
+    python: '>=3.10'
     setuptools: '>=45'
     tomli: '>=1.0.0'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.1-pyhd8ed1ab_0.conda
   hash:
-    md5: ad8f901272d56cfb6bf22bb89e9be59b
-    sha256: 3cfaa3ab1a96fb9bd8debb007604d93576cfa5ec57c01d44567fc5a8b6cf414c
+    md5: bad3afa4af7915d6cbda6aab33ab5bb5
+    sha256: 3d5512288748f24160d766a6ad4cf1a950e95c29b253fd880d554610307b5a2a
   category: main
   optional: false
 - name: setuptools-scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: osx-arm64
   dependencies:
     importlib-metadata: ''
     packaging: '>=20.0'
-    python: '>=3.9'
+    python: '>=3.10'
     setuptools: '>=45'
     tomli: '>=1.0.0'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-scm-9.2.1-pyhd8ed1ab_0.conda
   hash:
-    md5: ad8f901272d56cfb6bf22bb89e9be59b
-    sha256: 3cfaa3ab1a96fb9bd8debb007604d93576cfa5ec57c01d44567fc5a8b6cf414c
+    md5: bad3afa4af7915d6cbda6aab33ab5bb5
+    sha256: 3d5512288748f24160d766a6ad4cf1a950e95c29b253fd880d554610307b5a2a
   category: main
   optional: false
 - name: setuptools_scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: linux-64
   dependencies:
-    setuptools-scm: '>=9.2.0,<9.2.1.0a0'
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.0-hd8ed1ab_0.conda
+    setuptools-scm: '>=9.2.1,<9.2.2.0a0'
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.1-hd8ed1ab_0.conda
   hash:
-    md5: 03323fba6896975dc9ffae39b547c31b
-    sha256: 882907682ef3f4bb2f620f77714ccd04a7509e3f747e67038b416c25547fdb41
+    md5: e88b7b03fe9d1acd415bb4488307c1ad
+    sha256: f5997ca89dca69ea655ab55be98dc16698cf2b534d6a7b2243656b73566c916f
   category: main
   optional: false
 - name: setuptools_scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: osx-64
   dependencies:
-    setuptools-scm: '>=9.2.0,<9.2.1.0a0'
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.0-hd8ed1ab_0.conda
+    setuptools-scm: '>=9.2.1,<9.2.2.0a0'
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.1-hd8ed1ab_0.conda
   hash:
-    md5: 03323fba6896975dc9ffae39b547c31b
-    sha256: 882907682ef3f4bb2f620f77714ccd04a7509e3f747e67038b416c25547fdb41
+    md5: e88b7b03fe9d1acd415bb4488307c1ad
+    sha256: f5997ca89dca69ea655ab55be98dc16698cf2b534d6a7b2243656b73566c916f
   category: main
   optional: false
 - name: setuptools_scm
-  version: 9.2.0
+  version: 9.2.1
   manager: conda
   platform: osx-arm64
   dependencies:
-    setuptools-scm: '>=9.2.0,<9.2.1.0a0'
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.0-hd8ed1ab_0.conda
+    setuptools-scm: '>=9.2.1,<9.2.2.0a0'
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools_scm-9.2.1-hd8ed1ab_0.conda
   hash:
-    md5: 03323fba6896975dc9ffae39b547c31b
-    sha256: 882907682ef3f4bb2f620f77714ccd04a7509e3f747e67038b416c25547fdb41
+    md5: e88b7b03fe9d1acd415bb4488307c1ad
+    sha256: f5997ca89dca69ea655ab55be98dc16698cf2b534d6a7b2243656b73566c916f
   category: main
   optional: false
 - name: sgmllib3k
