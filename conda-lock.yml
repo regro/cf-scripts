@@ -1553,39 +1553,39 @@ package:
   category: main
   optional: false
 - name: charset-normalizer
-  version: 3.4.3
+  version: 3.4.4
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.3-pyhd8ed1ab_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 7e7d5ef1b9ed630e4a1c358d6bc62284
-    sha256: 838d5a011f0e7422be6427becba3de743c78f3874ad2743c341accbba9bb2624
+    md5: a22d1fd9bf98827e280a02875d9a007a
+    sha256: b32f8362e885f1b8417bac2b3da4db7323faa12d5db62b7fd6691c02d60d6f59
   category: main
   optional: false
 - name: charset-normalizer
-  version: 3.4.3
+  version: 3.4.4
   manager: conda
   platform: osx-64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.3-pyhd8ed1ab_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 7e7d5ef1b9ed630e4a1c358d6bc62284
-    sha256: 838d5a011f0e7422be6427becba3de743c78f3874ad2743c341accbba9bb2624
+    md5: a22d1fd9bf98827e280a02875d9a007a
+    sha256: b32f8362e885f1b8417bac2b3da4db7323faa12d5db62b7fd6691c02d60d6f59
   category: main
   optional: false
 - name: charset-normalizer
-  version: 3.4.3
+  version: 3.4.4
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.3-pyhd8ed1ab_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/charset-normalizer-3.4.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 7e7d5ef1b9ed630e4a1c358d6bc62284
-    sha256: 838d5a011f0e7422be6427becba3de743c78f3874ad2743c341accbba9bb2624
+    md5: a22d1fd9bf98827e280a02875d9a007a
+    sha256: b32f8362e885f1b8417bac2b3da4db7323faa12d5db62b7fd6691c02d60d6f59
   category: main
   optional: false
 - name: cirun
@@ -2234,36 +2234,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.13.17.18.10
+  version: 2025.10.14.10.19.06
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.13.17.18.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.14.10.19.06-hd8ed1ab_0.conda
   hash:
-    md5: c9ae0863cf990e3e5793959a4a1d6655
-    sha256: 751f2b2cbd1ad5d1df2fe3e5fd9b85b09b7afcf54bfe046caca25cf51adca8f5
+    md5: 93c620ae6a01799092841360edc2b3b9
+    sha256: 1c5d8935741fe31f5606597a61f962913ae3aa5e81767a693159a9a68afd2eec
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.13.17.18.10
+  version: 2025.10.14.10.19.06
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.13.17.18.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.14.10.19.06-hd8ed1ab_0.conda
   hash:
-    md5: c9ae0863cf990e3e5793959a4a1d6655
-    sha256: 751f2b2cbd1ad5d1df2fe3e5fd9b85b09b7afcf54bfe046caca25cf51adca8f5
+    md5: 93c620ae6a01799092841360edc2b3b9
+    sha256: 1c5d8935741fe31f5606597a61f962913ae3aa5e81767a693159a9a68afd2eec
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.13.17.18.10
+  version: 2025.10.14.10.19.06
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.13.17.18.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.14.10.19.06-hd8ed1ab_0.conda
   hash:
-    md5: c9ae0863cf990e3e5793959a4a1d6655
-    sha256: 751f2b2cbd1ad5d1df2fe3e5fd9b85b09b7afcf54bfe046caca25cf51adca8f5
+    md5: 93c620ae6a01799092841360edc2b3b9
+    sha256: 1c5d8935741fe31f5606597a61f962913ae3aa5e81767a693159a9a68afd2eec
   category: main
   optional: false
 - name: conda-forge-tick
