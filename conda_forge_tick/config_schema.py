@@ -104,6 +104,12 @@ class BotConfigVersionUpdates(BaseModel):
         "Leave unset for projects that don't follow this versioning scheme.",
     )
 
+    tag_whitelist_regexp: Optional[str] = Field(
+        default=None,
+        description="For projects developed in a monorepo where constituents follow different "
+        "release cadences, the regexp allows to filter relevant release tags.",
+    )
+
 
 class BotConfig(BaseModel):
     """
@@ -147,6 +153,7 @@ class BotConfig(BaseModel):
                 - '08.14'
             # even/odd version filtering for unstable versions
             even_odd_versions: true
+            tag_whitelist_regexp: 'python-.*'
     ```
 
     The `abi_migration_branches` feature is useful to, for example, add a

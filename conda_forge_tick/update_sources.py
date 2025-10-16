@@ -25,7 +25,7 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
 from conda_forge_tick.version_filters import is_version_ignored
 
 from .hashing import hash_url
@@ -207,8 +207,19 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         if data["bozo"] == 1:
             return None
         vers = []
+
+        wl_regexp = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "tag_whitelist_regexp"],
+            {},
+            None,
+        )
+        ver_regexp = None if wl_regexp is None else re.compile(wl_regexp)
+
         for entry in data["entries"]:
             ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
+            if ver_regexp and re.search(ver_regexp, ver) is None:
+                continue
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]
