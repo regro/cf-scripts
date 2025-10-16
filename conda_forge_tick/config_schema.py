@@ -69,6 +69,7 @@ class BotConfigVersionUpdates(BaseModel):
             - `github`: Update from the GitHub releases RSS feed (includes pre-releases)
             - `githubreleases`: Get the latest version by following the redirect of
             `https://github.com/{owner}/{repo}/releases/latest` (excludes pre-releases)
+            - `gittags`: Update from the listing of tags for sources that use git URLS.
             - `incrementalpharawurl`: If this source is run for a specific small selection of feedstocks, it acts like
             the `rawurl` source but also increments letters in the version string (e.g. 2024a -> 2024b). If the source
             is run for other feedstocks (even if selected manually), it does nothing.
@@ -104,10 +105,12 @@ class BotConfigVersionUpdates(BaseModel):
         "Leave unset for projects that don't follow this versioning scheme.",
     )
 
-    allowed_tag_patterns: Optional[Union[str, list[str]]] = Field(
+    allowed_tag_globs: Optional[Union[str, list[str]]] = Field(
         default=None,
-        description="For projects developed in a monorepo where constituents follow different "
-        "release cadences, the list of glob-like patterns allows to filter relevant release tags.",
+        description="For version sources that parse repo/vcs tags (e.g., "
+        "`gittags`, `github`, `githubreleases`), "
+        "the list of glob patterns that are allowed. This field can be used to "
+        "filter the set of tags to only those relevant for the feedstock.",
     )
 
 
@@ -153,7 +156,7 @@ class BotConfig(BaseModel):
                 - '08.14'
             # even/odd version filtering for unstable versions
             even_odd_versions: true
-            tag_whitelist_regexp: 'python-.*'
+            allowed_tag_globs: 'python-*'
     ```
 
     The `abi_migration_branches` feature is useful to, for example, add a

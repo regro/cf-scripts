@@ -1,7 +1,6 @@
 import abc
 import collections.abc
 import copy
-import fnmatch
 import functools
 import json
 import logging
@@ -26,8 +25,8 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
-from conda_forge_tick.version_filters import is_version_ignored
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
 
@@ -209,21 +208,12 @@ class VersionFromFeed(AbstractSource, abc.ABC):
             return None
         vers = []
 
-        tag_patterns = get_keys_default(
-            node_attrs,
-            ["conda-forge.yml", "bot", "version_updates", "allowed_tag_patterns"],
-            {},
-            None,
-        )
-        if isinstance(tag_patterns, str):
-            tag_patterns = [tag_patterns]
-
         for entry in data["entries"]:
             ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
-            if tag_patterns is not None:
-                if all(not fnmatch.fnmatch(ver, ptrn) for ptrn in tag_patterns):
-                    # skip tags that don't match allowed patterns
-                    continue
+
+            if is_tag_ignored(node_attrs, ver):
+                continue
+
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]
@@ -699,6 +689,10 @@ class GitTags(AbstractSource):
             if len(fields) != 2:
                 continue
             tag = fields[1]
+
+            if is_tag_ignored(node_attrs, tag):
+                continue
+
             # we will strip everything before the first digit
             first_digit = next((i for i, c in enumerate(tag) if c.isdigit()), None)
             if first_digit is None:
@@ -785,6 +779,10 @@ class GithubReleases(AbstractSource):
         except InvalidVersion:
             # version strings violating the Python spec are supported
             pass
+
+        if is_tag_ignored(node_attrs, latest):
+            return None
+
         for prefix in ("v", "release-", "releases/"):
             if latest.startswith(prefix):
                 latest = latest[len(prefix) :]
