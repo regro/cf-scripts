@@ -1,6 +1,7 @@
 import abc
 import collections.abc
 import copy
+import fnmatch
 import functools
 import json
 import logging
@@ -208,18 +209,21 @@ class VersionFromFeed(AbstractSource, abc.ABC):
             return None
         vers = []
 
-        wl_regexp = get_keys_default(
+        tag_patterns = get_keys_default(
             node_attrs,
-            ["conda-forge.yml", "bot", "version_updates", "tag_whitelist_regexp"],
+            ["conda-forge.yml", "bot", "version_updates", "allowed_tag_patterns"],
             {},
             None,
         )
-        ver_regexp = None if wl_regexp is None else re.compile(wl_regexp)
+        if isinstance(tag_patterns, str):
+            tag_patterns = [tag_patterns]
 
         for entry in data["entries"]:
             ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
-            if ver_regexp and re.search(ver_regexp, ver) is None:
-                continue
+            if tag_patterns is not None:
+                if all(not fnmatch.fnmatch(ver, ptrn) for ptrn in tag_patterns):
+                    # skip tags that don't match allowed patterns
+                    continue
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]

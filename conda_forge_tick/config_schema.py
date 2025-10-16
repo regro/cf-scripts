@@ -104,10 +104,10 @@ class BotConfigVersionUpdates(BaseModel):
         "Leave unset for projects that don't follow this versioning scheme.",
     )
 
-    tag_whitelist_regexp: Optional[str] = Field(
+    allowed_tag_patterns: Optional[Union[str, list[str]]] = Field(
         default=None,
         description="For projects developed in a monorepo where constituents follow different "
-        "release cadences, the regexp allows to filter relevant release tags.",
+        "release cadences, the list of glob-like patterns allows to filter relevant release tags.",
     )
 
 
