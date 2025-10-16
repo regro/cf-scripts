@@ -109,7 +109,7 @@ class BotConfigVersionUpdates(BaseModel):
         default=None,
         description="For version sources that parse repo/vcs tags (e.g., "
         "`gittags`, `github`, `githubreleases`), "
-        "the list of glob patterns that are allowed. This field can be used to "
+        "the list of glob patterns that define which tags are allowed. This field can be used to "
         "filter the set of tags to only those relevant for the feedstock.",
     )
 
