@@ -149,6 +149,15 @@ __migrator:
   # from issuing PRs that will fail to build.
   check_solvable: true
 
+  # The `allowlist_file` field can be used to limit a migrator to a specific
+  # list of target packages and their dependencies. The target packages are
+  # listed in a simple text file format, one package per line. The file should
+  # be placed in the `migration_support` directory. This is useful for
+  # throtteling potentially large migrations, for example to avoid overloading
+  # the CI, to phase subsections of the ecosystem, or to lower risk. Examples
+  # include migrations for new architectures.
+  allowlist_file: boostallow.txt
+
   # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
   # this many tries.
   force_pr_after_solver_attempts: 10
@@ -182,7 +191,7 @@ __migrator:
   # natural version ordering. Each changed pin can be mapped to a list
   # that determines the ordering. The highest (e.g., item with highest list index)
   # version is kept for version migrations.
-  oridering:
+  ordering:
     pin1:
       - value1
       - value2
