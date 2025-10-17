@@ -1,13 +1,14 @@
 import hashlib
 import inspect
 import pprint
+from pathlib import Path
 
 import networkx as nx
 import pytest
 
 import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps, loads
-from conda_forge_tick.migrators import make_from_lazy_json_data
+from conda_forge_tick.migrators import core, make_from_lazy_json_data
 
 TOTAL_GRAPH = nx.DiGraph()
 TOTAL_GRAPH.graph["outputs_lut"] = {}
@@ -165,12 +166,15 @@ def test_migrator_to_json_matplotlib_base():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_migration_yaml():
+def test_migrator_to_json_migration_yaml(monkeypatch):
+    allowlist_directories = [Path(__file__).parent / "test_yaml"]
+    monkeypatch.setattr(core, "MIGRATION_SUPPORT_DIRS", allowlist_directories)
     migrator = conda_forge_tick.migrators.MigrationYaml(
         yaml_contents="{}",
         name="hi",
         blah="foo",
         total_graph=TOTAL_GRAPH,
+        allowlist_file="allowlist.txt",
     )
 
     data = migrator.to_lazy_json_data()

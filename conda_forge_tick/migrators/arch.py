@@ -1,5 +1,4 @@
 import copy
-import os
 from textwrap import dedent
 from typing import Any, Collection, Literal, Optional, Sequence
 
@@ -9,7 +8,13 @@ from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
 )
-from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, get_outputs_lut
+from conda_forge_tick.migrators.core import (
+    GraphMigrator,
+    MiniMigrator,
+    cut_graph_to_target_packages,
+    get_outputs_lut,
+    load_target_packages,
+)
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
@@ -20,22 +25,6 @@ from conda_forge_tick.utils import (
 )
 
 from .migration_yaml import all_noarch
-
-MIGRATION_SUPPORT_DIRS = [
-    os.path.join(
-        os.environ["CONDA_PREFIX"],
-        "share",
-        "conda-forge",
-        "migration_support",
-    ),
-    # Deprecated
-    os.path.join(
-        os.environ["CONDA_PREFIX"],
-        "share",
-        "conda-forge",
-        "migrations",
-    ),
-]
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
@@ -51,22 +40,6 @@ def _filter_excluded_deps(graph, excluded_dependencies):
         nodes_to_remove |= set(nx.descendants(graph, excluded_dep))
     for node in nodes_to_remove:
         pluck(graph, node)
-    # post-plucking cleanup
-    graph.remove_edges_from(nx.selfloop_edges(graph))
-
-
-def _cut_to_target_packages(graph, target_packages):
-    """Cut the graph to only the target packages.
-
-    **operates in place**
-    """
-    packages = target_packages.copy()
-    for target in target_packages:
-        if target in graph.nodes:
-            packages.update(nx.ancestors(graph, target))
-    for node in list(graph.nodes.keys()):
-        if node not in packages:
-            pluck(graph, node)
     # post-plucking cleanup
     graph.remove_edges_from(nx.selfloop_edges(graph))
 
@@ -124,16 +97,7 @@ class ArchRebuild(GraphMigrator):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                fname = None
-                for d in MIGRATION_SUPPORT_DIRS:
-                    fname = os.path.join(d, "arch_rebuild.txt")
-                    if os.path.exists(fname):
-                        break
-                assert fname is not None, (
-                    "Could not find arch_rebuild.txt in migration support dirs"
-                )
-                with open(fname) as f:
-                    target_packages = set(f.read().split())
+                target_packages = load_target_packages("arch_rebuild.txt")
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
@@ -155,7 +119,7 @@ class ArchRebuild(GraphMigrator):
             target_packages = set(target_packages)
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
@@ -264,15 +228,7 @@ class _CrossCompileRebuild(GraphMigrator):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                fname = None
-                for d in MIGRATION_SUPPORT_DIRS:
-                    fname = os.path.join(d, self.pkg_list_filename)
-                    if os.path.exists(fname):
-                        break
-
-                with open(fname) as f:
-                    target_packages = set(f.read().split())
-
+                target_packages = load_target_packages(self.pkg_list_filename)
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
             # rebuild the graph to only use edges from the arch requirements
@@ -315,7 +271,7 @@ class _CrossCompileRebuild(GraphMigrator):
             # filter the graph down to the target packages
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
