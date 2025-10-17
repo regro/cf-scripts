@@ -26,7 +26,7 @@ from conda_forge_tick.migrators_types import (
     SourceTypedDict,
 )
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
-from conda_forge_tick.version_filters import is_version_ignored
+from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
 
@@ -207,8 +207,13 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         if data["bozo"] == 1:
             return None
         vers = []
+
         for entry in data["entries"]:
             ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
+
+            if is_tag_ignored(node_attrs, ver):
+                continue
+
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]
@@ -684,6 +689,10 @@ class GitTags(AbstractSource):
             if len(fields) != 2:
                 continue
             tag = fields[1]
+
+            if is_tag_ignored(node_attrs, tag):
+                continue
+
             # we will strip everything before the first digit
             first_digit = next((i for i, c in enumerate(tag) if c.isdigit()), None)
             if first_digit is None:
@@ -770,6 +779,10 @@ class GithubReleases(AbstractSource):
         except InvalidVersion:
             # version strings violating the Python spec are supported
             pass
+
+        if is_tag_ignored(node_attrs, latest):
+            return None
+
         for prefix in ("v", "release-", "releases/"):
             if latest.startswith(prefix):
                 latest = latest[len(prefix) :]

@@ -68,7 +68,7 @@
             }
           ],
           "default": null,
-          "description": "List of sources to find new versions (i.e. the strings like 1.2.3) for the package.\nThe following sources are available:\n- `cran`: Update from CRAN\n- `github`: Update from the GitHub releases RSS feed (includes pre-releases)\n- `githubreleases`: Get the latest version by following the redirect of\n`https://github.com/{owner}/{repo}/releases/latest` (excludes pre-releases)\n- `incrementalpharawurl`: If this source is run for a specific small selection of feedstocks, it acts like\nthe `rawurl` source but also increments letters in the version string (e.g. 2024a -> 2024b). If the source\nis run for other feedstocks (even if selected manually), it does nothing.\n- `librariesio`: Update from Libraries.io RSS feed\n- `npm`: Update from the npm registry\n- `nvidia`: Update from the NVIDIA download page\n- `pypi`: Update from the PyPI registry\n- `rawurl`: Update from a raw URL by trying to bump the version number in different ways and\nchecking if the URL exists (e.g. 1.2.3 -> 1.2.4, 1.3.0, 2.0.0, etc.)\n- `rosdistro`: Update from a ROS distribution\nCommon issues:\n- If you are using a GitHub-based source in your recipe and the bot issues PRs for pre-releases, restrict\nthe sources to `githubreleases` to avoid pre-releases.\n- If you use source tarballs that are uploaded manually by the maintainers a significant time after a\nGitHub release, you may want to restrict the sources to `rawurl` to avoid the bot attempting to update\nthe recipe before the tarball is uploaded.",
+          "description": "List of sources to find new versions (i.e. the strings like 1.2.3) for the package.\nThe following sources are available:\n- `cran`: Update from CRAN\n- `github`: Update from the GitHub releases RSS feed (includes pre-releases)\n- `githubreleases`: Get the latest version by following the redirect of\n`https://github.com/{owner}/{repo}/releases/latest` (excludes pre-releases)\n- `gittags`: Update from the listing of tags for sources that use git URLS.\n- `incrementalpharawurl`: If this source is run for a specific small selection of feedstocks, it acts like\nthe `rawurl` source but also increments letters in the version string (e.g. 2024a -> 2024b). If the source\nis run for other feedstocks (even if selected manually), it does nothing.\n- `librariesio`: Update from Libraries.io RSS feed\n- `npm`: Update from the npm registry\n- `nvidia`: Update from the NVIDIA download page\n- `pypi`: Update from the PyPI registry\n- `rawurl`: Update from a raw URL by trying to bump the version number in different ways and\nchecking if the URL exists (e.g. 1.2.3 -> 1.2.4, 1.3.0, 2.0.0, etc.)\n- `rosdistro`: Update from a ROS distribution\nCommon issues:\n- If you are using a GitHub-based source in your recipe and the bot issues PRs for pre-releases, restrict\nthe sources to `githubreleases` to avoid pre-releases.\n- If you use source tarballs that are uploaded manually by the maintainers a significant time after a\nGitHub release, you may want to restrict the sources to `rawurl` to avoid the bot attempting to update\nthe recipe before the tarball is uploaded.",
           "title": "Sources"
         },
         "skip": {
@@ -96,6 +96,25 @@
           "default": null,
           "description": "For projects that follow even/odd versioning schemes (like GNOME), set to true to only accept stable versions (even minor numbers: 1.2.x, 1.4.x) and ignore development versions (odd minor numbers: 1.1.x, 1.3.x). Leave unset for projects that don't follow this versioning scheme.",
           "title": "Even Odd Versions"
+        },
+        "allowed_tag_globs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For version sources that parse repo/vcs tags (e.g., `gittags`, `github`, `githubreleases`), the list of glob patterns that define which tags are allowed. This field can be used to filter the set of tags to only those relevant for the feedstock.",
+          "title": "Allowed Tag Globs"
         }
       },
       "title": "BotConfigVersionUpdates",
@@ -119,7 +138,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Dictates the behavior of the conda-forge auto-tick bot which issues\nautomatic version updates/migrations for feedstocks.\n\nA valid example is:\n\n```yaml\nbot:\n    # can the bot automerge PRs it makes on this feedstock\n    automerge: true\n    # only automerge on successful version PRs, migrations are not automerged\n    automerge: 'version'\n    # only automerge on successful migration PRs, versions are not automerged\n    automerge: 'migration'\n\n    # only open PRs if resulting environment is solvable, useful for tightly coupled packages\n    check_solvable: true\n\n    # The bot.inspection key in the conda-forge.yml can have one of seven possible values and controls\n    # the bots behaviour for automatic dependency updates:\n    inspection: hint  # generate hints using source code (backwards compatible)\n    inspection: hint-all  # generate hints using all methods\n    inspection: hint-source  # generate hints using only source code\n    inspection: hint-grayskull  # generate hints using only grayskull\n    inspection: update-all  # update recipe using all methods\n    inspection: update-source  # update recipe using only source code\n    inspection: update-grayskull  # update recipe using only grayskull\n    inspection: disabled # don't update recipe, don't generate hints\n\n    # any branches listed in this section will get bot migration PRs in addition\n    # to the default branch\n    abi_migration_branches:\n        - 'v1.10.x'\n\n    version_updates:\n        # use this for packages that are updated too frequently\n        random_fraction_to_keep: 0.1  # keeps 10% of versions at random\n        exclude:\n            - '08.14'\n        # even/odd version filtering for unstable versions\n        even_odd_versions: true\n```\n\nThe `abi_migration_branches` feature is useful to, for example, add a\nlong-term support (LTS) branch for a package.",
+  "description": "Dictates the behavior of the conda-forge auto-tick bot which issues\nautomatic version updates/migrations for feedstocks.\n\nA valid example is:\n\n```yaml\nbot:\n    # can the bot automerge PRs it makes on this feedstock\n    automerge: true\n    # only automerge on successful version PRs, migrations are not automerged\n    automerge: 'version'\n    # only automerge on successful migration PRs, versions are not automerged\n    automerge: 'migration'\n\n    # only open PRs if resulting environment is solvable, useful for tightly coupled packages\n    check_solvable: true\n\n    # The bot.inspection key in the conda-forge.yml can have one of seven possible values and controls\n    # the bots behaviour for automatic dependency updates:\n    inspection: hint  # generate hints using source code (backwards compatible)\n    inspection: hint-all  # generate hints using all methods\n    inspection: hint-source  # generate hints using only source code\n    inspection: hint-grayskull  # generate hints using only grayskull\n    inspection: update-all  # update recipe using all methods\n    inspection: update-source  # update recipe using only source code\n    inspection: update-grayskull  # update recipe using only grayskull\n    inspection: disabled # don't update recipe, don't generate hints\n\n    # any branches listed in this section will get bot migration PRs in addition\n    # to the default branch\n    abi_migration_branches:\n        - 'v1.10.x'\n\n    version_updates:\n        # use this for packages that are updated too frequently\n        random_fraction_to_keep: 0.1  # keeps 10% of versions at random\n        exclude:\n            - '08.14'\n        # even/odd version filtering for unstable versions\n        even_odd_versions: true\n        allowed_tag_globs: 'python-*'\n```\n\nThe `abi_migration_branches` feature is useful to, for example, add a\nlong-term support (LTS) branch for a package.",
   "properties": {
     "automerge": {
       "anyOf": [

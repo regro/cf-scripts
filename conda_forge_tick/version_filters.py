@@ -4,12 +4,46 @@ This module provides centralized logic for filtering versions based on
 various criteria configured in conda-forge.yml files.
 """
 
+import fnmatch
 import logging
 from typing import Any, Mapping, Union
 
 from conda_forge_tick.utils import get_keys_default
 
 logger = logging.getLogger(__name__)
+
+
+def is_tag_ignored(attrs: Mapping[str, Any], tag: str) -> bool:
+    """Check if a repo tag is ignored.
+
+    Parameters
+    ----------
+    attrs
+        The node attributes containing conda-forge.yml configuration.
+    tag
+        The tag to check.
+
+    Returns
+    -------
+    bool
+        True if the tag should be ignored, False otherwise.
+    """
+    tag_ignored = False
+
+    allowed_tag_globs = get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "version_updates", "allowed_tag_globs"],
+        {},
+        None,
+    )
+    if isinstance(allowed_tag_globs, str):
+        allowed_tag_globs = [allowed_tag_globs]
+
+    if allowed_tag_globs is not None:
+        if not any(fnmatch.fnmatch(tag, glb) for glb in allowed_tag_globs):
+            tag_ignored = True
+
+    return tag_ignored
 
 
 def is_version_ignored(attrs: Mapping[str, Any], version: str) -> bool:
