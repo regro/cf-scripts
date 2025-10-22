@@ -1263,20 +1263,24 @@ def _update_nodes_with_new_versions(gx):
     version_nodes = get_all_keys_for_hashmap("versions")
 
     for node in version_nodes:
-        version_data = LazyJson(f"versions/{node}.json").data
-        with gx.nodes[f"{node}"]["payload"] as attrs:
+        with (
+            gx.nodes[f"{node}"]["payload"] as attrs,
+            LazyJson(f"versions/{node}.json") as version_data,
+        ):
             if attrs.get("archived", False):
                 continue
-            with attrs["version_pr_info"] as vpri:
-                version_from_data = version_data.get("new_version", False)
+
+            # don't update the version if it isn't newer
+            version_from_data = version_data.get("new_version", False)
+            if version_from_data and isinstance(version_from_data, str):
                 version_from_attrs = filter_version(
                     attrs,
-                    vpri.get("new_version", False),
+                    attrs.get("version", False),
                 )
-                # don't update the version if it isn't newer
-                if version_from_data and isinstance(version_from_data, str):
-                    # we only override the graph node if the version we found is newer
-                    # or the graph doesn't have a valid version
+
+                # we only override the graph node if the version we found is newer
+                # or the graph doesn't have a valid version
+                with attrs["version_pr_info"] as vpri:
                     if isinstance(version_from_attrs, str):
                         vpri["new_version"] = max(
                             [version_from_data, version_from_attrs],
