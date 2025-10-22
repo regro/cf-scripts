@@ -40,6 +40,27 @@ class BotConfigVersionUpdatesSourcesChoice(StrEnum):
     ROS_DISTRO = "rosdistro"
 
 
+class BotConfigVersionUpdatesNVIDIA(BaseModel):
+    """
+    Dictates the behavior of the conda-forge auto-tick bot for version
+    updates using the NVIDIA source.
+    """
+
+    compute_subdir: Optional[str] = Field(
+        default=None,
+        description="For sources from `developer.download.nvidia.com/compute`, this string"
+        "defines the subdirectory in which to find the JSON blob containing metadata"
+        "about the latest releases of a package.",
+    )
+
+    json_name: Optional[str] = Field(
+        default=None,
+        description="For sources from `developer.download.nvidia.com/compute`, this string"
+        "defines the name of the package in the JSON blob containing metadata"
+        "about the latest releases of a package.",
+    )
+
+
 class BotConfigVersionUpdates(BaseModel):
     """
     Dictates the behavior of the conda-forge auto-tick bot for version
@@ -111,6 +132,11 @@ class BotConfigVersionUpdates(BaseModel):
         "`gittags`, `github`, `githubreleases`), "
         "the list of glob patterns that define which tags are allowed. This field can be used to "
         "filter the set of tags to only those relevant for the feedstock.",
+    )
+
+    nvidia: Optional[BotConfigVersionUpdatesNVIDIA] = Field(
+        default_factory=BotConfigVersionUpdatesNVIDIA,
+        description="Bot config for version update PRs using the NVIDIA updater.",
     )
 
 
