@@ -556,7 +556,7 @@ class MigrationYaml(GraphMigrator):
         title = self.commit_message(feedstock_ctx).splitlines()[0]
         branch = feedstock_ctx.attrs.get("branch", "main")
         if branch not in ["main", "master"]:
-            return add_slug + f"[`{branch}`] " + title
+            return add_slug + f"[{branch}] " + title
         else:
             return add_slug + title
 
