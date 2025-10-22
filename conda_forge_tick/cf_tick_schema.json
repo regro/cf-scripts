@@ -115,9 +115,53 @@
           "default": null,
           "description": "For version sources that parse repo/vcs tags (e.g., `gittags`, `github`, `githubreleases`), the list of glob patterns that define which tags are allowed. This field can be used to filter the set of tags to only those relevant for the feedstock.",
           "title": "Allowed Tag Globs"
+        },
+        "nvidia": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotConfigVersionUpdatesNVIDIA"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Bot config for version update PRs using the NVIDIA updater."
         }
       },
       "title": "BotConfigVersionUpdates",
+      "type": "object"
+    },
+    "BotConfigVersionUpdatesNVIDIA": {
+      "description": "Dictates the behavior of the conda-forge auto-tick bot for version\nupdates using the NVIDIA source.",
+      "properties": {
+        "compute_subdir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For sources from `developer.download.nvidia.com/compute`, this stringdefines the subdirectory in which to find the JSON blob containing metadataabout the latest releases of a package.",
+          "title": "Compute Subdir"
+        },
+        "json_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For sources from `developer.download.nvidia.com/compute`, this stringdefines the name of the package in the JSON blob containing metadataabout the latest releases of a package.",
+          "title": "Json Name"
+        }
+      },
+      "title": "BotConfigVersionUpdatesNVIDIA",
       "type": "object"
     },
     "BotConfigVersionUpdatesSourcesChoice": {
