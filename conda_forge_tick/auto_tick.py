@@ -1273,10 +1273,13 @@ def _update_nodes_with_new_versions(gx):
             # don't update the version if it isn't newer
             version_from_data = version_data.get("new_version", False)
             if version_from_data and isinstance(version_from_data, str):
-                version_from_attrs = filter_version(
-                    attrs,
-                    attrs.get("version", False),
-                )
+                try:
+                    version_from_attrs = filter_version(
+                        attrs,
+                        attrs.get("version", False),
+                    )
+                except Exception:
+                    version_from_attrs = False
 
                 # we only override the graph node if the version we found is newer
                 # or the graph doesn't have a valid version
