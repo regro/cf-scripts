@@ -25,7 +25,7 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml, get_keys_default
+from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
 from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
@@ -919,7 +919,8 @@ class NVIDIA(AbstractSource):
 
         Raises
         ------
-            KeyError: If the slug is incorrect.
+        KeyError
+            If the slug is incorrect.
         """
         actual_url, slug = url.split("#")
         logger.debug("Searching %s for redistrib_X.Y.Z.json", actual_url)
