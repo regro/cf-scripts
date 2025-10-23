@@ -592,6 +592,8 @@ def load_feedstock_local(
     if meta_yaml is not None and recipe_yaml is not None:
         raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
 
+    # we only update the feedstock hash if we are using the feedstock's
+    # contents for making the node attrs
     if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
         maybe_update_hash = True
     else:

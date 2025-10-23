@@ -80,7 +80,7 @@ class NodeAttributesValid(StrictBaseModel):
     """The sha256 hash of the feedstock contents."""
 
     feedstock_hash_ts: int
-    """The unix timestamp of when the `feedstock_hash` was last updated."""
+    """The unix timestamp of when the `feedstock_hash` last changed."""
 
     hash_type: str | None = Field(None, examples=["sha256", "sha512", "md5"])
     """
