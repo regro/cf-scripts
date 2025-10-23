@@ -1797,8 +1797,6 @@ about:
   doc_url: https://docs.nvidia.com/cuda/cudss/
 
 extra:
-  compute-subdir: cudss
-  redist-json-name: libcudss
   recipe-maintainers:
     - conda-forge/cuda
     - kvoronin

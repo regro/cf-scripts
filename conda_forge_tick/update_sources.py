@@ -25,7 +25,7 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
 from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
@@ -829,11 +829,11 @@ class NVIDIA(AbstractSource):
         version from "https://developer.download.nvidia.com/compute/{ compute_subdir
         }/redist/release_{ release_label }.json"
 
-        We check a recipe's extra section for two special keys: "compute-subdir" and
-        "redist-json-name".
+        We check a feedstock's conda-forge.yml for bot/version_updates/nvidia/compute_subdir
+        and bot/version_updates/nvidia/json_name.
 
-        "compute-subdir" is used as above to locate the correct redist folder, and
-        redist-json-name is used to find the correct section in the JSON. We expect the
+        "compute_subdir" is used as above to locate the correct redist folder, and
+        json_name is used to find the correct section in the JSON. We expect the
         JSON to have the following format:
 
         ```json
@@ -841,7 +841,7 @@ class NVIDIA(AbstractSource):
             "release_date": "2024-12-03",
             "release_label": "0.8.1",  # this is the same version used in the filename
             "release_product": "nvjpeg2000",
-            "libnvjpeg_2k": {  # this is the key which corresponds to redist-json-name
+            "libnvjpeg_2k": {  # this is the key which corresponds to json_name
                 "name": "NVIDIA nvJPEG 2000",
                 "license": "nvJPEG 2K",
                 "license_path": "libnvjpeg_2k/LICENSE.txt",
@@ -850,7 +850,7 @@ class NVIDIA(AbstractSource):
         }
         ```
 
-        Each of "compute-subdir" and "redist-json-name" will fallback to using the
+        Each of "compute_subdir" and "json_name" will fallback to using the
         "feedstock-name" parameter if undefined.
 
         The returned url is not actually valid since we return the json slug that we need
@@ -862,35 +862,41 @@ class NVIDIA(AbstractSource):
                 "The source URL did not contain developer.download.nvidia.com/compute."
             )
             return None
-        logger.debug("The source URL contains deveoper.download.nvidia.com/compute.")
+        logger.debug("The source URL contains developer.download.nvidia.com/compute.")
 
-        logger.debug("Searching for a NVIDIA URL compute-subdir.")
-        if "compute-subdir" in node_attrs["meta_yaml"]["extra"]:
-            logger.debug("Found explicit extra/compute-subdir.")
-            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["compute-subdir"]
+        logger.debug("Searching for a NVIDIA URL compute_subdir.")
+        nvidia_compute_subdir = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "nvidia", "compute_subdir"],
+            {},
+            None,
+        )
+        if nvidia_compute_subdir is not None:
+            logger.debug("Found explicit bot/version_updates/nvidia/compute_subdir.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
             nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_compute_subdir = node_attrs["feedstock_name"]
-        logger.debug("The compute-subdir for NVIDIA URL is %s.", nvidia_compute_subdir)
+        logger.debug("The compute_subdir for NVIDIA URL is %s.", nvidia_compute_subdir)
 
-        logger.debug("Searching for a NVIDIA URL redist-json-name.")
-        if "redist-json-name" in node_attrs["meta_yaml"]["extra"]:
-            logger.debug("Found explicit extra/compute-subdir.")
-            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"][
-                "redist-json-name"
-            ]
+        logger.debug("Searching for a NVIDIA URL json_name.")
+        nvidia_redist_json_name = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "nvidia", "json_name"],
+            {},
+            None,
+        )
+        if nvidia_redist_json_name is not None:
+            logger.debug("Found explicit bot/version_updates/nvidia/json_name.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
             nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_redist_json_name = node_attrs["feedstock_name"]
-        logger.debug(
-            "The compute-subdir for NVIDIA URL is %s.", nvidia_redist_json_name
-        )
+        logger.debug("The json_name for NVIDIA URL is %s.", nvidia_redist_json_name)
 
         result = f"https://developer.download.nvidia.com/compute/{nvidia_compute_subdir}/redist#{nvidia_redist_json_name}"
         logger.debug("The NVIDIA redist URL should be %s", result)
@@ -913,7 +919,8 @@ class NVIDIA(AbstractSource):
 
         Raises
         ------
-            ValueError: If the slug is incorrect.
+        KeyError
+            If the slug is incorrect.
         """
         actual_url, slug = url.split("#")
         logger.debug("Searching %s for redistrib_X.Y.Z.json", actual_url)
@@ -939,7 +946,14 @@ class NVIDIA(AbstractSource):
         json_data = json.loads(response.read().decode("utf-8"))
 
         # Extract version from library details
-        lib_info = json_data[slug]
+        try:
+            lib_info = json_data[slug]
+        except KeyError as e:
+            raise KeyError(
+                "Please update bot/version_updates/nvidia/json_name in conda-forge.yml "
+                "to a valid name in the JSON. "
+                f"'{slug}' is not a valid source info blob in the release JSON."
+            ) from e
 
         if is_version_ignored(node_attrs, lib_info["version"]):
             return None

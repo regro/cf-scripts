@@ -1042,7 +1042,6 @@ about:
   dev_url: https://developer.nvidia.com/cutensor/downloads
 
 extra:
-  redist-json-name: libcutensor
   recipe-maintainers:
     - leofang
     - jakirkham
@@ -1184,8 +1183,6 @@ about:
 
 extra:
   feedstock-name: libnvjpeg2k
-  redist-json-name: libnvjpeg_2k
-  compute-subdir: nvjpeg2000
   recipe-maintainers:
     - conda-forge/cuda
 """  # noqa
@@ -1198,6 +1195,16 @@ latest_url_nvidia_test_list = [
         None,
         NVIDIA(),
         {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libnvjpeg_2k",
+                        "compute_subdir": "nvjpeg2000",
+                    }
+                }
+            }
+        },
     ),
     (
         "cutensor",
@@ -1206,15 +1213,26 @@ latest_url_nvidia_test_list = [
         None,
         NVIDIA(),
         {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libcutensor",
+                    }
+                }
+            }
+        },
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "name, inp, curr_ver, ver, source, urls",
+    "name, inp, curr_ver, ver, source, urls, conda_forge",
     latest_url_nvidia_test_list,
 )
-def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
+def test_latest_version_nvidia(
+    name, inp, curr_ver, ver, source, urls, conda_forge, tmpdir
+):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
@@ -1224,6 +1242,7 @@ def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "version": curr_ver,
                 "raw_meta_yaml": inp,
                 "meta_yaml": parse_meta_yaml(inp),
+                "conda-forge.yml": conda_forge,
             },
         )
     attempt = get_latest_version(name, pmy, [source])
