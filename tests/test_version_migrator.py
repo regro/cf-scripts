@@ -129,7 +129,11 @@ def test_version_up(case, new_ver, tmp_path, caplog):
         ("cranmirror", "0.3.3"),
         ("event_stream", "1.6.3"),
         ("selshaurl", "3.7.0"),
-        ("libssh", "0.11.1"),
+        pytest.param(
+            "libssh",
+            "0.11.1",
+            marks=pytest.mark.xfail(reason="libssh urls tend to error a lot"),
+        ),
         ("polars", "1.20.0"),
         ("svcore", "0.2025.40"),
     ],
