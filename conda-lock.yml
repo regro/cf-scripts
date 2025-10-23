@@ -2247,36 +2247,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.22.18.29.22
+  version: 2025.10.22.20.03.40
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.18.29.22-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.20.03.40-hd8ed1ab_0.conda
   hash:
-    md5: cec23792bffbf680c5401c0203df4c83
-    sha256: 2aa5e42ca945d2efe1876f67d0226f5c4993abdba84441ad12313a6e4e9634e8
+    md5: a7f19017ada5f166f95e6cc20fb5273b
+    sha256: 73d50dd8d2e935aeb296e839e65f216c5d9fd17140713462e2ea26f4e83d015d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.22.18.29.22
+  version: 2025.10.22.20.03.40
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.18.29.22-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.20.03.40-hd8ed1ab_0.conda
   hash:
-    md5: cec23792bffbf680c5401c0203df4c83
-    sha256: 2aa5e42ca945d2efe1876f67d0226f5c4993abdba84441ad12313a6e4e9634e8
+    md5: a7f19017ada5f166f95e6cc20fb5273b
+    sha256: 73d50dd8d2e935aeb296e839e65f216c5d9fd17140713462e2ea26f4e83d015d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.22.18.29.22
+  version: 2025.10.22.20.03.40
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.18.29.22-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.22.20.03.40-hd8ed1ab_0.conda
   hash:
-    md5: cec23792bffbf680c5401c0203df4c83
-    sha256: 2aa5e42ca945d2efe1876f67d0226f5c4993abdba84441ad12313a6e4e9634e8
+    md5: a7f19017ada5f166f95e6cc20fb5273b
+    sha256: 73d50dd8d2e935aeb296e839e65f216c5d9fd17140713462e2ea26f4e83d015d
   category: main
   optional: false
 - name: conda-forge-tick
@@ -10669,7 +10669,7 @@ package:
   category: main
   optional: false
 - name: numpy
-  version: 2.3.3
+  version: 2.3.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -10681,14 +10681,14 @@ package:
     libstdcxx: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.3-py311h2e04523_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.4-py311h2e04523_0.conda
   hash:
-    md5: 3b0d0a2241770397d3146fdcab3b49f8
-    sha256: 264528d6e73d5c902a0463d9d138607018d994b86e209df4a51945886233989d
+    md5: d84afde5a6f028204f24180ff87cf429
+    sha256: 67cc072b8f5c157df4228a1a2291628e5ca2360f48ef572a64e2cf2bf55d2e25
   category: main
   optional: false
 - name: numpy
-  version: 2.3.3
+  version: 2.3.4
   manager: conda
   platform: osx-64
   dependencies:
@@ -10699,14 +10699,14 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.3-py311hf157cb9_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.4-py311hf157cb9_0.conda
   hash:
-    md5: 3d5331d89f160b1af3c39fd7e3f1ba93
-    sha256: 63a6c4f04df9ef36fe3b0eded7f2e668c74949995821d6dd59179764f0829a8e
+    md5: 5ccc71cd384e4acec7d6b398d6bf3a70
+    sha256: f32239cd5e674c9162864391ba52136ba623c4b1aa7c6778498a869de030c1ac
   category: main
   optional: false
 - name: numpy
-  version: 2.3.3
+  version: 2.3.4
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -10717,10 +10717,10 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.3-py311h8685306_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.4-py311h8685306_0.conda
   hash:
-    md5: 679c1e8963299dddcaf216588f765350
-    sha256: f9e65b819f7252557113240e83a7f33426a2086cdcd0f80f4ef95794b5bafc0f
+    md5: c72f70484e64c8106d560f60963b354a
+    sha256: 218062c97ec67991972d99dcdd2ff5fa6e596095b316496911d3cd2f0f3e0eaf
   category: main
   optional: false
 - name: oauthlib
