@@ -12683,7 +12683,7 @@ package:
   category: main
   optional: false
 - name: pymongo
-  version: 4.14.1
+  version: 4.15.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -12693,10 +12693,10 @@ package:
     libstdcxx: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.14.1-py311h1ddb823_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.15.3-py311h1ddb823_0.conda
   hash:
-    md5: 7e5795e68d8b770f40c9a8a36424e050
-    sha256: 750e371d4825ab0ef72f25bfbcac91bd2a15561cc5880832d4563502eb675d60
+    md5: 6c252e27aa821b73c1de6050e6e3abdd
+    sha256: 552933792fdbdb19d9233af40dc92587cc51eb4122ac7994e7a0211b82414d83
   category: main
   optional: false
 - name: pymongo
@@ -14619,40 +14619,40 @@ package:
   category: main
   optional: false
 - name: ripgrep
-  version: 15.0.0
+  version: 15.1.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-15.0.0-hdab8a38_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-15.1.0-hdab8a38_0.conda
   hash:
-    md5: 77dc896b58940e8799e1c7868425afe9
-    sha256: 4c21bd9d7c11c62d50923b3e2fbd0eeb48c49b71c67dbe9c4d43168b61c22bec
+    md5: 1f9739b74aab91a4c9c7aea7a6987dbb
+    sha256: a745b0d0ca5ae53757e42d893a61a5034ed2ad4791728e376dbc5c6a4f9c3eb0
   category: main
   optional: false
 - name: ripgrep
-  version: 15.0.0
+  version: 15.1.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-15.0.0-h121f529_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-15.1.0-h121f529_0.conda
   hash:
-    md5: e644a60b917ae49dbec7ccf444d0a6b8
-    sha256: 99b6095f2b744da210589610ab8fe2e9fa5f16ed23d1a33ec90a4d6dc4b3b702
+    md5: 0b9e06049232d0dbf52ed2a055d10e26
+    sha256: b1e3f1bd4d9208f8968bd7b1ca678d2e60d3b4be0a929a59d5d3747c0e4dfc75
   category: main
   optional: false
 - name: ripgrep
-  version: 15.0.0
+  version: 15.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-15.0.0-hd1458d2_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-15.1.0-hd1458d2_0.conda
   hash:
-    md5: fba3713fb371409dd0a3847f703b0ced
-    sha256: 6be79e57b5157d7a6632393508ea391edc56a7da76c96d9bb7bb399716ebd3a2
+    md5: 0ca17c3b507b4548a4a233e479428882
+    sha256: b85d0093dd91a7c78c1ff5f5f17b55664636b6a88d68026eea3c63bff067c882
   category: main
   optional: false
 - name: rpds-py
