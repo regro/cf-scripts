@@ -76,6 +76,12 @@ class NodeAttributesValid(StrictBaseModel):
     then the feedstock name is `foo`. Also, the node attributes JSON file is named `foo.json`.
     """
 
+    feedstock_hash: str
+    """The commit hash of the latest commit to the feedstock."""
+
+    feedstock_hash_ts: int
+    """The unix timestamp of the latest commit to the feedstock."""
+
     hash_type: str | None = Field(None, examples=["sha256", "sha512", "md5"])
     """
     The type of hash used to verify the integrity of source archives. This is extracted from the source section of the

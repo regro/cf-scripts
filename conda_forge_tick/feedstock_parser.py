@@ -3,12 +3,13 @@ import hashlib
 import logging
 import os
 import re
+import subprocess
 import tempfile
 import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set, Union
+from typing import Optional, Set, Tuple, Union
 
 import requests
 import yaml
@@ -26,6 +27,7 @@ from conda_forge_tick.migrators_types import (
     RequirementsTypedDict,
     TestTypedDict,
 )
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
@@ -547,6 +549,42 @@ def populate_feedstock_attributes(
     return node_attrs
 
 
+def _get_feedstock_commit_hash_and_timestamp(
+    name: str,
+) -> Tuple[str | None, int | None]:
+    git_url = f"https://github.com/{settings().conda_forge_org}/{name}-feedstock"
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", git_url],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            with pushd(f"{name}-feedstock"):
+                res = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                sha = res.stdout.strip()
+
+                res = subprocess.run(
+                    ["git", "log", "-1", "--format=%ct"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                ts = int(res.stdout.strip())
+        except subprocess.CalledProcessError:
+            return None, None
+
+    return sha, ts
+
+
 def load_feedstock_local(
     name: str,
     sub_graph: typing.MutableMapping,
@@ -590,6 +628,13 @@ def load_feedstock_local(
     if meta_yaml is not None and recipe_yaml is not None:
         raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
 
+    # we only update the feedstock hash if we are using the feedstock's
+    # contents for making the node attrs
+    if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
+        update_hash = True
+    else:
+        update_hash = False
+
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
         feedstock_dir = _fetch_static_repo(name, tmpdir)
@@ -627,6 +672,18 @@ def load_feedstock_local(
             conda_forge_yaml_path = Path(feedstock_dir).joinpath("conda-forge.yml")
             if conda_forge_yaml_path.exists():
                 conda_forge_yaml = conda_forge_yaml_path.read_text()
+
+        if (
+            update_hash
+            or "feedstock_hash" not in new_sub_graph
+            or "feedstock_hash_ts" not in new_sub_graph
+        ):
+            # if we are using the feedstock's contents, then we update the hash
+            feedstock_hash, feedstock_timestamp = (
+                _get_feedstock_commit_hash_and_timestamp(name)
+            )
+            new_sub_graph["feedstock_hash"] = feedstock_hash
+            new_sub_graph["feedstock_hash_ts"] = feedstock_timestamp
 
         return populate_feedstock_attributes(
             name,

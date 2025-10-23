@@ -66,6 +66,7 @@ from conda_forge_tick.utils import (
     get_migrator_report_name_from_pr_data,
     load_existing_graph,
     sanitize_string,
+    version_follows_conda_spec,
 )
 from conda_forge_tick.version_filters import filter_version
 
@@ -1263,27 +1264,37 @@ def _update_nodes_with_new_versions(gx):
     version_nodes = get_all_keys_for_hashmap("versions")
 
     for node in version_nodes:
-        version_data = LazyJson(f"versions/{node}.json").data
-        with gx.nodes[f"{node}"]["payload"] as attrs:
+        with (
+            gx.nodes[f"{node}"]["payload"] as attrs,
+            LazyJson(f"versions/{node}.json") as version_data,
+        ):
             if attrs.get("archived", False):
                 continue
-            with attrs["version_pr_info"] as vpri:
-                version_from_data = version_data.get("new_version", False)
-                version_from_attrs = filter_version(
-                    attrs,
-                    vpri.get("new_version", False),
-                )
-                # don't update the version if it isn't newer
-                if version_from_data and isinstance(version_from_data, str):
-                    # we only override the graph node if the version we found is newer
-                    # or the graph doesn't have a valid version
-                    if isinstance(version_from_attrs, str):
-                        vpri["new_version"] = max(
+
+            new_version = None
+
+            version_from_data = version_data.get("new_version", False)
+            if version_follows_conda_spec(version_from_data):
+                # the version we found is OK to use
+                new_version = version_from_data
+
+                # check the version in the attrs already and keep it if it is newer
+                # we only override the graph node if the version we found is newer
+                # or the graph doesn't have a valid version
+                if version_follows_conda_spec(attrs.get("version", False)):
+                    version_from_attrs = filter_version(
+                        attrs,
+                        attrs.get("version", False),
+                    )
+                    if version_follows_conda_spec(version_from_attrs):
+                        new_version = max(
                             [version_from_data, version_from_attrs],
                             key=lambda x: VersionOrder(x.replace("-", ".")),
                         )
-                    else:
-                        vpri["new_version"] = version_from_data
+
+            if new_version is not None:
+                with attrs["version_pr_info"] as vpri:
+                    vpri["new_version"] = new_version
 
 
 def _remove_closed_pr_json():
