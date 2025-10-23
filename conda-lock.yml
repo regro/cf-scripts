@@ -2247,36 +2247,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.23.07.58.14
+  version: 2025.10.23.15.25.29
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.07.58.14-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.15.25.29-hd8ed1ab_0.conda
   hash:
-    md5: efea91c5df9d909ce5ed8dc5bb5d3f05
-    sha256: bc3bc875699db05b0410b54d84702878d386ce6a8d1f86b99e2fced7f75277f2
+    md5: 9bd494bc656672303a42e3aaa613cd48
+    sha256: dcc1ea0e9c22f331d6a9b95b89badd7071eccc0f33d177213580518efbcc7aa2
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.23.07.58.14
+  version: 2025.10.23.15.25.29
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.07.58.14-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.15.25.29-hd8ed1ab_0.conda
   hash:
-    md5: efea91c5df9d909ce5ed8dc5bb5d3f05
-    sha256: bc3bc875699db05b0410b54d84702878d386ce6a8d1f86b99e2fced7f75277f2
+    md5: 9bd494bc656672303a42e3aaa613cd48
+    sha256: dcc1ea0e9c22f331d6a9b95b89badd7071eccc0f33d177213580518efbcc7aa2
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.23.07.58.14
+  version: 2025.10.23.15.25.29
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.07.58.14-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.23.15.25.29-hd8ed1ab_0.conda
   hash:
-    md5: efea91c5df9d909ce5ed8dc5bb5d3f05
-    sha256: bc3bc875699db05b0410b54d84702878d386ce6a8d1f86b99e2fced7f75277f2
+    md5: 9bd494bc656672303a42e3aaa613cd48
+    sha256: dcc1ea0e9c22f331d6a9b95b89badd7071eccc0f33d177213580518efbcc7aa2
   category: main
   optional: false
 - name: conda-forge-tick
@@ -12700,7 +12700,7 @@ package:
   category: main
   optional: false
 - name: pymongo
-  version: 4.14.1
+  version: 4.15.3
   manager: conda
   platform: osx-64
   dependencies:
@@ -12709,14 +12709,14 @@ package:
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.14.1-py311h7b20566_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.15.3-py311h11ccb26_0.conda
   hash:
-    md5: e673e0b671c3e2003658f7498382910e
-    sha256: de0be264a3c5de5f23401594b562fad6b23274201c1f4f0f49d5d4dbad00d960
+    md5: 348c500677944900fc08f955c2850abc
+    sha256: 76ae378a46ea1afca2e66f208cf41385beb274b5ae7d130b195928e194fe2ce9
   category: main
   optional: false
 - name: pymongo
-  version: 4.14.1
+  version: 4.15.3
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -12725,10 +12725,10 @@ package:
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.14.1-py311hf719da1_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.15.3-py311h251fd82_0.conda
   hash:
-    md5: c2e2e504b0e01a93de982715cbf476f3
-    sha256: ded3d3025312d9f0eb69758161849351349035826796953b7cb8e3eba733bccc
+    md5: f5b8b2bcdceca2c88a92d1553579f984
+    sha256: 28d361aa9b7aee462147607d37aa8597b3ddd1e9de5755cf056df1c0190e9538
   category: main
   optional: false
 - name: pynacl
