@@ -3,7 +3,11 @@ from pathlib import Path
 
 import pytest
 
-from conda_forge_tick.feedstock_parser import _get_requirements, load_feedstock_local
+from conda_forge_tick.feedstock_parser import (
+    _get_feedstock_commit_hash_and_timestamp,
+    _get_requirements,
+    load_feedstock_local,
+)
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
 
@@ -116,3 +120,9 @@ def test_feedstock_parser_load_feedstock_local_fenics_basix_version():
     assert attrs["version"] == attrs["meta_yaml"]["outputs"][0]["version"]
     assert attrs["name"] == attrs["meta_yaml"]["outputs"][0]["name"]
     assert attrs["name"] == "fenics-basix"
+
+
+def test_get_feedstock_commit_hash_and_timestamp():
+    sha, ts = _get_feedstock_commit_hash_and_timestamp("ngmix")
+    assert sha is not None
+    assert ts is not None

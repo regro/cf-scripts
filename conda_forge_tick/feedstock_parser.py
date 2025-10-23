@@ -3,17 +3,16 @@ import hashlib
 import logging
 import os
 import re
+import subprocess
 import tempfile
-import time
 import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set, Union
+from typing import Optional, Set, Tuple, Union
 
 import requests
 import yaml
-from conda_build.utils import compute_content_hash
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -28,6 +27,7 @@ from conda_forge_tick.migrators_types import (
     RequirementsTypedDict,
     TestTypedDict,
 )
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
@@ -549,6 +549,42 @@ def populate_feedstock_attributes(
     return node_attrs
 
 
+def _get_feedstock_commit_hash_and_timestamp(
+    name: str,
+) -> Tuple[str | None, int | None]:
+    git_url = f"https://github.com/{settings().conda_forge_org}/{name}-feedstock"
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", git_url],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            with pushd(f"{name}-feedstock"):
+                res = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                sha = res.stdout.strip()
+
+                res = subprocess.run(
+                    ["git", "log", "-1", "--format=%ct"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                ts = int(res.stdout.strip())
+        except subprocess.CalledProcessError:
+            return None, None
+
+    return sha, ts
+
+
 def load_feedstock_local(
     name: str,
     sub_graph: typing.MutableMapping,
@@ -595,9 +631,9 @@ def load_feedstock_local(
     # we only update the feedstock hash if we are using the feedstock's
     # contents for making the node attrs
     if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
-        maybe_update_hash = True
+        update_hash = True
     else:
-        maybe_update_hash = False
+        update_hash = False
 
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -637,13 +673,17 @@ def load_feedstock_local(
             if conda_forge_yaml_path.exists():
                 conda_forge_yaml = conda_forge_yaml_path.read_text()
 
-        if maybe_update_hash:
-            # if we are using the feedstock's contents, then we update the hash if needed
-            feedstock_hash = compute_content_hash(feedstock_dir)
-            curr_feedstock_hash = new_sub_graph.get("feedstock_hash", None)
-            if curr_feedstock_hash is None or feedstock_hash != curr_feedstock_hash:
-                new_sub_graph["feedstock_hash"] = feedstock_hash
-                new_sub_graph["feedstock_hash_ts"] = int(time.time())
+        if (
+            update_hash
+            or "feedstock_hash" not in new_sub_graph
+            or "feedstock_hash_ts" not in new_sub_graph
+        ):
+            # if we are using the feedstock's contents, then we update the hash
+            feedstock_hash, feedstock_timestamp = (
+                _get_feedstock_commit_hash_and_timestamp(name)
+            )
+            new_sub_graph["feedstock_hash"] = feedstock_hash
+            new_sub_graph["feedstock_hash_ts"] = feedstock_timestamp
 
         return populate_feedstock_attributes(
             name,
