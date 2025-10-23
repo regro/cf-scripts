@@ -33,6 +33,7 @@ import jinja2.sandbox
 import networkx as nx
 import orjson
 import ruamel.yaml
+from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -1546,3 +1547,15 @@ def extract_section_from_yaml_text(
             found_sections.append("\n".join(lines[section_start:]))
 
     return found_sections
+
+
+def version_follows_conda_spec(version: str | bool) -> bool:
+    if isinstance(version, str):
+        try:
+            VersionOrder(version.replace("-", "."))
+        except Exception:
+            return False
+        else:
+            return True
+    else:
+        return False
