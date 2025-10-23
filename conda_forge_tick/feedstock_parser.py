@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import tempfile
+import time
 import typing
 import zipfile
 from collections import defaultdict
@@ -12,6 +13,7 @@ from typing import Optional, Set, Union
 
 import requests
 import yaml
+from conda_build.utils import compute_content_hash
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -590,6 +592,11 @@ def load_feedstock_local(
     if meta_yaml is not None and recipe_yaml is not None:
         raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
 
+    if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
+        maybe_update_hash = True
+    else:
+        maybe_update_hash = False
+
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
         feedstock_dir = _fetch_static_repo(name, tmpdir)
@@ -627,6 +634,14 @@ def load_feedstock_local(
             conda_forge_yaml_path = Path(feedstock_dir).joinpath("conda-forge.yml")
             if conda_forge_yaml_path.exists():
                 conda_forge_yaml = conda_forge_yaml_path.read_text()
+
+        if maybe_update_hash:
+            # if we are using the feedstock's contents, then we update the hash if needed
+            feedstock_hash = compute_content_hash(feedstock_dir)
+            curr_feedstock_hash = new_sub_graph.get("feedstock_hash", None)
+            if curr_feedstock_hash is None or feedstock_hash != curr_feedstock_hash:
+                new_sub_graph["feedstock_hash"] = feedstock_hash
+                new_sub_graph["feedstock_hash_ts"] = int(time.time())
 
         return populate_feedstock_attributes(
             name,
