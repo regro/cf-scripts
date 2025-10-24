@@ -10901,7 +10901,7 @@ package:
   category: main
   optional: false
 - name: orjson
-  version: 3.11.3
+  version: 3.11.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -10909,38 +10909,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.3-py311h902ca64_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.4-py311h902ca64_0.conda
   hash:
-    md5: 536ecc7d4fe65780fa1b824d2fb2a06b
-    sha256: 29178c56bee857e25dffd845c06e7868a24d27ba4c1ba796421303a055343afe
+    md5: 6690b524bb13a777dee40ed018419a3e
+    sha256: 56116ad0b63cbfa6258573129b8618af727bfcaa723a8d70eaaaa85ac238eae5
   category: main
   optional: false
 - name: orjson
-  version: 3.11.3
+  version: 3.11.4
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.3-py311hd3d88a1_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.4-py311hd2a4513_0.conda
   hash:
-    md5: 66acf5c02626463eeda82c48c00b0985
-    sha256: e17ad24c278bb45fb3102d48abcd8a0ddc923b7d92d88be5001f9db04a968530
+    md5: 00b98397f47860a8244a0d516382c275
+    sha256: 4c4dc4712c14693acf94ccd499e6bd066cad7efd350db82db299d76d934ee9b4
   category: main
   optional: false
 - name: orjson
-  version: 3.11.3
+  version: 3.11.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.3-py311h1c3fc1a_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.4-py311h71babbd_0.conda
   hash:
-    md5: 8f94090b2f18bdc4b5cce8600b86ae7c
-    sha256: d934abbf5d5a5fc69e668d2a205c815e148d049537ed50976db518fc43fbda13
+    md5: 0925fe3602a5912c3a7f79ff979cea0f
+    sha256: 8031162740d8063681b447056aeee06c9e59976507adc9abc695a2e2e74b1ff8
   category: main
   optional: false
 - name: packaging
