@@ -338,7 +338,7 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(Numpy2Migrator())
     if migration_name.startswith("r-base44"):
         piggy_back_migrations.append(RUCRTCleanup())
-    if migration_name.startswith("flang19"):
+    if migration_name.startswith("flang19") or migration_name.startswith("flang21"):
         piggy_back_migrations.append(FlangMigrator())
     if migration_name.startswith("xz_to_liblzma_devel"):
         piggy_back_migrations.append(
