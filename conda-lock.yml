@@ -2247,36 +2247,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.08.08.15
+  version: 2025.10.28.12.55.54
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.12.55.54-hd8ed1ab_0.conda
   hash:
-    md5: d1540811d818dc180a0e45afbcc586c5
-    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
+    md5: b4b508fca94d170a55651b18f3b11178
+    sha256: 6ba9e679f3230a95ab579441184ca2425c7d89eabff8b295ccc278401b9693c8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.08.08.15
+  version: 2025.10.28.12.55.54
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.12.55.54-hd8ed1ab_0.conda
   hash:
-    md5: d1540811d818dc180a0e45afbcc586c5
-    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
+    md5: b4b508fca94d170a55651b18f3b11178
+    sha256: 6ba9e679f3230a95ab579441184ca2425c7d89eabff8b295ccc278401b9693c8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.08.08.15
+  version: 2025.10.28.12.55.54
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.12.55.54-hd8ed1ab_0.conda
   hash:
-    md5: d1540811d818dc180a0e45afbcc586c5
-    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
+    md5: b4b508fca94d170a55651b18f3b11178
+    sha256: 6ba9e679f3230a95ab579441184ca2425c7d89eabff8b295ccc278401b9693c8
   category: main
   optional: false
 - name: conda-forge-tick
@@ -11340,7 +11340,7 @@ package:
   category: main
   optional: false
 - name: pillow
-  version: 11.3.0
+  version: 12.0.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -11350,18 +11350,18 @@ package:
     libfreetype6: '>=2.14.1'
     libgcc: '>=14'
     libjpeg-turbo: '>=3.1.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
     libwebp-base: '>=1.6.0,<2.0a0'
     libxcb: '>=1.17.0,<2.0a0'
-    libzlib: '>=1.3.1,<2.0a0'
-    openjpeg: '>=2.5.3,<3.0a0'
+    openjpeg: '>=2.5.4,<3.0a0'
     python: ''
     python_abi: 3.11.*
     tk: '>=8.6.13,<8.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pillow-11.3.0-py311h98278a2_3.conda
+    zlib-ng: '>=2.2.5,<2.3.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/pillow-12.0.0-py311h07c5bb8_0.conda
   hash:
-    md5: 76839149314cc1d07f270174801576b0
-    sha256: 7268d3f04cc28069eb34a7051d04a59cf2e3737ca2199b39dbc5b7149ad2839b
+    md5: 51f505a537b2d216a1b36b823df80995
+    sha256: 57231a713744270bcd7116f339e13c78cd78f055a54b4d9b811a8597076c21d2
   category: main
   optional: false
 - name: pillow
@@ -11389,7 +11389,7 @@ package:
   category: main
   optional: false
 - name: pillow
-  version: 11.3.0
+  version: 12.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -11398,18 +11398,18 @@ package:
     libfreetype: '>=2.14.1'
     libfreetype6: '>=2.14.1'
     libjpeg-turbo: '>=3.1.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
     libwebp-base: '>=1.6.0,<2.0a0'
     libxcb: '>=1.17.0,<2.0a0'
-    libzlib: '>=1.3.1,<2.0a0'
-    openjpeg: '>=2.5.3,<3.0a0'
+    openjpeg: '>=2.5.4,<3.0a0'
     python: 3.11.*
     python_abi: 3.11.*
     tk: '>=8.6.13,<8.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pillow-11.3.0-py311h1f9957d_3.conda
+    zlib-ng: '>=2.2.5,<2.3.0a0'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pillow-12.0.0-py311h890502c_0.conda
   hash:
-    md5: 2f097ccfbbcd052bb7f876f4dbcf821d
-    sha256: 64642d655d8608aeca5e7a1ee041397d022f43e3f8983ca1f57b1c2de95fce84
+    md5: c2791d321b3ec9cd81a6b09f00cf65d9
+    sha256: 41493a32d5e908e18c3deccea6561c42098acf99cc84840fd629422d9dd27d0b
   category: main
   optional: false
 - name: pip
@@ -17748,6 +17748,33 @@ package:
   hash:
     md5: e3170d898ca6cb48f1bb567afb92f775
     sha256: 58f8860756680a4831c1bf4f294e2354d187f2e999791d53b1941834c4b37430
+  category: main
+  optional: false
+- name: zlib-ng
+  version: 2.2.5
+  manager: conda
+  platform: linux-64
+  dependencies:
+    __glibc: '>=2.17,<3.0.a0'
+    libgcc: '>=14'
+    libstdcxx: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/zlib-ng-2.2.5-hde8ca8f_0.conda
+  hash:
+    md5: 1920c3502e7f6688d650ab81cd3775fd
+    sha256: 3a8e7798deafd0722b6b5da50c36b7f361a80b30165d600f7760d569a162ff95
+  category: main
+  optional: false
+- name: zlib-ng
+  version: 2.2.5
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    __osx: '>=11.0'
+    libcxx: '>=19'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.2.5-hf787086_0.conda
+  hash:
+    md5: fb78d469f8e0f1eb5bbbfd249aeed447
+    sha256: 4b4220f03844aaaffa7868023963415e14cddd456f00b8fa78ee4a16fecd1b60
   category: main
   optional: false
 - name: zstandard
