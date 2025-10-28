@@ -2247,40 +2247,40 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.01.19.10
+  version: 2025.10.28.08.08.15
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.01.19.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
   hash:
-    md5: ff1197cf7c1de0531ecce79475067f8c
-    sha256: 0941db1e1e5e2fc67b2a77ebfe3fa7948c72b3ecd262d8b711cb4ac7f5d84946
+    md5: d1540811d818dc180a0e45afbcc586c5
+    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.01.19.10
+  version: 2025.10.28.08.08.15
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.01.19.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
   hash:
-    md5: ff1197cf7c1de0531ecce79475067f8c
-    sha256: 0941db1e1e5e2fc67b2a77ebfe3fa7948c72b3ecd262d8b711cb4ac7f5d84946
+    md5: d1540811d818dc180a0e45afbcc586c5
+    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.28.01.19.10
+  version: 2025.10.28.08.08.15
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.01.19.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.28.08.08.15-hd8ed1ab_0.conda
   hash:
-    md5: ff1197cf7c1de0531ecce79475067f8c
-    sha256: 0941db1e1e5e2fc67b2a77ebfe3fa7948c72b3ecd262d8b711cb4ac7f5d84946
+    md5: d1540811d818dc180a0e45afbcc586c5
+    sha256: 31780e266c159a803bd9cef11382c743858ab15ace9492250c7553b434fdd91d
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.10.83
+  version: 2025.10.86
   manager: conda
   platform: linux-64
   dependencies:
@@ -2339,14 +2339,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.83-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.86-pyhd8ed1ab_0.conda
   hash:
-    md5: b0b30676007c495a3219cde418b85e7c
-    sha256: ccad9f14f04e689b362de87e8960995557615ed20d45155d5fb28edf2041e447
+    md5: b5a8c1bc07a653b75ace6397e2022ed3
+    sha256: bf1b123baa58f81b166343b60cfe67644eedb3d9285022d3e97ce9e3bde29c0b
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.10.83
+  version: 2025.10.86
   manager: conda
   platform: osx-64
   dependencies:
@@ -2405,14 +2405,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.83-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.86-pyhd8ed1ab_0.conda
   hash:
-    md5: b0b30676007c495a3219cde418b85e7c
-    sha256: ccad9f14f04e689b362de87e8960995557615ed20d45155d5fb28edf2041e447
+    md5: b5a8c1bc07a653b75ace6397e2022ed3
+    sha256: bf1b123baa58f81b166343b60cfe67644eedb3d9285022d3e97ce9e3bde29c0b
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.10.83
+  version: 2025.10.86
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2471,10 +2471,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.83-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.10.86-pyhd8ed1ab_0.conda
   hash:
-    md5: b0b30676007c495a3219cde418b85e7c
-    sha256: ccad9f14f04e689b362de87e8960995557615ed20d45155d5fb28edf2041e447
+    md5: b5a8c1bc07a653b75ace6397e2022ed3
+    sha256: bf1b123baa58f81b166343b60cfe67644eedb3d9285022d3e97ce9e3bde29c0b
   category: main
   optional: false
 - name: conda-index
