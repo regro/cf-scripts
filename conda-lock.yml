@@ -11365,7 +11365,7 @@ package:
   category: main
   optional: false
 - name: pillow
-  version: 11.3.0
+  version: 12.0.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -11374,18 +11374,18 @@ package:
     libfreetype: '>=2.14.1'
     libfreetype6: '>=2.14.1'
     libjpeg-turbo: '>=3.1.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
     libwebp-base: '>=1.6.0,<2.0a0'
     libxcb: '>=1.17.0,<2.0a0'
-    libzlib: '>=1.3.1,<2.0a0'
-    openjpeg: '>=2.5.3,<3.0a0'
+    openjpeg: '>=2.5.4,<3.0a0'
     python: ''
     python_abi: 3.11.*
     tk: '>=8.6.13,<8.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/pillow-11.3.0-py311ha88f94d_3.conda
+    zlib-ng: '>=2.2.5,<2.3.0a0'
+  url: https://conda.anaconda.org/conda-forge/osx-64/pillow-12.0.0-py311hc618505_0.conda
   hash:
-    md5: c1ce8859b9cece7f0c500f918f24aa35
-    sha256: 728fe6e04789c0d7c3431680f7348226dc8bb64c6882731780ee99dd661e9024
+    md5: cf3739a2d5f75b2ce7a4ea57eb4f1a15
+    sha256: 3a73d44c418af9f7799df33b100302680464d881f9022e7cd8cd53b42158f4d8
   category: main
   optional: false
 - name: pillow
@@ -11789,46 +11789,46 @@ package:
   category: main
   optional: false
 - name: psutil
-  version: 7.1.1
+  version: 7.1.2
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    python: '>=3.11,<3.12.0a0'
+    python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.1.1-py311h49ec1c0_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.1.2-py311haee01d2_0.conda
   hash:
-    md5: fdf6ddf7278ca192158d25760f2c110a
-    sha256: ce79e9c43da67de620ded2cdfa2fe42336013abc2fb4e143796e5d22c7ff94d2
+    md5: 34444a0803ffe686f8aab4f874091092
+    sha256: 83015b3f2de1367a0ea460296c18d12177bf77835d6bc878cc643899186d7811
   category: main
   optional: false
 - name: psutil
-  version: 7.1.1
+  version: 7.1.2
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-    python: '>=3.11,<3.12.0a0'
+    python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.1.1-py311hf197a57_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.1.2-py311h62e9434_0.conda
   hash:
-    md5: 8c696ad5f32007a1e650de8f15eda997
-    sha256: e1e106c9864d189fc81911e2dfb26f6b9793a7ba900475819906d3f5952c4409
+    md5: 763be460923e566915bcb8c02b12f2e6
+    sha256: 61f677093461bac768d77e5903ec4b52d1004d61932062690e61bfe90791162d
   category: main
   optional: false
 - name: psutil
-  version: 7.1.1
+  version: 7.1.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    python: '>=3.11,<3.12.0a0'
+    python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.1.1-py311h9408147_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.1.2-py311h5bb9006_0.conda
   hash:
-    md5: 5406bf0d19dc9cc8ba8e88a3126301ac
-    sha256: bc469b5ae97f6a546dd712a97b4ce57b42fdeb7dddd7db1ac4323a0deaa83344
+    md5: d300797187a8b2224b1d57664b86fa4d
+    sha256: 74ab463ee8070a7695baff49d232b000e5f799282ec7b6997944020e630a58e7
   category: main
   optional: false
 - name: pthread-stubs
@@ -17762,6 +17762,19 @@ package:
   hash:
     md5: 1920c3502e7f6688d650ab81cd3775fd
     sha256: 3a8e7798deafd0722b6b5da50c36b7f361a80b30165d600f7760d569a162ff95
+  category: main
+  optional: false
+- name: zlib-ng
+  version: 2.2.5
+  manager: conda
+  platform: osx-64
+  dependencies:
+    __osx: '>=10.13'
+    libcxx: '>=19'
+  url: https://conda.anaconda.org/conda-forge/osx-64/zlib-ng-2.2.5-he7f0fdc_0.conda
+  hash:
+    md5: acdf87296c0cd71e61a740dbcd5b6ff5
+    sha256: ed46538570cf655326a4e80f72a7c03185adc493b53ec58371d3ec6d0fa7b5d3
   category: main
   optional: false
 - name: zlib-ng
