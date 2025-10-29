@@ -2283,36 +2283,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.17.04.52
+  version: 2025.10.29.19.53.54
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.17.04.52-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
   hash:
-    md5: 26388acba07f8e46072a1abb74f0dc4e
-    sha256: c5b120e4712060a1a3dbbc55c2bb81aaa5f5bf8f581108563a9ca7f4f2e9fce1
+    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
+    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.17.04.52
+  version: 2025.10.29.19.53.54
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.17.04.52-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
   hash:
-    md5: 26388acba07f8e46072a1abb74f0dc4e
-    sha256: c5b120e4712060a1a3dbbc55c2bb81aaa5f5bf8f581108563a9ca7f4f2e9fce1
+    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
+    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.17.04.52
+  version: 2025.10.29.19.53.54
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.17.04.52-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
   hash:
-    md5: 26388acba07f8e46072a1abb74f0dc4e
-    sha256: c5b120e4712060a1a3dbbc55c2bb81aaa5f5bf8f581108563a9ca7f4f2e9fce1
+    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
+    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
   category: main
   optional: false
 - name: conda-forge-tick
@@ -9507,7 +9507,7 @@ package:
   category: main
   optional: false
 - name: libxml2
-  version: 2.13.8
+  version: 2.13.9
   manager: conda
   platform: linux-64
   dependencies:
@@ -9517,14 +9517,14 @@ package:
     libiconv: '>=1.18,<2.0a0'
     liblzma: '>=5.8.1,<6.0a0'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.8-h04c0eec_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.9-h04c0eec_0.conda
   hash:
-    md5: 10bcbd05e1c1c9d652fccb42b776a9fa
-    sha256: 03deb1ec6edfafc5aaeecadfc445ee436fecffcda11fcd97fde9b6632acb583f
+    md5: 35eeb0a2add53b1e50218ed230fa6a02
+    sha256: 5d12e993894cb8e9f209e2e6bef9c90fa2b7a339a1f2ab133014b71db81f5d88
   category: main
   optional: false
 - name: libxml2
-  version: 2.13.8
+  version: 2.13.9
   manager: conda
   platform: osx-64
   dependencies:
@@ -9533,10 +9533,10 @@ package:
     libiconv: '>=1.18,<2.0a0'
     liblzma: '>=5.8.1,<6.0a0'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.8-he1bc88e_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.9-he1bc88e_0.conda
   hash:
-    md5: 1d31029d8d2685d56a812dec48083483
-    sha256: 248871154c6f86f0c6d456872457ad4f5799e23c09512a473041da3b9b9ee83c
+    md5: af41ebf4621373c4eeeda69cc703f19c
+    sha256: 151e653e72b9de48bdeb54ae0664b490d679d724e618649997530a582a67a5fb
   category: main
   optional: false
 - name: libxml2
