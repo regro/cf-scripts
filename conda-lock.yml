@@ -907,7 +907,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.40.61
+  version: 1.40.62
   manager: conda
   platform: linux-64
   dependencies:
@@ -915,14 +915,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.61-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.62-pyhd8ed1ab_0.conda
   hash:
-    md5: 0937b88c3dac3c5fc7733998638c43db
-    sha256: cfb6789cfbac7533e0997eca07f3ecbc9b07fd27aa4cb8ceae3994f7e24e8fa3
+    md5: 9ed3767343a3f03f46ce0f24e9932058
+    sha256: 0f7d53cb106c124f02a59a5066fb7f6da4bec27d22729d5b41cd8f9753538e36
   category: main
   optional: false
 - name: botocore
-  version: 1.40.61
+  version: 1.40.62
   manager: conda
   platform: osx-64
   dependencies:
@@ -930,14 +930,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.61-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.62-pyhd8ed1ab_0.conda
   hash:
-    md5: 0937b88c3dac3c5fc7733998638c43db
-    sha256: cfb6789cfbac7533e0997eca07f3ecbc9b07fd27aa4cb8ceae3994f7e24e8fa3
+    md5: 9ed3767343a3f03f46ce0f24e9932058
+    sha256: 0f7d53cb106c124f02a59a5066fb7f6da4bec27d22729d5b41cd8f9753538e36
   category: main
   optional: false
 - name: botocore
-  version: 1.40.61
+  version: 1.40.62
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -945,10 +945,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.61-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.62-pyhd8ed1ab_0.conda
   hash:
-    md5: 0937b88c3dac3c5fc7733998638c43db
-    sha256: cfb6789cfbac7533e0997eca07f3ecbc9b07fd27aa4cb8ceae3994f7e24e8fa3
+    md5: 9ed3767343a3f03f46ce0f24e9932058
+    sha256: 0f7d53cb106c124f02a59a5066fb7f6da4bec27d22729d5b41cd8f9753538e36
   category: main
   optional: false
 - name: brotli
@@ -2283,36 +2283,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.19.53.54
+  version: 2025.10.30.11.33.29
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.30.11.33.29-hd8ed1ab_0.conda
   hash:
-    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
-    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
+    md5: 57b4978aaa0706d9a318f691beadfff6
+    sha256: c52c2e69693d870d18b2cc1010acf9bf4fcc5bd38d8d2b8c61151b31cddf4c9c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.19.53.54
+  version: 2025.10.30.11.33.29
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.30.11.33.29-hd8ed1ab_0.conda
   hash:
-    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
-    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
+    md5: 57b4978aaa0706d9a318f691beadfff6
+    sha256: c52c2e69693d870d18b2cc1010acf9bf4fcc5bd38d8d2b8c61151b31cddf4c9c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.29.19.53.54
+  version: 2025.10.30.11.33.29
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.29.19.53.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.30.11.33.29-hd8ed1ab_0.conda
   hash:
-    md5: c2fdd4d5b1237f40c7dc8f79b61cae77
-    sha256: bf4eff1a47a4263770988b5f85aeacbe071b66b85dd71b313eb048138cf29e46
+    md5: 57b4978aaa0706d9a318f691beadfff6
+    sha256: c52c2e69693d870d18b2cc1010acf9bf4fcc5bd38d8d2b8c61151b31cddf4c9c
   category: main
   optional: false
 - name: conda-forge-tick
@@ -3637,42 +3637,42 @@ package:
   category: main
   optional: false
 - name: deprecated
-  version: 1.2.18
+  version: 1.3.1
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
-    sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
+    md5: bf74a83f7a0f2a21b5d709997402cac4
+    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
   category: main
   optional: false
 - name: deprecated
-  version: 1.2.18
+  version: 1.3.1
   manager: conda
   platform: osx-64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
-    sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
+    md5: bf74a83f7a0f2a21b5d709997402cac4
+    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
   category: main
   optional: false
 - name: deprecated
-  version: 1.2.18
+  version: 1.3.1
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
-    sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
+    md5: bf74a83f7a0f2a21b5d709997402cac4
+    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
   category: main
   optional: false
 - name: distlib
@@ -16565,43 +16565,43 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.9.5
+  version: 0.9.6
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.5-h30787bc_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.6-h30787bc_0.conda
   hash:
-    md5: ec8ec00aa6d4baf1abdbfcda2ee5acc2
-    sha256: 6ceea7581b456db0af02ce05c89a66540bdcddcab4f31b153d6c31e2acac2e83
+    md5: bdfad407afca7be47b8c2fd09b92049d
+    sha256: bdb11e0443ff965edd847369fa908a40e51eed60b29bfd5decf5702c40cc33df
   category: main
   optional: false
 - name: uv
-  version: 0.9.5
+  version: 0.9.6
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.5-h66543e4_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.6-h66543e4_0.conda
   hash:
-    md5: e64ba6c23e730775b9bb5d4114342b85
-    sha256: b15ff0708f8188ee11519975030748a7fe32862f04cf064a58506e3581a66ab1
+    md5: 397d488d58498004630b15fe321ca0f6
+    sha256: b297e690d66a9b0f1ee8b2fc66b78d88c9a3f232077bf9497f08ac4872e908b1
   category: main
   optional: false
 - name: uv
-  version: 0.9.5
+  version: 0.9.6
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.5-h194b5f9_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.6-h194b5f9_0.conda
   hash:
-    md5: 45129b8b8240cbd14dbeccd97825f1f7
-    sha256: dba65bb5bbe44305af08f683962e27798b819d3ae55e559472edf3fcb37c0fba
+    md5: 46a20b7df8f65083a8e5b1124810ba0a
+    sha256: 244b54b2468dd548fb69105747b632278985f5fb612430cbbedd3e9017192f88
   category: main
   optional: false
 - name: uvicorn
