@@ -274,7 +274,6 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
 def _add_test_requires(section):
     new_lines = []
-    in_test = False
     test_indent = None
     for line in section:
         lstrip_line = line.lstrip()
@@ -292,12 +291,11 @@ def _add_test_requires(section):
 
         if lstrip_line.startswith("test:"):
             logger.debug("found test section for adding requires")
-            in_test = True
             test_indent = indent
             new_lines.append(line)
             continue
 
-        if in_test:
+        if test_indent:
             indent_size = indent - test_indent
             requires_lines = [
                 (" " * indent) + "requires:" + "\n",
@@ -306,7 +304,6 @@ def _add_test_requires(section):
             new_lines += requires_lines
             new_lines.append(line)
 
-            in_test = False
         else:
             new_lines.append(line)
 
@@ -469,6 +466,8 @@ class NoarchPythonMinMigrator(Migrator):
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if "{{ python_min }}" in line:
                 muid = super().migrate(recipe_dir, attrs)
+                if muid is False:
+                    raise ValueError("migrate returned False")
                 muid["already_done"] = True
                 return muid
 
@@ -480,7 +479,9 @@ class NoarchPythonMinMigrator(Migrator):
         )
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             textwrap.dedent(
@@ -504,6 +505,8 @@ for more details.
         return f"{self.name}-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs):
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n

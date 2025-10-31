@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import TypeAdapter, model_validator
+from pydantic import model_validator
 
 from conda_forge_tick.models.common import NoneIsEmptyDict, StrictBaseModel
 
@@ -59,6 +59,3 @@ class VersionPrInfo(StrictBaseModel):
             raise ValueError(
                 f"new_version_errors contains at least one version not in new_version_attempt_ts: {wrong_versions}"
             )
-
-
-VersionPrInfo = TypeAdapter(VersionPrInfo)

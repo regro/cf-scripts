@@ -111,7 +111,7 @@ class ArchRebuild(GraphMigrator):
                             attrs.get("requirements", {}),
                         ).values()
                     )
-                    for dep in get_deps_from_outputs_lut(deps, outputs_lut):
+                    for dep in get_deps_from_outputs_lut(deps, outputs_lut):  # type: ignore[arg-type]
                         graph2.add_edge(dep, node)
                 pass
 
@@ -173,6 +173,8 @@ class ArchRebuild(GraphMigrator):
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
         if y_orig == y:
+            if muid is False:
+                raise ValueError("migrate returned False")
             muid["already_done"] = True
 
         return muid
@@ -180,7 +182,9 @@ class ArchRebuild(GraphMigrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Arch Migrator"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
@@ -211,7 +215,7 @@ class _CrossCompileRebuild(GraphMigrator):
     @property
     def additional_keys(self):
         return {
-            "build_platform": self.build_platform,
+            "build_platform": self.build_platform,  # type: ignore[attr-defined]
             "test": "native_and_emulated",
         }
 
@@ -221,20 +225,20 @@ class _CrossCompileRebuild(GraphMigrator):
         pr_limit: int = 0,
         name: str = "",
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                target_packages = load_target_packages(self.pkg_list_filename)
+                target_packages = load_target_packages(self.pkg_list_filename)  # type: ignore[attr-defined]
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
             # rebuild the graph to only use edges from the arch requirements
             graph2 = nx.create_empty_copy(total_graph)
             for node, attrs in total_graph.nodes(data="payload"):
-                for plat_arch, build_plat_arch in self.build_platform.items():
+                for plat_arch, build_plat_arch in self.build_platform.items():  # type: ignore[attr-defined]
                     reqs = attrs.get(
                         f"{plat_arch}_requirements",
                         attrs.get(
@@ -255,7 +259,7 @@ class _CrossCompileRebuild(GraphMigrator):
                             deps.add(build_dep)
                     for dep in get_deps_from_outputs_lut(
                         deps,
-                        outputs_lut,
+                        outputs_lut,  # type: ignore[arg-type]
                     ):
                         graph2.add_edge(dep, node)
 
@@ -330,6 +334,8 @@ class _CrossCompileRebuild(GraphMigrator):
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
         if y_orig == y:
+            if muid is False:
+                raise ValueError("migrate returned False")
             muid["already_done"] = True
 
         return muid
@@ -349,7 +355,9 @@ class OSXArm(_CrossCompileRebuild):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
@@ -381,7 +389,9 @@ class WinArm64(_CrossCompileRebuild):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Support Windows ARM64 platform"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(

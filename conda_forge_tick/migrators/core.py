@@ -10,6 +10,7 @@ import re
 import secrets
 import time
 import typing
+from collections.abc import Collection
 from pathlib import Path
 from typing import Any, List, Literal, Sequence, Set
 
@@ -78,7 +79,7 @@ def cut_graph_to_target_packages(graph, target_packages):
 
 
 def skip_migrator_due_to_schema(
-    attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
+    attrs: "AttrsTypedDict", allowed_schema_versions: Collection[int]
 ) -> bool:
     __name = attrs.get("name", "")
     schema_version = get_recipe_schema_version(attrs)
@@ -255,7 +256,7 @@ def make_from_lazy_json_data(data):
 
 class MiniMigrator:
     post_migration = False
-    allowed_schema_versions = [0]
+    allowed_schema_versions: Collection[int] = [0]
 
     def __init__(self):
         if not hasattr(self, "_init_args"):
@@ -334,7 +335,7 @@ class Migrator:
 
     allow_empty_commits = False
 
-    allowed_schema_versions = [0]
+    allowed_schema_versions: Collection[Literal[0, 1]] = [0]
 
     pluck_nodes = True
 
@@ -349,6 +350,8 @@ class Migrator:
             "{{% set build = {} %}}",
         ),
     )
+
+    loaded_yaml: dict
 
     def __init__(
         self,
@@ -881,6 +884,8 @@ class GraphMigrator(Migrator):
 
     def all_predecessors_issued(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been issue and are stale
+        if self.graph is None:
+            raise ValueError("graph is None")
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
@@ -906,6 +911,8 @@ class GraphMigrator(Migrator):
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
+        if self.graph is None:
+            raise ValueError("graph is None")
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
@@ -948,6 +955,8 @@ class GraphMigrator(Migrator):
 
         name = attrs.get("name", "")
         _gx = self.total_graph or self.graph
+        if _gx is None:
+            raise ValueError("graph is None")
         not_in_migration = attrs.get("feedstock_name", None) not in _gx
 
         if not_in_migration:
@@ -983,6 +992,8 @@ class GraphMigrator(Migrator):
         return (not node_is_ready) or super().filter_node_migrated(attrs, "Upstream:")
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n

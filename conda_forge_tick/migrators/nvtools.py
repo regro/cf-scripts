@@ -129,7 +129,7 @@ class AddNVIDIATools(Migrator):
                 meta,
                 "requirements",
                 "build",
-                ["    - cf-nvidia-tools 1  # [linux]\n"],
+                "    - cf-nvidia-tools 1  # [linux]\n",
             ):
                 logger.debug("cf-nvidia-tools added to meta.yaml.")
             else:
@@ -158,7 +158,7 @@ class AddNVIDIATools(Migrator):
                     meta,
                     "requirements",
                     "build",
-                    ["    - check-glibc  # [linux]\n"],
+                    "    - check-glibc  # [linux]\n",
                 ):
                     logger.debug("Added check-glibc to meta.yaml")
                 else:

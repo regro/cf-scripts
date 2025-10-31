@@ -71,7 +71,7 @@ Defining this type is already the first step to remove it.
 """
 
 
-def none_to_empty_dict(value: T | None) -> T | dict[Never]:
+def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
     """Convert `None` to an empty dict. Everything else is kept as is."""
     if value is None:
         return {}

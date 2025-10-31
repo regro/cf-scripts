@@ -162,7 +162,7 @@ def extract_static_lib_specs_from_raw_meta_yaml(
 
         {"foo": {"abstract": {"foo 1.0.*"}, "concrete": {"foo 1.0.0 h4541_5"}}}
     """
-    all_specs_by_name = {}
+    all_specs_by_name: dict[str, dict[str, set[str]]] = {}
 
     # divide recipe into host sections
     for host_section in extract_section_from_yaml_text(raw_meta_yaml, "host"):
@@ -239,7 +239,7 @@ def any_static_libs_out_of_date(
     platform_arches: tuple[str],
     raw_meta_yaml: str,
     schema_version: int = 0,
-) -> (bool, dict[str, dict[str, str]]):
+) -> tuple[bool, dict[str, dict[str, str]]]:
     """Check if any static libs are out of date for a given recipe and set of platforms.
 
     Parameters
@@ -258,6 +258,11 @@ def any_static_libs_out_of_date(
         of concrete specs and their updated replacements:
 
         {"osx-arm64": {"llvm 13 *_5": "llvm 13 *_6"}}
+
+    Raises
+    ------
+    ValueError
+        If a static lib record was not found.
     """
     # for each plat-arch combo, find latest static lib version
     # and compare to meta.yaml
@@ -273,7 +278,7 @@ def any_static_libs_out_of_date(
         all_specs_by_name,
     )
 
-    static_lib_replacements = {}
+    static_lib_replacements: dict[str, dict[str, str]] = {}
     for platform_arch in platform_arches:
         static_lib_replacements[platform_arch] = {}
 
@@ -283,6 +288,8 @@ def any_static_libs_out_of_date(
         for abs_spec in spec_dict["abstract"]:
             for platform_arch in platform_arches:
                 latest_rec = get_latest_static_lib(abs_spec, platform_arch)
+                if latest_rec is None:
+                    raise ValueError("No matching static lib record found")
                 logger.debug(
                     "latest static lib for spec '%s' on platform '%s': %s",
                     abs_spec,
@@ -345,7 +352,7 @@ def any_static_libs_out_of_date(
 def attempt_update_static_libs(
     raw_meta_yaml: str,
     static_lib_replacements: dict[str, dict[str, str]],
-) -> (bool, str):
+) -> tuple[bool, str]:
     """Attempt to update static lib versions in meta.yaml.
 
     Parameters
@@ -456,6 +463,8 @@ class StaticLibMigrator(GraphMigrator):
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
+        if self.graph is None:
+            raise ValueError("graph is None")
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
@@ -562,13 +571,17 @@ class StaticLibMigrator(GraphMigrator):
                     {k.split(" ")[0] for k in static_lib_replacements.keys()},
                 )
         muid = super().migrate(recipe_dir, attrs)
+        if muid is False:
+            raise ValueError("migrate returned False")
         if not needs_update:
             muid["already_done"] = True
 
         _read_repodata.cache_clear()
         return muid
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
@@ -600,9 +613,13 @@ class StaticLibMigrator(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
+        if self.name is None:
+            raise ValueError("name is None")
         return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"  # noqa
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
 
@@ -620,6 +637,8 @@ class StaticLibMigrator(GraphMigrator):
             for spec_dict in all_specs_by_name.values():
                 for abs_spec in spec_dict["abstract"]:
                     rec = get_latest_static_lib(abs_spec, platform_arch)
+                    if rec is None:
+                        raise ValueError("no matching record found")
                     rec = rec.to_match_spec().conda_build_form()
                     rec = "::".join([platform_arch.replace("_", "-"), rec])
                     vals.append(rec)
