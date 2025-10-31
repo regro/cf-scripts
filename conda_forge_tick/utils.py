@@ -23,7 +23,6 @@ from typing import (
     MutableMapping,
     Optional,
     Sequence,
-    Set,
     Tuple,
     cast,
 )
@@ -134,7 +133,7 @@ def parse_munged_run_export(p: str) -> Dict:
     return cast(Dict, yaml_safe_load(p))
 
 
-REPRINTED_LINES = {}
+REPRINTED_LINES: dict[str, set[str]] = {}
 
 
 @contextlib.contextmanager
@@ -357,7 +356,7 @@ def _flatten_requirement_pin_dicts(
     def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
         return [flatten_pin(s) for s in list]
 
-    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
+    def flatten_requirements(output: MutableMapping[str, Any]):
         if "requirements" in output:
             requirements = output["requirements"]
             for key in ["build", "host", "run"]:
@@ -376,15 +375,15 @@ def _flatten_requirement_pin_dicts(
 
     for recipe in recipes:
         if "requirements" in recipe:
-            flatten_requirements(recipe)
+            flatten_requirements(recipe)  # type: ignore[arg-type]
 
         if "outputs" in recipe:
             for output in recipe["outputs"]:
-                flatten_requirements(output)
+                flatten_requirements(output)  # type: ignore[arg-type]
 
         if "tests" in recipe:
             # script tests can have `run` and `build` requirements
-            for test in recipe["tests"]:
+            for test in recipe["tests"]:  # type: ignore[typeddict-item]
                 if "requirements" in test:
                     flatten_requirements(test)
 
@@ -430,7 +429,7 @@ def parse_recipe_yaml_local(
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     else:
-        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)  # type: ignore
     parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
@@ -1146,28 +1145,6 @@ def _parse_meta_yaml_impl(
         raise
 
 
-class UniversalSet(Set):
-    """The universal set, or identity of the set intersection operation."""
-
-    def __and__(self, other: Set) -> Set:
-        return other
-
-    def __rand__(self, other: Set) -> Set:
-        return other
-
-    def __contains__(self, item: Any) -> bool:
-        return True
-
-    def __iter__(self) -> typing.Iterator[Any]:
-        return self
-
-    def __next__(self) -> typing.NoReturn:
-        raise StopIteration
-
-    def __len__(self) -> int:
-        return float("inf")
-
-
 class NullUndefined(jinja2.Undefined):
     def __unicode__(self) -> str:
         return self._undefined_name
@@ -1315,7 +1292,7 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]: ...
 
 
 @typing.overload
-def as_iterable(x: T) -> Tuple[T]: ...
+def as_iterable(x: T) -> Iterable: ...
 
 
 @typing.no_type_check

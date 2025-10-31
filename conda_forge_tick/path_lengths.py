@@ -2,12 +2,19 @@
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import DefaultDict, Dict, Iterable, List, Sequence, Set, TypeVar
+from typing import DefaultDict, Dict, Iterable, List, Protocol, Sequence, Set, TypeVar
 
 import networkx as nx
 from networkx.classes.digraph import DiGraph
 
-T = TypeVar("T")
+T = TypeVar("T", bound="SupportsRichComparison")
+
+
+class SupportsRichComparison(Protocol):
+    def __lt__(self: T, other: T) -> bool: ...
+    def __le__(self: T, other: T) -> bool: ...
+    def __gt__(self: T, other: T) -> bool: ...
+    def __ge__(self: T, other: T) -> bool: ...
 
 
 def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:

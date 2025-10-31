@@ -112,7 +112,7 @@ def _has_r_url(curr_val: Any):
 
 
 def _compile_all_selectors(cmeta: Any, src: str):
-    selectors = [None]
+    selectors: list[str | None] = [None]
     for key in cmeta.jinja2_vars:
         if CONDA_SELECTOR in key:
             selectors.append(key.split(CONDA_SELECTOR)[1])
@@ -202,10 +202,6 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
             context.get("name", None),
             cmeta.get("package", {}).get("name", None),
         ]
-        # for v1 recipe compatibility
-        if "outputs" in cmeta:
-            if package_name := output.get("package", {}).get("name", None):
-                orig_pypi_name_candidates.append(package_name)
 
     orig_pypi_name_candidates = sorted(
         {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
@@ -389,8 +385,8 @@ def _try_replace_hash(
     return _replaced_hash
 
 
-def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
-    errors = set()
+def _try_to_update_version(cmeta: Any, src: Any, hash_type: str):
+    errors: set[str] = set()
 
     local_vals = ["path", "folder"]
     if all(any(lval in k for lval in local_vals) for k in src):
@@ -610,10 +606,9 @@ def update_version_feedstock_dir(
 
 def _update_version_feedstock_dir_local(
     feedstock_dir, version, hash_type
-) -> (bool, set):
+) -> tuple[bool, set]:
     feedstock_path = Path(feedstock_dir)
 
-    recipe_path = None
     recipe_path_v0 = feedstock_path / "recipe" / "meta.yaml"
     recipe_path_v1 = feedstock_path / "recipe" / "recipe.yaml"
     if recipe_path_v0.exists():
@@ -700,7 +695,7 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
 
 def update_version_v1(
     feedstock_dir: str, version: str, hash_type: str
-) -> (str | None, set[str]):
+) -> tuple[str | None, set[str]]:
     """Update the version in a recipe.
 
     Parameters
@@ -823,7 +818,7 @@ def update_version_v1(
         return recipe_text, set()
 
 
-def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]):
+def update_version(raw_meta_yaml, version, hash_type="sha256") -> tuple[str, set[str]]:
     """Update the version in a v0 recipe.
 
     Parameters

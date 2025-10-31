@@ -93,11 +93,13 @@ def update_build_number(file: Path, new_build_number: int | Callable = 0) -> str
 
     if callable(new_build_number):
         detected_build_number = old_build_number(file.read_text())
-        new_build_number = new_build_number(detected_build_number)
+        new_build_number_int = new_build_number(detected_build_number)
+    else:
+        new_build_number_int = new_build_number
 
-    build_number_modified = _update_build_number_in_context(data, new_build_number)
+    build_number_modified = _update_build_number_in_context(data, new_build_number_int)
 
     if not build_number_modified:
-        _update_build_number_in_recipe(data, new_build_number)
+        _update_build_number_in_recipe(data, new_build_number_int)
 
     return _dump_yaml_to_str(data)

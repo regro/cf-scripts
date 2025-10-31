@@ -2,7 +2,6 @@ import glob
 import logging
 import os
 import shutil
-import sys
 import tempfile
 from contextlib import contextmanager
 
@@ -136,17 +135,6 @@ def provide_source_code_local(recipe_dir):
     RuntimeError
         If there is an error in getting the conda build source code or printing it.
     """
-    out = None
-
-    def _print_out():
-        try:
-            if out:
-                sys.stdout.write(out.read())
-        except Exception as e:
-            logger.error(
-                "Error printing out/err in getting conda build src!", exc_info=e
-            )
-
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
@@ -179,8 +167,5 @@ def provide_source_code_local(recipe_dir):
             # provide source dir
             yield provide(md)
     except (SystemExit, Exception) as e:
-        _print_out()
         logger.error("Error in getting conda build src!", exc_info=e)
         raise RuntimeError("conda build src exception: " + str(e))
-
-    _print_out()
