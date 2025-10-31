@@ -2283,36 +2283,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.31.10.50.23
+  version: 2025.10.31.15.50.32
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.10.50.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.15.50.32-hd8ed1ab_0.conda
   hash:
-    md5: 6a2d7102c08cd0039b7277746ed944b7
-    sha256: 7d13d8be9106a2bef9cd6caf5106902c92640dfb4f776068ba50836dd0bff541
+    md5: 20e522697167f9e8951613dbd4ff29f9
+    sha256: d8378d4f5c5120a436644241dc50c69e6d7518c6235499c568a8ee858438414a
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.31.10.50.23
+  version: 2025.10.31.15.50.32
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.10.50.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.15.50.32-hd8ed1ab_0.conda
   hash:
-    md5: 6a2d7102c08cd0039b7277746ed944b7
-    sha256: 7d13d8be9106a2bef9cd6caf5106902c92640dfb4f776068ba50836dd0bff541
+    md5: 20e522697167f9e8951613dbd4ff29f9
+    sha256: d8378d4f5c5120a436644241dc50c69e6d7518c6235499c568a8ee858438414a
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.10.31.10.50.23
+  version: 2025.10.31.15.50.32
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.10.50.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.10.31.15.50.32-hd8ed1ab_0.conda
   hash:
-    md5: 6a2d7102c08cd0039b7277746ed944b7
-    sha256: 7d13d8be9106a2bef9cd6caf5106902c92640dfb4f776068ba50836dd0bff541
+    md5: 20e522697167f9e8951613dbd4ff29f9
+    sha256: d8378d4f5c5120a436644241dc50c69e6d7518c6235499c568a8ee858438414a
   category: main
   optional: false
 - name: conda-forge-tick
@@ -14097,7 +14097,7 @@ package:
   category: main
   optional: false
 - name: rapidfuzz
-  version: 3.14.1
+  version: 3.14.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -14107,14 +14107,14 @@ package:
     numpy: ''
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/rapidfuzz-3.14.1-py311h1ddb823_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rapidfuzz-3.14.2-py311h1ddb823_0.conda
   hash:
-    md5: 92bc8e8ec1a92b4da38e97f890b84bd3
-    sha256: 799d464c657e596c701c9ae60787dcd2efae2d8c51cf45e58ee865d28a92b9e9
+    md5: d470ff4065f1078b672521ee1932cd1b
+    sha256: 3f815566541a2295820bdb708ec1f2860fda7a3533cae94568634b1dac2ba317
   category: main
   optional: false
 - name: rapidfuzz
-  version: 3.14.1
+  version: 3.14.2
   manager: conda
   platform: osx-64
   dependencies:
@@ -14123,14 +14123,14 @@ package:
     numpy: ''
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/rapidfuzz-3.14.1-py311h11ccb26_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rapidfuzz-3.14.2-py311h11ccb26_0.conda
   hash:
-    md5: 3903c731290e19cee2c190348b2fcb7d
-    sha256: 4bfe807617ec6cf503072688ec07b614ff5ba9dd33b67695d90967f25935cb34
+    md5: 08db26ab6f81120fc6bdb815b5b4fba7
+    sha256: 9ee4423ad2bb1d34241aab2ed5076ee0052778977972c727013dca36fc3a64c9
   category: main
   optional: false
 - name: rapidfuzz
-  version: 3.14.1
+  version: 3.14.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -14139,10 +14139,10 @@ package:
     numpy: ''
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rapidfuzz-3.14.1-py311h251fd82_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rapidfuzz-3.14.2-py311h251fd82_0.conda
   hash:
-    md5: 021c7f7677c855b3634b82e4acc007c3
-    sha256: 4443ad9c411224768c622aa28a48c77e5dcaa5f670506c90d9380de87bfe871f
+    md5: ccdad6cb2b9f4f5cbe832e186d0cdd8c
+    sha256: 70d9aa46d46cc0de9d4f65b877303fa9a36ec253c97a0d982165944eee8855f1
   category: main
   optional: false
 - name: rattler-build
