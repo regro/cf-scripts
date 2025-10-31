@@ -295,7 +295,7 @@ def _add_test_requires(section):
             new_lines.append(line)
             continue
 
-        if test_indent:
+        if test_indent is not None:
             indent_size = indent - test_indent
             requires_lines = [
                 (" " * indent) + "requires:" + "\n",
