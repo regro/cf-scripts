@@ -304,6 +304,8 @@ def _add_test_requires(section):
             new_lines += requires_lines
             new_lines.append(line)
 
+            test_indent = None
+
         else:
             new_lines.append(line)
 
