@@ -55,7 +55,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -162,7 +162,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           name: test-durations-${{ matrix.group }}
@@ -170,7 +170,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           name: coverage-${{ matrix.group }}
@@ -206,7 +206,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -306,7 +306,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           name: test-durations-mongodb
@@ -314,7 +314,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           name: coverage-mongodb
@@ -343,7 +343,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -360,7 +360,7 @@ jobs:
           condarc-file: autotick-bot/condarc
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: coverage-*
@@ -388,7 +388,7 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           pattern: test-durations-*
@@ -400,7 +400,7 @@ jobs:
           jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: ${{ ! env.CI_SKIP }}
         with:
           name: test-durations
