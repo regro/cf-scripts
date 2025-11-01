@@ -120,7 +120,7 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
 
 
 def _trim_edges_for_abi_rebuild(
-    total_graph: nx.DiGraph, migrator: Migrator, outputs_lut: dict[str, str]
+    total_graph: nx.DiGraph, migrator: Migrator, outputs_lut: dict[str, set]
 ) -> nx.DiGraph:
     migrator_payload = migrator.loaded_yaml.get("__migrator", {})
     include_build = migrator_payload.get("include_build", False)
@@ -263,7 +263,7 @@ class MigrationYaml(GraphMigrator):
         # compute excluded pinned feedstocks no matter what
         outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
-        self.excluded_pinned_feedstocks = set()
+        self.excluded_pinned_feedstocks: set[str] = set()
         for _node in self.package_names:
             self.excluded_pinned_feedstocks.update(outputs_lut.get(_node, {_node}))
 
@@ -273,7 +273,7 @@ class MigrationYaml(GraphMigrator):
             self.graph = None
             total_graph = copy.deepcopy(total_graph)
             self.total_graph = total_graph
-            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
+            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)  # type: ignore[arg-type]
             total_graph.add_edges_from(
                 [(n, "conda-forge-pinning") for n in total_graph.nodes]
             )
@@ -301,6 +301,9 @@ class MigrationYaml(GraphMigrator):
             feedstock_names = {
                 p for p in self.excluded_pinned_feedstocks if p in total_graph.nodes
             } - excluded_feedstocks
+
+            if self.graph is None:
+                raise ValueError("graph is None")
 
             top_level = {
                 node
@@ -464,7 +467,9 @@ class MigrationYaml(GraphMigrator):
 
             return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
@@ -561,22 +566,26 @@ class MigrationYaml(GraphMigrator):
             return add_slug + title
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        if self.name is None:
+            raise ValueError("name is None")
         s_obj = str(self.obj_version) if self.obj_version else ""
         return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"  # noqa
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
 
 
 def _compute_pin_impact(
-    total_graph: nx.DiGraph, package_names: tuple[str], outputs_lut: dict[str, str]
+    total_graph: nx.DiGraph, package_names: tuple[str, ...], outputs_lut: dict[str, str]
 ) -> int:
     # Generally, the packages themselves should be excluded from the migration;
     # an example for exceptions are migrations for new python versions
     # where numpy needs to be rebuilt despite being pinned.
-    excluded_feedstocks = set()
+    excluded_feedstocks: set[str] = set()
     for node in package_names:
         excluded_feedstocks.update(outputs_lut.get(node, {node}))
 
@@ -715,7 +724,9 @@ class MigrationYamlCreator(Migrator):
 
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = (
             "This PR has been triggered in an effort to update the pin for"
             " **{name}**. The current pinned version is {current_pin}, "

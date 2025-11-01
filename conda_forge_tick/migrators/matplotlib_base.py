@@ -27,7 +27,7 @@ class MatplotlibBase(Replacement):
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
                 copy.deepcopy(z["data"])
-                for z in attrs.get("pr_info", {}).get("PRed", [])
+                for z in attrs.get("pr_info", {}).get("PRed", [])  # type: ignore
             )
 
             # we shipped a bug, so fixing this here -

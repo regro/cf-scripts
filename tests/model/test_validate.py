@@ -69,7 +69,7 @@ PR_INFO_BAD_FEEDSTOCKS = {
     "font-ttf-noto-emoji",  # PRed.0.data.version is not a valid conda version
 }
 
-VERSION_PR_INFO_BAD_FEEDSTOCKS = {}
+VERSION_PR_INFO_BAD_FEEDSTOCKS: set[str] = set()
 
 
 @dataclass
@@ -92,7 +92,9 @@ PER_PACKAGE_MODELS: list[PerPackageModel] = [
     PerPackageModel(Path("pr_info"), PrInfo, PR_INFO_BAD_FEEDSTOCKS),
     PerPackageModel(Path("versions"), Versions, must_exist=False),
     PerPackageModel(
-        Path("version_pr_info"), VersionPrInfo, VERSION_PR_INFO_BAD_FEEDSTOCKS
+        Path("version_pr_info"),
+        TypeAdapter(VersionPrInfo),
+        VERSION_PR_INFO_BAD_FEEDSTOCKS,
     ),
 ]
 
@@ -128,8 +130,9 @@ def pytest_generate_tests(metafunc):
             f"Some feedstocks are mentioned as bad feedstock but do not exist: {nonexistent_bad_feedstocks}"
         )
 
+    parameters: list[tuple[PerPackageModel, str]]
     if "valid_feedstock" in metafunc.fixturenames:
-        parameters: list[tuple[PerPackageModel, str]] = []
+        parameters = []
         for model in PER_PACKAGE_MODELS:
             for package in packages:
                 if package not in model.bad_feedstocks:
@@ -142,7 +145,7 @@ def pytest_generate_tests(metafunc):
         return
 
     if "invalid_feedstock" in metafunc.fixturenames:
-        parameters: list[tuple[PerPackageModel, str]] = []
+        parameters = []
         for model in PER_PACKAGE_MODELS:
             for package in packages:
                 if package in model.bad_feedstocks:

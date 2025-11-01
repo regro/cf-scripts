@@ -125,7 +125,9 @@ class Replacement(Migrator):
 
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             """\
@@ -149,6 +151,8 @@ needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         return f"{self.old_pkg}-to-{self.new_pkg}-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
@@ -192,9 +196,9 @@ class MiniReplacement(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
-        rq = set()
+        rq: set[Any] = set()
         for req_type in self.requirement_types:
-            rq |= requirements.get(req_type, set())
+            rq |= requirements.get(req_type, set())  # type: ignore[arg-type]
         return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any):

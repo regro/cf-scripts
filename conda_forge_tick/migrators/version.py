@@ -91,7 +91,7 @@ class Version(Migrator):
         self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
-        super().__init__(
+        super().__init__(  # type: ignore[misc]
             *args,
             **kwargs,
             check_solvable=False,
@@ -275,10 +275,9 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> MigrationUidTypedDict | Literal[False]:
-        version = attrs.get("version_pr_info", {}).get("new_version", None)
+        version = attrs.get("version_pr_info", {}).get("new_version", None)  # type: ignore
 
         recipe_dir = Path(recipe_dir)
-        recipe_path = None
         recipe_path_v0 = recipe_dir / "meta.yaml"
         recipe_path_v1 = recipe_dir / "recipe.yaml"
         if recipe_path_v0.exists():
@@ -293,7 +292,7 @@ class Version(Migrator):
             recipe_path = recipe_path_v1
             updated_meta_yaml, errors = update_version_v1(
                 # we need to give the "feedstock_dir" (not recipe dir)
-                recipe_dir.parent,
+                str(recipe_dir.parent),
                 version,
                 hash_type=hash_type,
             )
@@ -306,7 +305,7 @@ class Version(Migrator):
             recipe_path.write_text(updated_meta_yaml)
             self.set_build_number(recipe_path)
 
-            return super().migrate(recipe_dir, attrs)
+            return super().migrate(str(recipe_dir), attrs)
         else:
             raise VersionMigrationError(
                 _fmt_error_message(
@@ -338,7 +337,7 @@ class Version(Migrator):
         #  issue PRs into other branches for backports
         open_version_prs = [
             muid["PR"]
-            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
+            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])  # type: ignore
             if muid["data"].get("migrator_name") == Version.name
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"
@@ -458,14 +457,14 @@ class Version(Migrator):
         return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(  # type: ignore
             "new_version", None
         )
         assert isinstance(new_version, str)
         return "updated v" + new_version
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(  # type: ignore
             "new_version", None
         )
         assert isinstance(new_version, str)
@@ -489,7 +488,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        new_version = attrs.get("version_pr_info", {}).get("new_version", None)
+        new_version = attrs.get("version_pr_info", {}).get("new_version", None)  # type: ignore
         n["version"] = new_version
         return n
 

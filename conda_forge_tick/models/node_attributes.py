@@ -311,6 +311,8 @@ class NodeAttributesValid(StrictBaseModel):
             If the top-level version is None, but does not match at least one of the outputs.
             If the version field does not match the package.version field in the meta_yaml field.
         """
+        if self.meta_yaml is None:
+            return self
         if self.meta_yaml.package.version is None:
             output_versions = set()
             for output in self.meta_yaml.outputs or []:
