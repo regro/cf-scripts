@@ -240,7 +240,7 @@ def graph_migrator_status(
             z["data"] for z in all_pr_jsons
         )
 
-        if "PR" in pr_json:
+        if pr_json is not None and "PR" in pr_json:
             pr_is_archiveable = pr_can_be_archived(pr_json["PR"])
         else:
             pr_is_archiveable = False
