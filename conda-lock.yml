@@ -8518,16 +8518,16 @@ package:
   category: main
   optional: false
 - name: libjpeg-turbo
-  version: 3.1.0
+  version: 3.1.2
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.1.0-hb9d3cd8_0.conda
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.1.2-hb03c661_0.conda
   hash:
-    md5: 9fa334557db9f63da6c9285fd2a48638
-    sha256: 98b399287e27768bf79d48faba8a99a2289748c65cd342ca21033fab1860d4a4
+    md5: 8397539e3a0bbd1695584fb4f927485a
+    sha256: cc9aba923eea0af8e30e0f94f2ad7156e2984d80d1e8e7fe6be5a1f257f0eb32
   category: main
   optional: false
 - name: libjpeg-turbo
@@ -8543,15 +8543,15 @@ package:
   category: main
   optional: false
 - name: libjpeg-turbo
-  version: 3.1.0
+  version: 3.1.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.1.0-h5505292_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.1.2-hc919400_0.conda
   hash:
-    md5: 01caa4fbcaf0e6b08b3aef1151e91745
-    sha256: 78df2574fa6aa5b6f5fc367c03192f8ddf8e27dc23641468d54e031ff560b9d4
+    md5: f0695fbecf1006f27f4395d64bd0c4b8
+    sha256: 6c061c56058bb10374daaef50e81b39cf43e8aee21f0037022c0c39c4f31872f
   category: main
   optional: false
 - name: liblapack
@@ -11876,7 +11876,7 @@ package:
   category: main
   optional: false
 - name: psutil
-  version: 7.1.2
+  version: 7.1.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -11884,38 +11884,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.1.2-py311haee01d2_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.1.3-py311haee01d2_0.conda
   hash:
-    md5: 6e3380928d0258575c1aeaf552eaf284
-    sha256: 5537b545dbf76af91fe3f1a8523f2b4cb73d88a05b8b5d5f706eea46214a71a2
+    md5: 2092b7977bc8e05eb17a1048724593a4
+    sha256: 6a0b791e00368b6b635c65d5fb31d385129da790d21923387c6b546230ffdf14
   category: main
   optional: false
 - name: psutil
-  version: 7.1.2
+  version: 7.1.3
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.1.2-py311h62e9434_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.1.3-py311h62e9434_0.conda
   hash:
-    md5: 3b89abb5ddc58ad282fafa51ce587827
-    sha256: d14efb81517a8574f64110370fc535416327fb156681fb14f59013e4c88219e4
+    md5: 76219ffe585f6877d15dbbd28c5a93c4
+    sha256: 2b16aa4a8d1df8810129d3edbe74d760c826dc998ee65a4b0db3957fc7d97374
   category: main
   optional: false
 - name: psutil
-  version: 7.1.2
+  version: 7.1.3
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.1.2-py311h5bb9006_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.1.3-py311h5bb9006_0.conda
   hash:
-    md5: a29b6b8f69106410a844aa9660a20984
-    sha256: e3c16af4c9d88081c7c1c3e96161c34c1368fc6fd361522b47df7175d40e40bd
+    md5: cf10a93bacbb33e52075e536051efe97
+    sha256: ea916cf3e0ac41d9eb6d644b8317b2cf4878d974339e56ab081cc2544315d4d1
   category: main
   optional: false
 - name: pthread-stubs
