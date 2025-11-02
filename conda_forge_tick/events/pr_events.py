@@ -1,7 +1,4 @@
 import copy
-import time
-
-import dateparser
 
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
@@ -12,7 +9,7 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     lazy_json_override_backends,
 )
-from conda_forge_tick.utils import get_keys_default
+from conda_forge_tick.utils import get_keys_default, pr_can_be_archived
 
 
 def _backout_node_from_html_url(html_url):
@@ -23,6 +20,7 @@ def _backout_node_from_html_url(html_url):
 def _react_to_pr(uid: str, dry_run: bool = False) -> None:
     with lazy_json_override_backends(["github_api"], use_file_cache=False):
         pr_json = LazyJson(f"pr_json/{uid}.json")
+        is_archiveable = pr_can_be_archived(pr_json)
 
         with pr_json:
             if pr_json.get("html_url", None) is not None:
@@ -37,19 +35,9 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
             else:
                 remake_prs_with_conflicts = True
 
-            now = time.time()
-            dt = 15.0 * 60.0  # 15 minutes in seconds
-            pr_lm = pr_json.get("Last-Modified", None)
-            if pr_lm is not None:
-                pr_lm = dateparser.parse(pr_lm)
-
             # if the PR is not closed or was closed less than 15 minutes ago
             # we attempt to refresh the data
-            if pr_json.get("state", None) != "closed" or (
-                pr_json.get("state", None) == "closed"
-                and pr_lm is not None
-                and now - pr_lm <= dt
-            ):
+            if not is_archiveable:
                 pr_data = refresh_pr(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (

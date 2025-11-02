@@ -37,6 +37,7 @@ from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
     load_existing_graph,
+    pr_can_be_archived,
 )
 from conda_forge_tick.version_filters import filter_version
 
@@ -239,6 +240,11 @@ def graph_migrator_status(
             z["data"] for z in all_pr_jsons
         )
 
+        if "PR" in pr_json:
+            pr_is_archiveable = pr_can_be_archived(pr_json["PR"])
+        else:
+            pr_is_archiveable = False
+
         buildable = not migrator.filter(attrs)
         fntc = "black"
         status_icon = ""
@@ -282,7 +288,7 @@ def graph_migrator_status(
             out["bot-error"].add(node)
             fc = "#000000"
             fntc = "white"
-        elif pr_json["PR"]["state"] == "closed":
+        elif pr_is_archiveable:
             out["done"].add(node)
             fc = "#440154"
             fntc = "white"

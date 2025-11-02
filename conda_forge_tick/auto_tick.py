@@ -11,7 +11,6 @@ from typing import Any, Literal, cast
 from urllib.error import URLError
 from uuid import uuid4
 
-import dateparser
 import github
 import github3
 import networkx as nx
@@ -66,6 +65,7 @@ from conda_forge_tick.utils import (
     get_bot_run_url,
     get_migrator_report_name_from_pr_data,
     load_existing_graph,
+    pr_can_be_archived,
     sanitize_string,
     version_follows_conda_spec,
 )
@@ -1302,7 +1302,6 @@ def _remove_closed_pr_json():
     print("collapsing closed PR json", flush=True)
 
     now = time.time()
-    dt = 15.0 * 60.0  # 15 minutes in seconds
 
     # first we go from nodes to pr json and update the pr info and remove the data
     name_nodes = [
@@ -1316,19 +1315,7 @@ def _remove_closed_pr_json():
                 for pr_ind in range(len(pri.get("PRed", []))):
                     pr = pri["PRed"][pr_ind].get("PR", None)
                     if pr is not None and isinstance(pr, LazyJson):
-                        with pr as pr:
-                            pr_lm = pr.get("Last-Modified", None)
-                            if pr_lm is not None:
-                                pr_lm = dateparser.parse(pr_lm)
-
-                            if (pr_lm is None or now - pr_lm.timestamp() > dt) and (
-                                pr.get("state", None) == "closed" or pr.data == {}
-                            ):
-                                close_pr = True
-                            else:
-                                close_pr = False
-
-                        if close_pr:
+                        if pr_can_be_archived(pr, now=now, archive_empty_prs=True):
                             pri["PRed"][pr_ind]["PR"] = {
                                 "state": "closed",
                                 "number": pr.get("number", None),
@@ -1346,12 +1333,13 @@ def _remove_closed_pr_json():
                                 pr_json_node,
                             )
 
-    # at this point, any json blob referenced in the pr info is state != closed
-    # so we can remove anything that is empty or closed
+    # at this point, any json blob referenced in the pr info is
+    # state != closed or is too new,
+    # so we can remove anything that is empty or closed or old
     nodes = get_all_keys_for_hashmap("pr_json")
     for node in nodes:
         pr = LazyJson(f"pr_json/{node}.json")
-        if pr.get("state", None) == "closed" or pr.data == {}:
+        if pr_can_be_archived(pr, now=now, archive_empty_prs=True):
             remove_key_for_hashmap(
                 pr.file_name.split("/")[0],
                 pr.file_name.split("/")[1][: -len(".json")],
