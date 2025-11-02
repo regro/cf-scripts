@@ -26,8 +26,9 @@ jobs:
 
   tests:
     needs: check
-    if: ${{ needs.check.outputs.skip-check != 'true' }}
     uses: ./.github/workflows/tests-reusable.yml
+    with:
+      skip: ${{ needs.check.outputs.skip-check }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
