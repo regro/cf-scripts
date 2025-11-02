@@ -1,4 +1,7 @@
 import copy
+import time
+
+import dateparser
 
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
@@ -34,7 +37,19 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
             else:
                 remake_prs_with_conflicts = True
 
-            if pr_json.get("state", None) != "closed":
+            now = time.time()
+            dt = 15.0 * 60.0  # 15 minutes in seconds
+            pr_lm = pr_json.get("Last-Modified", None)
+            if pr_lm is not None:
+                pr_lm = dateparser.parse(pr_lm)
+
+            # if the PR is not closed or was closed less than 15 minutes ago
+            # we attempt to refresh the data
+            if pr_json.get("state", None) != "closed" or (
+                pr_json.get("state", None) == "closed"
+                and pr_lm is not None
+                and now - pr_lm <= dt
+            ):
                 pr_data = refresh_pr(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (
