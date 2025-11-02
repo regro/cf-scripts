@@ -65,6 +65,7 @@ from conda_forge_tick.utils import (
     get_bot_run_url,
     get_migrator_report_name_from_pr_data,
     load_existing_graph,
+    pr_can_be_archived,
     sanitize_string,
     version_follows_conda_spec,
 )
@@ -1300,6 +1301,8 @@ def _update_nodes_with_new_versions(gx):
 def _remove_closed_pr_json():
     print("collapsing closed PR json", flush=True)
 
+    now = time.time()
+
     # first we go from nodes to pr json and update the pr info and remove the data
     name_nodes = [
         ("pr_info", get_all_keys_for_hashmap("pr_info")),
@@ -1308,15 +1311,11 @@ def _remove_closed_pr_json():
     for name, nodes in name_nodes:
         for node in nodes:
             lzj_pri = LazyJson(f"{name}/{node}.json")
-            with lazy_json_transaction():
-                with lzj_pri as pri:
-                    for pr_ind in range(len(pri.get("PRed", []))):
-                        pr = pri["PRed"][pr_ind].get("PR", None)
-                        if (
-                            pr is not None
-                            and isinstance(pr, LazyJson)
-                            and (pr.get("state", None) == "closed" or pr.data == {})
-                        ):
+            with lazy_json_transaction(), lzj_pri as pri:
+                for pr_ind in range(len(pri.get("PRed", []))):
+                    pr = pri["PRed"][pr_ind].get("PR", None)
+                    if pr is not None and isinstance(pr, LazyJson):
+                        if pr_can_be_archived(pr, now=now, archive_empty_prs=True):
                             pri["PRed"][pr_ind]["PR"] = {
                                 "state": "closed",
                                 "number": pr.get("number", None),
@@ -1334,12 +1333,13 @@ def _remove_closed_pr_json():
                                 pr_json_node,
                             )
 
-    # at this point, any json blob referenced in the pr info is state != closed
-    # so we can remove anything that is empty or closed
+    # at this point, any json blob referenced in the pr info is
+    # state != closed or is too new,
+    # so we can remove anything that is empty or closed or old
     nodes = get_all_keys_for_hashmap("pr_json")
     for node in nodes:
         pr = LazyJson(f"pr_json/{node}.json")
-        if pr.get("state", None) == "closed" or pr.data == {}:
+        if pr_can_be_archived(pr, now=now, archive_empty_prs=True):
             remove_key_for_hashmap(
                 pr.file_name.split("/")[0],
                 pr.file_name.split("/")[1][: -len(".json")],

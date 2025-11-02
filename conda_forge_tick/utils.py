@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 import typing
 import warnings
@@ -28,6 +29,7 @@ from typing import (
     cast,
 )
 
+import dateparser
 import jinja2
 import jinja2.sandbox
 import networkx as nx
@@ -1559,3 +1561,48 @@ def version_follows_conda_spec(version: str | bool) -> bool:
             return True
     else:
         return False
+
+
+def pr_can_be_archived(
+    pr: dict | LazyJson, now: int | float | None = None, archive_empty_prs: bool = False
+) -> bool:
+    """
+    Return true if a PR can be archived.
+
+    A PR can be archived if it has been closed for at least the amount of time
+    in settings().pull_request_reopen_window.
+
+    Parameters
+    ----------
+    pr : dict | LazyJson
+        The PR json.
+    now : int | float | None
+        The current unix timestamp. If None, a call to time.time is made.
+    archive_empty_prs : bool
+        If True, PRs that have no data in the json blob are considered eligible to
+        be archived.
+
+    Returns
+    -------
+    bool
+    """
+    if now is None:
+        now = time.time()
+
+    if not isinstance(pr, LazyJson):
+        pr = contextlib.nullcontext(pr)
+
+    with pr as pr:
+        pr_lm = pr.get("Last-Modified", None)
+        if pr_lm is not None:
+            pr_lm = dateparser.parse(pr_lm)
+
+        if (
+            pr_lm is None
+            or now - pr_lm.timestamp() > settings().pull_request_reopen_window
+        ) and (
+            pr.get("state", None) == "closed" or (archive_empty_prs and pr.data == {})
+        ):
+            return True
+        else:
+            return False

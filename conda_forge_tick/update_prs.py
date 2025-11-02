@@ -2,6 +2,7 @@ import copy
 import hashlib
 import logging
 import secrets
+import time
 from concurrent.futures._base import as_completed
 
 import github
@@ -16,7 +17,7 @@ from conda_forge_tick.git_utils import (
     is_github_api_limit_reached,
     refresh_pr,
 )
-from conda_forge_tick.utils import get_keys_default
+from conda_forge_tick.utils import get_keys_default, pr_can_be_archived
 
 from .executors import executor
 from .utils import load_existing_graph
@@ -75,6 +76,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
         if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
         == job_index
     ]
+    now = time.time()
 
     # this makes sure that github rate limits are dispersed
     RNG.shuffle(node_ids)
@@ -105,7 +107,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
                 pr_json = migration.get("PR", None)
 
-                if pr_json and pr_json["state"] != "closed":
+                if pr_json and (not pr_can_be_archived(pr_json, now=now)):
                     _pr_json = copy.deepcopy(pr_json.data)
                     future = pool.submit(
                         update_function, _pr_json, dry_run, remake_prs_with_conflicts
