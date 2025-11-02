@@ -1571,6 +1571,20 @@ def pr_can_be_archived(
 
     A PR can be archived if it has been closed for at least the amount of time
     in settings().pull_request_reopen_window.
+
+    Parameters
+    ----------
+    pr : dict | LazyJson
+        The PR json.
+    now : int | float | None
+        The current unix timestamp. If None, a call to time.time is made.
+    archive_empty_prs : bool
+        If True, PRs that have no data in the json blob are considered eligible to
+        be archived.
+
+    Returns
+    -------
+    bool
     """
     if now is None:
         now = time.time()
