@@ -11,6 +11,7 @@ from typing import Any, Literal, cast
 from urllib.error import URLError
 from uuid import uuid4
 
+import dateparser
 import github
 import github3
 import networkx as nx
@@ -1300,6 +1301,9 @@ def _update_nodes_with_new_versions(gx):
 def _remove_closed_pr_json():
     print("collapsing closed PR json", flush=True)
 
+    now = time.time()
+    dt = 15.0 * 60.0  # 15 minutes in seconds
+
     # first we go from nodes to pr json and update the pr info and remove the data
     name_nodes = [
         ("pr_info", get_all_keys_for_hashmap("pr_info")),
@@ -1308,15 +1312,23 @@ def _remove_closed_pr_json():
     for name, nodes in name_nodes:
         for node in nodes:
             lzj_pri = LazyJson(f"{name}/{node}.json")
-            with lazy_json_transaction():
-                with lzj_pri as pri:
-                    for pr_ind in range(len(pri.get("PRed", []))):
-                        pr = pri["PRed"][pr_ind].get("PR", None)
-                        if (
-                            pr is not None
-                            and isinstance(pr, LazyJson)
-                            and (pr.get("state", None) == "closed" or pr.data == {})
-                        ):
+            with lazy_json_transaction(), lzj_pri as pri:
+                for pr_ind in range(len(pri.get("PRed", []))):
+                    pr = pri["PRed"][pr_ind].get("PR", None)
+                    if pr is not None and isinstance(pr, LazyJson):
+                        with pr as pr:
+                            pr_lm = pr.get("Last-Modified", None)
+                            if pr_lm is not None:
+                                pr_lm = dateparser.parse(pr_lm)
+
+                            if (pr_lm is None or now - pr_lm.timestamp() > dt) and (
+                                pr.get("state", None) == "closed" or pr.data == {}
+                            ):
+                                close_pr = True
+                            else:
+                                close_pr = False
+
+                        if close_pr:
                             pri["PRed"][pr_ind]["PR"] = {
                                 "state": "closed",
                                 "number": pr.get("number", None),
