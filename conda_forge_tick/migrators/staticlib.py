@@ -4,7 +4,6 @@ import os
 import re
 import secrets
 import time
-import typing
 from functools import lru_cache
 from typing import Any, Literal, Optional, Sequence
 
@@ -21,15 +20,13 @@ from conda_forge_tick.migrators.core import (
     MiniMigrator,
     _gen_active_feedstocks_payloads,
 )
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     extract_section_from_yaml_text,
     get_keys_default,
     get_recipe_schema_version,
 )
-
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 BUILD_STRING_END_RE = re.compile(r".*_\d+$")
 
