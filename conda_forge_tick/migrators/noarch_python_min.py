@@ -469,7 +469,7 @@ class NoarchPythonMinMigrator(Migrator):
             if "{{ python_min }}" in line:
                 muid = super().migrate(recipe_dir, attrs)
                 if muid is False:
-                    raise ValueError("migrate returned False")
+                    return False
                 muid["already_done"] = True
                 return muid
 

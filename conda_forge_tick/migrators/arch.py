@@ -172,9 +172,9 @@ class ArchRebuild(GraphMigrator):
                 yaml_safe_dump(y, f)
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if muid is False:
+            return False
         if y_orig == y:
-            if muid is False:
-                raise ValueError("migrate returned False")
             muid["already_done"] = True
 
         return muid
@@ -333,9 +333,9 @@ class _CrossCompileRebuild(GraphMigrator):
                 yaml_safe_dump(y, f)
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if muid is False:
+            return muid
         if y_orig == y:
-            if muid is False:
-                raise ValueError("migrate returned False")
             muid["already_done"] = True
 
         return muid

@@ -6,7 +6,7 @@ import secrets
 import time
 import typing
 from functools import lru_cache
-from typing import Any, Optional, Sequence
+from typing import Any, Literal, Optional, Sequence
 
 import networkx as nx
 import orjson
@@ -525,8 +525,8 @@ class StaticLibMigrator(GraphMigrator):
         return (not update_static_libs) or (not static_libs_out_of_date)
 
     def migrate(
-        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+        self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
+    ) -> MigrationUidTypedDict | Literal[False]:
         # for each plat-arch combo, find latest static lib version
         # and update the meta.yaml if needed
         platform_arches = tuple(attrs.get("platforms") or [])
@@ -572,7 +572,7 @@ class StaticLibMigrator(GraphMigrator):
                 )
         muid = super().migrate(recipe_dir, attrs)
         if muid is False:
-            raise ValueError("migrate returned False")
+            return False
         if not needs_update:
             muid["already_done"] = True
 
