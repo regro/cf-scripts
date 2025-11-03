@@ -394,7 +394,9 @@ class RebuildBroken(Migrator):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             """\
@@ -414,6 +416,8 @@ feedstock. Thank you!""",
         return f"{self.name}-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs):
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n

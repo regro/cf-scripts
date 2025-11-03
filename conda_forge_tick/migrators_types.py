@@ -48,7 +48,7 @@ class BuildTypedDict(TypedDict, total=False):
     noarch: str
     number: str
     script: str
-    run_exports: Union[List[PackageName], BuildRunExportsDict]
+    run_exports: list[PackageName] | BuildRunExportsDict
 
 
 ExtraTypedDict = TypedDict("ExtraTypedDict", {"recipe-maintainers": List[str]})
@@ -80,6 +80,7 @@ class RecipeTypedDict(TypedDict, total=False):
 
 
 class MigrationUidTypedDict(TypedDict, total=False):
+    already_done: bool
     bot_rerun: bool
     branch: str
     migrator_name: str
@@ -87,6 +88,7 @@ class MigrationUidTypedDict(TypedDict, total=False):
     name: str
     migrator_object_version: int
     pin_version: str
+    static_libs: str
     # Used by version migrators
     version: str
 

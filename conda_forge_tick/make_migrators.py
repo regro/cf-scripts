@@ -15,6 +15,7 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    Never,
     cast,
 )
 
@@ -74,7 +75,7 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
-from conda_forge_tick.migrators_types import PackageName
+from conda_forge_tick.migrators_types import BuildRunExportsDict, PackageName
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     CB_CONFIG,
@@ -126,6 +127,8 @@ def _compute_migrator_pr_limit(
     migrator: Migrator, nominal_pr_limit: int
 ) -> tuple[int, int, float]:
     # adaptively set PR limits based on the number of PRs made so far
+    if migrator.graph is None:
+        raise ValueError("graph is None")
     number_pred = 0
     for _, v in migrator.graph.nodes.items():
         payload = v.get("payload", {}) or {}
@@ -133,7 +136,7 @@ def _compute_migrator_pr_limit(
             payload = contextlib.nullcontext(enter_result=payload)
 
         with payload as p:
-            muid = migrator.migrator_uid(p)
+            muid = migrator.migrator_uid(p)  # type: ignore[arg-type]
             pr_info = p.get("pr_info", {}) or {}
             if not isinstance(pr_info, LazyJson):
                 pr_info = contextlib.nullcontext(enter_result=pr_info)
@@ -323,14 +326,20 @@ def add_rebuild_migration_yaml(
         StdlibMigrator(),
     ]
     if migration_name == "qt515":
-        piggy_back_migrations.append(MiniReplacement(old_pkg="qt", new_pkg="qt-main"))
+        piggy_back_migrations.append(
+            MiniReplacement(old_pkg=PackageName("qt"), new_pkg=PackageName("qt-main"))
+        )
     if migration_name == "jpeg_to_libjpeg_turbo":
         piggy_back_migrations.append(
-            MiniReplacement(old_pkg="jpeg", new_pkg="libjpeg-turbo")
+            MiniReplacement(
+                old_pkg=PackageName("jpeg"), new_pkg=PackageName("libjpeg-turbo")
+            )
         )
     if migration_name == "libxml2214":
         piggy_back_migrations.append(
-            MiniReplacement(old_pkg="libxml2", new_pkg="libxml2-devel")
+            MiniReplacement(
+                old_pkg=PackageName("libxml2"), new_pkg=PackageName("libxml2-devel")
+            )
         )
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
@@ -342,7 +351,9 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(FlangMigrator())
     if migration_name.startswith("xz_to_liblzma_devel"):
         piggy_back_migrations.append(
-            MiniReplacement(old_pkg="xz", new_pkg="liblzma-devel")
+            MiniReplacement(
+                old_pkg=PackageName("xz"), new_pkg=PackageName("liblzma-devel")
+            )
         )
     piggy_back_migrations = _make_mini_migrators_with_defaults(
         extra_mini_migrators=piggy_back_migrations
@@ -567,8 +578,15 @@ def _extract_most_stringent_pin_from_recipe(
 
         # parse back to dict
         if isinstance(build.get("run_exports", None), MutableMapping):
-            for _, v in build.get("run_exports", {}).items():
-                for p in v:
+            run_exports: (
+                list[PackageName] | BuildRunExportsDict | dict[Never, Never]
+            ) = build.get("run_exports", {})
+            if run_exports is None:
+                raise ValueError("run_exports is None")
+            if isinstance(run_exports, list):
+                raise ValueError("run_exports is a list")
+            for _, v in run_exports.items():
+                for p in v:  # type: ignore[attr-defined]
                     possible_p_dicts.append(parse_munged_run_export(p))
         else:
             for p in build.get("run_exports", []) or []:

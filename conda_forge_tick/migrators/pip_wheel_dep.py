@@ -50,7 +50,7 @@ class PipWheelMigrator(MiniMigrator):
     def _get_version(self, attrs: "AttrsTypedDict") -> str:
         return (
             attrs.get("new_version", "")  # type: ignore[return-value] # TODO: allowing the version to be bool is bad for type checking
-            or attrs.get("version_pr_info", {}).get("new_version", "")
+            or attrs.get("version_pr_info", {}).get("new_version", "")  # type: ignore
             or attrs.get(
                 "version",
                 "",
