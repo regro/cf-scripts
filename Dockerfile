@@ -41,6 +41,9 @@ ENV USER=conda
 ENV LOGNAME=conda
 ENV MAIL=/var/spool/mail/conda
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/conda/bin
+# make symlink for conda-build locks (actual directory gets made at run time in the entrypoint)
+# see https://github.com/conda-forge/conda-forge-feedstock-ops/pull/59
+RUN ln -s $TMPDIR/conda_user_conda_build_locks $HOME/.conda_build_locks
 RUN chown conda:conda $HOME && \
     chown -R conda:conda /opt/autotick-bot && \
     cp -R /etc/skel $HOME && \

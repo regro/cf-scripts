@@ -13,7 +13,6 @@ from unittest.mock import MagicMock
 import pytest
 
 import conda_forge_tick
-import conda_forge_tick.utils
 from conda_forge_tick.git_utils import github_client
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,

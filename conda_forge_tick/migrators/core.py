@@ -2,15 +2,19 @@
 
 import contextlib
 import copy
+import functools
 import logging
+import math
+import os
 import re
 import secrets
+import time
 import typing
+from collections.abc import Collection
 from pathlib import Path
-from typing import Any, List, Sequence, Set
+from typing import Any, List, Literal, Sequence, Set
 
 import networkx as nx
-import numpy as np
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -23,10 +27,16 @@ from conda_forge_tick.utils import (
     pluck,
 )
 
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
 
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+MIGRATION_SUPPORT_DIRS = [
+    Path(os.environ["CONDA_PREFIX"]) / "share" / "conda-forge" / "migration_support",
+    # Deprecated
+    Path(os.environ["CONDA_PREFIX"]) / "share" / "conda-forge" / "migrations",
+]
 
 
 logger = logging.getLogger(__name__)
@@ -34,8 +44,42 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 
+def load_target_packages(package_list_file: str) -> Set[str]:
+    # We are constraining the scope of this migrator
+    fname = None
+    for d in MIGRATION_SUPPORT_DIRS:
+        fname = d / package_list_file
+        if fname.exists():
+            break
+
+    assert fname is not None, (
+        f"Could not find {package_list_file} in migration support dirs"
+    )
+
+    with fname.open() as f:
+        target_packages = set(f.read().split())
+
+    return target_packages
+
+
+def cut_graph_to_target_packages(graph, target_packages):
+    """Cut the graph to only the target packages.
+
+    **operates in place**
+    """
+    packages = target_packages.copy()
+    for target in target_packages:
+        if target in graph.nodes:
+            packages.update(nx.ancestors(graph, target))
+    for node in list(graph.nodes.keys()):
+        if node not in packages:
+            pluck(graph, node)
+    # post-plucking cleanup
+    graph.remove_edges_from(nx.selfloop_edges(graph))
+
+
 def skip_migrator_due_to_schema(
-    attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
+    attrs: "AttrsTypedDict", allowed_schema_versions: Collection[int]
 ) -> bool:
     __name = attrs.get("name", "")
     schema_version = get_recipe_schema_version(attrs)
@@ -122,20 +166,20 @@ def _make_migrator_graph(graph, migrator, effective=False, pluck_nodes=True):
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
     lst = []
     for pr in pred:
-        d: "JsonFriendly" = {"data": pr["data"], "keys": pr["keys"]}
+        d: "JsonFriendly" = {"data": pr["data"]}
         lst.append(d)
     return lst
 
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     """Overlook some bad entries."""
-    bad = attrs.get("pr_info", {}).get("bad", False)
+    bad = attrs.get("pr_info", {}).get("bad", False)  # type: ignore[call-overload]
     if isinstance(bad, str):
         bad_bool = not bad.startswith(not_bad_str_start)
     else:
         bad_bool = bad
 
-    return bad_bool or attrs.get("parsing_error", False)
+    return bad_bool or bool(attrs.get("parsing_error", False))
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
@@ -169,11 +213,10 @@ def _migrator_hash(klass, args, kwargs):
 
 
 def _make_migrator_lazy_json_name(mgr, data):
-    return (
-        mgr.name
-        if hasattr(mgr, "name")
-        else mgr.__class__.__name__
-        + (
+    if hasattr(mgr, "name"):
+        return mgr.report_name
+    else:
+        return mgr.report_name + (
             ""
             if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
             else "_h"
@@ -183,7 +226,6 @@ def _make_migrator_lazy_json_name(mgr, data):
                 data["kwargs"],
             )
         )
-    ).replace(" ", "_")
 
 
 def make_from_lazy_json_data(data):
@@ -203,12 +245,18 @@ def make_from_lazy_json_data(data):
             for mini_migrator in kwargs["piggy_back_migrations"]
         ]
 
+    # this keyword was removed from the class init,
+    # so we have to remove it here in case it is still
+    # in the bot metadata
+    if "max_solver_attempts" in kwargs:
+        del kwargs["max_solver_attempts"]
+
     return cls(*data["args"], **kwargs)
 
 
 class MiniMigrator:
     post_migration = False
-    allowed_schema_versions = [0]
+    allowed_schema_versions: Collection[int] = [0]
 
     def __init__(self):
         if not hasattr(self, "_init_args"):
@@ -244,6 +292,17 @@ class MiniMigrator:
         """
         return
 
+    @property
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        return migrator_name
+
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
         data = {
@@ -267,18 +326,16 @@ class Migrator:
     - total_graph: The entire graph of conda-forge feedstocks.
     """
 
-    name: str
+    name: str | None
 
     rerender = True
-
-    max_solver_attempts = 3
 
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
     allow_empty_commits = False
 
-    allowed_schema_versions = [0]
+    allowed_schema_versions: Collection[Literal[0, 1]] = [0]
 
     pluck_nodes = True
 
@@ -294,6 +351,8 @@ class Migrator:
         ),
     )
 
+    loaded_yaml: dict
+
     def __init__(
         self,
         total_graph: nx.DiGraph | None = None,
@@ -307,10 +366,10 @@ class Migrator:
         check_solvable: bool = True,
     ):
         if not hasattr(self, "_init_args"):
-            self._init_args = []
+            self._init_args: list[Any] = []
 
         if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {
+            self._init_kwargs: dict[str, Any] = {
                 "pr_limit": pr_limit,
                 "obj_version": obj_version,
                 "piggy_back_migrations": piggy_back_migrations,
@@ -397,7 +456,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),
+                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph should not be allowed to be None
             )
         ][:limit]
 
@@ -457,19 +516,20 @@ class Migrator:
             "MigrationUidTypedDict",
             pr_data["data"],
         )
-        already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
-            z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
+        already_migrated_uids: list["MigrationUidTypedDict"] = list(
+            z["data"]
+            for z in attrs.get("pr_info", {}).get("PRed", [])  # type: ignore[call-overload]
         )
         already_pred = migrator_uid in already_migrated_uids
         if already_pred:
             ind = already_migrated_uids.index(migrator_uid)
             logger.debug("%s: already PRed: uid: %s", __name, migrator_uid)
-            if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
+            if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:  # type: ignore[call-overload]
                 if isinstance(
-                    attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
+                    attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],  # type: ignore[call-overload]
                     LazyJson,
                 ):
-                    with attrs.get("pr_info", {}).get("PRed", [])[ind][
+                    with attrs.get("pr_info", {}).get("PRed", [])[ind][  # type: ignore[call-overload]
                         "PR"
                     ] as mg_attrs:
                         logger.debug(
@@ -511,7 +571,7 @@ class Migrator:
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any pre piggyback migrations, updating the feedstock.
 
         Parameters
@@ -530,7 +590,7 @@ class Migrator:
 
     def run_post_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any post piggyback migrations, updating the feedstock.
 
         Parameters
@@ -549,7 +609,7 @@ class Migrator:
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         """Perform the migration, updating the ``meta.yaml``.
 
         Parameters
@@ -567,7 +627,7 @@ class Migrator:
         return self.migrator_uid(attrs)
 
     def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
     ) -> str:
         """Create a PR message body.
 
@@ -605,7 +665,7 @@ class Migrator:
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         """Create a commit message."""
-        return f"migration: {self.__class__.__name__}"
+        return f"migration: {self.report_name}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         """Get the PR title."""
@@ -651,72 +711,62 @@ class Migrator:
     ) -> Sequence["PackageName"]:
         """Determine migration order.
 
+        Feedstocks are retried/sorted using exponential backoff.
+
         The feedstocks are reverse sorted by
 
-            - number of decedents if not a failed migration and not a leaf node
-            - a random number in [0, 1] if not failed and a leaf node
-            - a random number in [0, val] if failed
-
-        where val is
-
-            bfac = 10.0
-            min((1.0 + bfac * log10(num descendents + 1)) * 0.5, 1.0)
-
-        This formula has the effect of
-
-            - deprioritizing failed nodes by an overall amount (0.5 means there is a
-              ~33% percent chance a failed node appears ahead of a non-failed node)
-            - boosting failed migrators by a bit if they have a lot of descendents
-            - never letting any failed node get ahead of non-failed, non-leaf nodes
+            - number of decedents if the feedstock passes its
+              time-based threshold for the next retry
+            - a random number in [0, val] if it is not yet time to be retried
 
         Ties are sorted randomly.
         """
-        if hasattr(self, "name"):
-            assert isinstance(self.name, str)
-            migrator_name = self.name.lower().replace(" ", "")
-        else:
-            migrator_name = self.__class__.__name__.lower()
+        migrator_name = self.report_name
 
-        def _not_has_error_func(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pr_info",
-                {},
-            ).get("pre_pr_migrator_status", {}) and (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempts",
-                    {},
-                )
-                .get(
-                    migrator_name,
-                    self.max_solver_attempts,
-                )
-                >= self.max_solver_attempts
-            ):
-                return 0
-            else:
-                return 1
+        seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
+        now = int(time.time()) * seconds_to_days
+        base = 2 / 24.0  # 2 hours in days
 
-        _not_has_error = {node: _not_has_error_func(node) for node in list(graph.nodes)}
-        bfac = 10.0
-        boost = {
-            node: 1.0 + (bfac * np.log10(len(nx.descendants(total_graph, node)) + 1))
-            for node in list(graph.nodes)
-        }
+        @functools.lru_cache(maxsize=1024)
+        def _get_last_attempt_ts_and_try(node):
+            with total_graph.nodes[node]["payload"] as attrs:
+                with attrs.get(
+                    "pr_info", contextlib.nullcontext(enter_result={})
+                ) as pri:
+                    attempts = pri.get(
+                        "pre_pr_migrator_attempts",
+                        {},
+                    ).get(
+                        migrator_name,
+                        0,
+                    )
+
+                    if attempts > 0:
+                        ts = pri.get(
+                            "pre_pr_migrator_attempt_ts",
+                            {},
+                        ).get(
+                            migrator_name,
+                            None,
+                        )
+                        if ts is None:
+                            # one hour per attempt
+                            ts = now - (3600 * attempts)
+                    else:
+                        ts = -math.inf
+
+            return (ts * seconds_to_days, attempts)
+
+        def _attempt_pr(node):
+            last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
+            return now > last_bot_attempt_ts + (base * (2 ** min(retries_so_far, 6)))
 
         return sorted(
             list(graph.nodes),
             key=lambda x: (
-                (
-                    RNG.random()
-                    * (1.0 if _not_has_error[x] else min(boost[x] * 0.5, 1.0))
-                    if (
-                        (not _not_has_error[x])
-                        or len(nx.descendants(total_graph, x)) == 0
-                    )
-                    else len(nx.descendants(total_graph, x))
-                ),
+                len(nx.descendants(total_graph, x)) + 1
+                if _attempt_pr(x)
+                else RNG.random(),
                 RNG.random(),
             ),
             reverse=True,
@@ -761,14 +811,26 @@ class Migrator:
         increment = getattr(self, "bump_number", 1)
         return old_number + increment
 
-    @classmethod
-    def migrator_label(cls) -> dict:
-        # This is the label that the bot will attach to a pr made by the bot
-        return {
-            "name": f"bot-{cls.__name__.lower()}",
-            "description": (cls.__doc__ or "").strip(),
-            "color": "#6c64ff",
-        }
+    @property
+    def two_part_name(self):
+        """The two-part name of the migrator (e.g. 'MigrationYAML-python312' or 'Version')."""
+        if hasattr(self, "name") and self.name:
+            extra_name = "-%s" % self.name
+        else:
+            extra_name = ""
+
+        return self.__class__.__name__ + extra_name
+
+    @property
+    def report_name(self):
+        """The name of the migrator used in the status reports and PR attempt tracking data."""
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        return migrator_name
 
 
 class GraphMigrator(Migrator):
@@ -822,6 +884,8 @@ class GraphMigrator(Migrator):
 
     def all_predecessors_issued(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been issue and are stale
+        if self.graph is None:
+            raise ValueError("graph is None")
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
@@ -847,6 +911,8 @@ class GraphMigrator(Migrator):
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
+        if self.graph is None:
+            raise ValueError("graph is None")
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
@@ -889,6 +955,8 @@ class GraphMigrator(Migrator):
 
         name = attrs.get("name", "")
         _gx = self.total_graph or self.graph
+        if _gx is None:
+            raise ValueError("graph is None")
         not_in_migration = attrs.get("feedstock_name", None) not in _gx
 
         if not_in_migration:
@@ -924,6 +992,8 @@ class GraphMigrator(Migrator):
         return (not node_is_ready) or super().filter_node_migrated(attrs, "Upstream:")
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n

@@ -25,7 +25,13 @@ from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
 from .settings import settings
-from .utils import as_iterable, dump_graph, load_graph, sanitize_string
+from .utils import (
+    as_iterable,
+    dump_graph,
+    load_existing_graph,
+    load_graph,
+    sanitize_string,
+)
 
 # from conda_forge_tick.profiler import profiling
 
@@ -86,12 +92,20 @@ def _add_required_lazy_json_refs(attrs, name):
             attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
 
     with attrs["version_pr_info"] as vpri:
-        for key in ["new_version_attempts", "new_version_errors"]:
+        for key in [
+            "new_version_attempts",
+            "new_version_errors",
+            "new_version_attempt_ts",
+        ]:
             if key not in vpri:
                 vpri[key] = {}
 
     with attrs["pr_info"] as pri:
-        for key in ["pre_pr_migrator_status", "pre_pr_migrator_attempts"]:
+        for key in [
+            "pre_pr_migrator_status",
+            "pre_pr_migrator_attempts",
+            "pre_pr_migrator_attempt_ts",
+        ]:
             if key not in pri:
                 pri[key] = {}
 
@@ -131,7 +145,11 @@ def _migrate_schema(name, sub_graph):
         with lazy_json_transaction():
             sub_graph.pop("last_updated")
 
-    vpri_move_keys = ["new_version_attempts", "new_version_errors"]
+    vpri_move_keys = [
+        "new_version_attempts",
+        "new_version_errors",
+        "new_version_attempt_ts",
+    ]
     if any(key in sub_graph for key in vpri_move_keys):
         with lazy_json_transaction():
             with sub_graph["version_pr_info"] as vpri:
@@ -146,7 +164,8 @@ def _migrate_schema(name, sub_graph):
 
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
-    pri_move_keys = [pre_key, pre_key_att]
+    pre_key_att_ts = "pre_pr_migrator_attempt_ts"
+    pri_move_keys = [pre_key, pre_key_att, pre_key_att_ts]
     if any(key in sub_graph for key in pri_move_keys):
         with lazy_json_transaction():
             with sub_graph["pr_info"] as pri:
@@ -154,21 +173,26 @@ def _migrate_schema(name, sub_graph):
                     if key in sub_graph:
                         pri[key].update(sub_graph.pop(key))
 
-                # populate migrator attempts if they are not there
-                for mn in pri[pre_key]:
-                    if mn not in pri[pre_key_att]:
-                        pri[pre_key_att][mn] = 1
-
     with lazy_json_transaction():
         with sub_graph["pr_info"] as pri:
             for mn in pri[pre_key].keys():
                 if mn not in pri[pre_key_att]:
                     pri[pre_key_att][mn] = 1
+                if mn not in pri[pre_key_att_ts]:
+                    # set the attempt to one hour ago per try
+                    pri[pre_key_att_ts][mn] = int(
+                        int(time.time()) - pri[pre_key_att][mn] * 3600.0
+                    )
 
         with sub_graph["version_pr_info"] as vpri:
             for mn in vpri["new_version_errors"].keys():
                 if mn not in vpri["new_version_attempts"]:
                     vpri["new_version_attempts"][mn] = 1
+                if mn not in vpri["new_version_attempt_ts"]:
+                    # set the attempt to one hour ago per try
+                    vpri["new_version_attempt_ts"][mn] = int(
+                        int(time.time()) - vpri["new_version_attempts"][mn] * 3600.0
+                    )
 
     keys_to_move = [
         "PRed",
@@ -199,14 +223,14 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if RNG.random() < settings().frac_make_graph
+            if RNG.random() <= settings().frac_make_graph
         }
         logger.info("submitted all nodes")
 
         n_tot = len(futures)
         n_left = len(futures)
         start = time.time()
-        eta = -1
+        eta = -1.0
         for f in as_completed(futures):
             n_left -= 1
             if n_left % 10 == 0:
@@ -233,7 +257,7 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if RNG.random() >= settings().frac_make_graph:
+        if RNG.random() > settings().frac_make_graph:
             logger.debug("skipping %s due to random fraction to update", name)
             continue
 
@@ -374,7 +398,7 @@ def main(
     logger.info("archived nodes: %d", len(archived_names))
 
     if update_nodes_and_edges:
-        gx = load_graph()
+        gx = load_existing_graph()
 
         new_names = [name for name in names if name not in gx.nodes]
         for name in names:

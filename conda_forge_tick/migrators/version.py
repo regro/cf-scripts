@@ -1,12 +1,14 @@
+import contextlib
 import copy
 import functools
 import logging
+import math
 import random
 import secrets
-import typing
+import time
 import warnings
 from pathlib import Path
-from typing import Any, List, Sequence
+from typing import Any, List, Literal, Sequence
 
 import conda.exceptions
 import networkx as nx
@@ -15,6 +17,11 @@ from rattler_build_conda_compat.loader import load_yaml
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators_types import (
+    AttrsTypedDict,
+    MigrationUidTypedDict,
+    PackageName,
+)
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version, update_version_v1
@@ -24,13 +31,6 @@ from conda_forge_tick.utils import (
     sanitize_string,
 )
 from conda_forge_tick.version_filters import is_version_ignored
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import (
-        AttrsTypedDict,
-        MigrationUidTypedDict,
-        PackageName,
-    )
 
 SKIP_DEPS_NODES = [
     "ansible",
@@ -91,7 +91,7 @@ class Version(Migrator):
         self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
-        super().__init__(
+        super().__init__(  # type: ignore[misc]
             *args,
             **kwargs,
             check_solvable=False,
@@ -274,11 +274,10 @@ class Version(Migrator):
         attrs: "AttrsTypedDict",
         hash_type: str = "sha256",
         **kwargs: Any,
-    ) -> "MigrationUidTypedDict":
-        version = attrs.get("version_pr_info", {}).get("new_version", None)
+    ) -> MigrationUidTypedDict | Literal[False]:
+        version = attrs.get("version_pr_info", {}).get("new_version", None)  # type: ignore
 
         recipe_dir = Path(recipe_dir)
-        recipe_path = None
         recipe_path_v0 = recipe_dir / "meta.yaml"
         recipe_path_v1 = recipe_dir / "recipe.yaml"
         if recipe_path_v0.exists():
@@ -293,7 +292,7 @@ class Version(Migrator):
             recipe_path = recipe_path_v1
             updated_meta_yaml, errors = update_version_v1(
                 # we need to give the "feedstock_dir" (not recipe dir)
-                recipe_dir.parent,
+                str(recipe_dir.parent),
                 version,
                 hash_type=hash_type,
             )
@@ -306,7 +305,7 @@ class Version(Migrator):
             recipe_path.write_text(updated_meta_yaml)
             self.set_build_number(recipe_path)
 
-            return super().migrate(recipe_dir, attrs)
+            return super().migrate(str(recipe_dir), attrs)
         else:
             raise VersionMigrationError(
                 _fmt_error_message(
@@ -318,16 +317,16 @@ class Version(Migrator):
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
     ) -> str:
-        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
+        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
             pred = [
                 (
                     name,
-                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                         "new_version"
                     ],
                 )
                 for name in list(
-                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
+                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                 )
             ]
         else:
@@ -338,7 +337,7 @@ class Version(Migrator):
         #  issue PRs into other branches for backports
         open_version_prs = [
             muid["PR"]
-            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
+            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])  # type: ignore
             if muid["data"].get("migrator_name") == Version.name
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"
@@ -415,7 +414,9 @@ class Version(Migrator):
 
         body += self._hint_and_maybe_update_deps(feedstock_ctx)
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+        return (
+            super().pr_body(feedstock_ctx, add_label_text=add_label_text).format(body)
+        )
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
@@ -456,14 +457,14 @@ class Version(Migrator):
         return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(  # type: ignore
             "new_version", None
         )
         assert isinstance(new_version, str)
         return "updated v" + new_version
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(
+        new_version = feedstock_ctx.attrs.get("version_pr_info", {}).get(  # type: ignore
             "new_version", None
         )
         assert isinstance(new_version, str)
@@ -487,7 +488,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        new_version = attrs.get("version_pr_info", {}).get("new_version", None)
+        new_version = attrs.get("version_pr_info", {}).get("new_version", None)  # type: ignore
         n["version"] = new_version
         return n
 
@@ -503,6 +504,58 @@ class Version(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
+        """Determine version migration order.
+
+        Feedstocks are retried/sorted using exponential backoff.
+
+        The feedstocks are reverse sorted by
+
+            - parents before children
+            - feedstocks that have passed the
+              time-based threshold for the next retry
+
+        Ties are sorted randomly.
+        """
+        seconds_to_days = 1.0 / (60.0 * 60.0 * 24.0)
+        now = int(time.time()) * seconds_to_days
+        base = 2 / 24.0  # 2 hours in days
+
+        @functools.lru_cache(maxsize=1024)
+        def _get_last_attempt_ts_and_try(node):
+            with total_graph.nodes[node]["payload"] as attrs:
+                with attrs.get(
+                    "version_pr_info", contextlib.nullcontext(enter_result={})
+                ) as vpri:
+                    new_version = vpri.get("new_version", "")
+
+                    attempts = vpri.get(
+                        "new_version_attempts",
+                        {},
+                    ).get(
+                        new_version,
+                        0,
+                    )
+
+                    if attempts > 0:
+                        ts = vpri.get(
+                            "new_version_attempt_ts",
+                            {},
+                        ).get(
+                            new_version,
+                            None,
+                        )
+                        if ts is None:
+                            # one hour per attempt
+                            ts = now - (3600 * attempts)
+                    else:
+                        ts = -math.inf
+
+            return (ts * seconds_to_days, attempts)
+
+        def _attempt_pr(node):
+            last_bot_attempt_ts, retries_so_far = _get_last_attempt_ts_and_try(node)
+            return now > last_bot_attempt_ts + (base * (2 ** min(retries_so_far, 6)))
+
         @functools.lru_cache(maxsize=1024)
         def _has_solver_checks(node):
             with graph.nodes[node]["payload"] as attrs:
@@ -512,30 +565,6 @@ class Version(Migrator):
                     {},
                     False,
                 )
-
-        @functools.lru_cache(maxsize=1024)
-        def _get_attempts_nr(node):
-            with graph.nodes[node]["payload"] as attrs:
-                with attrs["version_pr_info"] as vpri:
-                    new_version = vpri.get("new_version", "")
-                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
-            return min(attempts, 3)
-
-        def _get_attempts_r(node, seen):
-            seen |= {node}
-            attempts = _get_attempts_nr(node)
-            for d in nx.descendants(graph, node):
-                if d not in seen:
-                    attempts = max(attempts, _get_attempts_r(d, seen))
-            return attempts
-
-        @functools.lru_cache(maxsize=1024)
-        def _get_attempts(node):
-            if _has_solver_checks(node):
-                seen = set()
-                return _get_attempts_r(node, seen)
-            else:
-                return _get_attempts_nr(node)
 
         def _desc_cmp(node1, node2):
             if _has_solver_checks(node1) and _has_solver_checks(node2):
@@ -552,7 +581,7 @@ class Version(Migrator):
         return sorted(
             sorted(
                 sorted(nodes_to_sort, key=lambda x: RNG.random()),
-                key=_get_attempts,
+                key=lambda x: (0 if _attempt_pr(x) else 1),
             ),
             key=functools.cmp_to_key(_desc_cmp),
         )

@@ -74,7 +74,7 @@ def _config_has_key_with_selectors(cfg: dict, key: str):
     return False
 
 
-def _parse_jinja2_variables(meta_yaml: str) -> dict:
+def _parse_jinja2_variables(meta_yaml: str) -> tuple[dict[str, Any], dict[str, str]]:
     """Parse all assignments of jinja2 variables in a recipe.
 
     For example, the following file
@@ -108,8 +108,8 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
     parsed_content = env.parse(meta_yaml)
     all_nodes = list(parsed_content.iter_child_nodes())
 
-    jinja2_exprs = {}
-    jinja2_vals = {}
+    jinja2_exprs: dict[str, str] = {}
+    jinja2_vals: dict[str, Any] = {}
     for i, n in enumerate(all_nodes):
         if isinstance(n, jinja2.nodes.Assign) and isinstance(
             n.node,
@@ -230,7 +230,10 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
     for line in lines:
         if (
             len(line.lstrip()) > 0
-            and line.lstrip()[0] == "?"
+            and (
+                (len(line.split()) > 1 and line.split()[0:2] == ["-", "?"])
+                or (len(line.split()) > 0 and line.split()[0] == "?")
+            )
             and ":" not in line
             and CONDA_SELECTOR in line
         ):
@@ -251,7 +254,7 @@ def _unmunge_split_key_value_pairs_with_selectors(lines):
 def _munge_multiline_jinja2(lines):
     """Put a comment slug in front of any multiline jinja2 statements."""
     in_statement = False
-    special_end_slug_re = []
+    special_end_slug_re: list[re.Pattern | None] = []
     new_lines = []
     for line in lines:
         if line.strip().startswith("{%") and "%}" not in line:
@@ -298,7 +301,7 @@ def _unmunge_multiline_jinja2(lines):
     return new_lines
 
 
-def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
+def _demunge_jinja2_vars(meta: dict | list | str, sentinel: str) -> dict | list | str:
     """Recursively iterate through dictionary / list and replace any instance
     in any string of `<{` with '{{'.
     """

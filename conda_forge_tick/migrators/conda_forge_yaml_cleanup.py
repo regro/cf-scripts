@@ -1,14 +1,13 @@
 import os
-import typing
 from typing import Any
 
+from conda_smithy.utils import get_yaml as smithy_get_yaml
 from ruamel.yaml import YAML
 
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.os_utils import pushd
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict
+from ..migrators_types import AttrsTypedDict
 
 
 class CondaForgeYAMLCleanup(MiniMigrator):
@@ -39,6 +38,18 @@ class CondaForgeYAMLCleanup(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
             cfg_path = os.path.join("..", "conda-forge.yml")
+
+            # we first "round trip" the file through smithy's yaml reader
+            # this takes care of duplicate line errors in that it handles them
+            # just like smithy does
+            smithy_yaml = smithy_get_yaml(allow_duplicate_keys=True)
+            with open(cfg_path) as fp:
+                cfg = smithy_yaml.load(fp.read())
+            with open(cfg_path, "w") as fp:
+                smithy_yaml.dump(cfg, fp)
+
+            # now we use our own yaml parser to help with formatting
+            # of spaces, indents, etc.
             yaml = YAML()
             yaml.indent(mapping=2, sequence=4, offset=2)
 

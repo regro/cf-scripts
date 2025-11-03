@@ -76,6 +76,12 @@ class NodeAttributesValid(StrictBaseModel):
     then the feedstock name is `foo`. Also, the node attributes JSON file is named `foo.json`.
     """
 
+    feedstock_hash: str
+    """The commit hash of the latest commit to the feedstock."""
+
+    feedstock_hash_ts: int
+    """The unix timestamp of the latest commit to the feedstock."""
+
     hash_type: str | None = Field(None, examples=["sha256", "sha512", "md5"])
     """
     The type of hash used to verify the integrity of source archives. This is extracted from the source section of the
@@ -305,6 +311,8 @@ class NodeAttributesValid(StrictBaseModel):
             If the top-level version is None, but does not match at least one of the outputs.
             If the version field does not match the package.version field in the meta_yaml field.
         """
+        if self.meta_yaml is None:
+            return self
         if self.meta_yaml.package.version is None:
             output_versions = set()
             for output in self.meta_yaml.outputs or []:

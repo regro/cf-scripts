@@ -36,8 +36,8 @@ from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
-    get_migrator_name,
     load_existing_graph,
+    pr_can_be_archived,
 )
 from conda_forge_tick.version_filters import filter_version
 
@@ -99,9 +99,9 @@ def write_version_migrator_status(migrator, mctx):
                 )
                 if _ok_version(version_from_data):
                     if _ok_version(version_from_attrs):
-                        new_version = max(
+                        new_version: str | bool = max(
                             [version_from_data, version_from_attrs],
-                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                            key=lambda x: VersionOrder(x.replace("-", ".")),  # type: ignore[union-attr]
                         )
                     else:
                         new_version = version_from_data
@@ -130,7 +130,7 @@ def write_version_migrator_status(migrator, mctx):
                 if new_version_is_ok:
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
-                        out["queued"][node] = new_version
+                        out["queued"][node] = new_version  # type: ignore[assignment]
                     else:
                         out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
                             "new_version_errors",
@@ -142,7 +142,8 @@ def write_version_migrator_status(migrator, mctx):
                         )
 
     with open("./status/version_status.json", "wb") as f:
-        old_out = out.copy()
+        old_out: dict[str, dict[str, str] | set[str]] = {}
+        old_out.update(out)
         old_out["queued"] = set(out["queued"].keys())
         old_out["errored"] = set(out["errors"].keys())
         f.write(
@@ -168,7 +169,7 @@ def graph_migrator_status(
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Get the migrator progress for a given migrator."""
-    migrator_name = get_migrator_name(migrator)
+    migrator_name = migrator.report_name
 
     num_viz = 0
 
@@ -239,6 +240,11 @@ def graph_migrator_status(
             z["data"] for z in all_pr_jsons
         )
 
+        if pr_json is not None and "PR" in pr_json:
+            pr_is_archiveable = pr_can_be_archived(pr_json["PR"])
+        else:
+            pr_is_archiveable = False
+
         buildable = not migrator.filter(attrs)
         fntc = "black"
         status_icon = ""
@@ -282,7 +288,7 @@ def graph_migrator_status(
             out["bot-error"].add(node)
             fc = "#000000"
             fntc = "white"
-        elif pr_json["PR"]["state"] == "closed":
+        elif pr_is_archiveable:
             out["done"].add(node)
             fc = "#440154"
             fntc = "white"
@@ -449,11 +455,7 @@ def main() -> None:
         if isinstance(migrator, MigrationYamlCreator):
             continue
 
-        if hasattr(migrator, "name"):
-            assert isinstance(migrator.name, str)
-            migrator_name = migrator.name.lower().replace(" ", "")
-        else:
-            migrator_name = migrator.__class__.__name__.lower()
+        migrator_name = migrator.report_name
 
         print(
             "================================================================",

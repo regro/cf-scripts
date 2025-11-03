@@ -13,7 +13,7 @@ from conda_forge_tick.make_graph import (
 )
 
 
-def _update_feedstocks(name: str) -> None:
+def _update_feedstocks(name: str) -> dict | None:
     gh = github_client()
     repo = gh.get_repo(f"conda-forge/{name}-feedstock")
 
@@ -38,6 +38,7 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
 
     # first update the feedstocks
     all_feedstocks = _update_feedstocks(name)
+    assert all_feedstocks is not None
 
     with lazy_json_override_backends(["github_api"], use_file_cache=False):
         with LazyJson("graph.json") as graph_json:

@@ -1,15 +1,10 @@
 import json
+from enum import StrEnum
 from inspect import cleandoc
 from pathlib import Path
 from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
-
-try:
-    from enum import StrEnum
-except ImportError:
-    from backports.strenum import StrEnum
-
 
 CF_TICK_SCHEMA_FILE = Path(__file__).resolve().parent / "cf_tick_schema.json"
 
@@ -45,6 +40,27 @@ class BotConfigVersionUpdatesSourcesChoice(StrEnum):
     ROS_DISTRO = "rosdistro"
 
 
+class BotConfigVersionUpdatesNVIDIA(BaseModel):
+    """
+    Dictates the behavior of the conda-forge auto-tick bot for version
+    updates using the NVIDIA source.
+    """
+
+    compute_subdir: Optional[str] = Field(
+        default=None,
+        description="For sources from `developer.download.nvidia.com/compute`, this string"
+        "defines the subdirectory in which to find the JSON blob containing metadata"
+        "about the latest releases of a package.",
+    )
+
+    json_name: Optional[str] = Field(
+        default=None,
+        description="For sources from `developer.download.nvidia.com/compute`, this string"
+        "defines the name of the package in the JSON blob containing metadata"
+        "about the latest releases of a package.",
+    )
+
+
 class BotConfigVersionUpdates(BaseModel):
     """
     Dictates the behavior of the conda-forge auto-tick bot for version
@@ -74,6 +90,7 @@ class BotConfigVersionUpdates(BaseModel):
             - `github`: Update from the GitHub releases RSS feed (includes pre-releases)
             - `githubreleases`: Get the latest version by following the redirect of
             `https://github.com/{owner}/{repo}/releases/latest` (excludes pre-releases)
+            - `gittags`: Update from the listing of tags for sources that use git URLS.
             - `incrementalpharawurl`: If this source is run for a specific small selection of feedstocks, it acts like
             the `rawurl` source but also increments letters in the version string (e.g. 2024a -> 2024b). If the source
             is run for other feedstocks (even if selected manually), it does nothing.
@@ -107,6 +124,19 @@ class BotConfigVersionUpdates(BaseModel):
         "set to true to only accept stable versions (even minor numbers: 1.2.x, 1.4.x) "
         "and ignore development versions (odd minor numbers: 1.1.x, 1.3.x). "
         "Leave unset for projects that don't follow this versioning scheme.",
+    )
+
+    allowed_tag_globs: Optional[Union[str, list[str]]] = Field(
+        default=None,
+        description="For version sources that parse repo/vcs tags (e.g., "
+        "`gittags`, `github`, `githubreleases`), "
+        "the list of glob patterns that define which tags are allowed. This field can be used to "
+        "filter the set of tags to only those relevant for the feedstock.",
+    )
+
+    nvidia: Optional[BotConfigVersionUpdatesNVIDIA] = Field(
+        default_factory=BotConfigVersionUpdatesNVIDIA,
+        description="Bot config for version update PRs using the NVIDIA updater.",
     )
 
 
@@ -152,6 +182,7 @@ class BotConfig(BaseModel):
                 - '08.14'
             # even/odd version filtering for unstable versions
             even_odd_versions: true
+            allowed_tag_globs: 'python-*'
     ```
 
     The `abi_migration_branches` feature is useful to, for example, add a

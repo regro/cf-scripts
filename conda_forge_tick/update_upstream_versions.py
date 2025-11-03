@@ -4,6 +4,7 @@ import logging
 import os
 import secrets
 import time
+from collections.abc import MutableMapping
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -11,7 +12,6 @@ from typing import (
     Iterable,
     Iterator,
     List,
-    Literal,
     Mapping,
     Optional,
     Tuple,
@@ -29,7 +29,7 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps, sync_lazy_json_object
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
@@ -43,6 +43,7 @@ from conda_forge_tick.update_sources import (
     CratesIO,
     Github,
     GithubReleases,
+    GitTags,
     IncrementAlphaRawURL,
     PyPI,
     RawURL,
@@ -63,7 +64,7 @@ def get_latest_version_local(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -80,7 +81,7 @@ def get_latest_version_local(
     dict
         The new version information.
     """
-    version_data: Dict[str, Union[Literal[False], str]] = {"new_version": False}
+    version_data: Dict[str, Union[None, str]] = {"new_version": None}
 
     if name == "ca-policy-lcg":
         logger.warning(
@@ -140,7 +141,7 @@ def get_latest_version_local(
             if url is None:
                 continue
             logger.debug("Using URL %s", url)
-            ver = source.get_version(url)
+            ver = source.get_version(url, attrs)
             if not ver:
                 logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
@@ -172,16 +173,16 @@ def get_latest_version_local(
         logger.debug(
             "Ignoring version %s because it is in the exclude list.", new_version
         )
-        version_data["new_version"] = False
+        version_data["new_version"] = None
 
     return version_data
 
 
 def get_latest_version_containerized(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     **This function runs the version parsing in a container.**
@@ -229,10 +230,10 @@ def get_latest_version_containerized(
 
 def get_latest_version(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
-) -> Dict[str, Union[Literal[False], str]]:
+) -> Dict[str, Union[None, str]]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -356,13 +357,13 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 
 def _update_upstream_versions_sequential(
-    to_update: Iterable[Tuple[str, Mapping]],
+    to_update: Iterable[Tuple[str, MutableMapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0
     for node, attrs in to_update:
         # checking each node
-        version_data: Dict[str, Union[Literal[False], str]] = {}
+        version_data: Dict[str, Union[None, str]] = {}
 
         # New version request
         try:
@@ -406,7 +407,7 @@ def _update_upstream_versions_process_pool(
             ncols=80,
             desc="submitting version update jobs",
         ):
-            if RNG.random() >= settings().frac_update_upstream_versions:
+            if RNG.random() > settings().frac_update_upstream_versions:
                 continue
 
             futures.update(
@@ -458,8 +459,16 @@ def _update_upstream_versions_process_pool(
             # writing out file
             lazyjson = LazyJson(f"versions/{node}.json")
             with lazyjson as version_attrs:
+                changed = version_attrs.data != version_data
                 version_attrs.clear()
                 version_attrs.update(version_data)
+
+            if changed:
+                try:
+                    sync_lazy_json_object(version_attrs, "file", ["github_api"])
+                except Exception:
+                    # will sync in deploy later if this fails
+                    pass
 
 
 @functools.lru_cache(maxsize=1)
@@ -473,6 +482,7 @@ def all_version_sources():
         GithubReleases(),
         NVIDIA(),
         ROSDistro(),
+        GitTags(),
         RawURL(),
         IncrementAlphaRawURL(),
     )

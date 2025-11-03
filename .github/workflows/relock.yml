@@ -17,7 +17,7 @@ jobs:
         with:
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
+      - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -27,10 +27,11 @@ jobs:
         run: |
           python autotick-bot/stop_me_if_needed.py
 
-      - uses: conda-incubator/relock-conda@1187b776400478c5ff35d4cf423da23a80bbdd4c # v24
+      - uses: conda-incubator/relock-conda@7f346dc5b5acb46605a218779ebcc290608ee9c2 # v26
         if: ${{ ! env.CI_SKIP }}
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           automerge: true
           skip-if-pr-exists: true
           git-user-name: regro-cf-autotick-bot
+          merge-as-admin-packages: 'conda-forge-pinning'

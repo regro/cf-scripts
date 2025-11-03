@@ -22,6 +22,7 @@ from conda_forge_tick.update_sources import (
     CratesIO,
     Github,
     GithubReleases,
+    GitTags,
     PyPI,
     RawURL,
     next_version,
@@ -35,10 +36,11 @@ from conda_forge_tick.update_upstream_versions import (
     main,
     update_upstream_versions,
 )
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -423,13 +425,13 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
-        assert attempt["new_version"] is ver
+        assert attempt["new_version"] is None
     else:
         assert ver == attempt["new_version"]
 
 
 def test_latest_version_ca_policy_lcg(capfd, caplog):
-    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": None}
     out, err = capfd.readouterr()
     all_output = out + err
     for record in caplog.records:
@@ -489,7 +491,7 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_url.assert_called_once_with(attrs)
     assert "Using URL https://source-b.com" in caplog.text
 
-    source_b.get_version.assert_called_once_with("https://source-b.com")
+    source_b.get_version.assert_called_once_with("https://source-b.com", attrs)
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
     is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
@@ -587,7 +589,7 @@ def test_latest_version_is_version_ignored(caplog):
     assert "Using URL https://source-a.com" in caplog.text
     assert "Ignoring version 1.2.3" in caplog.text
 
-    assert result == {"new_version": False}
+    assert result == {"new_version": None}
 
 
 def test_latest_version_no_sources_are_skipped(caplog):
@@ -940,7 +942,7 @@ def test_next_version_openssl(in_ver, ver_test):
     assert next_vers == ver_test
 
 
-sample_cutensor = """
+sample_cutensor = r"""
 {% set version = "1.5.0" %}
 {% set patch_version = "3" %}
 
@@ -1046,25 +1048,191 @@ extra:
     - mtjrider
 """  # noqa
 
+sample_nvjpeg2k = r"""
+{% set version = "0.8.1.40" %}
+{% set platform = "linux-x86_64" %}  # [linux64]
+{% set platform = "linux-ppc64le" %}  # [ppc64le]
+{% set platform = "linux-sbsa" %}  # [aarch64 and arm_variant_type == "sbsa"]
+{% set platform = "linux-aarch64" %}  # [aarch64 and arm_variant_type == "tegra"]
+{% set platform = "windows-x86_64" %}  # [win]
+{% set extension = "tar.xz" %}  # [not win]
+{% set extension = "zip" %}  # [win]
+{% set cuda_compiler_version = cuda_compiler_version | default("None") %}
+{% set soname = version.split(".")[0] %}
+
+{% set sha = "b028f3718f453a71736c01fb8dcbb0174336ea5d69e52fd12a756d6ff5ce785d" %}  # [linux64]
+{% set sha = "34e02b499e0b0ca1af9b2d69454f979d530762df6a46f736feb4da5cb3824cbd" %}  # [aarch64 and arm_variant_type == "sbsa"]
+{% set sha = "5d0e61f48dc99c3ac464ceef173c071d8fb6ee0e7e6a83b199291307d9970485" %}  # [aarch64 and arm_variant_type == "tegra"]
+{% set sha = "970308dd3837964455600ce68af2fc0ad5e2b4dc415891e8d255ad1191fc248d" %}  # [win]
+
+package:
+  name: nvjpeg2000
+  version: {{ version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/nvjpeg2000/redist/libnvjpeg_2k/{{ platform }}/libnvjpeg_2k-{{ platform }}-{{ version }}-archive.{{ extension }}
+  sha256: {{ sha }}
+
+build:
+  number: 4
+  skip: true  # [osx or ppc64le or cuda_compiler_version in (None, "None")]
+
+requirements:
+  build:
+    - cf-nvidia-tools 1.*  # [linux]
+
+outputs:
+
+  - name: libnvjpeg2k{{ soname }}
+    build:
+      ignore_run_exports:
+        - cuda-version
+        - cudatoolkit
+    files:
+      - lib/libnvjpeg2k.so.*            # [linux]
+      - Library\bin\nvjpeg2k*.dll       # [win]
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ compiler("cuda") }}
+        - {{ stdlib("c") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+      host:
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        # Any CUDA within the same major version
+        # https://docs.nvidia.com/cuda/nvjpeg2000/userguide.html#prerequisites
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -L $PREFIX/lib/libnvjpeg2k.so.{{ soname }}                            # [linux]
+        - test -f $PREFIX/lib/libnvjpeg2k.so.{{ version }}                           # [linux]
+        - if not exist %LIBRARY_BIN%\nvjpeg2k_{{ soname }}.dll exit 1                # [win]
+    about:
+      license: LicenseRef-NVIDIA-End-User-License-Agreement
+      summary: The nvjpeg2k runtime library.
+      description: >-
+        This is a runtime package only. Developers should install libnvjpeg2k-dev to build with nvjpeg2k.
+
+  - name: libnvjpeg2k-dev
+    build:
+      run_exports:
+        # FIXME: Pin to patch version until 1.0
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, max_pin="x.x.x") }}
+      ignore_run_exports:
+        - cuda-version
+    files:
+      - lib/libnvjpeg2k.so                                  # [linux]
+      # - lib/pkgconfig/nvjpeg*.pc                          # [linux]
+      - include/nvjpeg*                                     # [linux]
+      - Library\include\nvjpeg*                             # [win]
+      - Library\lib\nvjpeg*.lib                              # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, exact=True) }}
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, exact=True) }}
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -L $PREFIX/lib/libnvjpeg2k.so                                    # [linux]
+        # - test -f $PREFIX/lib/pkgconfig/nvjpeg*.pc                            # [linux]
+        - test -f $PREFIX/include/nvjpeg2k_version.h                            # [linux]
+        - test -f $PREFIX/include/nvjpeg2k.h                                    # [linux]
+        - if not exist %LIBRARY_INC%\nvjpeg2k_version.h exit 1                  # [win]
+        - if not exist %LIBRARY_INC%\nvjpeg2k.h exit 1                          # [win]
+        - if not exist %LIBRARY_LIB%\nvjpeg2k.lib exit 1                        # [win]
+
+  - name: libnvjpeg2k-static
+    build:
+      skip: true  # [not linux]
+      ignore_run_exports:
+        - cuda-version
+    files:
+      - lib/libnvjpeg2k_static.a
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvjpeg2k-dev", exact=True) }}
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        - {{ pin_subpackage("libnvjpeg2k-dev", exact=True) }}
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -f $PREFIX/lib/libnvjpeg2k_static.a
+    about:
+      license: LicenseRef-NVIDIA-End-User-License-Agreement
+      summary: The nvjpeg2k static library.
+      description: >-
+        This is a static-linking package only. Developers should install libnvjpeg2k-dev to link dynamically with nvjpeg2k.
+
+about:
+  home: https://docs.nvidia.com/cuda/nvjpeg2000/
+  license_file: LICENSE
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  license_url: https://docs.nvidia.com/cuda/eula/index.html
+  summary: The nvJPEG2000 development package.
+  description: >-
+    The nvJPEG2000 library accelerates the decoding and encoding of JPEG2000 images on NVIDIA GPUs. The library is built on the CUDA platform and is supported on Pascal+ GPU architectures.
+
+  doc_url: https://docs.nvidia.com/cuda/nvjpeg2000/
+
+extra:
+  feedstock-name: libnvjpeg2k
+  recipe-maintainers:
+    - conda-forge/cuda
+"""  # noqa
 
 latest_url_nvidia_test_list = [
+    (
+        "libnvjpeg2k-split",
+        sample_nvjpeg2k,
+        "0.8.1.40",
+        None,
+        NVIDIA(),
+        {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libnvjpeg_2k",
+                        "compute_subdir": "nvjpeg2000",
+                    }
+                }
+            }
+        },
+    ),
     (
         "cutensor",
         sample_cutensor,
         "1.4.0.3",
-        "1.5.0.3",
+        None,
         NVIDIA(),
         {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libcutensor",
+                    }
+                }
+            }
+        },
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "name, inp, curr_ver, ver, source, urls",
+    "name, inp, curr_ver, ver, source, urls, conda_forge",
     latest_url_nvidia_test_list,
 )
-@pytest.mark.xfail
-def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
+def test_latest_version_nvidia(
+    name, inp, curr_ver, ver, source, urls, conda_forge, tmpdir
+):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
@@ -1074,6 +1242,7 @@ def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "version": curr_ver,
                 "raw_meta_yaml": inp,
                 "meta_yaml": parse_meta_yaml(inp),
+                "conda-forge.yml": conda_forge,
             },
         )
     attempt = get_latest_version(name, pmy, [source])
@@ -1239,6 +1408,7 @@ default_sources = (
     "GithubReleases",
     "NVIDIA",
     "ROSDistro",
+    "GitTags",
     "RawURL",
     "IncrementAlphaRawURL",
 )
@@ -1471,11 +1641,13 @@ def test_update_upstream_versions_sequential(
     assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
+    sync_lazy_json_object_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -1534,11 +1706,13 @@ def test_update_upstream_versions_process_pool(
     assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
+    sync_lazy_json_object_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -1580,11 +1754,13 @@ def test_update_upstream_versions_process_pool_exception(
     assert "source a error" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
+    sync_lazy_json_object_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -1720,7 +1896,9 @@ def test_github_releases(tmpdir, url, feedstock_version):
 
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
-    assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+    assert VersionOrder(ghr.get_version(url, meta_yaml)) > VersionOrder(
+        feedstock_version
+    )
 
 
 @pytest.mark.parametrize(
@@ -1749,7 +1927,7 @@ def test_github_releases_unusual_version(
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
 
-    version = ghr.get_version(url)
+    version = ghr.get_version(url, meta_yaml)
 
     assert isinstance(version, str)
     assert re.match(regex, version)
@@ -1787,3 +1965,88 @@ def test_latest_version_cratesio(tmpdir):
         assert attempt["new_version"] is ver
     else:
         assert ver == attempt["new_version"]
+
+
+@pytest.mark.parametrize(
+    "yaml_path",
+    [
+        pytest.param(YAML_PATH, id="meta.yaml"),
+        pytest.param(YAML_PATH_V1, id="recipe.yaml"),
+    ],
+)
+def test_latest_version_gittags(tmpdir, yaml_path):
+    name = "libtirpc"
+    recipe_path = os.path.join(yaml_path, "libtirpc-gittags.yaml")
+    curr_ver = "1.3.6"
+    new_ver = "1.3.7"
+    source = GitTags()
+
+    with open(recipe_path) as fd:
+        inp = fd.read()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        yml = (
+            parse_recipe_yaml(inp, use_container=False)
+            if yaml_path == YAML_PATH_V1
+            else parse_meta_yaml(inp, use_container=False)
+        )
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": yml,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+    assert new_ver == attempt["new_version"]
+
+
+def test_latest_version_pypi_files_pythonhost_url(tmpdir):
+    curr_url = "https://files.pythonhosted.org/packages/45/33/4f88384403c3974c82f0296615c6e5f5114ca3d8fd920fa3196e4d619cb0/atlas_schema-0.3.0.tar.gz"
+    curr_ver = "0.3.0"
+    name = "atlas-schema"
+    ver = "0.4.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_pypi_canonical_url(tmpdir):
+    curr_url = "https://pypi.org/packages/source/o/opencosmo/opencosmo-0.8.1.tar.gz"
+    curr_ver = "0.8.1"
+    name = "opencosmo"
+    ver = "0.9.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])

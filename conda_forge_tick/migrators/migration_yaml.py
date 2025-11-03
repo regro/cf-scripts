@@ -4,9 +4,8 @@ import os
 import re
 import secrets
 import time
-import typing
 from collections import defaultdict
-from typing import Any, List, Optional, Sequence, Set
+from typing import Any, Collection, Literal, Optional, Sequence, Set
 
 import networkx as nx
 
@@ -17,19 +16,19 @@ from conda_forge_tick.migrators.core import (
     GraphMigrator,
     Migrator,
     MiniMigrator,
+    cut_graph_to_target_packages,
     get_outputs_lut,
+    load_target_packages,
 )
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     get_bot_run_url,
     get_keys_default,
-    get_migrator_name,
     yaml_safe_dump,
     yaml_safe_load,
 )
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 RNG = secrets.SystemRandom()
 logger = logging.getLogger(__name__)
@@ -121,7 +120,7 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
 
 
 def _trim_edges_for_abi_rebuild(
-    total_graph: nx.DiGraph, migrator: Migrator, outputs_lut: dict[str, str]
+    total_graph: nx.DiGraph, migrator: Migrator, outputs_lut: dict[str, set]
 ) -> nx.DiGraph:
     migrator_payload = migrator.loaded_yaml.get("__migrator", {})
     include_build = migrator_payload.get("include_build", False)
@@ -177,8 +176,8 @@ class MigrationYaml(GraphMigrator):
         total_graph: nx.DiGraph | None = None,
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["PackageName"]] = None,
+        top_level: Set["PackageName"] | None = None,
+        cycles: Optional[Collection["PackageName"]] = None,
         migration_number: Optional[int] = None,
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
@@ -186,13 +185,17 @@ class MigrationYaml(GraphMigrator):
         check_solvable=True,
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
-        max_solver_attempts=3,
         effective_graph: nx.DiGraph | None = None,
         force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
+        allowlist_file: Optional[str] = None,
         **kwargs: Any,
     ):
+        if allowlist_file is not None:
+            target_packages = load_target_packages(allowlist_file)
+            cut_graph_to_target_packages(total_graph, target_packages)
+
         if not hasattr(self, "_init_args"):
             self._init_args = [yaml_contents, name]
 
@@ -210,7 +213,6 @@ class MigrationYaml(GraphMigrator):
                 "check_solvable": check_solvable,
                 "conda_forge_yml_patches": conda_forge_yml_patches,
                 "ignored_deps_per_node": ignored_deps_per_node,
-                "max_solver_attempts": max_solver_attempts,
                 "effective_graph": effective_graph,
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
@@ -227,7 +229,6 @@ class MigrationYaml(GraphMigrator):
         self.conda_forge_yml_patches = conda_forge_yml_patches
         self.loaded_yaml = yaml_safe_load(self.yaml_contents)
         self.bump_number = bump_number
-        self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
         self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
         self.paused = paused
@@ -262,7 +263,7 @@ class MigrationYaml(GraphMigrator):
         # compute excluded pinned feedstocks no matter what
         outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
-        self.excluded_pinned_feedstocks = set()
+        self.excluded_pinned_feedstocks: set[str] = set()
         for _node in self.package_names:
             self.excluded_pinned_feedstocks.update(outputs_lut.get(_node, {_node}))
 
@@ -272,7 +273,7 @@ class MigrationYaml(GraphMigrator):
             self.graph = None
             total_graph = copy.deepcopy(total_graph)
             self.total_graph = total_graph
-            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)
+            _trim_edges_for_abi_rebuild(total_graph, self, outputs_lut)  # type: ignore[arg-type]
             total_graph.add_edges_from(
                 [(n, "conda-forge-pinning") for n in total_graph.nodes]
             )
@@ -300,6 +301,9 @@ class MigrationYaml(GraphMigrator):
             feedstock_names = {
                 p for p in self.excluded_pinned_feedstocks if p in total_graph.nodes
             } - excluded_feedstocks
+
+            if self.graph is None:
+                raise ValueError("graph is None")
 
             top_level = {
                 node
@@ -422,7 +426,7 @@ class MigrationYaml(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         # if conda-forge-pinning update the pins and close the migration
         if attrs.get("name", "") == "conda-forge-pinning":
             # read up the conda build config
@@ -463,9 +467,11 @@ class MigrationYaml(GraphMigrator):
 
             return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
-        name = get_migrator_name(self)
+        name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
@@ -553,26 +559,33 @@ class MigrationYaml(GraphMigrator):
             add_slug = ""
 
         title = self.commit_message(feedstock_ctx).splitlines()[0]
-
-        return add_slug + title
+        branch = feedstock_ctx.attrs.get("branch", "main")
+        if branch not in ["main", "master"]:
+            return add_slug + f"[{branch}] " + title
+        else:
+            return add_slug + title
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        if self.name is None:
+            raise ValueError("name is None")
         s_obj = str(self.obj_version) if self.obj_version else ""
         return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"  # noqa
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
 
 
 def _compute_pin_impact(
-    total_graph: nx.DiGraph, package_names: tuple[str], outputs_lut: dict[str, str]
+    total_graph: nx.DiGraph, package_names: tuple[str, ...], outputs_lut: dict[str, str]
 ) -> int:
     # Generally, the packages themselves should be excluded from the migration;
     # an example for exceptions are migrations for new python versions
     # where numpy needs to be rebuilt despite being pinned.
-    excluded_feedstocks = set()
+    excluded_feedstocks: set[str] = set()
     for node in package_names:
         excluded_feedstocks.update(outputs_lut.get(node, {node}))
 
@@ -620,7 +633,7 @@ class MigrationYamlCreator(Migrator):
         pr_limit: int = 0,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,
-        pinnings: Optional[List[int]] = None,
+        pinnings: list[str] | None = None,
         **kwargs: Any,
     ):
         if pinnings is None:
@@ -685,7 +698,7 @@ class MigrationYamlCreator(Migrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         migration_yaml_dict = {
             "__migrator": {
                 "build_number": 1,
@@ -711,7 +724,9 @@ class MigrationYamlCreator(Migrator):
 
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = (
             "This PR has been triggered in an effort to update the pin for"
             " **{name}**. The current pinned version is {current_pin}, "

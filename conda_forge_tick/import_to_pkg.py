@@ -379,7 +379,7 @@ def _main_import_to_pkg(max_artifacts: int):
             sub_import_map = {k: import_map.pop(k) for k in keys}
             exc.submit(_write_out_maps, gn, sub_import_map)
 
-    fnames_by_index = {}
+    fnames_by_index: dict[int, set] = {}
     for fname in chain(indexed_files, files_indexed):
         index = _fname_to_index(fname)
         fnames_by_index.setdefault(index, set()).add(fname)
@@ -390,7 +390,7 @@ def _main_import_to_pkg(max_artifacts: int):
 
     try:
         with open(IMPORT_TO_PKG_DIR_CLOBBERING) as f:
-            _clobbers = load(f)
+            _clobbers: set | dict = load(f)
     except FileNotFoundError:
         _clobbers = set()
     _clobbers.update(clobbers)

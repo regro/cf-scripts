@@ -12,8 +12,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check:
+    name: Check if we can skip the merge queue
+    outputs:
+      skip-check: ${{ steps.merge-queue-ci-skipper.outputs.skip-check }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if we can skip the merge queue
+        id: merge-queue-ci-skipper
+        uses: cariad-tech/merge-queue-ci-skipper@cf80db21fc70244e36487acc531b3f1118889b0a
+        with:
+            secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
   tests:
+    needs: check
     uses: ./.github/workflows/tests-reusable.yml
+    with:
+      skip: ${{ needs.check.outputs.skip-check }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}

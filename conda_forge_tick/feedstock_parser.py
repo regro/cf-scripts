@@ -3,12 +3,13 @@ import hashlib
 import logging
 import os
 import re
+import subprocess
 import tempfile
 import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set, Union
+from typing import Optional, Set, Tuple, Union
 
 import requests
 import yaml
@@ -19,20 +20,19 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
+from conda_forge_tick.migrators_types import (
+    PackageName,
+    RecipeTypedDict,
+    RequirementsTypedDict,
+    TestTypedDict,
+)
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
     settings,
 )
-
-if typing.TYPE_CHECKING:
-    from mypy_extensions import TestTypedDict
-
-    from conda_forge_tick.migrators_types import RecipeTypedDict
-
-    from .migrators_types import PackageName, RequirementsTypedDict
-
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import (
     as_iterable,
     parse_meta_yaml,
@@ -48,7 +48,7 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # that would be available in a bootstrapping scenario
 # for these nodes, we only use the bootstrap requirements
 # to build graph edges
-BOOTSTRAP_MAPPINGS = {}
+BOOTSTRAP_MAPPINGS: dict = {}
 
 
 def _dedupe_list_ordered(list_with_dupes):
@@ -87,7 +87,7 @@ def _get_requirements(
     host: bool = True,
     run: bool = True,
     outputs_to_keep: Optional[Set["PackageName"]] = None,
-) -> "Set[PackageName]":
+) -> set[PackageName]:
     """Get the list of recipe requirements from a meta.yaml dict.
 
     Parameters
@@ -108,7 +108,7 @@ def _get_requirements(
     """
     kw = dict(build=build, host=host, run=run)
     if outputs_to_keep:
-        reqs = set()
+        reqs: set[PackageName] = set()
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
         for output in outputs_:
             if output.get("name") in outputs_to_keep:
@@ -127,7 +127,7 @@ def _parse_requirements(
     build: bool = True,
     host: bool = True,
     run: bool = True,
-) -> typing.MutableSet["PackageName"]:
+) -> set["PackageName"]:
     """Flatten a YAML requirements section into a list of names."""
     if not req:  # handle None as empty
         return set()
@@ -156,7 +156,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
         metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
 
     for block in metas:
-        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        req: "RequirementsTypedDict" | list = block.get("requirements", {}) or {}  # type: ignore[assignment]
         if isinstance(req, list):
             requirements_dict["run"].update(set(req))
             continue
@@ -165,9 +165,9 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
                 list(as_iterable(req.get(section, []) or [])),
             )
 
-        test: "TestTypedDict" = block.get("test", {}) or {}
-        requirements_dict["test"].update(test.get("requirements", []) or [])
-        requirements_dict["test"].update(test.get("requires", []) or [])
+        test_block: "TestTypedDict" = block.get("test", {}) or {}  # type: ignore[assignment]
+        requirements_dict["test"].update(test_block.get("requirements", []) or [])
+        requirements_dict["test"].update(test_block.get("requires", []) or [])
 
         if "tests" in block:
             for test in block.get("tests", []):
@@ -410,7 +410,7 @@ def populate_feedstock_attributes(
 
                 # collapse them down
                 logger.debug("collapsing reqs for %s", name)
-                final_cfgs = {}
+                final_cfgs: dict = {}
                 for plat_arch, varyml in zip(plat_archs, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
@@ -453,7 +453,7 @@ def populate_feedstock_attributes(
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
-    yaml_dict = ChainDB(*sorted_variant_yamls)
+    yaml_dict = ChainDB(*sorted_variant_yamls)  # type: ignore[arg-type]
     if not yaml_dict:
         logger.error("Something odd happened when parsing recipe %s", name)
         node_attrs["parsing_error"] = (
@@ -507,7 +507,7 @@ def populate_feedstock_attributes(
     # TODO: Write schema for dict
     # TODO: remove this
     req = _get_requirements(
-        yaml_dict,
+        yaml_dict,  # type: ignore[arg-type]
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
     )
     node_attrs["req"] = req
@@ -547,6 +547,42 @@ def populate_feedstock_attributes(
         node_attrs["hash_type"] = kl[0]
 
     return node_attrs
+
+
+def _get_feedstock_commit_hash_and_timestamp(
+    name: str,
+) -> Tuple[str | None, int | None]:
+    git_url = f"https://github.com/{settings().conda_forge_org}/{name}-feedstock"
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", git_url],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            with pushd(f"{name}-feedstock"):
+                res = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                sha = res.stdout.strip()
+
+                res = subprocess.run(
+                    ["git", "log", "-1", "--format=%ct"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                ts = int(res.stdout.strip())
+        except subprocess.CalledProcessError:
+            return None, None
+
+    return sha, ts
 
 
 def load_feedstock_local(
@@ -592,6 +628,13 @@ def load_feedstock_local(
     if meta_yaml is not None and recipe_yaml is not None:
         raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
 
+    # we only update the feedstock hash if we are using the feedstock's
+    # contents for making the node attrs
+    if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
+        update_hash = True
+    else:
+        update_hash = False
+
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
         feedstock_dir = _fetch_static_repo(name, tmpdir)
@@ -629,6 +672,18 @@ def load_feedstock_local(
             conda_forge_yaml_path = Path(feedstock_dir).joinpath("conda-forge.yml")
             if conda_forge_yaml_path.exists():
                 conda_forge_yaml = conda_forge_yaml_path.read_text()
+
+        if (
+            update_hash
+            or "feedstock_hash" not in new_sub_graph
+            or "feedstock_hash_ts" not in new_sub_graph
+        ):
+            # if we are using the feedstock's contents, then we update the hash
+            feedstock_hash, feedstock_timestamp = (
+                _get_feedstock_commit_hash_and_timestamp(name)
+            )
+            new_sub_graph["feedstock_hash"] = feedstock_hash
+            new_sub_graph["feedstock_hash_ts"] = feedstock_timestamp
 
         return populate_feedstock_attributes(
             name,

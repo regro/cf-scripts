@@ -10,11 +10,13 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 import typing
 import warnings
 from collections import defaultdict
 from collections.abc import Mapping
+from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -27,11 +29,13 @@ from typing import (
     cast,
 )
 
+import dateparser
 import jinja2
 import jinja2.sandbox
 import networkx as nx
 import orjson
 import ruamel.yaml
+from conda.models.version import VersionOrder
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -46,7 +50,7 @@ from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settin
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
 
-    from conda_forge_tick.migrators_types import RecipeTypedDict
+from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +236,7 @@ def parse_recipe_yaml(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -245,7 +249,7 @@ def parse_recipe_yaml(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
@@ -281,7 +285,7 @@ def parse_recipe_yaml_containerized(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -295,7 +299,7 @@ def parse_recipe_yaml_containerized(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
 
     Returns
@@ -315,7 +319,7 @@ def parse_recipe_yaml_containerized(
         args += ["--platform-arch", platform_arch]
 
     if cbc_path is not None:
-        args += ["--cbc-path", cbc_path]
+        args += ["--cbc-path", str(cbc_path)]
 
     if for_pinning:
         args += ["--for-pinning"]
@@ -393,7 +397,7 @@ def parse_recipe_yaml_local(
     text: str,
     for_pinning: bool = False,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: Path | str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -405,7 +409,7 @@ def parse_recipe_yaml_local(
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
-    cbc_path : str, optional
+    cbc_path : Path | str, optional
         The path to global pinning file.
 
     Returns
@@ -458,7 +462,7 @@ def replace_compiler_with_stub(text: str) -> str:
 def _render_recipe_yaml(
     text: str,
     platform_arch: str | None = None,
-    cbc_path: str | None = None,
+    cbc_path: str | Path | None = None,
 ) -> list[dict[str, Any]]:
     """
     Render the given recipe YAML text using the `rattler-build` command-line tool.
@@ -469,7 +473,7 @@ def _render_recipe_yaml(
         The recipe YAML text to render.
     platform : str, optional
         The platform (e.g., 'linux', 'osx', 'win').
-    cbc_path : str, optional
+    cbc_path : str | Path, optional
         The path to global pinning file.
 
     Returns
@@ -613,6 +617,8 @@ def _parse_recipes(
             "patches": source[0].get("patches"),
             "sha256": source[0].get("sha256"),
             "url": source[0].get("url"),
+            "git_url": source[0].get("git"),
+            "git_rev": source[0].get("tag"),
         }
 
     requirements_data = (
@@ -1292,8 +1298,7 @@ def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFrie
 def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     if fz is None:
         return None
-    keys = sorted(list(fz.keys()))
-    d = {"keys": keys, "data": dict(fz)}
+    d = {"data": dict(fz)}
     if pr:
         d["PR"] = pr
     return d
@@ -1382,15 +1387,20 @@ def get_bot_run_url():
     return os.environ.get("RUN_URL", "")
 
 
-def get_migrator_name(migrator):
-    """Get the canonical name of a migrator."""
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
+def get_migrator_report_name_from_pr_data(migration):
+    """Get the canonical name of a migration from the PR data."""
+    if "version" in migration["data"]:
+        return migration["data"]["version"]
+    elif "name" in migration["data"]:
+        return migration["data"]["name"].lower().replace(" ", "")
+    elif "migrator_name" in migration["data"]:
+        return migration["data"]["migrator_name"].lower()
     else:
-        migrator_name = migrator.__class__.__name__.lower()
-
-    return migrator_name
+        logger.warning(
+            "Could not extract migrator report name for migration: %s",
+            migration["data"],
+        )
+        return None
 
 
 @contextlib.contextmanager
@@ -1539,3 +1549,60 @@ def extract_section_from_yaml_text(
             found_sections.append("\n".join(lines[section_start:]))
 
     return found_sections
+
+
+def version_follows_conda_spec(version: str | bool) -> bool:
+    if isinstance(version, str):
+        try:
+            VersionOrder(version.replace("-", "."))
+        except Exception:
+            return False
+        else:
+            return True
+    else:
+        return False
+
+
+def pr_can_be_archived(
+    pr: dict | LazyJson, now: int | float | None = None, archive_empty_prs: bool = False
+) -> bool:
+    """
+    Return true if a PR can be archived.
+
+    A PR can be archived if it has been closed for at least the amount of time
+    in settings().pull_request_reopen_window.
+
+    Parameters
+    ----------
+    pr : dict | LazyJson
+        The PR json.
+    now : int | float | None
+        The current unix timestamp. If None, a call to time.time is made.
+    archive_empty_prs : bool
+        If True, PRs that have no data in the json blob are considered eligible to
+        be archived.
+
+    Returns
+    -------
+    bool
+    """
+    if now is None:
+        now = time.time()
+
+    if not isinstance(pr, LazyJson):
+        pr = contextlib.nullcontext(pr)
+
+    with pr as pr:
+        pr_lm = pr.get("Last-Modified", None)
+        if pr_lm is not None:
+            pr_lm = dateparser.parse(pr_lm)
+
+        if (
+            pr_lm is None
+            or now - pr_lm.timestamp() > settings().pull_request_reopen_window
+        ) and (
+            pr.get("state", None) == "closed" or (archive_empty_prs and pr.data == {})
+        ):
+            return True
+        else:
+            return False

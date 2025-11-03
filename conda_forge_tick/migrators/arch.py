@@ -1,8 +1,6 @@
 import copy
-import os
-import typing
 from textwrap import dedent
-from typing import Any, Optional, Sequence
+from typing import Any, Collection, Literal, Optional, Sequence
 
 import networkx as nx
 
@@ -10,7 +8,14 @@ from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
 )
-from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, get_outputs_lut
+from conda_forge_tick.migrators.core import (
+    GraphMigrator,
+    MiniMigrator,
+    cut_graph_to_target_packages,
+    get_outputs_lut,
+    load_target_packages,
+)
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
@@ -20,25 +25,6 @@ from conda_forge_tick.utils import (
 )
 
 from .migration_yaml import all_noarch
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
-
-MIGRATION_SUPPORT_DIRS = [
-    os.path.join(
-        os.environ["CONDA_PREFIX"],
-        "share",
-        "conda-forge",
-        "migration_support",
-    ),
-    # Deprecated
-    os.path.join(
-        os.environ["CONDA_PREFIX"],
-        "share",
-        "conda-forge",
-        "migrations",
-    ),
-]
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
@@ -54,22 +40,6 @@ def _filter_excluded_deps(graph, excluded_dependencies):
         nodes_to_remove |= set(nx.descendants(graph, excluded_dep))
     for node in nodes_to_remove:
         pluck(graph, node)
-    # post-plucking cleanup
-    graph.remove_edges_from(nx.selfloop_edges(graph))
-
-
-def _cut_to_target_packages(graph, target_packages):
-    """Cut the graph to only the target packages.
-
-    **operates in place**
-    """
-    packages = target_packages.copy()
-    for target in target_packages:
-        if target in graph.nodes:
-            packages.update(nx.ancestors(graph, target))
-    for node in list(graph.nodes.keys()):
-        if node not in packages:
-            pluck(graph, node)
     # post-plucking cleanup
     graph.remove_edges_from(nx.selfloop_edges(graph))
 
@@ -120,21 +90,14 @@ class ArchRebuild(GraphMigrator):
         name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                fname = None
-                for d in MIGRATION_SUPPORT_DIRS:
-                    fname = os.path.join(d, "arch_rebuild.txt")
-                    if os.path.exists(fname):
-                        break
-
-                with open(fname) as f:
-                    target_packages = set(f.read().split())
+                target_packages = load_target_packages("arch_rebuild.txt")
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
@@ -148,7 +111,7 @@ class ArchRebuild(GraphMigrator):
                             attrs.get("requirements", {}),
                         ).values()
                     )
-                    for dep in get_deps_from_outputs_lut(deps, outputs_lut):
+                    for dep in get_deps_from_outputs_lut(deps, outputs_lut):  # type: ignore[arg-type]
                         graph2.add_edge(dep, node)
                 pass
 
@@ -156,7 +119,7 @@ class ArchRebuild(GraphMigrator):
             target_packages = set(target_packages)
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
@@ -190,7 +153,7 @@ class ArchRebuild(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
 
@@ -209,6 +172,8 @@ class ArchRebuild(GraphMigrator):
                 yaml_safe_dump(y, f)
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if muid is False:
+            return False
         if y_orig == y:
             muid["already_done"] = True
 
@@ -217,7 +182,9 @@ class ArchRebuild(GraphMigrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Arch Migrator"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
@@ -242,13 +209,13 @@ class _CrossCompileRebuild(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = set()
-    excluded_dependencies = set()
+    ignored_packages: set[str] = set()
+    excluded_dependencies: set[str] = set()
 
     @property
     def additional_keys(self):
         return {
-            "build_platform": self.build_platform,
+            "build_platform": self.build_platform,  # type: ignore[attr-defined]
             "test": "native_and_emulated",
         }
 
@@ -258,28 +225,20 @@ class _CrossCompileRebuild(GraphMigrator):
         pr_limit: int = 0,
         name: str = "",
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                fname = None
-                for d in MIGRATION_SUPPORT_DIRS:
-                    fname = os.path.join(d, self.pkg_list_filename)
-                    if os.path.exists(fname):
-                        break
-
-                with open(fname) as f:
-                    target_packages = set(f.read().split())
-
+                target_packages = load_target_packages(self.pkg_list_filename)  # type: ignore[attr-defined]
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
             # rebuild the graph to only use edges from the arch requirements
             graph2 = nx.create_empty_copy(total_graph)
             for node, attrs in total_graph.nodes(data="payload"):
-                for plat_arch, build_plat_arch in self.build_platform.items():
+                for plat_arch, build_plat_arch in self.build_platform.items():  # type: ignore[attr-defined]
                     reqs = attrs.get(
                         f"{plat_arch}_requirements",
                         attrs.get(
@@ -300,7 +259,7 @@ class _CrossCompileRebuild(GraphMigrator):
                             deps.add(build_dep)
                     for dep in get_deps_from_outputs_lut(
                         deps,
-                        outputs_lut,
+                        outputs_lut,  # type: ignore[arg-type]
                     ):
                         graph2.add_edge(dep, node)
 
@@ -316,7 +275,7 @@ class _CrossCompileRebuild(GraphMigrator):
             # filter the graph down to the target packages
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(total_graph, target_packages)
+                cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
@@ -350,7 +309,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
 
@@ -374,6 +333,8 @@ class _CrossCompileRebuild(GraphMigrator):
                 yaml_safe_dump(y, f)
 
         muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if muid is False:
+            return muid
         if y_orig == y:
             muid["already_done"] = True
 
@@ -394,7 +355,9 @@ class OSXArm(_CrossCompileRebuild):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
@@ -426,7 +389,9 @@ class WinArm64(_CrossCompileRebuild):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Support Windows ARM64 platform"
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(

@@ -8,6 +8,7 @@ platforms:
 dependencies:
   - attrs
   - backoff
+  - bcrypt <5
   - cachecontrol
   - cachetools
   - click
@@ -23,6 +24,7 @@ dependencies:
   - conda-build >=3.24.0
   - conda-recipe-manager >=0.6.1
   - curl
+  - dateparser
   - depfinder
   - distributed
   - fastapi
@@ -51,7 +53,7 @@ dependencies:
   - python-dateutil
   - python-graphviz
   - rattler-build >=0.35.4
-  - rattler-build-conda-compat >=1.3.0,<2
+  - rattler-build-conda-compat >=1.4.6,<2,!=1.4.7,!=1.4.8
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2
@@ -77,3 +79,4 @@ dependencies:
   - pytest-split
   - setuptools_scm >=8
   - python-build
+  - mypy

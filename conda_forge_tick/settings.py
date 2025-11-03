@@ -74,7 +74,7 @@ class BotSettings(BaseSettings):
     https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
     """
 
-    frac_update_upstream_versions: Fraction = 0.1
+    frac_update_upstream_versions: Fraction = 1.0
     """
     The fraction of feedstocks (randomly selected) to update in the update-upstream-versions job.
     This is currently only respected when running concurrently (via process pool), not in sequential mode.
@@ -85,6 +85,12 @@ class BotSettings(BaseSettings):
     """
     The fraction of feedstocks (randomly selected) to update in the make-graph job.
     In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
+    """
+
+    pull_request_reopen_window: float = 15 * 60.0
+    """
+    A pull request that is closed can be reopened if it is done so within this amount of time.
+    Specified in seconds.
     """
 
 

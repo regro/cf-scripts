@@ -1,9 +1,8 @@
 import logging
 import os
 import re
-import typing
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import networkx as nx
 
@@ -11,9 +10,7 @@ from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator, MiniMigrator
 from conda_forge_tick.os_utils import pushd
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
-
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +96,7 @@ class Replacement(Migrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         if os.path.exists(os.path.join(recipe_dir, "meta.yaml")):
             recipe_file = os.path.join(recipe_dir, "meta.yaml")
         elif os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
@@ -128,7 +125,9 @@ class Replacement(Migrator):
 
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
+    ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             """\
@@ -152,6 +151,8 @@ needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         return f"{self.old_pkg}-to-{self.new_pkg}-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        if self.name is None:
+            raise ValueError("name is None")
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
@@ -195,9 +196,9 @@ class MiniReplacement(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
-        rq = set()
+        rq: set[Any] = set()
         for req_type in self.requirement_types:
-            rq |= requirements.get(req_type, set())
+            rq |= requirements.get(req_type, set())  # type: ignore[arg-type]
         return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any):

@@ -75,8 +75,6 @@ class AddNVIDIATools(Migrator):
 
     rerender = True
 
-    max_solver_attempts = 3
-
     migrator_version = 1
 
     allow_empty_commits = False
@@ -131,7 +129,7 @@ class AddNVIDIATools(Migrator):
                 meta,
                 "requirements",
                 "build",
-                ["    - cf-nvidia-tools 1  # [linux]\n"],
+                "    - cf-nvidia-tools 1  # [linux]\n",
             ):
                 logger.debug("cf-nvidia-tools added to meta.yaml.")
             else:
@@ -160,7 +158,7 @@ class AddNVIDIATools(Migrator):
                     meta,
                     "requirements",
                     "build",
-                    ["    - check-glibc  # [linux]\n"],
+                    "    - check-glibc  # [linux]\n",
                 ):
                     logger.debug("Added check-glibc to meta.yaml")
                 else:

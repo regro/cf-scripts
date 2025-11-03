@@ -1,5 +1,5 @@
 import typing
-from typing import Dict, List, Set, TypedDict, Union
+from typing import List, Literal, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
@@ -48,7 +48,7 @@ class BuildTypedDict(TypedDict, total=False):
     noarch: str
     number: str
     script: str
-    run_exports: Union[List[PackageName], BuildRunExportsDict]
+    run_exports: list[PackageName] | BuildRunExportsDict
 
 
 ExtraTypedDict = TypedDict("ExtraTypedDict", {"recipe-maintainers": List[str]})
@@ -64,7 +64,7 @@ class MetaYamlOutputs(TypedDict, total=False):
     requirements: "RequirementsTypedDict"
     test: "TestTypedDict"
     # TODO: Not entirely sure this is right
-    build: BuildRunExportsDict
+    build: BuildTypedDict
 
 
 class RecipeTypedDict(TypedDict, total=False):
@@ -76,14 +76,19 @@ class RecipeTypedDict(TypedDict, total=False):
     source: "SourceTypedDict"
     test: "TestTypedDict"
     outputs: List[MetaYamlOutputs]
+    schema_version: int
 
 
 class MigrationUidTypedDict(TypedDict, total=False):
+    already_done: bool
     bot_rerun: bool
+    branch: str
     migrator_name: str
     migrator_version: int
     name: str
     migrator_object_version: int
+    pin_version: str
+    static_libs: str
     # Used by version migrators
     version: str
 
@@ -94,9 +99,10 @@ class PackageTypedDict(TypedDict):
 
 
 class RequirementsTypedDict(TypedDict, total=False):
-    build: List[str]
-    host: List[str]
-    run: List[str]
+    build: set[str]
+    host: set[str]
+    run: set[str]
+    test: set[str]
 
 
 class SourceTypedDict(TypedDict, total=False):
@@ -118,39 +124,40 @@ class PRedElementTypedDict(TypedDict, total=False):
     PR: PR_TD
 
 
-class AttrsTypedDict_(TypedDict, total=False):
-    about: AboutTypedDict
-    build: BuildTypedDict
-    extra: ExtraTypedDict
-    feedstock_name: str
-    meta_yaml: "RecipeTypedDict"
-    package: PackageTypedDict
-    raw_meta_yaml: str
-    req: Set[str]
-    platforms: List[str]
-    pr_info: typing.Any
-    requirements: RequirementsTypedDict
-    source: SourceTypedDict
-    test: TestTypedDict
-    version: str
-    new_version: Union[str, bool]
-    archived: bool
-    PRed: List[PRedElementTypedDict]
-    version_pr_info: typing.Any
-    # Legacy types in here
-    bad: Union[bool, str]
-    # TODO: ADD in
-    #  "conda-forge.yml":
-
-
 class CondaForgeYamlContents(TypedDict, total=False):
-    provider: Dict[str, str]
+    bot: dict[str, typing.Any]
+    provider: dict[str, str]
 
 
-CondaForgeYaml = TypedDict(
-    "CondaForgeYaml", {"conda-forge.yml": CondaForgeYamlContents}
+AttrsTypedDict = TypedDict(
+    "AttrsTypedDict",
+    {
+        "about": AboutTypedDict,
+        "build": BuildTypedDict,
+        "branch": str,
+        "conda-forge.yml": CondaForgeYamlContents,
+        "extra": ExtraTypedDict,
+        "feedstock_name": str,
+        "meta_yaml": RecipeTypedDict,
+        "package": PackageTypedDict,
+        "raw_meta_yaml": str,
+        "req": set[str],
+        "name": str,
+        "platforms": List[str],
+        "pr_info": typing.Any,
+        "requirements": RequirementsTypedDict,
+        "source": SourceTypedDict,
+        "test": TestTypedDict,
+        "version": str,
+        "new_version": str | bool,
+        "archived": bool,
+        "outputs_names": set[str],
+        "PRed": list[PRedElementTypedDict],
+        "version_pr_info": typing.Any,
+        "url": str,
+        "parsing_error": str | Literal[False],
+        # Legacy types in here
+        "bad": Union[bool, str],
+    },
+    total=False,
 )
-
-
-class AttrsTypedDict(AttrsTypedDict_, CondaForgeYaml):
-    pass

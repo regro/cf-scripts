@@ -24,18 +24,28 @@ repos:
           - --py36-plus
 
   - repo: https://github.com/adhtruong/mirrors-typos
-    rev: v1.35.6
+    rev: v1.37.2
     hooks:
       - id: typos
         exclude: |
           (?x)^(
-            ^tests_integration\/definitions\/.*\/resources\/.*|
-            ^docs\/assets\/.*
+            tests_integration\/definitions\/.*\/resources\/.*|
+            docs\/assets\/.*
           )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.11
+    rev: v0.13.3
     hooks:
       - id: ruff-check
         args: [ --fix ]
       - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        exclude: |
+          (?x)^(
+            conda_forge_tick\/[n-z].*|
+            tests\/[n-z].*
+          )$

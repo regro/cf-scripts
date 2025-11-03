@@ -62,6 +62,7 @@ def test_git_cli_run_git_command_no_error(
         check=check_error,
         cwd=working_directory,
         stdout=subprocess.PIPE,
+        stderr=None,
         text=True,
     )
 
@@ -98,19 +99,12 @@ def test_git_cli_run_git_command_mock(
         ["COMMAND", "ARG1", "ARG2"], working_directory, check_error, suppress_all_output
     )
 
-    stdout_args = (
-        {"stdout": subprocess.PIPE}
-        if not suppress_all_output
-        else {"stdout": subprocess.DEVNULL}
-    )
-    stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
-
     subprocess_run_mock.assert_called_once_with(
         ["git", "COMMAND", "ARG1", "ARG2"],
         check=check_error,
         cwd=working_directory,
-        **stdout_args,
-        **stderr_args,
+        stdout=subprocess.PIPE if not suppress_all_output else subprocess.DEVNULL,
+        stderr=None if not suppress_all_output else subprocess.DEVNULL,
         text=True,
     )
 

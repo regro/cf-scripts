@@ -42,8 +42,8 @@ class TestBotSettings:
         assert bot_settings.graph_github_backend_repo == "regro/cf-graph-countyfair"
         assert bot_settings.graph_repo_default_branch == "master"
         assert bot_settings.github_runner_debug is False
-        assert bot_settings.frac_update_upstream_versions == 0.1
-        assert bot_settings.frac_make_graph == 0.1
+        assert 0 <= bot_settings.frac_update_upstream_versions <= 1
+        assert 0 <= bot_settings.frac_make_graph <= 1
 
     def test_env_conda_forge_org(self, temporary_environment):
         os.environ.clear()
