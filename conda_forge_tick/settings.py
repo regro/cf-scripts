@@ -87,6 +87,12 @@ class BotSettings(BaseSettings):
     In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
     """
 
+    pull_request_reopen_window: float = 15 * 60.0
+    """
+    A pull request that is closed can be reopened if it is done so within this amount of time.
+    Specified in seconds.
+    """
+
 
 _use_settings_override: BotSettings | None = None
 """

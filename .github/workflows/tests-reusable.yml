@@ -13,6 +13,11 @@ on:
         required: false
         default: false
         type: boolean
+      skip:
+        description: Skip the tests.
+        required: false
+        default: 'false'
+        type: string
     secrets:
       CODECOV_TOKEN:
         required: true
@@ -44,47 +49,50 @@ jobs:
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
 
       - name: prep the lockfile
-        if:  ${{ !inputs.lockfile-is-artifact }}
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
         run: |
           mkdir input-lockfile
           mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
-        if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
 
       - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
         run: |
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
       - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+        if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: configure conda and install code
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' &&  !env.CI_SKIP }}
         run: |
           pip install --no-deps --no-build-isolation -e .
 
       - name: Set up git
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           git config --global user.name regro-cf-autotick-bot
           git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
           git config --global pull.rebase false
 
       - name: test versions
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
@@ -103,11 +111,11 @@ jobs:
 
       - name: set up docker buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
 
       - name: build docker image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           context: .
           push: false
@@ -116,7 +124,7 @@ jobs:
 
       - name: restore test durations
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
           key: test-durations-${{ github.ref }}-${{ github.sha }}
@@ -125,7 +133,7 @@ jobs:
             test-durations-
 
       - name: post-process test durations
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           if [[ -f .test_durations ]]; then
             cp .test_durations .test_durations.${{ matrix.group }}
@@ -135,7 +143,7 @@ jobs:
           cat .test_durations*
 
       - name: run pytest
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           pytest \
@@ -162,16 +170,16 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-${{ matrix.group }}
           path: .test_durations.${{ matrix.group }}
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-${{ matrix.group }}
           path: .coverage
@@ -195,47 +203,50 @@ jobs:
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
 
       - name: prep the lockfile
-        if:  ${{ !inputs.lockfile-is-artifact }}
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
         run: |
           mkdir input-lockfile
           mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
-        if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
 
       - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
         run: |
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
       - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+        if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: configure conda and install code
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           pip install --no-deps --no-build-isolation -e .
 
       - name: Set up git
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           git config --global user.name regro-cf-autotick-bot
           git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
           git config --global pull.rebase false
 
       - name: test versions
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
@@ -254,12 +265,12 @@ jobs:
 
       - name: start MongoDB
         uses: supercharge/mongodb-github-action@90004df786821b6308fb02299e5835d0dae05d0d # v1.12.0
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           mongodb-version: "latest"
 
       - name: test mongodb is OK
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
         env:
@@ -267,7 +278,7 @@ jobs:
 
       - name: restore test durations
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
           key: test-durations-${{ github.ref }}-${{ github.sha }}
@@ -276,7 +287,7 @@ jobs:
             test-durations-
 
       - name: run pytest
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
@@ -306,16 +317,16 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-mongodb
           path: .test_durations.mongodb
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-mongodb
           path: .coverage
@@ -332,54 +343,57 @@ jobs:
         shell: bash -leo pipefail {0}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
 
       - name: prep the lockfile
-        if:  ${{ !inputs.lockfile-is-artifact }}
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
         run: |
           mkdir input-lockfile
           mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
-        if: ${{ inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
 
       - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
         run: |
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
       - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+        if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: coverage-*
 
       - name: combine coverage
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           coverage combine coverage-*/.coverage*
           coverage xml
 
       - name: upload codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.1.8
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
           key: test-durations-${{ github.ref }}-${{ github.sha }}
@@ -388,20 +402,20 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: test-durations-*
 
       - name: combine test durations
-        if: ${{ ! env.CI_SKIP }}
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         run: |
           # see https://stackoverflow.com/a/71416016/1745538
           jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ ! env.CI_SKIP }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations
           path: .test_durations
