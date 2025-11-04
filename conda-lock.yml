@@ -2283,36 +2283,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.04.13.36.45
+  version: 2025.11.04.15.21.15
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.13.36.45-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.15.21.15-hd8ed1ab_0.conda
   hash:
-    md5: 5ee3792fc4ee1e758adf8742593f3a20
-    sha256: 4eba597f2c24db8f1e4fab455c26b0c11a3653d203864c0548c0ece51aefc718
+    md5: 7a2cdf4c59192a9f73fa85bf22638a7c
+    sha256: 6c6dfeacd7ffb9321c5fc02318ba004b48225daf223b7b22dba56f14208e7004
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.04.13.36.45
+  version: 2025.11.04.15.21.15
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.13.36.45-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.15.21.15-hd8ed1ab_0.conda
   hash:
-    md5: 5ee3792fc4ee1e758adf8742593f3a20
-    sha256: 4eba597f2c24db8f1e4fab455c26b0c11a3653d203864c0548c0ece51aefc718
+    md5: 7a2cdf4c59192a9f73fa85bf22638a7c
+    sha256: 6c6dfeacd7ffb9321c5fc02318ba004b48225daf223b7b22dba56f14208e7004
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.04.13.36.45
+  version: 2025.11.04.15.21.15
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.13.36.45-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.04.15.21.15-hd8ed1ab_0.conda
   hash:
-    md5: 5ee3792fc4ee1e758adf8742593f3a20
-    sha256: 4eba597f2c24db8f1e4fab455c26b0c11a3653d203864c0548c0ece51aefc718
+    md5: 7a2cdf4c59192a9f73fa85bf22638a7c
+    sha256: 6c6dfeacd7ffb9321c5fc02318ba004b48225daf223b7b22dba56f14208e7004
   category: main
   optional: false
 - name: conda-forge-tick
@@ -16532,7 +16532,7 @@ package:
   category: main
   optional: false
 - name: unicodedata2
-  version: 16.0.0
+  version: 17.0.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -16540,38 +16540,38 @@ package:
     libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/unicodedata2-16.0.0-py311h49ec1c0_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/unicodedata2-17.0.0-py311h49ec1c0_0.conda
   hash:
-    md5: 3457bd5c93b085bec51cdab58fbd1882
-    sha256: e2715a04632d75de539c1510238886ff1d6fc5b7e9e2ec240d8c11c175c1fffd
+    md5: dd15da2c344aecf8c36bf7944f1ea8d2
+    sha256: 56e88b1f28ac62dd2a4aac539baa84e4864155ed11847c9e4de9f2f8cd2d63a5
   category: main
   optional: false
 - name: unicodedata2
-  version: 16.0.0
+  version: 17.0.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/unicodedata2-16.0.0-py311h13e5629_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/unicodedata2-17.0.0-py311hf197a57_0.conda
   hash:
-    md5: 4199c0fe9c425eddb08f5741fcb772c5
-    sha256: cdd1276ff295078efb932f21305abda5392e8e43e7787050ea2d5ccbc04981ef
+    md5: 24a14a096e893e54908a2b29e5078313
+    sha256: d01e7b417c0ebfc40250d6d7e2c3a8d02acfb7e2d7da7b5a1c52a24b87f3dae6
   category: main
   optional: false
 - name: unicodedata2
-  version: 16.0.0
+  version: 17.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/unicodedata2-16.0.0-py311h3696347_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/unicodedata2-17.0.0-py311h9408147_0.conda
   hash:
-    md5: 348a90d4b670542a7757e2415021bcf0
-    sha256: 800e8ed94f2d771b006891b5af4c4b510c4cab49e8966ac08297b68d904f0e15
+    md5: 176b450eaab69b65fa4a2cfc02f602ad
+    sha256: f98dbc3411bfef422763c6aed03d1a421b4037bae13e15409184f6cb8eeb7566
   category: main
   optional: false
 - name: uritemplate
