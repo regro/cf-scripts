@@ -2006,10 +2006,10 @@ package:
     requests: ''
     ripgrep: ''
     tqdm: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.9.0-py311h38be061_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.9.0-py311h7b80f79_1.conda
   hash:
-    md5: d2f6bb29850c6e0ef7f41fbff30bbc03
-    sha256: f3845ad532707c9815856e948eec160729d913faa0951e3e04ae38e2829b90d0
+    md5: 0e69ebfc2e1fc7cb10d126de97b4eff8
+    sha256: 02c80186c8fa6b196daf824be524bd153f838f94a676287ca31d0df0ab24297b
   category: main
   optional: false
 - name: conda-build
@@ -2042,10 +2042,10 @@ package:
     requests: ''
     ripgrep: ''
     tqdm: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.9.0-py311h6eed73b_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.9.0-py311h53261f0_1.conda
   hash:
-    md5: 4c55a44f6ff51cc4bc92f20875191eec
-    sha256: b8e56169910c3a0d2bbaeebc322799c1f6906dcb10b36d4c2c53aa4238fa3ffd
+    md5: 5e8e940e02bd3711c062bdbbce93a82c
+    sha256: 46e7d4ca2bd523da587e1c82c35f40ca413d1b155059757d6a74e9989f175b67
   category: main
   optional: false
 - name: conda-build
@@ -2283,40 +2283,40 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.05.06.46.30
+  version: 2025.11.05.12.33.05
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.06.46.30-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.12.33.05-hd8ed1ab_0.conda
   hash:
-    md5: 0a3666e735c8074224677c87d39bbf83
-    sha256: 0c43763af51fa6047a975838c07c872dcc0d1a78ef895f4748a42293680a38fa
+    md5: 72f936f172438e7cd74e6539163b01ce
+    sha256: a8367035336cad356430b97e1d83855d1cd2af54c66a7733c019f9bc30526100
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.05.06.46.30
+  version: 2025.11.05.12.33.05
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.06.46.30-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.12.33.05-hd8ed1ab_0.conda
   hash:
-    md5: 0a3666e735c8074224677c87d39bbf83
-    sha256: 0c43763af51fa6047a975838c07c872dcc0d1a78ef895f4748a42293680a38fa
+    md5: 72f936f172438e7cd74e6539163b01ce
+    sha256: a8367035336cad356430b97e1d83855d1cd2af54c66a7733c019f9bc30526100
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.05.06.46.30
+  version: 2025.11.05.12.33.05
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.06.46.30-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.05.12.33.05-hd8ed1ab_0.conda
   hash:
-    md5: 0a3666e735c8074224677c87d39bbf83
-    sha256: 0c43763af51fa6047a975838c07c872dcc0d1a78ef895f4748a42293680a38fa
+    md5: 72f936f172438e7cd74e6539163b01ce
+    sha256: a8367035336cad356430b97e1d83855d1cd2af54c66a7733c019f9bc30526100
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.9
+  version: 2025.11.19
   manager: conda
   platform: linux-64
   dependencies:
@@ -2376,14 +2376,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.9-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.19-pyhd8ed1ab_0.conda
   hash:
-    md5: 9a4795952e97b6b7846228b073f2d8ed
-    sha256: 0edbdea67c45f0a21bae2739e50f53341bc2cb4cafb14706df2903a9ac22ca31
+    md5: aa7572ef6202f974119f731a2aff8904
+    sha256: db701335caef25feaf95b0850277722863e15d66062005b1d03956343ae05d80
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.9
+  version: 2025.11.19
   manager: conda
   platform: osx-64
   dependencies:
@@ -2443,14 +2443,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.9-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.19-pyhd8ed1ab_0.conda
   hash:
-    md5: 9a4795952e97b6b7846228b073f2d8ed
-    sha256: 0edbdea67c45f0a21bae2739e50f53341bc2cb4cafb14706df2903a9ac22ca31
+    md5: aa7572ef6202f974119f731a2aff8904
+    sha256: db701335caef25feaf95b0850277722863e15d66062005b1d03956343ae05d80
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.9
+  version: 2025.11.19
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2510,10 +2510,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.9-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.19-pyhd8ed1ab_0.conda
   hash:
-    md5: 9a4795952e97b6b7846228b073f2d8ed
-    sha256: 0edbdea67c45f0a21bae2739e50f53341bc2cb4cafb14706df2903a9ac22ca31
+    md5: aa7572ef6202f974119f731a2aff8904
+    sha256: db701335caef25feaf95b0850277722863e15d66062005b1d03956343ae05d80
   category: main
   optional: false
 - name: conda-index
@@ -4844,10 +4844,10 @@ package:
     font-ttf-inconsolata: ''
     font-ttf-source-code-pro: ''
     font-ttf-ubuntu: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-hc364b38_1.conda
   hash:
-    md5: f766549260d6815b0c52253f1fb1bb29
-    sha256: 53f23a3319466053818540bcdf2091f253cbdbab1e0e9ae7b9e509dcaa2a5e38
+    md5: a7970cd949a077b7cb9696379d338681
+    sha256: 54eea8469786bc2291cc40bca5f46438d3e062a399e8f53f013b6a9f50e98333
   category: main
   optional: false
 - name: fonts-conda-forge
@@ -4859,10 +4859,10 @@ package:
     font-ttf-inconsolata: ''
     font-ttf-source-code-pro: ''
     font-ttf-ubuntu: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-hc364b38_1.conda
   hash:
-    md5: f766549260d6815b0c52253f1fb1bb29
-    sha256: 53f23a3319466053818540bcdf2091f253cbdbab1e0e9ae7b9e509dcaa2a5e38
+    md5: a7970cd949a077b7cb9696379d338681
+    sha256: 54eea8469786bc2291cc40bca5f46438d3e062a399e8f53f013b6a9f50e98333
   category: main
   optional: false
 - name: fonts-conda-forge
@@ -4874,10 +4874,10 @@ package:
     font-ttf-inconsolata: ''
     font-ttf-source-code-pro: ''
     font-ttf-ubuntu: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-0.tar.bz2
+  url: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-hc364b38_1.conda
   hash:
-    md5: f766549260d6815b0c52253f1fb1bb29
-    sha256: 53f23a3319466053818540bcdf2091f253cbdbab1e0e9ae7b9e509dcaa2a5e38
+    md5: a7970cd949a077b7cb9696379d338681
+    sha256: 54eea8469786bc2291cc40bca5f46438d3e062a399e8f53f013b6a9f50e98333
   category: main
   optional: false
 - name: fonttools
