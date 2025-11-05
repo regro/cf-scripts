@@ -3381,22 +3381,22 @@ package:
   category: main
   optional: false
 - name: curl
-  version: 8.16.0
+  version: 8.17.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     krb5: '>=1.21.3,<1.22.0a0'
-    libcurl: 8.16.0
+    libcurl: 8.17.0
     libgcc: '>=14'
     libssh2: '>=1.11.1,<2.0a0'
     libzlib: '>=1.3.1,<2.0a0'
     openssl: '>=3.5.4,<4.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/curl-8.16.0-h4e3cde8_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/curl-8.17.0-h4e3cde8_0.conda
   hash:
-    md5: d0147bee507ee3e367c685f4496e50db
-    sha256: 3a16abbdc43bdf36ea6a446099120cf58c6189dd1a0c877940edefde42ae5daf
+    md5: a37bd62e2c34797cdb577920b35f3bc5
+    sha256: 3fb39c401fbdbaf68b8f25c1d81600d2a771b6467cc5d7c88fbd1e06d8825ee1
   category: main
   optional: false
 - name: curl
@@ -7678,7 +7678,7 @@ package:
   category: main
   optional: false
 - name: libcurl
-  version: 8.16.0
+  version: 8.17.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7690,10 +7690,10 @@ package:
     libzlib: '>=1.3.1,<2.0a0'
     openssl: '>=3.5.4,<4.0a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.16.0-h4e3cde8_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.17.0-h4e3cde8_0.conda
   hash:
-    md5: a401aa9329350320c7d3809a7a5a1640
-    sha256: f21af777602d17ced05f168898e759fb0bac5af09ba72c5ece245dd0f14e0fec
+    md5: 01e149d4a53185622dc2e788281961f2
+    sha256: 100e29ca864c32af15a5cc354f502d07b2600218740fdf2439fa7d66b50b3529
   category: main
   optional: false
 - name: libcurl
