@@ -70,7 +70,7 @@ def cut_graph_to_target_packages(graph, target_packages):
         if target in gx2.nodes:
             packages.update(nx.ancestors(gx2, target))
     for node in list(gx2.nodes.keys()):
-        if node not in packages:
+        if node not in packages and node != "conda-forge-pinning":
             pluck(gx2, node)
     # post-plucking cleanup
     gx2.remove_edges_from(nx.selfloop_edges(gx2))
