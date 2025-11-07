@@ -2283,36 +2283,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.06.19.20.54
+  version: 2025.11.07.19.14.48
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.06.19.20.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.07.19.14.48-hd8ed1ab_0.conda
   hash:
-    md5: deb23ad6488212b1325e1e7b169c8cf9
-    sha256: 8c9502d5ad1ab90dcd176905ab88dcbc6d2a2c15a6b2949faa7d447ea6877689
+    md5: ac924c8ced3787c92feee1dd9131993d
+    sha256: b378d629ac86e1182b471adf9f7e3801b9ac695d39b644a0670ceeac71aec84e
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.06.19.20.54
+  version: 2025.11.07.19.14.48
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.06.19.20.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.07.19.14.48-hd8ed1ab_0.conda
   hash:
-    md5: deb23ad6488212b1325e1e7b169c8cf9
-    sha256: 8c9502d5ad1ab90dcd176905ab88dcbc6d2a2c15a6b2949faa7d447ea6877689
+    md5: ac924c8ced3787c92feee1dd9131993d
+    sha256: b378d629ac86e1182b471adf9f7e3801b9ac695d39b644a0670ceeac71aec84e
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.06.19.20.54
+  version: 2025.11.07.19.14.48
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.06.19.20.54-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.07.19.14.48-hd8ed1ab_0.conda
   hash:
-    md5: deb23ad6488212b1325e1e7b169c8cf9
-    sha256: 8c9502d5ad1ab90dcd176905ab88dcbc6d2a2c15a6b2949faa7d447ea6877689
+    md5: ac924c8ced3787c92feee1dd9131993d
+    sha256: b378d629ac86e1182b471adf9f7e3801b9ac695d39b644a0670ceeac71aec84e
   category: main
   optional: false
 - name: conda-forge-tick
@@ -2906,7 +2906,7 @@ package:
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.8.0
+  version: 0.8.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -2921,14 +2921,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c6cc5badd8d020daa07e6318d89a4ed1
-    sha256: 600f807f0a64700454129c676174a7d9dbee1d006d91758aa3ea11b6630eba96
+    md5: 8f2d458edb8f2b0837d0d5295830d4f2
+    sha256: 405d8fff211eff511df2cab29ed25100214df4639505f1d5607c8ff4f70dc08c
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.8.0
+  version: 0.8.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -2943,14 +2943,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c6cc5badd8d020daa07e6318d89a4ed1
-    sha256: 600f807f0a64700454129c676174a7d9dbee1d006d91758aa3ea11b6630eba96
+    md5: 8f2d458edb8f2b0837d0d5295830d4f2
+    sha256: 405d8fff211eff511df2cab29ed25100214df4639505f1d5607c8ff4f70dc08c
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.8.0
+  version: 0.8.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2965,10 +2965,10 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.8.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c6cc5badd8d020daa07e6318d89a4ed1
-    sha256: 600f807f0a64700454129c676174a7d9dbee1d006d91758aa3ea11b6630eba96
+    md5: 8f2d458edb8f2b0837d0d5295830d4f2
+    sha256: 405d8fff211eff511df2cab29ed25100214df4639505f1d5607c8ff4f70dc08c
   category: main
   optional: false
 - name: conda-smithy
