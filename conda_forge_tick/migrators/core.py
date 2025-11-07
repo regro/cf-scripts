@@ -63,19 +63,19 @@ def load_target_packages(package_list_file: str) -> Set[str]:
 
 
 def cut_graph_to_target_packages(graph, target_packages):
-    """Cut the graph to only the target packages.
-
-    **operates in place**
-    """
+    """Cut the graph to only the target packages."""
+    gx2 = copy.deepcopy(graph)
     packages = target_packages.copy()
     for target in target_packages:
-        if target in graph.nodes:
-            packages.update(nx.ancestors(graph, target))
-    for node in list(graph.nodes.keys()):
+        if target in gx2.nodes:
+            packages.update(nx.ancestors(gx2, target))
+    for node in list(gx2.nodes.keys()):
         if node not in packages:
-            pluck(graph, node)
+            pluck(gx2, node)
     # post-plucking cleanup
-    graph.remove_edges_from(nx.selfloop_edges(graph))
+    gx2.remove_edges_from(nx.selfloop_edges(gx2))
+
+    return gx2
 
 
 def skip_migrator_due_to_schema(
