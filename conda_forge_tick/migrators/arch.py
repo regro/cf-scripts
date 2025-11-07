@@ -119,7 +119,7 @@ class ArchRebuild(GraphMigrator):
             target_packages = set(target_packages)
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                cut_graph_to_target_packages(total_graph, target_packages)
+                total_graph = cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
@@ -275,7 +275,7 @@ class _CrossCompileRebuild(GraphMigrator):
             # filter the graph down to the target packages
             if target_packages:
                 target_packages.add("python")  # hack that is ~harmless?
-                cut_graph_to_target_packages(total_graph, target_packages)
+                total_graph = cut_graph_to_target_packages(total_graph, target_packages)
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(total_graph, self.ignored_packages)
