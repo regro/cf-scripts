@@ -2232,60 +2232,60 @@ package:
   category: main
   optional: false
 - name: conda-forge-metadata
-  version: 0.11.0
+  version: 0.12.0
   manager: conda
   platform: linux-64
   dependencies:
     beautifulsoup4: ''
     conda-oci-mirror: ''
-    conda-package-streaming: ''
+    conda-package-streaming: '>=0.12.0'
     deprecated: ''
-    python: '>=3.9'
+    python: ''
     requests: ''
     ruamel.yaml: ''
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.12.0-pyhcf101f3_1.conda
   hash:
-    md5: 27564bdfec4272e6f69927d9baf4ae2e
-    sha256: 9fd9249f3f1e0c10c3fbfab670a430d689a7b8c51152bf9df782b0c9cfb2b062
+    md5: f4e97cdb52b448c4c82913ef9d674e42
+    sha256: 30aef73a42204366a228c4d5707210c08d194f3d0486c63f80832ff197546fe9
   category: main
   optional: false
 - name: conda-forge-metadata
-  version: 0.11.0
+  version: 0.12.0
   manager: conda
   platform: osx-64
   dependencies:
     beautifulsoup4: ''
     conda-oci-mirror: ''
-    conda-package-streaming: ''
+    conda-package-streaming: '>=0.12.0'
     deprecated: ''
-    python: '>=3.9'
+    python: '>=3.10'
     requests: ''
     ruamel.yaml: ''
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.12.0-pyhcf101f3_1.conda
   hash:
-    md5: 27564bdfec4272e6f69927d9baf4ae2e
-    sha256: 9fd9249f3f1e0c10c3fbfab670a430d689a7b8c51152bf9df782b0c9cfb2b062
+    md5: f4e97cdb52b448c4c82913ef9d674e42
+    sha256: 30aef73a42204366a228c4d5707210c08d194f3d0486c63f80832ff197546fe9
   category: main
   optional: false
 - name: conda-forge-metadata
-  version: 0.11.0
+  version: 0.12.0
   manager: conda
   platform: osx-arm64
   dependencies:
     beautifulsoup4: ''
     conda-oci-mirror: ''
-    conda-package-streaming: ''
+    conda-package-streaming: '>=0.12.0'
     deprecated: ''
-    python: '>=3.9'
+    python: '>=3.10'
     requests: ''
     ruamel.yaml: ''
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.12.0-pyhcf101f3_1.conda
   hash:
-    md5: 27564bdfec4272e6f69927d9baf4ae2e
-    sha256: 9fd9249f3f1e0c10c3fbfab670a430d689a7b8c51152bf9df782b0c9cfb2b062
+    md5: f4e97cdb52b448c4c82913ef9d674e42
+    sha256: 30aef73a42204366a228c4d5707210c08d194f3d0486c63f80832ff197546fe9
   category: main
   optional: false
 - name: conda-forge-pinning
