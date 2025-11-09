@@ -952,32 +952,34 @@ package:
   category: main
   optional: false
 - name: brotli
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    brotli-bin: 1.0.9
-    libbrotlidec: 1.0.9
-    libbrotlienc: 1.0.9
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-1.0.9-h166bdaf_9.conda
+    __glibc: '>=2.17,<3.0.a0'
+    brotli-bin: 1.1.0
+    libbrotlidec: 1.1.0
+    libbrotlienc: 1.1.0
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-1.1.0-hb03c661_4.conda
   hash:
-    md5: 4601544b4982ba1861fa9b9c607b2c06
-    sha256: 2357d205931912def55df0dc53573361156b27856f9bf359d464da162812ec1f
+    md5: eaf3fbd2aa97c212336de38a51fe404e
+    sha256: 294526a54fa13635341729f250d0b1cf8f82cad1e6b83130304cbf3b6d8b74cc
   category: main
   optional: false
 - name: brotli
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
   dependencies:
-    brotli-bin: 1.0.9
-    libbrotlidec: 1.0.9
-    libbrotlienc: 1.0.9
-  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-1.0.9-hb7f2c08_9.conda
+    __osx: '>=10.13'
+    brotli-bin: 1.1.0
+    libbrotlidec: 1.1.0
+    libbrotlienc: 1.1.0
+  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-1.1.0-h1c43f85_4.conda
   hash:
-    md5: 53cff90f0cea22e13e5b791f0e5a8e7d
-    sha256: eb425d4075f90d90bf9de5c2e8f88fe783d70177fcdfd3d3da5ef48e444ca148
+    md5: 1a0a37da4466d45c00fc818bb6b446b3
+    sha256: 13847b7477bd66d0f718f337e7980c9a32f82ec4e4527c7e0a0983db2d798b8e
   category: main
   optional: false
 - name: brotli
@@ -995,30 +997,32 @@ package:
   category: main
   optional: false
 - name: brotli-bin
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    libbrotlidec: 1.0.9
-    libbrotlienc: 1.0.9
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-bin-1.0.9-h166bdaf_9.conda
+    __glibc: '>=2.17,<3.0.a0'
+    libbrotlidec: 1.1.0
+    libbrotlienc: 1.1.0
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-bin-1.1.0-hb03c661_4.conda
   hash:
-    md5: d47dee1856d9cb955b8076eeff304a5b
-    sha256: 1c128f136a59ee2fa47d7fbd9b6fc8afa8460d340e4ae0e6f5419ebbd7539a10
+    md5: ca4ed8015764937c81b830f7f5b68543
+    sha256: 444903c6e5c553175721a16b7c7de590ef754a15c28c99afbc8a963b35269517
   category: main
   optional: false
 - name: brotli-bin
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
   dependencies:
-    libbrotlidec: 1.0.9
-    libbrotlienc: 1.0.9
-  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-bin-1.0.9-hb7f2c08_9.conda
+    __osx: '>=10.13'
+    libbrotlidec: 1.1.0
+    libbrotlienc: 1.1.0
+  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-bin-1.1.0-h1c43f85_4.conda
   hash:
-    md5: 72c526f7ffa265473e6c75fd90605e52
-    sha256: 98c257aee9b60dc91a86fc486b19192eebfe9ec7929b4efff99b6fb643f85b05
+    md5: 718fb8aa4c8cb953982416db9a82b349
+    sha256: 549ea0221019cfb4b370354f2c3ffbd4be1492740e1c73b2cdf9687ed6ad7364
   category: main
   optional: false
 - name: brotli-bin
@@ -1035,32 +1039,34 @@ package:
   category: main
   optional: false
 - name: brotli-python
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    libgcc-ng: '>=12'
-    libstdcxx-ng: '>=12'
+    __glibc: '>=2.17,<3.0.a0'
+    libgcc: '>=14'
+    libstdcxx: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-python-1.0.9-py311ha362b79_9.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/brotli-python-1.1.0-py311h1ddb823_4.conda
   hash:
-    md5: ced5340f5dc6cff43a80deac8d0e398f
-    sha256: e2c0a391839914a1b3611b661ebd1736dd747f43a4611254d9333d9db3163ec7
+    md5: 7138a06a7b0d11a23cfae323e6010a08
+    sha256: 318d4985acbf46457d254fbd6f0df80cc069890b5fc0013b3546d88eee1b1a1f
   category: main
   optional: false
 - name: brotli-python
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
   dependencies:
-    libcxx: '>=14.0.6'
+    __osx: '>=10.13'
+    libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-python-1.0.9-py311h814d153_9.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/brotli-python-1.1.0-py311h7b20566_4.conda
   hash:
-    md5: 034ddcc806d421524fbc46778447e87c
-    sha256: 0d49fcc6eddfc5d87844419b9de4267a83e870331102bf01ca41e404e4374293
+    md5: 13de3b969fd0ba12c4f6f9513f486f16
+    sha256: 10afc3a0df8e7447c56b0753848336eeeeea04be9bf1817569c45755392de14b
   category: main
   optional: false
 - name: brotli-python
@@ -2283,36 +2289,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.08.11.55.03
+  version: 2025.11.09.01.31.39
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.08.11.55.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.09.01.31.39-hd8ed1ab_0.conda
   hash:
-    md5: 1e76e44f971ced38d733ebace01e4c5a
-    sha256: c775b0bbac948466785e611e19284dcdc9439376b97a5b71ea0313cd310970b2
+    md5: e0ba3d57a42f925b6d0a3b75d717e148
+    sha256: 004b3dd1c615f03e286ca1605c91aec040d19a7352c73d3b993e1bb4c3a6e5ed
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.08.11.55.03
+  version: 2025.11.09.01.31.39
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.08.11.55.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.09.01.31.39-hd8ed1ab_0.conda
   hash:
-    md5: 1e76e44f971ced38d733ebace01e4c5a
-    sha256: c775b0bbac948466785e611e19284dcdc9439376b97a5b71ea0313cd310970b2
+    md5: e0ba3d57a42f925b6d0a3b75d717e148
+    sha256: 004b3dd1c615f03e286ca1605c91aec040d19a7352c73d3b993e1bb4c3a6e5ed
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.08.11.55.03
+  version: 2025.11.09.01.31.39
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.08.11.55.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.09.01.31.39-hd8ed1ab_0.conda
   hash:
-    md5: 1e76e44f971ced38d733ebace01e4c5a
-    sha256: c775b0bbac948466785e611e19284dcdc9439376b97a5b71ea0313cd310970b2
+    md5: e0ba3d57a42f925b6d0a3b75d717e148
+    sha256: 004b3dd1c615f03e286ca1605c91aec040d19a7352c73d3b993e1bb4c3a6e5ed
   category: main
   optional: false
 - name: conda-forge-tick
@@ -3174,7 +3180,7 @@ package:
   category: main
   optional: false
 - name: coverage
-  version: 7.11.1
+  version: 7.11.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -3183,14 +3189,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.11.1-py311h3778330_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.11.2-py311h3778330_0.conda
   hash:
-    md5: 8cedf8fb892cf8468f87d7e5a51e1466
-    sha256: d791afc82954cd0308d739c5ebbc6b65b8831c5dc815843c337de3bad0bb2957
+    md5: c9c9c3ae904535f9fa28c115334e800a
+    sha256: 05c64abe9bd01241866579d95d3752173fc4177f7cd91f75ccd1e1da9267e108
   category: main
   optional: false
 - name: coverage
-  version: 7.11.1
+  version: 7.11.2
   manager: conda
   platform: osx-64
   dependencies:
@@ -3198,14 +3204,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/coverage-7.11.1-py311he13f9b5_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/coverage-7.11.2-py311he13f9b5_0.conda
   hash:
-    md5: 3e5aca23f752c8474336a14234e6abe5
-    sha256: 4965c3c3d41ce51b207da4917a91459fb82a0b38add3b0333e81a5f396c079c1
+    md5: b75df10c571ce0bd37ba3b8179be4b06
+    sha256: 49cb9a87ecf20d82237770959e833d60b30e0d035511f1e6e52e78a6aeb2b590
   category: main
   optional: false
 - name: coverage
-  version: 7.11.1
+  version: 7.11.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3213,10 +3219,10 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.11.1-py311ha9b3269_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.11.2-py311ha9b3269_0.conda
   hash:
-    md5: 9e91062b2db197b34b3376ec1a41e3af
-    sha256: 3dc2f49d7e59eaedc68f3d94f2b9caee8961e97e7e401abffb8c8d7c47ec6ef0
+    md5: e09ad513ab96b69dba26c57fe81f7e41
+    sha256: 80349d03bb17a26fe85aecbd56474758882c0c55d2e59b6b288f263cc3aaf9e7
   category: main
   optional: false
 - name: cpp-expected
@@ -7518,26 +7524,28 @@ package:
   category: main
   optional: false
 - name: libbrotlicommon
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlicommon-1.0.9-h166bdaf_9.conda
+    __glibc: '>=2.17,<3.0.a0'
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlicommon-1.1.0-hb03c661_4.conda
   hash:
-    md5: 61641e239f96eae2b8492dc7e755828c
-    sha256: fc57c0876695c5b4ab7173438580c1d7eaa7dccaf14cb6467ca9e0e97abe0cf0
+    md5: 1d29d2e33fe59954af82ef54a8af3fe1
+    sha256: 2338a92d1de71f10c8cf70f7bb9775b0144a306d75c4812276749f54925612b6
   category: main
   optional: false
 - name: libbrotlicommon
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
-  dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlicommon-1.0.9-hb7f2c08_9.conda
+  dependencies:
+    __osx: '>=10.13'
+  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlicommon-1.1.0-h1c43f85_4.conda
   hash:
-    md5: ee1ee8c79c3426229ad03290573be552
-    sha256: 1718e037a7ea9a1730b9f5285898528676794e2aaf5590149d239febab9a9b36
+    md5: b8e1ee78815e0ba7835de4183304f96b
+    sha256: 28c1a5f7dbe68342b7341d9584961216bd16f81aa3c7f1af317680213c00b46a
   category: main
   optional: false
 - name: libbrotlicommon
@@ -7552,28 +7560,30 @@ package:
   category: main
   optional: false
 - name: libbrotlidec
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    libbrotlicommon: 1.0.9
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlidec-1.0.9-h166bdaf_9.conda
+    __glibc: '>=2.17,<3.0.a0'
+    libbrotlicommon: 1.1.0
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlidec-1.1.0-hb03c661_4.conda
   hash:
-    md5: 081aa22f4581c08e4372b0b6c2f8478e
-    sha256: 564f301430c3c61bc5e149e74157ec181ed2a758befc89f7c38466d515a0f614
+    md5: 5cb5a1c9a94a78f5b23684bcb845338d
+    sha256: fcec0d26f67741b122f0d5eff32f0393d7ebd3ee6bb866ae2f17f3425a850936
   category: main
   optional: false
 - name: libbrotlidec
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
   dependencies:
-    libbrotlicommon: 1.0.9
-  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlidec-1.0.9-hb7f2c08_9.conda
+    __osx: '>=10.13'
+    libbrotlicommon: 1.1.0
+  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlidec-1.1.0-h1c43f85_4.conda
   hash:
-    md5: 4043ef9fe42e178785e0e1853b79bdf9
-    sha256: 3892d88f778ddcda5c2bb7d066082fc7b785dcc84ffe448c65f21cbadd856e2c
+    md5: 9cc4be0cc163d793d5d4bcc405c81bf3
+    sha256: a287470602e8380c0bdb5e7a45ba3facac644432d7857f27b39d6ceb0dcbf8e9
   category: main
   optional: false
 - name: libbrotlidec
@@ -7589,28 +7599,30 @@ package:
   category: main
   optional: false
 - name: libbrotlienc
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    libbrotlicommon: 1.0.9
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlienc-1.0.9-h166bdaf_9.conda
+    __glibc: '>=2.17,<3.0.a0'
+    libbrotlicommon: 1.1.0
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libbrotlienc-1.1.0-hb03c661_4.conda
   hash:
-    md5: 1f0a03af852a9659ed2bf08f2f1704fd
-    sha256: d27bc2562ea3f3b2bfd777f074f1cac6bfa4a737233dad288cd87c4634a9bb3a
+    md5: 2e55011fa483edb8bfe3fd92e860cd79
+    sha256: d42c7f0afce21d5279a0d54ee9e64a2279d35a07a90e0c9545caae57d6d7dc57
   category: main
   optional: false
 - name: libbrotlienc
-  version: 1.0.9
+  version: 1.1.0
   manager: conda
   platform: osx-64
   dependencies:
-    libbrotlicommon: 1.0.9
-  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlienc-1.0.9-hb7f2c08_9.conda
+    __osx: '>=10.13'
+    libbrotlicommon: 1.1.0
+  url: https://conda.anaconda.org/conda-forge/osx-64/libbrotlienc-1.1.0-h1c43f85_4.conda
   hash:
-    md5: b64d4dcc70aa141db7fccbf13bad81e1
-    sha256: c099c964277ee7ea98cf6ba1bfe07078e662b86ed999da3fcf9eaf7d7d242e86
+    md5: f2c000dc0185561b15de7f969f435e61
+    sha256: 820caf0a78770758830adbab97fe300104981a5327683830d162b37bc23399e9
   category: main
   optional: false
 - name: libbrotlienc
@@ -10254,8 +10266,10 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
+    __glibc: '>=2.17,<3.0.a0'
     asgiref: '>=3.2.10,<3.8'
-    brotli-python: '>=1.0,<1.1'
+    bcrypt: <5
+    brotli-python: '>=1.0,<1.2'
     certifi: '>=2019.9.11'
     cryptography: '>=38,<41.1'
     flask: '>=1.1.1,<2.4'
@@ -10264,7 +10278,7 @@ package:
     hyperframe: '>=6.0,<7'
     kaitaistruct: '>=0.10,<0.11'
     ldap3: '>=2.8,<2.10'
-    libgcc-ng: '>=12'
+    libgcc: '>=14'
     msgpack-python: '>=1.0.0,<1.1.0'
     passlib: '>=1.6.5,<1.8'
     protobuf: '>=3.14,<5'
@@ -10280,10 +10294,10 @@ package:
     tornado: '>=6.2,<7'
     wsproto: '>=1.0,<1.3'
     zstandard: '>=0.11,<0.22'
-  url: https://conda.anaconda.org/conda-forge/linux-64/mitmproxy-10.1.0-py311h46250e7_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/mitmproxy-10.1.0-py311hc8fb587_1.conda
   hash:
-    md5: 286dfce5e12ff1d688b43bb7e11fb6bb
-    sha256: f199c24c7e77788191d66a8ff09eb3f31896f6c6dc1185dfe2fac6f43d94b859
+    md5: 98a7033dbc3f22c0e5c16ff7466b767a
+    sha256: 0107d59af3e8e6e83dc0beb727e6a7a280ef41c5567db5ce4260754c9d501f22
   category: main
   optional: false
 - name: mitmproxy
@@ -10291,8 +10305,10 @@ package:
   manager: conda
   platform: osx-64
   dependencies:
+    __osx: '>=10.13'
     asgiref: '>=3.2.10,<3.8'
-    brotli-python: '>=1.0,<1.1'
+    bcrypt: <5
+    brotli-python: '>=1.0,<1.2'
     certifi: '>=2019.9.11'
     cryptography: '>=38,<41.1'
     flask: '>=1.1.1,<2.4'
@@ -10316,10 +10332,10 @@ package:
     tornado: '>=6.2,<7'
     wsproto: '>=1.0,<1.3'
     zstandard: '>=0.11,<0.22'
-  url: https://conda.anaconda.org/conda-forge/osx-64/mitmproxy-10.1.0-py311h5e0f0e4_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/mitmproxy-10.1.0-py311hef35832_1.conda
   hash:
-    md5: a7d334de4fad6050bfe8898c69d98111
-    sha256: cdf2b6bd3543f3b3ef466eb1b0b5b1488c482cddbd34c112b0d1b6a46b263e99
+    md5: bea441f8230f6e9d47e38bf7306231e3
+    sha256: 7f538efc042e9392335bbc0066bdcd571294d584ab4e0f8bc54709cf72e4f705
   category: main
   optional: false
 - name: mitmproxy
