@@ -2322,7 +2322,7 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.32
+  version: 2025.11.35
   manager: conda
   platform: linux-64
   dependencies:
@@ -2382,14 +2382,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.32-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.35-pyhd8ed1ab_0.conda
   hash:
-    md5: b59c2f736d0ae8e34fb0399137a2e40f
-    sha256: b37910b926f243f32676b024ccc7e41f12b856a9031adc8722a44e9fadd0d83e
+    md5: adf8dfc64df2b1b9c08a027e253c61e9
+    sha256: f63114b02dd4547849c21e89c62ca4c5e549f81079560b6950b25fd68a6d05f8
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.32
+  version: 2025.11.35
   manager: conda
   platform: osx-64
   dependencies:
@@ -2449,14 +2449,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.32-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.35-pyhd8ed1ab_0.conda
   hash:
-    md5: b59c2f736d0ae8e34fb0399137a2e40f
-    sha256: b37910b926f243f32676b024ccc7e41f12b856a9031adc8722a44e9fadd0d83e
+    md5: adf8dfc64df2b1b9c08a027e253c61e9
+    sha256: f63114b02dd4547849c21e89c62ca4c5e549f81079560b6950b25fd68a6d05f8
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.32
+  version: 2025.11.35
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2516,10 +2516,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.32-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.35-pyhd8ed1ab_0.conda
   hash:
-    md5: b59c2f736d0ae8e34fb0399137a2e40f
-    sha256: b37910b926f243f32676b024ccc7e41f12b856a9031adc8722a44e9fadd0d83e
+    md5: adf8dfc64df2b1b9c08a027e253c61e9
+    sha256: f63114b02dd4547849c21e89c62ca4c5e549f81079560b6950b25fd68a6d05f8
   category: main
   optional: false
 - name: conda-index
@@ -11751,54 +11751,54 @@ package:
   category: main
   optional: false
 - name: pre-commit
-  version: 4.3.0
+  version: 4.4.0
   manager: conda
   platform: linux-64
   dependencies:
     cfgv: '>=2.0.0'
     identify: '>=1.0.0'
     nodeenv: '>=0.11.1'
-    python: '>=3.9'
+    python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.3.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
   hash:
-    md5: bc6c44af2a9e6067dd7e949ef10cdfba
-    sha256: 66b6d429ab2201abaa7282af06b17f7631dcaafbc5aff112922b48544514b80a
+    md5: c130573bb7a166e93d5bd01c94ae38e1
+    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
   category: main
   optional: false
 - name: pre-commit
-  version: 4.3.0
+  version: 4.4.0
   manager: conda
   platform: osx-64
   dependencies:
     cfgv: '>=2.0.0'
     identify: '>=1.0.0'
     nodeenv: '>=0.11.1'
-    python: '>=3.9'
+    python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.3.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
   hash:
-    md5: bc6c44af2a9e6067dd7e949ef10cdfba
-    sha256: 66b6d429ab2201abaa7282af06b17f7631dcaafbc5aff112922b48544514b80a
+    md5: c130573bb7a166e93d5bd01c94ae38e1
+    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
   category: main
   optional: false
 - name: pre-commit
-  version: 4.3.0
+  version: 4.4.0
   manager: conda
   platform: osx-arm64
   dependencies:
     cfgv: '>=2.0.0'
     identify: '>=1.0.0'
     nodeenv: '>=0.11.1'
-    python: '>=3.9'
+    python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.3.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
   hash:
-    md5: bc6c44af2a9e6067dd7e949ef10cdfba
-    sha256: 66b6d429ab2201abaa7282af06b17f7631dcaafbc5aff112922b48544514b80a
+    md5: c130573bb7a166e93d5bd01c94ae38e1
+    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
   category: main
   optional: false
 - name: progressbar2
