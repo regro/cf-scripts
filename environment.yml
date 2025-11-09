@@ -12,8 +12,8 @@ dependencies:
   - cachecontrol
   - cachetools
   - click
-  - conda >=25.9
-  - conda-build >=25.9
+  - conda >=25
+  - conda-build >=25
   - conda-lock
   - conda-forge-feedstock-check-solvable >=0.8.0
   - conda-forge-feedstock-ops >=0.12.0
