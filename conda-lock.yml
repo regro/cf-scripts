@@ -2289,36 +2289,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.11.08.48.43
+  version: 2025.11.11.09.48.47
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.08.48.43-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.09.48.47-hd8ed1ab_0.conda
   hash:
-    md5: 9389d48b09a6ec87b95c57f1abbb6813
-    sha256: c3d284d113c4041f9f87689c5512a9764ab173801dc04a6e9c7c251159ec8693
+    md5: d7992b204f3305d07a2a5c8e68968acb
+    sha256: 5c364bb6b32e6ae89802f8a3652eace7ec41996576d17302fb5caecde17e65a8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.11.08.48.43
+  version: 2025.11.11.09.48.47
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.08.48.43-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.09.48.47-hd8ed1ab_0.conda
   hash:
-    md5: 9389d48b09a6ec87b95c57f1abbb6813
-    sha256: c3d284d113c4041f9f87689c5512a9764ab173801dc04a6e9c7c251159ec8693
+    md5: d7992b204f3305d07a2a5c8e68968acb
+    sha256: 5c364bb6b32e6ae89802f8a3652eace7ec41996576d17302fb5caecde17e65a8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.11.08.48.43
+  version: 2025.11.11.09.48.47
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.08.48.43-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.11.09.48.47-hd8ed1ab_0.conda
   hash:
-    md5: 9389d48b09a6ec87b95c57f1abbb6813
-    sha256: c3d284d113c4041f9f87689c5512a9764ab173801dc04a6e9c7c251159ec8693
+    md5: d7992b204f3305d07a2a5c8e68968acb
+    sha256: 5c364bb6b32e6ae89802f8a3652eace7ec41996576d17302fb5caecde17e65a8
   category: main
   optional: false
 - name: conda-forge-tick
