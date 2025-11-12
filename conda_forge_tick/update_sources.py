@@ -471,41 +471,54 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout: int | float = 5, try_curl: bool = False) -> bool:
+def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp.
     """
     url_exists = False
-    if try_curl:
+
+    if use_curl:
         try:
-            subprocess.run(
+            res = subprocess.run(
                 ["curl", "-fsLI", url],
                 capture_output=True,
                 check=True,
+                text=True,
+                timeout=timeout,
             )
         except subprocess.CalledProcessError as e:
-            logger.debug("url_exists curl exception", exc_info=e)
+            logger.debug(
+                "url_exists curl exception:\n%s\n%s",
+                res.stdout,
+                res.stderr,
+                exc_info=e,
+            )
             url_exists = False
         else:
             url_exists = True
-
-    if not url_exists:
+    else:
         try:
-            output = subprocess.check_output(
+            output = subprocess.run(
                 ["wget", "--spider", url],
                 stderr=subprocess.STDOUT,
+                check=True,
+                text=True,
                 timeout=timeout,
             )
         except Exception as e:
-            logger.debug("url_exists wget exception", exc_info=e)
+            logger.debug(
+                "url_exists wget exception:\n%s",
+                output.stdout,
+                exc_info=e,
+            )
             url_exists = False
         else:
             # For FTP servers an exception is not thrown
-            if "No such file" in output.decode("utf-8"):
+            if "No such file" in output.stdout:
                 url_exists = False
-            elif "not retrieving" in output.decode("utf-8"):
+            elif "not retrieving" in output.stdout:
                 url_exists = False
             else:
                 url_exists = True
@@ -513,8 +526,8 @@ def url_exists(url: str, timeout: int | float = 5, try_curl: bool = False) -> bo
     return url_exists
 
 
-def url_exists_swap_exts(url: str, try_curl: bool = False):
-    if url_exists(url, try_curl=try_curl):
+def url_exists_swap_exts(url: str, use_curl: bool = False):
+    if url_exists(url, use_curl=use_curl):
         return True, url
 
     # TODO this is too expensive
@@ -559,7 +572,7 @@ class BaseRawURL(AbstractSource):
             cbc_data = None
 
         # figure out if we should try URLS w/ curl
-        try_curl = get_keys_default(
+        use_curl = get_keys_default(
             node_attrs,
             ["conda-forge.yml", "bot", "version_updates", "use_curl"],
             {},
@@ -632,7 +645,7 @@ class BaseRawURL(AbstractSource):
                         continue
 
                     logger.debug("trying url: %s", url)
-                    _exists, _url_to_use = url_exists_swap_exts(url, try_curl=try_curl)
+                    _exists, _url_to_use = url_exists_swap_exts(url, use_curl=use_curl)
                     if not _exists:
                         logger.debug(
                             "version %s does not exist for url %s",
