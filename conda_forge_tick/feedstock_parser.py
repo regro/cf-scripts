@@ -35,6 +35,7 @@ from conda_forge_tick.settings import (
 )
 from conda_forge_tick.utils import (
     as_iterable,
+    get_platform_arch_from_ci_support_filename,
     parse_meta_yaml,
     parse_recipe_yaml,
     sanitize_string,
@@ -358,21 +359,7 @@ def populate_feedstock_attributes(
             plat_archs = []
             for cbc_path in ci_support_files:
                 logger.debug("parsing conda-build config: %s", cbc_path)
-                cbc_name = cbc_path.name
-                cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
-                plat = cbc_name_parts[0]
-                if len(cbc_name_parts) == 1:
-                    arch = "64"
-                else:
-                    if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
-                        arch = cbc_name_parts[1]
-                    else:
-                        arch = "64"
-                # some older cbc yaml files have things like "linux64"
-                for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
-                    if plat.endswith(_tt):
-                        plat = plat[: -len(_tt)]
-                        break
+                plat, arch = get_platform_arch_from_ci_support_filename(cbc_path.name)
                 plat_archs.append((plat, arch))
 
                 if isinstance(meta_yaml, str):

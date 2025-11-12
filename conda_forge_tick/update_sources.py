@@ -25,7 +25,12 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import (
+    get_keys_default,
+    get_platform_arch_from_ci_support_filename,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+)
 from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
@@ -545,8 +550,10 @@ class BaseRawURL(AbstractSource):
                 ci_support_keys.add(key)
         if ci_support_keys:
             ci_support_key = sorted(ci_support_keys)[0]
-            ci_support_parts = ci_support_key.split("_")
-            platform_arch = f"{ci_support_parts[2]}-{ci_support_parts[3]}"
+            plat, arch = get_platform_arch_from_ci_support_filename(
+                ci_support_key.replace("ci_support", "")
+            )
+            platform_arch = f"{plat}-{arch}"
             cbc_data = node_attrs[ci_support_key]
         else:
             platform_arch = None

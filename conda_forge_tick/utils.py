@@ -1659,3 +1659,22 @@ def pr_can_be_archived(
             return True
         else:
             return False
+
+
+def get_platform_arch_from_ci_support_filename(ci_support_filename):
+    """Extract the platform and architecture as `(plat, arch)` from the ".ci_support" filename."""
+    cbc_name_parts = ci_support_filename.replace(".yaml", "").split("_")
+    plat = cbc_name_parts[0]
+    if len(cbc_name_parts) == 1:
+        arch = "64"
+    else:
+        if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
+            arch = cbc_name_parts[1]
+        else:
+            arch = "64"
+    # some older cbc yaml files have things like "linux64"
+    for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
+        if plat.endswith(_tt):
+            plat = plat[: -len(_tt)]
+            break
+    return (plat, arch)
