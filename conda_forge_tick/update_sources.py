@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 CURL_ONLY_URL_SLUGS = [
     "https://eups.lsst.codes/",
+    "https://eups.lsst.cloud/",
     "ftp://ftp.info-zip.org/",
 ]
 
@@ -477,24 +478,26 @@ def url_exists(url: str, timeout: int | float = 5) -> bool:
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp.
     """
-    if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
-        try:
-            output = subprocess.check_output(
-                ["wget", "--spider", url],
-                stderr=subprocess.STDOUT,
-                timeout=timeout,
-            )
-        except Exception as e:
-            logger.debug("url_exists wget exception", exc_info=e)
-            return False
+    url_exists = False
+    try:
+        output = subprocess.check_output(
+            ["wget", "--spider", url],
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+        )
+    except Exception as e:
+        logger.debug("url_exists wget exception", exc_info=e)
+        url_exists = False
+    else:
         # For FTP servers an exception is not thrown
         if "No such file" in output.decode("utf-8"):
-            return False
-        if "not retrieving" in output.decode("utf-8"):
-            return False
+            url_exists = False
+        elif "not retrieving" in output.decode("utf-8"):
+            url_exists = False
+        else:
+            url_exists = True
 
-        return True
-    else:
+    if not url_exists:
         try:
             subprocess.run(
                 ["curl", "-fsLI", url],
@@ -503,9 +506,11 @@ def url_exists(url: str, timeout: int | float = 5) -> bool:
             )
         except subprocess.CalledProcessError as e:
             logger.debug("url_exists curl exception", exc_info=e)
-            return False
+            url_exists = False
+        else:
+            url_exists = True
 
-        return True
+    return url_exists
 
 
 def url_exists_swap_exts(url: str):
@@ -531,8 +536,21 @@ class BaseRawURL(AbstractSource):
         if "version" not in node_attrs:
             return None
 
-        # TODO: pull this from the graph itself
         content = node_attrs["raw_meta_yaml"]
+
+        # get a ci_support pinning file if we have one
+        ci_support_keys = set()
+        for key in node_attrs.keys():
+            if key.startswith("ci_support_"):
+                ci_support_keys.add(key)
+        if ci_support_keys:
+            ci_support_key = sorted(ci_support_keys)[0]
+            ci_support_parts = ci_support_key.split("_")
+            platform_arch = f"{ci_support_parts[2]}-{ci_support_parts[3]}"
+            cbc_data = node_attrs[ci_support_key]
+        else:
+            platform_arch = None
+            cbc_data = None
 
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
@@ -574,7 +592,9 @@ class BaseRawURL(AbstractSource):
                 if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
-                    new_meta = parse_recipe_yaml(new_content)
+                    new_meta = parse_recipe_yaml(
+                        new_content, platform_arch=platform_arch, cbc_path=cbc_data
+                    )
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")

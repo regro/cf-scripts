@@ -302,7 +302,12 @@ def populate_feedstock_attributes(
 
     # strip out old keys - this removes old platforms when one gets disabled
     for key in list(node_attrs.keys()):
-        if key.endswith("meta_yaml") or key.endswith("requirements") or key == "req":
+        if (
+            key.endswith("meta_yaml")
+            or key.endswith("requirements")
+            or key == "req"
+            or key.startswith("ci_support_")
+        ):
             del node_attrs[key]
 
     if isinstance(meta_yaml, str):
@@ -340,6 +345,15 @@ def populate_feedstock_attributes(
             ci_support_files = sorted(
                 feedstock_dir.joinpath(".ci_support").glob("*.yaml")
             )
+
+            if ci_support_files:
+                saved_cbc_key = "ci_support_" + ci_support_files[0].name
+                with open(str(ci_support_files[0])) as fp:
+                    saved_cbc_value = fp.read()
+            else:
+                saved_cbc_key = None
+                saved_cbc_value = None
+
             variant_yamls = []
             plat_archs = []
             for cbc_path in ci_support_files:
@@ -450,6 +464,9 @@ def populate_feedstock_attributes(
 
     logger.debug("platforms: %s", plat_archs)
     node_attrs["platforms"] = ["_".join(k) for k in plat_archs]
+
+    if saved_cbc_key:
+        node_attrs[saved_cbc_key] = saved_cbc_value
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]

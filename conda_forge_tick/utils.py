@@ -250,9 +250,7 @@ def parse_recipe_yaml(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
+        The value of or path to global pinning file.
     use_container
         Whether to use a container to run the parsing.
         If None, the function will use a container if the environment
@@ -300,7 +298,7 @@ def parse_recipe_yaml_containerized(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
@@ -308,6 +306,21 @@ def parse_recipe_yaml_containerized(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
+
+    def _run(_args, _mount_dir):
+        return run_container_operation(
+            _args,
+            input=text,
+            mount_readonly=True,
+            mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
+        )
+
     args = [
         "conda-forge-tick-container",
         "parse-recipe-yaml",
@@ -318,23 +331,30 @@ def parse_recipe_yaml_containerized(
     if platform_arch is not None:
         args += ["--platform-arch", platform_arch]
 
-    if cbc_path is not None:
-        args += ["--cbc-path", str(cbc_path)]
-
     if for_pinning:
         args += ["--for-pinning"]
 
-    return run_container_operation(
-        args,
-        input=text,
-        mount_readonly=True,
-        extra_container_args=[
-            "-e",
-            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
-            "-e",
-            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
-        ],
-    )
+    if cbc_path is not None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chmod(tmpdir, 0o755)
+
+            tmp_cbc_path = os.path.join(tmpdir, "cbc_path.yaml")
+            if os.path.exists(cbc_path):
+                with open(cbc_path) as fp_r:
+                    cbc_data = fp_r.read()
+            else:
+                cbc_data = cbc_path
+
+            with open(tmp_cbc_path, "w") as fp:
+                fp.write(cbc_data)
+
+            args += ["--cbc-path", "/cf_feedstock_ops_dir/cbc_path.yaml"]
+
+            data = _run(args, tmpdir)
+    else:
+        data = _run(args, None)
+
+    return data
 
 
 def _flatten_requirement_pin_dicts(
@@ -410,7 +430,7 @@ def parse_recipe_yaml_local(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
@@ -471,38 +491,71 @@ def _render_recipe_yaml(
     ----------
     text : str
         The recipe YAML text to render.
-    platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
+    platform_arch : str, optional
+        The platform-arch (e.g., 'linux-64').
     cbc_path : str | Path, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
     dict[str, Any]
         The rendered recipe as a dictionary.
+
+    Raises
+    ------
+    RuntimeError
+        If no output recipes are found.
     """
-    variant_config_flags = (
-        [] if cbc_path is None else ["--variant-config", str(cbc_path)]
-    )
-    target_platform_flags = (
-        []
-        if platform_arch is None or variant_config_flags
-        else ["--target-platform", platform_arch]
-    )
+    if cbc_path is not None and not os.path.exists(str(cbc_path)):
+        ctx = tempfile.TemporaryDirectory
+    else:
+        ctx = contextlib.nullcontext
 
-    prepared_text = replace_compiler_with_stub(text)
+    with ctx() as tmpdir:
+        if cbc_path is not None and not os.path.exists(str(cbc_path)):
+            _cbc_path = os.path.join(tmpdir, "conda_build_config.yaml")
+            with open(_cbc_path, "w") as fp:
+                fp.write(cbc_path)
 
-    res = subprocess.run(
-        ["rattler-build", "build", "--render-only"]
-        + variant_config_flags
-        + target_platform_flags,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        input=prepared_text,
-        check=True,
-    )
-    return [output["recipe"] for output in orjson.loads(res.stdout)]
+            variant_config_flags = ["--variant-config", _cbc_path]
+        else:
+            variant_config_flags = (
+                [] if cbc_path is None else ["--variant-config", str(cbc_path)]
+            )
+        target_platform_flags = (
+            []
+            if platform_arch is None or variant_config_flags
+            else ["--target-platform", platform_arch]
+        )
+
+        prepared_text = replace_compiler_with_stub(text)
+
+        res = subprocess.run(
+            ["rattler-build", "build", "--render-only"]
+            + variant_config_flags
+            + target_platform_flags,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            input=prepared_text,
+            check=False,
+        )
+        if res.stdout:
+            outputs = [output["recipe"] for output in orjson.loads(res.stdout)]
+        else:
+            outputs = []
+
+        if res.returncode != 0 or len(outputs) == 0:
+            logger.critical(
+                "error parsing recipe.yaml:\n%s\n%s", res.stdout, res.stderr
+            )
+            res.check_returncode()
+
+        if len(outputs) == 0:
+            raise RuntimeError(
+                f"Failed to render recipe YAML! No output recipes found!\n{res.stdout}\n{res.stderr}"
+            )
+        return outputs
 
 
 def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
