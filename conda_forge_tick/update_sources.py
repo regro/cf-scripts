@@ -25,7 +25,12 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import (
+    get_keys_default,
+    get_platform_arch_from_ci_support_filename,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+)
 from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
@@ -33,11 +38,6 @@ from .hashing import hash_url
 CRAN_INDEX: Optional[dict] = None
 
 logger = logging.getLogger(__name__)
-
-CURL_ONLY_URL_SLUGS = [
-    "https://eups.lsst.codes/",
-    "ftp://ftp.info-zip.org/",
-]
 
 
 def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
@@ -471,45 +471,67 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout: int | float = 5) -> bool:
+def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp.
     """
-    if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
-        try:
-            output = subprocess.check_output(
-                ["wget", "--spider", url],
-                stderr=subprocess.STDOUT,
-                timeout=timeout,
-            )
-        except Exception as e:
-            logger.debug("url_exists wget exception", exc_info=e)
-            return False
-        # For FTP servers an exception is not thrown
-        if "No such file" in output.decode("utf-8"):
-            return False
-        if "not retrieving" in output.decode("utf-8"):
-            return False
+    url_exists = False
 
-        return True
+    if use_curl:
+        res = subprocess.run(
+            ["curl", "-fsLI", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists curl exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
+            url_exists = False
+        else:
+            url_exists = True
     else:
-        try:
-            subprocess.run(
-                ["curl", "-fsLI", url],
-                capture_output=True,
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logger.debug("url_exists curl exception", exc_info=e)
-            return False
+        res = subprocess.run(
+            ["wget", "--spider", url],
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists wget exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
+            url_exists = False
+        else:
+            # For FTP servers an exception is not thrown
+            if "No such file" in res.stdout:
+                url_exists = False
+            elif "not retrieving" in res.stdout:
+                url_exists = False
+            else:
+                url_exists = True
 
-        return True
+    return url_exists
 
 
-def url_exists_swap_exts(url: str):
-    if url_exists(url):
+def url_exists_swap_exts(url: str, use_curl: bool = False):
+    if url_exists(url, use_curl=use_curl):
         return True, url
 
     # TODO this is too expensive
@@ -531,13 +553,35 @@ class BaseRawURL(AbstractSource):
         if "version" not in node_attrs:
             return None
 
-        # TODO: pull this from the graph itself
         content = node_attrs["raw_meta_yaml"]
-
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
         else:
             has_version_jinja2 = False
+
+        # get a ci_support pinning file if we have one
+        ci_support_keys = set()
+        for key in node_attrs.keys():
+            if key.startswith("ci_support_"):
+                ci_support_keys.add(key)
+        if ci_support_keys:
+            ci_support_key = sorted(ci_support_keys)[0]
+            plat, arch = get_platform_arch_from_ci_support_filename(
+                ci_support_key.replace("ci_support", "")
+            )
+            platform_arch = f"{plat}-{arch}"
+            cbc_data = node_attrs[ci_support_key]
+        else:
+            platform_arch = None
+            cbc_data = None
+
+        # figure out if we should try URLS w/ curl
+        use_curl = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "use_curl"],
+            {},
+            False,
+        )
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
@@ -574,7 +618,9 @@ class BaseRawURL(AbstractSource):
                 if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
-                    new_meta = parse_recipe_yaml(new_content)
+                    new_meta = parse_recipe_yaml(
+                        new_content, platform_arch=platform_arch, cbc_path=cbc_data
+                    )
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
@@ -603,7 +649,7 @@ class BaseRawURL(AbstractSource):
                         continue
 
                     logger.debug("trying url: %s", url)
-                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    _exists, _url_to_use = url_exists_swap_exts(url, use_curl=use_curl)
                     if not _exists:
                         logger.debug(
                             "version %s does not exist for url %s",

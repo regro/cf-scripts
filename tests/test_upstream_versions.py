@@ -13,7 +13,7 @@ import pytest
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson, load
 from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
@@ -30,6 +30,7 @@ from conda_forge_tick.update_sources import (
 from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_process_pool,
     _update_upstream_versions_sequential,
+    all_version_sources,
     filter_nodes_for_job,
     get_latest_version,
     include_node,
@@ -41,6 +42,7 @@ from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
+NODE_ATTRS_PATH = os.path.join(os.path.dirname(__file__), "test_node_attrs")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -2050,3 +2052,18 @@ def test_latest_version_pypi_canonical_url(tmpdir):
     print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
 
     assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_stackvana_v1(tmpdir):
+    tmp_node_attrs = os.path.join(str(tmpdir), "cf-scripts-test.json")
+    with open(os.path.join(NODE_ATTRS_PATH, "stackvana-core.json")) as fp:
+        na = load(fp)
+    pmy = LazyJson(tmp_node_attrs)
+    with pmy as _pmy:
+        _pmy.update(na)
+    attempt = get_latest_version(
+        "stackvana-core", pmy, all_version_sources(), use_container=False
+    )
+
+    print("found:", attempt["new_version"])
+    assert "new_version" in attempt and attempt["new_version"] is not None
