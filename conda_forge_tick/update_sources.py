@@ -478,24 +478,6 @@ def url_exists(url: str, timeout: int | float = 5) -> bool:
      - requests cannot handle ftp.
     """
     url_exists = False
-    try:
-        output = subprocess.check_output(
-            ["wget", "--spider", url],
-            stderr=subprocess.STDOUT,
-            timeout=timeout,
-        )
-    except Exception as e:
-        logger.debug("url_exists wget exception", exc_info=e)
-        url_exists = False
-    else:
-        # For FTP servers an exception is not thrown
-        if "No such file" in output.decode("utf-8"):
-            url_exists = False
-        elif "not retrieving" in output.decode("utf-8"):
-            url_exists = False
-        else:
-            url_exists = True
-
     if not url_exists:
         try:
             subprocess.run(
@@ -508,6 +490,25 @@ def url_exists(url: str, timeout: int | float = 5) -> bool:
             url_exists = False
         else:
             url_exists = True
+
+    if not url_exists:
+        try:
+            output = subprocess.check_output(
+                ["wget", "--spider", url],
+                stderr=subprocess.STDOUT,
+                timeout=timeout,
+            )
+        except Exception as e:
+            logger.debug("url_exists wget exception", exc_info=e)
+            url_exists = False
+        else:
+            # For FTP servers an exception is not thrown
+            if "No such file" in output.decode("utf-8"):
+                url_exists = False
+            elif "not retrieving" in output.decode("utf-8"):
+                url_exists = False
+            else:
+                url_exists = True
 
     return url_exists
 
