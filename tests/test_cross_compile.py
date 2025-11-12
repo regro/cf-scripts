@@ -130,7 +130,7 @@ def test_make_check(tmp_path):
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
         "cp $BUILD_PREFIX/share/gnuconfig/config.* ./config\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR:-}" != "" ]]; then\n',
         "make check\n",
         "fi\n",
     ]
@@ -161,7 +161,7 @@ def test_cmake(tmp_path):
     expected_unix = [
         "#!/bin/bash\n",
         "cmake ${CMAKE_ARGS} ..\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR:-}" != "" ]]; then\n',
         "ctest\n",
         "fi\n",
     ]
