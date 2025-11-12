@@ -480,45 +480,49 @@ def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bo
     url_exists = False
 
     if use_curl:
-        try:
-            res = subprocess.run(
-                ["curl", "-fsLI", url],
-                capture_output=True,
-                check=True,
-                text=True,
-                timeout=timeout,
-            )
-        except subprocess.CalledProcessError as e:
-            logger.debug(
-                "url_exists curl exception:\n%s\n%s",
-                res.stdout,
-                res.stderr,
-                exc_info=e,
-            )
+        res = subprocess.run(
+            ["curl", "-fsLI", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists curl exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
             url_exists = False
         else:
             url_exists = True
     else:
-        try:
-            output = subprocess.run(
-                ["wget", "--spider", url],
-                stderr=subprocess.STDOUT,
-                check=True,
-                text=True,
-                timeout=timeout,
-            )
-        except Exception as e:
-            logger.debug(
-                "url_exists wget exception:\n%s",
-                output.stdout,
-                exc_info=e,
-            )
+        res = subprocess.run(
+            ["wget", "--spider", url],
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists wget exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
             url_exists = False
         else:
             # For FTP servers an exception is not thrown
-            if "No such file" in output.stdout:
+            if "No such file" in res.stdout:
                 url_exists = False
-            elif "not retrieving" in output.stdout:
+            elif "not retrieving" in res.stdout:
                 url_exists = False
             else:
                 url_exists = True
