@@ -337,6 +337,10 @@ def populate_feedstock_attributes(
             len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))),
         )
 
+    # these might get set below
+    saved_cbc_key = None
+    saved_cbc_value = None
+
     try:
         if (
             feedstock_dir is not None
@@ -351,9 +355,6 @@ def populate_feedstock_attributes(
                 saved_cbc_key = "ci_support_" + ci_support_files[0].name
                 with open(str(ci_support_files[0])) as fp:
                     saved_cbc_value = fp.read()
-            else:
-                saved_cbc_key = None
-                saved_cbc_value = None
 
             variant_yamls = []
             plat_archs = []
