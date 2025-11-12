@@ -471,14 +471,14 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout: int | float = 5) -> bool:
+def url_exists(url: str, timeout: int | float = 5, try_curl: bool = False) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp.
     """
     url_exists = False
-    if not url_exists:
+    if try_curl:
         try:
             subprocess.run(
                 ["curl", "-fsLI", url],
@@ -513,8 +513,8 @@ def url_exists(url: str, timeout: int | float = 5) -> bool:
     return url_exists
 
 
-def url_exists_swap_exts(url: str):
-    if url_exists(url):
+def url_exists_swap_exts(url: str, try_curl: bool = False):
+    if url_exists(url, try_curl=try_curl):
         return True, url
 
     # TODO this is too expensive
@@ -537,6 +537,10 @@ class BaseRawURL(AbstractSource):
             return None
 
         content = node_attrs["raw_meta_yaml"]
+        if any(ln.startswith("{% set version") for ln in content.splitlines()):
+            has_version_jinja2 = True
+        else:
+            has_version_jinja2 = False
 
         # get a ci_support pinning file if we have one
         ci_support_keys = set()
@@ -554,10 +558,13 @@ class BaseRawURL(AbstractSource):
             platform_arch = None
             cbc_data = None
 
-        if any(ln.startswith("{% set version") for ln in content.splitlines()):
-            has_version_jinja2 = True
-        else:
-            has_version_jinja2 = False
+        # figure out if we should try URLS w/ curl
+        try_curl = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "use_curl"],
+            {},
+            False,
+        )
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
@@ -625,7 +632,7 @@ class BaseRawURL(AbstractSource):
                         continue
 
                     logger.debug("trying url: %s", url)
-                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    _exists, _url_to_use = url_exists_swap_exts(url, try_curl=try_curl)
                     if not _exists:
                         logger.debug(
                             "version %s does not exist for url %s",

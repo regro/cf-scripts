@@ -44,6 +44,7 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
+from .migrators_types import AttrsTypedDict
 from .recipe_parser import CondaMetaYAML
 from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
@@ -1428,7 +1429,31 @@ def sanitize_string(instr: str) -> str:
     return instr
 
 
-def get_keys_default(dlike, keys, default, final_default):
+def get_keys_default(
+    dlike: AttrsTypedDict | dict | LazyJson,
+    keys: list | tuple,
+    default: Any,
+    final_default: Any,
+) -> Any:
+    """Get a value at a key path from a dict-like object w/ defaults.
+
+    Parameters
+    ----------
+    dlike : dict | LazyJson
+        A dict-like object.
+    keys : list | tuple
+        A list-like set of keys specify the value to get from the dict.
+    default : Any
+        The default value for intermediate keys.
+    final_default : Any
+        The default value for the final key.
+
+    Returns
+    -------
+    value : Any
+        The value of the final key in `keys` or `final_default` if
+        no value is found.
+    """
     defaults = [default] * (len(keys) - 1) + [final_default]
     val = dlike
     for k, _d in zip(keys, defaults):

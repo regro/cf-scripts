@@ -139,6 +139,11 @@ class BotConfigVersionUpdates(BaseModel):
         description="Bot config for version update PRs using the NVIDIA updater.",
     )
 
+    use_curl: Optional[bool] = Field(
+        None,
+        description="If True, use `curl` to test if URLs exist, otherwise use `wget`.",
+    )
+
 
 class BotConfig(BaseModel):
     """
@@ -183,6 +188,9 @@ class BotConfig(BaseModel):
             # even/odd version filtering for unstable versions
             even_odd_versions: true
             allowed_tag_globs: 'python-*'
+            sources:
+                - rawurl
+            use_curl: true
     ```
 
     The `abi_migration_branches` feature is useful to, for example, add a

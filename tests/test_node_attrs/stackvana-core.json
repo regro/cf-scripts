@@ -4,7 +4,10 @@
   "ci_support_linux_64_python3.12.____cpython.yaml": "channel_sources:\n- conda-forge\nchannel_targets:\n- conda-forge main\ndocker_image:\n- quay.io/condaforge/linux-anvil-x86_64:alma9\nlsst_pyver:\n- '3.12'\npin_run_as_build:\n  python:\n    min_pin: x.x\n    max_pin: x.x\npython:\n- 3.12.* *_cpython\nrubin_env:\n- '11'\ntarget_platform:\n- linux-64\n",
   "conda-forge.yml": {
     "bot": {
-      "automerge": true
+      "automerge": true,
+      "version_updates": {
+        "use_curl": true
+      }
     },
     "conda_build": {
       "pkg_format": "2"
