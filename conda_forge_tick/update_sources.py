@@ -39,12 +39,6 @@ CRAN_INDEX: Optional[dict] = None
 
 logger = logging.getLogger(__name__)
 
-CURL_ONLY_URL_SLUGS = [
-    "https://eups.lsst.codes/",
-    "https://eups.lsst.cloud/",
-    "ftp://ftp.info-zip.org/",
-]
-
 
 def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
     if "source" not in meta_yaml:
