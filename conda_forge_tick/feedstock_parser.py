@@ -35,6 +35,7 @@ from conda_forge_tick.settings import (
 )
 from conda_forge_tick.utils import (
     as_iterable,
+    get_platform_arch_from_ci_support_filename,
     parse_meta_yaml,
     parse_recipe_yaml,
     sanitize_string,
@@ -302,7 +303,12 @@ def populate_feedstock_attributes(
 
     # strip out old keys - this removes old platforms when one gets disabled
     for key in list(node_attrs.keys()):
-        if key.endswith("meta_yaml") or key.endswith("requirements") or key == "req":
+        if (
+            key.endswith("meta_yaml")
+            or key.endswith("requirements")
+            or key == "req"
+            or key.startswith("ci_support_")
+        ):
             del node_attrs[key]
 
     if isinstance(meta_yaml, str):
@@ -331,6 +337,10 @@ def populate_feedstock_attributes(
             len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))),
         )
 
+    # these might get set below
+    saved_cbc_key = None
+    saved_cbc_value = None
+
     try:
         if (
             feedstock_dir is not None
@@ -340,25 +350,17 @@ def populate_feedstock_attributes(
             ci_support_files = sorted(
                 feedstock_dir.joinpath(".ci_support").glob("*.yaml")
             )
+
+            if ci_support_files:
+                saved_cbc_key = "ci_support_" + ci_support_files[0].name
+                with open(str(ci_support_files[0])) as fp:
+                    saved_cbc_value = fp.read()
+
             variant_yamls = []
             plat_archs = []
             for cbc_path in ci_support_files:
                 logger.debug("parsing conda-build config: %s", cbc_path)
-                cbc_name = cbc_path.name
-                cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
-                plat = cbc_name_parts[0]
-                if len(cbc_name_parts) == 1:
-                    arch = "64"
-                else:
-                    if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
-                        arch = cbc_name_parts[1]
-                    else:
-                        arch = "64"
-                # some older cbc yaml files have things like "linux64"
-                for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
-                    if plat.endswith(_tt):
-                        plat = plat[: -len(_tt)]
-                        break
+                plat, arch = get_platform_arch_from_ci_support_filename(cbc_path.name)
                 plat_archs.append((plat, arch))
 
                 if isinstance(meta_yaml, str):
@@ -450,6 +452,9 @@ def populate_feedstock_attributes(
 
     logger.debug("platforms: %s", plat_archs)
     node_attrs["platforms"] = ["_".join(k) for k in plat_archs]
+
+    if saved_cbc_key:
+        node_attrs[saved_cbc_key] = saved_cbc_value
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
