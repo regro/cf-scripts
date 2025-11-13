@@ -12791,7 +12791,7 @@ package:
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.3
+  version: 4.15.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -12801,14 +12801,14 @@ package:
     libstdcxx: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.15.3-py311h1ddb823_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.15.4-py311h1ddb823_0.conda
   hash:
-    md5: 79afc0d837c34ecf231c3ba2bda1097a
-    sha256: d6ef5fde4b0470f561ab5d21b563ad887e40ba51a608ee00f218f5f845f71f53
+    md5: 36f445f69e27e7ed90d70722f87fda8f
+    sha256: ec54d6a0ae50b9271fb28b47b6f18f743e66f893b9d53d7ed327890e820d15d4
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.3
+  version: 4.15.4
   manager: conda
   platform: osx-64
   dependencies:
@@ -12817,14 +12817,14 @@ package:
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.15.3-py311h11ccb26_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.15.4-py311h11ccb26_0.conda
   hash:
-    md5: 9ffd08d6f09f7e53facff6c09532fc61
-    sha256: 0327c08f0a014878d2fb8f197c5d520b8cc556f17d5c0ae871c5dbefdf220804
+    md5: fe157263bbfe4bc6626543e8baeb6104
+    sha256: f42857f178141493ee7b28631692566c99d8dec0013011e379c599083193b42a
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.3
+  version: 4.15.4
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -12833,10 +12833,10 @@ package:
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.15.3-py311h251fd82_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.15.4-py311h251fd82_0.conda
   hash:
-    md5: 51104e258c7c3a3e24db8f7f109655d1
-    sha256: 2b0deba04210d9dc7e6843761873ff8663eceb24bff07609007b0319d45fcaf0
+    md5: 57f9cb061b091d5c7471f03dcf87f3a4
+    sha256: c76dc60fe88475781a62ea46aa68587dceff68ffe446c0cb8dc96d26737627df
   category: main
   optional: false
 - name: pynacl
@@ -15091,7 +15091,7 @@ package:
   category: main
   optional: false
 - name: secretstorage
-  version: 3.4.0
+  version: 3.4.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -15100,10 +15100,10 @@ package:
     jeepney: '>=0.6'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.4.0-py311h38be061_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.4.1-py311h38be061_0.conda
   hash:
-    md5: 4be26402e3bc489659b69040ed05db7d
-    sha256: 2303e384a1f60d1e0225ec01b91a26343c9c9c1db7cc3487481938fc6f7b5a0f
+    md5: ec955e67147942a68469a46d0bdf0a7b
+    sha256: 47f28b12e760ae3ce8a1e616c5b56f5e874e0e4a036bdd09516ebf263c19521f
   category: main
   optional: false
 - name: semver
