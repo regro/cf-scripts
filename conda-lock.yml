@@ -2322,7 +2322,7 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.60
+  version: 2025.11.65
   manager: conda
   platform: linux-64
   dependencies:
@@ -2382,14 +2382,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.65-pyhd8ed1ab_0.conda
   hash:
-    md5: fe6e67eb41acff1b9d6a1952c9124a8a
-    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
+    md5: 6d23dbf5d10e0ae1c2cb9bef24635917
+    sha256: 8e3c71a2385d20a4e567c06b4775ade240fa71cd6feb12ce98cb2d85cbe76091
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.60
+  version: 2025.11.65
   manager: conda
   platform: osx-64
   dependencies:
@@ -2449,14 +2449,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.65-pyhd8ed1ab_0.conda
   hash:
-    md5: fe6e67eb41acff1b9d6a1952c9124a8a
-    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
+    md5: 6d23dbf5d10e0ae1c2cb9bef24635917
+    sha256: 8e3c71a2385d20a4e567c06b4775ade240fa71cd6feb12ce98cb2d85cbe76091
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.60
+  version: 2025.11.65
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2516,10 +2516,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.65-pyhd8ed1ab_0.conda
   hash:
-    md5: fe6e67eb41acff1b9d6a1952c9124a8a
-    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
+    md5: 6d23dbf5d10e0ae1c2cb9bef24635917
+    sha256: 8e3c71a2385d20a4e567c06b4775ade240fa71cd6feb12ce98cb2d85cbe76091
   category: main
   optional: false
 - name: conda-index
@@ -2978,7 +2978,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.0
+  version: 3.53.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -3008,14 +3008,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: e776c230aa2bf3e46599b4d81102715a
-    sha256: b7e2e520382c7ec56e297f4644093409d0d639cfc3b752117db41494e30d3fde
+    md5: 04973df43b4b7b6944e3ad6bd543d2b8
+    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.0
+  version: 3.53.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -3045,14 +3045,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: e776c230aa2bf3e46599b4d81102715a
-    sha256: b7e2e520382c7ec56e297f4644093409d0d639cfc3b752117db41494e30d3fde
+    md5: 04973df43b4b7b6944e3ad6bd543d2b8
+    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.0
+  version: 3.53.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3082,10 +3082,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: e776c230aa2bf3e46599b4d81102715a
-    sha256: b7e2e520382c7ec56e297f4644093409d0d639cfc3b752117db41494e30d3fde
+    md5: 04973df43b4b7b6944e3ad6bd543d2b8
+    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
   category: main
   optional: false
 - name: conda-souschef
@@ -16125,39 +16125,39 @@ package:
   category: main
   optional: false
 - name: trove-classifiers
-  version: 2025.9.11.17
+  version: 2025.11.14.15
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.9.11.17-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.11.14.15-pyhd8ed1ab_0.conda
   hash:
-    md5: fc3b129397a910cfe1350075a7ad7432
-    sha256: 74807fa88e811aeaf3d2acd6221665efd9469caf8c57b4ee370b61f0528ff0ae
+    md5: e976edbb0821092956a85f1e7b627a97
+    sha256: a99493b5d25272f160bfb4ef2b7878794dfa405ba9922bcee48b6f75675e3a74
   category: main
   optional: false
 - name: trove-classifiers
-  version: 2025.9.11.17
+  version: 2025.11.14.15
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.9.11.17-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.11.14.15-pyhd8ed1ab_0.conda
   hash:
-    md5: fc3b129397a910cfe1350075a7ad7432
-    sha256: 74807fa88e811aeaf3d2acd6221665efd9469caf8c57b4ee370b61f0528ff0ae
+    md5: e976edbb0821092956a85f1e7b627a97
+    sha256: a99493b5d25272f160bfb4ef2b7878794dfa405ba9922bcee48b6f75675e3a74
   category: main
   optional: false
 - name: trove-classifiers
-  version: 2025.9.11.17
+  version: 2025.11.14.15
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.9.11.17-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.11.14.15-pyhd8ed1ab_0.conda
   hash:
-    md5: fc3b129397a910cfe1350075a7ad7432
-    sha256: 74807fa88e811aeaf3d2acd6221665efd9469caf8c57b4ee370b61f0528ff0ae
+    md5: e976edbb0821092956a85f1e7b627a97
+    sha256: a99493b5d25272f160bfb4ef2b7878794dfa405ba9922bcee48b6f75675e3a74
   category: main
   optional: false
 - name: truststore
