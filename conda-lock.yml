@@ -2289,36 +2289,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.13.20.21.10
+  version: 2025.11.14.03.49.41
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.13.20.21.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.14.03.49.41-hd8ed1ab_0.conda
   hash:
-    md5: 58dc181539c9a0218be4b76878a81bf9
-    sha256: 9b5f2ae5f77ae8be73c2bbf452f2d8623aff0a16244050a31f8ce5b8d74d17a0
+    md5: 286a1b56d451255a024321828f73a937
+    sha256: 68debcd092cfcc1b43448a348ac59f74fc238a38b3447929be7f0109c19289fc
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.13.20.21.10
+  version: 2025.11.14.03.49.41
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.13.20.21.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.14.03.49.41-hd8ed1ab_0.conda
   hash:
-    md5: 58dc181539c9a0218be4b76878a81bf9
-    sha256: 9b5f2ae5f77ae8be73c2bbf452f2d8623aff0a16244050a31f8ce5b8d74d17a0
+    md5: 286a1b56d451255a024321828f73a937
+    sha256: 68debcd092cfcc1b43448a348ac59f74fc238a38b3447929be7f0109c19289fc
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.13.20.21.10
+  version: 2025.11.14.03.49.41
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.13.20.21.10-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.14.03.49.41-hd8ed1ab_0.conda
   hash:
-    md5: 58dc181539c9a0218be4b76878a81bf9
-    sha256: 9b5f2ae5f77ae8be73c2bbf452f2d8623aff0a16244050a31f8ce5b8d74d17a0
+    md5: 286a1b56d451255a024321828f73a937
+    sha256: 68debcd092cfcc1b43448a348ac59f74fc238a38b3447929be7f0109c19289fc
   category: main
   optional: false
 - name: conda-forge-tick
@@ -9704,10 +9704,10 @@ package:
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-21.1.5-h472b3d1_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/llvm-openmp-21.1.5-h472b3d1_1.conda
   hash:
-    md5: 5e486397a9547fbf4e454450389f7f18
-    sha256: 1139bbc6465515e328f63f6c3ef4c045c3159b8aa5b23050f4360c6f7e128805
+    md5: d602a4ad8e166fe79972a2df49bf5f32
+    sha256: ebbb74ced4e4d21c5f19015f8fdeba57396aff70685312d2524145b53a689c92
   category: main
   optional: false
 - name: llvm-openmp
@@ -9716,10 +9716,10 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-21.1.5-h4a912ad_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-21.1.5-h4a912ad_1.conda
   hash:
-    md5: 9ae7847a3bef5e050f3921260032033c
-    sha256: a9707045db6a1b9dc2b196f02c3e31d72fe3dbab4ebc4976f3b913c26394dca0
+    md5: 420673cd73e1b0b8737ad4e8aabd8817
+    sha256: 4d2af1339db853275d6e1f162b024cbab787a75354f3c4f3b4fab586a970de75
   category: main
   optional: false
 - name: llvm-tools
