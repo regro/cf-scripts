@@ -907,7 +907,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.40.72
+  version: 1.40.73
   manager: conda
   platform: linux-64
   dependencies:
@@ -915,14 +915,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.73-pyhd8ed1ab_0.conda
   hash:
-    md5: b3a6f1d077572ee7cc11d8cf65ed3474
-    sha256: 9090720bd01a5229def8ea22405d15a103face20644f777394397fb765efa311
+    md5: dbb624666a2999052ddaaa889d6ef63b
+    sha256: 8afa9d56726835b500f56ead51b786c4c88893f92c1f0969add736d4d09c08db
   category: main
   optional: false
 - name: botocore
-  version: 1.40.72
+  version: 1.40.73
   manager: conda
   platform: osx-64
   dependencies:
@@ -930,14 +930,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.73-pyhd8ed1ab_0.conda
   hash:
-    md5: b3a6f1d077572ee7cc11d8cf65ed3474
-    sha256: 9090720bd01a5229def8ea22405d15a103face20644f777394397fb765efa311
+    md5: dbb624666a2999052ddaaa889d6ef63b
+    sha256: 8afa9d56726835b500f56ead51b786c4c88893f92c1f0969add736d4d09c08db
   category: main
   optional: false
 - name: botocore
-  version: 1.40.72
+  version: 1.40.73
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -945,10 +945,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.40.73-pyhd8ed1ab_0.conda
   hash:
-    md5: b3a6f1d077572ee7cc11d8cf65ed3474
-    sha256: 9090720bd01a5229def8ea22405d15a103face20644f777394397fb765efa311
+    md5: dbb624666a2999052ddaaa889d6ef63b
+    sha256: 8afa9d56726835b500f56ead51b786c4c88893f92c1f0969add736d4d09c08db
   category: main
   optional: false
 - name: brotli
@@ -2322,7 +2322,7 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.55
+  version: 2025.11.60
   manager: conda
   platform: linux-64
   dependencies:
@@ -2382,14 +2382,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.55-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
   hash:
-    md5: 8e95bba347464094af1e66faae3d3543
-    sha256: 73155d9d408ba217cf168a46d322f37b5e1c53a2545129802e831c6934b6d2c4
+    md5: fe6e67eb41acff1b9d6a1952c9124a8a
+    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.55
+  version: 2025.11.60
   manager: conda
   platform: osx-64
   dependencies:
@@ -2449,14 +2449,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.55-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
   hash:
-    md5: 8e95bba347464094af1e66faae3d3543
-    sha256: 73155d9d408ba217cf168a46d322f37b5e1c53a2545129802e831c6934b6d2c4
+    md5: fe6e67eb41acff1b9d6a1952c9124a8a
+    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.55
+  version: 2025.11.60
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2516,10 +2516,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.55-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.60-pyhd8ed1ab_0.conda
   hash:
-    md5: 8e95bba347464094af1e66faae3d3543
-    sha256: 73155d9d408ba217cf168a46d322f37b5e1c53a2545129802e831c6934b6d2c4
+    md5: fe6e67eb41acff1b9d6a1952c9124a8a
+    sha256: c426da50cf34d93a28469daff47c4ee46124971e744e5404e8e7edc2ad6b7870
   category: main
   optional: false
 - name: conda-index
@@ -5018,7 +5018,7 @@ package:
   category: main
   optional: false
 - name: frozendict
-  version: 2.4.6
+  version: 2.4.7
   manager: conda
   platform: linux-64
   dependencies:
@@ -5026,38 +5026,38 @@ package:
     libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.6-py311h49ec1c0_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.7-py311h49ec1c0_0.conda
   hash:
-    md5: ae1979df507c82c25f19dc53bc8a2206
-    sha256: 0850f1215c12e330453657f37c6c64a05d8f663aef451492f603fef0f3c807f4
+    md5: cfc74ea184e02e531732abb17778e9fc
+    sha256: df99ccc63c065875cc150f451aaab03e6733898219cf2f248543fe53b08deff0
   category: main
   optional: false
 - name: frozendict
-  version: 2.4.6
+  version: 2.4.7
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.6-py311h13e5629_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.7-py311hf197a57_0.conda
   hash:
-    md5: eaeced7412042d9536d7995dcbf6d60c
-    sha256: f12403592cd9157b0df02734cf2513789daefe64a493f54e9d331f1e3166c04e
+    md5: cd0d596826fb7645d9749dc8a13cef57
+    sha256: 4f350683016704627a99f8695013bf918a80c11d06025eb80ac937a39c7f1f5e
   category: main
   optional: false
 - name: frozendict
-  version: 2.4.6
+  version: 2.4.7
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.6-py311h3696347_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.7-py311h9408147_0.conda
   hash:
-    md5: cfc626fae54f36e84232b1a7bbe2b669
-    sha256: 1dfa790e96c6ede3fd049c1eff4052a383c64464776e78bf67ffc09ac88f0a7f
+    md5: 92b8970ad5e5bc742325a52649e15aae
+    sha256: b86814a29b52af85b6567ead800165bf91aaef9c8cb6948e6d0c1017261f976d
   category: main
   optional: false
 - name: fsspec
