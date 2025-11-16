@@ -2289,36 +2289,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.15.23.15.53
+  version: 2025.11.16.22.08.15
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.15.23.15.53-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.16.22.08.15-hd8ed1ab_0.conda
   hash:
-    md5: a0f1d80e3d3cb5df5a1df70dc1474c2b
-    sha256: f2ce1e7e4ede533a29d5e7c08615e808fb90e20c67e8df912c052ea2e720ad98
+    md5: c35d7f124864472d95efed64eac3286d
+    sha256: 887ee135b8ab7e1cb258ab3f30bdd2790d5d81e98477771a4df59f1361739605
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.15.23.15.53
+  version: 2025.11.16.22.08.15
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.15.23.15.53-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.16.22.08.15-hd8ed1ab_0.conda
   hash:
-    md5: a0f1d80e3d3cb5df5a1df70dc1474c2b
-    sha256: f2ce1e7e4ede533a29d5e7c08615e808fb90e20c67e8df912c052ea2e720ad98
+    md5: c35d7f124864472d95efed64eac3286d
+    sha256: 887ee135b8ab7e1cb258ab3f30bdd2790d5d81e98477771a4df59f1361739605
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.15.23.15.53
+  version: 2025.11.16.22.08.15
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.15.23.15.53-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.16.22.08.15-hd8ed1ab_0.conda
   hash:
-    md5: a0f1d80e3d3cb5df5a1df70dc1474c2b
-    sha256: f2ce1e7e4ede533a29d5e7c08615e808fb90e20c67e8df912c052ea2e720ad98
+    md5: c35d7f124864472d95efed64eac3286d
+    sha256: 887ee135b8ab7e1cb258ab3f30bdd2790d5d81e98477771a4df59f1361739605
   category: main
   optional: false
 - name: conda-forge-tick
@@ -7034,7 +7034,7 @@ package:
   category: main
   optional: false
 - name: keyring
-  version: 25.6.0
+  version: 25.7.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7045,16 +7045,16 @@ package:
     jaraco.context: ''
     jaraco.functools: ''
     jeepney: '>=0.4.2'
-    python: '>=3.9'
+    python: '>=3.10'
     secretstorage: '>=3.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyha804496_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyha804496_0.conda
   hash:
-    md5: cdd58ab99c214b55d56099108a914282
-    sha256: b6f57c17cf098022c32fe64e85e9615d427a611c48a5947cdfc357490210a124
+    md5: 9eeb0eaf04fa934808d3e070eebbe630
+    sha256: 010718b1b1a35ce72782d38e6d6b9495d8d7d0dbea9a3e42901d030ff2189545
   category: main
   optional: false
 - name: keyring
-  version: 25.6.0
+  version: 25.7.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -7064,15 +7064,15 @@ package:
     jaraco.classes: ''
     jaraco.context: ''
     jaraco.functools: ''
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
   hash:
-    md5: d2c0c5bda93c249f877c7fceea9e63af
-    sha256: c8b436fa9853bf8b836c96afbb7684a04955b80b37f5d5285fd836b6a8566cc5
+    md5: c88f9579d08eb4031159f03640714ce3
+    sha256: 9def5c6fb3b3b4952a4f6b55a019b5c7065b592682b84710229de5a0b73f6364
   category: main
   optional: false
 - name: keyring
-  version: 25.6.0
+  version: 25.7.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -7082,11 +7082,11 @@ package:
     jaraco.classes: ''
     jaraco.context: ''
     jaraco.functools: ''
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    python: '>=3.10'
+  url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.7.0-pyh534df25_0.conda
   hash:
-    md5: d2c0c5bda93c249f877c7fceea9e63af
-    sha256: c8b436fa9853bf8b836c96afbb7684a04955b80b37f5d5285fd836b6a8566cc5
+    md5: c88f9579d08eb4031159f03640714ce3
+    sha256: 9def5c6fb3b3b4952a4f6b55a019b5c7065b592682b84710229de5a0b73f6364
   category: main
   optional: false
 - name: keyutils
@@ -14810,7 +14810,7 @@ package:
   category: main
   optional: false
 - name: rpds-py
-  version: 0.28.0
+  version: 0.29.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -14818,38 +14818,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.28.0-py311h902ca64_2.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.29.0-py311h902ca64_0.conda
   hash:
-    md5: 58792895b13e0f13610ed6dbd2c3ab06
-    sha256: 8b670fea4f85f6a677742d8dcd51864b4d24dc8963285f2bba005a3ee07a2d14
+    md5: 9c57ad209dc7af39ada3b571202daf8d
+    sha256: 70c8800cdcb9f2a23e6bb1922c9a82d1388884f9edf528e25c9cb9d7c7f85358
   category: main
   optional: false
 - name: rpds-py
-  version: 0.28.0
+  version: 0.29.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.28.0-py311hd2a4513_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.29.0-py311hd2a4513_0.conda
   hash:
-    md5: 9f55e7e8848c5646e12b995c05f71a69
-    sha256: 3cc75a181cdb72287d20547985169cb94ded2a3c5c17b1231cfbcddd872b3a51
+    md5: 5f09b04150af3ea8ef4badee1e98e586
+    sha256: 5455f3be4c4d07473ee67ec67f17f0e00621001f58574ede5e10eff01c979d45
   category: main
   optional: false
 - name: rpds-py
-  version: 0.28.0
+  version: 0.29.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.28.0-py311h71babbd_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.29.0-py311h71babbd_0.conda
   hash:
-    md5: b8081c4f1f46ee6ffcaaa2ec2eed5232
-    sha256: 2518b5ca71ff9a0f517ae94ddc3dc27dd352c389383ddb0709237680cbd17ee9
+    md5: 54f1b55ac09042b3b3803242791dce4b
+    sha256: fd4fa06c031bd7377636365fce6626e5ebe20e6a8ca88af7494a4baefa662953
   category: main
   optional: false
 - name: ruamel.yaml
