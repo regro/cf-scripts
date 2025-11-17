@@ -10780,7 +10780,7 @@ package:
   category: main
   optional: false
 - name: numpy
-  version: 2.3.4
+  version: 2.3.5
   manager: conda
   platform: linux-64
   dependencies:
@@ -10792,14 +10792,14 @@ package:
     libstdcxx: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.4-py311h2e04523_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.5-py311h2e04523_0.conda
   hash:
-    md5: d84afde5a6f028204f24180ff87cf429
-    sha256: 67cc072b8f5c157df4228a1a2291628e5ca2360f48ef572a64e2cf2bf55d2e25
+    md5: 01da92ddaf561cabebd06019ae521510
+    sha256: 62953ae2bd17bb7e9d29721879e76bfdaa5c725cc1e28b3840be2d454467432a
   category: main
   optional: false
 - name: numpy
-  version: 2.3.4
+  version: 2.3.5
   manager: conda
   platform: osx-64
   dependencies:
@@ -10810,14 +10810,14 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.4-py311hf157cb9_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.5-py311hf157cb9_0.conda
   hash:
-    md5: 5ccc71cd384e4acec7d6b398d6bf3a70
-    sha256: f32239cd5e674c9162864391ba52136ba623c4b1aa7c6778498a869de030c1ac
+    md5: 8679a497f58ff931c4f95143da0506e8
+    sha256: 9682437ae9c98095e3ae67ba8781158ae2b83059ab3927ec6c5acfb8882827fa
   category: main
   optional: false
 - name: numpy
-  version: 2.3.4
+  version: 2.3.5
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -10828,10 +10828,10 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.4-py311h8685306_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.5-py311h8685306_0.conda
   hash:
-    md5: c72f70484e64c8106d560f60963b354a
-    sha256: 218062c97ec67991972d99dcdd2ff5fa6e596095b316496911d3cd2f0f3e0eaf
+    md5: 1c90d71be9d263f263ae14e7552a6293
+    sha256: 0d1e143adbaca3c8c7698434c09e0656f65677b579d0f8f41778abff9089f81a
   category: main
   optional: false
 - name: oauthlib
