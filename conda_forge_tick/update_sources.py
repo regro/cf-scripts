@@ -36,7 +36,7 @@ from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
 
-CRAN_INDEX: dict[str, str] | None = None
+CRAN_INDEX: dict[str, str] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -364,7 +364,6 @@ class CRAN(AbstractSource):
                 continue
             # alternatively: pkg = node_attrs["name"].split("r-", 1)[-1]
             pkg = url.split("/")[6].lower()
-            assert CRAN_INDEX is not None
             if pkg in CRAN_INDEX:
                 return CRAN_INDEX[pkg]
             else:
@@ -382,7 +381,7 @@ class CRAN(AbstractSource):
         return ver
 
 
-ROS_DISTRO_INDEX: Optional[dict] = None
+ROS_DISTRO_INDEX: dict = {}
 
 
 class ROSDistro(AbstractSource):
@@ -436,7 +435,6 @@ class ROSDistro(AbstractSource):
 
         self.init()
 
-        assert ROS_DISTRO_INDEX is not None
         toplevel_package, package = ROS_DISTRO_INDEX["melodic"]["reverse"][
             node_attrs["name"]
         ]
