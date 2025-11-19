@@ -36,7 +36,7 @@ from conda_forge_tick.settings import (
     settings,
 )
 from conda_forge_tick.url_transforms import gen_transformed_urls
-from conda_forge_tick.utils import sanitize_string
+from conda_forge_tick.utils import get_keys_default, sanitize_string
 
 CHECKSUM_NAMES = [
     "hash_value",
@@ -183,7 +183,6 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
         return None, None
 
     orig_pypi_name = None
-    output: None | dict = None
 
     # this is a v0 recipe
     if hasattr(cmeta, "meta"):
@@ -204,9 +203,11 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
             cmeta.get("package", {}).get("name", None),
         ]
         # for v1 recipe compatibility
-        if output:
-            if package_name := output.get("package", {}).get("name", None):
-                orig_pypi_name_candidates.append(package_name)
+        for output in cmeta.get("outputs", []):
+            output = output or {}
+            orig_pypi_name_candidates.append(
+                get_keys_default(output, ["package", "name"], {}, None)
+            )
 
     orig_pypi_name_candidates = sorted(
         {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
