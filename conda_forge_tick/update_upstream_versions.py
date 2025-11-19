@@ -137,11 +137,11 @@ def get_latest_version_local(
     for source in sources_to_use:
         try:
             logger.debug("Fetching latest version for %s from %s...", name, source.name)
-            url = source.get_url(attrs)
+            url = source.get_url(attrs)  # type: ignore[arg-type]
             if url is None:
                 continue
             logger.debug("Using URL %s", url)
-            ver = source.get_version(url, attrs)
+            ver = source.get_version(url, attrs)  # type: ignore[arg-type]
             if not ver:
                 logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
@@ -552,7 +552,7 @@ def update_upstream_versions(
     )
 
     logger.info("Updating upstream versions")
-    updater(to_update, sources)
+    updater(to_update, sources)  # type: ignore[arg-type]
 
 
 def main(

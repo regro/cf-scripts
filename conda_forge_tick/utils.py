@@ -19,6 +19,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import (
     Any,
+    ContextManager,
     Dict,
     Iterable,
     MutableMapping,
@@ -137,11 +138,11 @@ def parse_munged_run_export(p: str) -> Dict:
     return cast(Dict, yaml_safe_load(p))
 
 
-REPRINTED_LINES = {}
+REPRINTED_LINES: dict[str, set[str]] = {}
 
 
 @contextlib.contextmanager
-def filter_reprinted_lines(key):
+def filter_reprinted_lines(key: str):
     global REPRINTED_LINES
     if key not in REPRINTED_LINES:
         REPRINTED_LINES[key] = set()
@@ -344,7 +345,7 @@ def parse_recipe_yaml_containerized(
                 with open(cbc_path) as fp_r:
                     cbc_data = fp_r.read()
             else:
-                cbc_data = cbc_path
+                cbc_data = str(cbc_path)
 
             with open(tmp_cbc_path, "w") as fp:
                 fp.write(cbc_data)
@@ -380,7 +381,7 @@ def _flatten_requirement_pin_dicts(
     def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
         return [flatten_pin(s) for s in list]
 
-    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
+    def flatten_requirements(output: MutableMapping[str, Any]) -> None:
         if "requirements" in output:
             requirements = output["requirements"]
             for key in ["build", "host", "run"]:
@@ -399,15 +400,15 @@ def _flatten_requirement_pin_dicts(
 
     for recipe in recipes:
         if "requirements" in recipe:
-            flatten_requirements(recipe)
+            flatten_requirements(recipe)  # type: ignore[arg-type]
 
         if "outputs" in recipe:
             for output in recipe["outputs"]:
-                flatten_requirements(output)
+                flatten_requirements(output)  # type: ignore[arg-type]
 
         if "tests" in recipe:
             # script tests can have `run` and `build` requirements
-            for test in recipe["tests"]:
+            for test in recipe["tests"]:  # type: ignore[typeddict-item]
                 if "requirements" in test:
                     flatten_requirements(test)
 
@@ -453,7 +454,7 @@ def parse_recipe_yaml_local(
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     else:
-        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)  # type: ignore
     parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
@@ -507,16 +508,11 @@ def _render_recipe_yaml(
     RuntimeError
         If no output recipes are found.
     """
-    if cbc_path is not None and not os.path.exists(str(cbc_path)):
-        ctx = tempfile.TemporaryDirectory
-    else:
-        ctx = contextlib.nullcontext
-
-    with ctx() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         if cbc_path is not None and not os.path.exists(str(cbc_path)):
             _cbc_path = os.path.join(tmpdir, "conda_build_config.yaml")
             with open(_cbc_path, "w") as fp:
-                fp.write(cbc_path)
+                fp.write(str(cbc_path))
 
             variant_config_flags = ["--variant-config", _cbc_path]
         else:
@@ -1205,7 +1201,7 @@ def _parse_meta_yaml_impl(
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other: Set) -> Set:
+    def __and__(self, other: Set) -> Set:  # type: ignore[override]
         return other
 
     def __rand__(self, other: Set) -> Set:
@@ -1221,7 +1217,7 @@ class UniversalSet(Set):
         raise StopIteration
 
     def __len__(self) -> int:
-        return float("inf")
+        return float("inf")  # type: ignore[return-value]
 
 
 class NullUndefined(jinja2.Undefined):
@@ -1371,11 +1367,11 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]: ...
 
 
 @typing.overload
-def as_iterable(x: T) -> Tuple[T]: ...
+def as_iterable(x: Any) -> Iterable: ...
 
 
 @typing.no_type_check
-def as_iterable(iterable_or_scalar):
+def as_iterable(iterable_or_scalar: Any) -> Iterable:
     """Convert an object into an iterable.
 
     Parameters
@@ -1430,7 +1426,7 @@ def sanitize_string(instr: str) -> str:
 
 
 def get_keys_default(
-    dlike: AttrsTypedDict | dict | LazyJson,
+    dlike: AttrsTypedDict | Mapping | LazyJson,
     keys: list | tuple,
     default: Any,
     final_default: Any,
@@ -1457,7 +1453,7 @@ def get_keys_default(
     defaults = [default] * (len(keys) - 1) + [final_default]
     val = dlike
     for k, _d in zip(keys, defaults):
-        val = val.get(k, _d) or _d
+        val = val.get(k, _d) or _d  # type: ignore[assignment]
     return val
 
 
@@ -1668,19 +1664,24 @@ def pr_can_be_archived(
         now = time.time()
 
     if not isinstance(pr, LazyJson):
-        pr = contextlib.nullcontext(pr)
+        pr_ctx: ContextManager[dict] | LazyJson = contextlib.nullcontext(pr)
+    else:
+        pr_ctx = pr
 
-    with pr as pr:
+    with pr_ctx as pr:
         pr_lm = pr.get("Last-Modified", None)
         if pr_lm is not None:
             pr_lm = dateparser.parse(pr_lm)
 
+        if isinstance(pr, LazyJson):
+            pr_empty = pr.data == {}
+        else:
+            pr_empty = pr == {}
+
         if (
             pr_lm is None
             or now - pr_lm.timestamp() > settings().pull_request_reopen_window
-        ) and (
-            pr.get("state", None) == "closed" or (archive_empty_prs and pr.data == {})
-        ):
+        ) and (pr.get("state", None) == "closed" or (archive_empty_prs and pr_empty)):
             return True
         else:
             return False

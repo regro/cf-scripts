@@ -141,7 +141,7 @@ def provide_source_code_local(recipe_dir):
     def _print_out():
         try:
             if out:
-                sys.stdout.write(out.read())
+                sys.stdout.write(out.read())  # type: ignore[unreachable] # out is set below
         except Exception as e:
             logger.error(
                 "Error printing out/err in getting conda build src!", exc_info=e

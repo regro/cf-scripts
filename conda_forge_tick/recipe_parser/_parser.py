@@ -309,14 +309,13 @@ def _demunge_jinja2_vars(meta: dict | list | str, sentinel: str) -> dict | list 
         for key, val in meta.items():
             meta[key] = _demunge_jinja2_vars(val, sentinel)
         return meta
-    elif isinstance(meta, collections.abc.MutableSequence):
+    if isinstance(meta, collections.abc.MutableSequence):
         for i in range(len(meta)):
             meta[i] = _demunge_jinja2_vars(meta[i], sentinel)
         return meta
-    elif isinstance(meta, str):
+    if isinstance(meta, str):
         return meta.replace(sentinel + "{ ", "{{ ")
-    else:
-        return meta
+    return meta  # type: ignore[unreachable]
 
 
 def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
@@ -331,8 +330,8 @@ def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, 
         for i in range(len(meta)):
             meta[i] = _remunge_jinja2_vars(meta[i], sentinel)
         return meta
-    elif isinstance(meta, str):
-        return meta.replace("{{ ", sentinel + "{ ")
+    elif isinstance(meta, str):  # type: ignore[unreachable]
+        return meta.replace("{{ ", sentinel + "{ ")  # type: ignore[unreachable]
     else:
         return meta
 

@@ -34,7 +34,7 @@ KEEP_PR_FRACTION = 0.5
 
 def _combined_update_function(
     pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
-) -> dict:
+) -> dict | None:
     return_it = False
 
     pr_data = refresh_pr(pr_json, dry_run=dry_run)
@@ -60,8 +60,7 @@ def _combined_update_function(
 
     if return_it:
         return pr_json
-    else:
-        return None
+    return None
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
