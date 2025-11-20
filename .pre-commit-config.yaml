@@ -46,6 +46,5 @@ repos:
       - id: mypy
         exclude: |
           (?x)^(
-            conda_forge_tick\/[n-z].*|
-            tests\/[n-z].*
+            tests\/t.*
           )$

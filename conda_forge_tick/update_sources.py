@@ -9,6 +9,7 @@ import subprocess
 import typing
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import Iterator, List, Optional
 
@@ -35,7 +36,7 @@ from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
 
-CRAN_INDEX: Optional[dict] = None
+CRAN_INDEX: dict[str, str] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,13 @@ def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
-        sources = typing.cast("typing.List[SourceTypedDict]", source)
+        sources = typing.cast("typing.List[SourceTypedDict]", source)  # type: ignore[unreachable]
     urls = set()
     for s in sources:
         if "url" in s:
             # if it is a list for instance
             if not isinstance(s["url"], str):
-                urls.update(s["url"])
+                urls.update(s["url"])  # type: ignore[unreachable]
             else:
                 urls.add(s["url"])
     return urls
@@ -353,10 +354,10 @@ class CRAN(AbstractSource):
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         self.init()
-        urls = node_attrs.get("url", None)
+        urls: str | list[str] | None = node_attrs.get("url", None)
         if urls is None:
             return None
-        if not isinstance(node_attrs["url"], list):
+        if not isinstance(urls, list):
             urls = [urls]
         for url in urls:
             if self.url_contains not in url:
@@ -380,7 +381,7 @@ class CRAN(AbstractSource):
         return ver
 
 
-ROS_DISTRO_INDEX: Optional[dict] = None
+ROS_DISTRO_INDEX: dict = {}
 
 
 class ROSDistro(AbstractSource):
@@ -420,7 +421,7 @@ class ROSDistro(AbstractSource):
     def init(self) -> None:
         global ROS_DISTRO_INDEX
         if not ROS_DISTRO_INDEX:
-            self.version_url_cache = {}
+            self.version_url_cache: dict[str, str] = {}
             try:
                 ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
@@ -545,7 +546,7 @@ def url_exists_swap_exts(url: str, use_curl: bool = False):
 
 class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
-    next_ver_func = None
+    next_ver_func: Callable[[str], Iterator[str]]
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         if "feedstock_name" not in node_attrs:
@@ -570,7 +571,7 @@ class BaseRawURL(AbstractSource):
                 ci_support_key.replace("ci_support", "")
             )
             platform_arch = f"{plat}-{arch}"
-            cbc_data = node_attrs[ci_support_key]
+            cbc_data = node_attrs[ci_support_key]  # type: ignore[literal-required]
         else:
             platform_arch = None
             cbc_data = None
@@ -716,7 +717,7 @@ class GitTags(AbstractSource):
     name = "GitTags"
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
-        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)
+        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)  # type: ignore[return-value]
 
     def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         try:
@@ -843,26 +844,6 @@ class GithubReleases(AbstractSource):
         return latest
 
 
-# TODO: this one does not work because the atom feeds from libraries.io
-# all return 403 and I cannot find the correct URL to use
-# also url_contains is not defined
-# also package_name is not defined
-class LibrariesIO(VersionFromFeed):
-    name = "LibrariesIO"
-
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
-        urls = node_attrs.get("url", None)
-        if urls is None:
-            return None
-        if not isinstance(urls, list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
-
 class NVIDIA(AbstractSource):
     """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
 
@@ -921,7 +902,7 @@ class NVIDIA(AbstractSource):
             logger.debug("Found explicit bot/version_updates/nvidia/compute_subdir.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]  # type: ignore[typeddict-item]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_compute_subdir = node_attrs["feedstock_name"]
@@ -938,7 +919,7 @@ class NVIDIA(AbstractSource):
             logger.debug("Found explicit bot/version_updates/nvidia/json_name.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]  # type: ignore[typeddict-item]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_redist_json_name = node_attrs["feedstock_name"]

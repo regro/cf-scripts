@@ -11,6 +11,7 @@ import os
 import pathlib
 import traceback
 from collections import Counter, defaultdict
+from collections.abc import Collection
 from os.path import commonprefix
 from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
 
@@ -316,6 +317,7 @@ def determine_best_matches_for_pypi_import(
     gx = load_existing_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
+    clobberers: Collection
     try:
         if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(
             IMPORT_TO_PKG_DIR_CLOBBERING
@@ -356,7 +358,7 @@ def determine_best_matches_for_pypi_import(
         """Get the score.
         A higher score means less preferred.
         """
-        mapping_src = map_by_conda_name.get(conda_name, {}).get(
+        mapping_src = map_by_conda_name.get(conda_name, {}).get(  # type: ignore[call-overload]
             "mapping_source",
             "other",
         )
