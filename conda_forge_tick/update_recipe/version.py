@@ -204,9 +204,7 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
         ]
         # for v1 recipe compatibility
         for output in cmeta.get("outputs", []):
-            package_name = get_keys_default(
-                output or {}, ["package", "name"], {}, None
-            )
+            package_name = get_keys_default(output or {}, ["package", "name"], {}, None)
             if package_name is not None:
                 orig_pypi_name_candidates.append(package_name)
 
