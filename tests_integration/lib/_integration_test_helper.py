@@ -241,10 +241,12 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         recipe_raw = yaml.dump(recipe)
 
         for included_str in included:
-            assert included_str in recipe_raw
+            assert included_str in recipe_raw, f"{included_str} not in recipe_raw"
 
         for not_included_str in not_included:
-            assert not_included_str not in recipe_raw
+            assert not_included_str not in recipe_raw, (
+                f"{not_included_str} in recipe_raw"
+            )
 
         LOGGER.info(
             "Bot PR for %s ('%s') validated successfully.",
