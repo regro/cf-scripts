@@ -13,28 +13,28 @@ class VersionUpdate(TestCase):
         def handle_pypi_json_api_polars():
             return {
                 # rest omitted
-                "info": {"name": "fastapi", "version": "1.35.2"}
+                "info": {"name": "polars", "version": "1.35.2"}
             }
 
         @router.get("/pypi.org/pypi/polars-runtime-32/json")
         def handle_pypi_json_api_polars_runtime_32():
             return {
                 # rest omitted
-                "info": {"name": "fastapi", "version": "1.35.2"}
+                "info": {"name": "polars-runtime-32", "version": "1.35.2"}
             }
 
         @router.get("/pypi.org/pypi/polars-runtime-64/json")
         def handle_pypi_json_api_polars_runtime_64():
             return {
                 # rest omitted
-                "info": {"name": "fastapi", "version": "1.35.2"}
+                "info": {"name": "polars-runtime-64", "version": "1.35.2"}
             }
 
         @router.get("/pypi.org/pypi/polars-runtime-compat/json")
         def handle_pypi_json_api_polars_runtime_compat():
             return {
                 # rest omitted
-                "info": {"name": "fastapi", "version": "1.35.2"}
+                "info": {"name": "polars-runtime-compat", "version": "1.35.2"}
             }
 
         return router
