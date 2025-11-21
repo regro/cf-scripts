@@ -2978,7 +2978,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.1
+  version: 3.53.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -3008,14 +3008,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 04973df43b4b7b6944e3ad6bd543d2b8
-    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
+    md5: 65bf4f1f5fe914d7081e6ff7490af856
+    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.1
+  version: 3.53.2
   manager: conda
   platform: osx-64
   dependencies:
@@ -3045,14 +3045,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 04973df43b4b7b6944e3ad6bd543d2b8
-    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
+    md5: 65bf4f1f5fe914d7081e6ff7490af856
+    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.1
+  version: 3.53.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3082,10 +3082,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 04973df43b4b7b6944e3ad6bd543d2b8
-    sha256: 00bd70619fc7a9cc9f311738fd73cb14646c81d4440ec277771092d7f8e3b073
+    md5: 65bf4f1f5fe914d7081e6ff7490af856
+    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
   category: main
   optional: false
 - name: conda-souschef
@@ -16718,43 +16718,43 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.9.10
+  version: 0.9.11
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.10-h76e24b7_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.11-h76e24b7_0.conda
   hash:
-    md5: 502e06bfb394fa379ad7bcea89f51e16
-    sha256: b926d266bce5f8c9734ecdfeab6739a06ca778771ab1739a549eb77227d8e952
+    md5: f75afddd5a7dac5d9285d93ba6f36703
+    sha256: 951a51596d574285870f443ebb1f0e48fd618fcf51c0bcd8526b49ddefd8f78a
   category: main
   optional: false
 - name: uv
-  version: 0.9.10
+  version: 0.9.11
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.10-h3315dae_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.11-h3315dae_0.conda
   hash:
-    md5: e4444666338e6b759ab7a6f278c14e9e
-    sha256: d85622ee2ec1c2bfd36af0a3c8940032fa00e1473dbb3062f4c307023ccc1ffd
+    md5: 3dce0183cc85f5891724a8502428eb33
+    sha256: 74f8503156e43256570eab412919f67ec611aa61db2eae5ee5d9b8a073838987
   category: main
   optional: false
 - name: uv
-  version: 0.9.10
+  version: 0.9.11
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.10-h1bde295_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.11-h1bde295_0.conda
   hash:
-    md5: e27feb5e75c6277dfce3a775e8ed3fda
-    sha256: e369edaf12de310eda74694233862362381fd50c17afa2709f8ad26ed3f5e74b
+    md5: 4bca912388359c62874735146e754e27
+    sha256: ad899310b2b4d3d3fc78cc4715c1e756cfb4d98f599951e6f4f97351d3aa21ed
   category: main
   optional: false
 - name: uvicorn
