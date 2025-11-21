@@ -2289,36 +2289,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.20.23.36.56
+  version: 2025.11.21.02.19.18
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.20.23.36.56-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.21.02.19.18-hd8ed1ab_0.conda
   hash:
-    md5: ffadf21917e97ebe173b8726c41ac15d
-    sha256: cbc5284c3da719de3a7df9d35853277c93d53750b110160aa0be35f41b89f3e2
+    md5: 4dd90d05b9a942ee2d28ad6942a10417
+    sha256: 1b51403339366ce28d3b97487624e961720b601862e693002788124207bce36c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.20.23.36.56
+  version: 2025.11.21.02.19.18
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.20.23.36.56-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.21.02.19.18-hd8ed1ab_0.conda
   hash:
-    md5: ffadf21917e97ebe173b8726c41ac15d
-    sha256: cbc5284c3da719de3a7df9d35853277c93d53750b110160aa0be35f41b89f3e2
+    md5: 4dd90d05b9a942ee2d28ad6942a10417
+    sha256: 1b51403339366ce28d3b97487624e961720b601862e693002788124207bce36c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.20.23.36.56
+  version: 2025.11.21.02.19.18
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.20.23.36.56-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.21.02.19.18-hd8ed1ab_0.conda
   hash:
-    md5: ffadf21917e97ebe173b8726c41ac15d
-    sha256: cbc5284c3da719de3a7df9d35853277c93d53750b110160aa0be35f41b89f3e2
+    md5: 4dd90d05b9a942ee2d28ad6942a10417
+    sha256: 1b51403339366ce28d3b97487624e961720b601862e693002788124207bce36c
   category: main
   optional: false
 - name: conda-forge-tick
@@ -7302,10 +7302,10 @@ package:
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     zstd: '>=1.5.7,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.45-h1aa0949_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.45-hbd61a6d_1.conda
   hash:
-    md5: 1450224b3e7d17dfeb985364b77a4d47
-    sha256: 32321d38b8785ef8ddcfef652ee370acee8d944681014d47797a18637ff16854
+    md5: 74973af25f7e298f684f7782f4e8b43b
+    sha256: 94ca574cba401afa9a6feacb5c1a2ef2af4f24deab2b2266064364e15fd7b642
   category: main
   optional: false
 - name: ldap3
