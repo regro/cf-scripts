@@ -94,11 +94,8 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             "Repository contents of %s have been overwritten successfully.", repo_name
         )
 
-    def _get_matching_version_pr(
-        self,
-        feedstock: str,
-        new_version: str,
-    ) -> PullRequest:
+    @staticmethod
+    def _get_matching_pr(feedstock: str, pr_title_contains: str) -> PullRequest:
         gh = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
 
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
@@ -106,7 +103,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             full_feedstock_name
         )
         matching_prs = [
-            pr for pr in repo.get_pulls(state="open") if f"v{new_version}" in pr.title
+            pr for pr in repo.get_pulls(state="open") if pr_title_contains in pr.title
         ]
 
         assert len(matching_prs) == 1, (
@@ -114,6 +111,16 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         )
 
         return matching_prs[0]
+
+    def _get_matching_version_pr(
+        self,
+        feedstock: str,
+        new_version: str,
+    ) -> PullRequest:
+        return self._get_matching_pr(
+            feedstock=feedstock,
+            pr_title_contains=f"v{new_version}",
+        )
 
     def _assert_version_pr_meta(self, feedstock: str, pr: PullRequest):
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
@@ -218,6 +225,33 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             "Version PR for %s v%s validated successfully.",
             feedstock,
             new_version,
+        )
+
+    def assert_bot_pr_contents_v1(
+        self,
+        feedstock: str,
+        title_contains: str,
+        included: list[str],
+        not_included: list[str],
+    ):
+        pr = self._get_matching_pr(feedstock, title_contains)
+        self._assert_version_pr_meta(feedstock, pr)
+
+        recipe = self._get_pr_content_recipe_v1(pr)
+        recipe_raw = yaml.dump(recipe)
+
+        for included_str in included:
+            assert included_str in recipe_raw, f"{included_str} not in recipe_raw"
+
+        for not_included_str in not_included:
+            assert not_included_str not in recipe_raw, (
+                f"{not_included_str} in recipe_raw"
+            )
+
+        LOGGER.info(
+            "Bot PR for %s ('%s') validated successfully.",
+            feedstock,
+            title_contains,
         )
 
     def assert_new_run_requirements_equal_v1(

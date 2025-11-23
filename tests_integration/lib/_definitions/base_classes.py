@@ -135,6 +135,35 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
+    def assert_bot_pr_contents_v1(
+        self,
+        feedstock: str,
+        title_contains: str,
+        included: list[str],
+        not_included: list[str],
+    ):
+        """
+        Assert that the bot has opened a PR for a v1 recipe and some
+        defined strings are either included or not included in the new recipe.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        title_contains
+            A string that must be included in the PR title.
+        included
+            A list of strings that must be included in the new recipe.
+        not_included
+            A list of strings that must not be present in the new recipe.
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
     def assert_new_run_requirements_equal_v1(
         self,
         feedstock: str,
