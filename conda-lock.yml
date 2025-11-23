@@ -2322,7 +2322,7 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.72
+  version: 2025.11.85
   manager: conda
   platform: linux-64
   dependencies:
@@ -2382,14 +2382,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.85-pyhd8ed1ab_0.conda
   hash:
-    md5: 77d65cac80f34085f249e2aacd8d267b
-    sha256: 1fb1fe01a0d32d479953fa6ea664f13d9199d2e5ab8c8c8ebe6b16272ad2fe3c
+    md5: 35f4b3f6b6da74385253f20f123a9be0
+    sha256: 41f4b610fa5447b24a9f79f577c34665be6d64f55b12464f6d0aa6d0681658bd
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.72
+  version: 2025.11.85
   manager: conda
   platform: osx-64
   dependencies:
@@ -2449,14 +2449,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.85-pyhd8ed1ab_0.conda
   hash:
-    md5: 77d65cac80f34085f249e2aacd8d267b
-    sha256: 1fb1fe01a0d32d479953fa6ea664f13d9199d2e5ab8c8c8ebe6b16272ad2fe3c
+    md5: 35f4b3f6b6da74385253f20f123a9be0
+    sha256: 41f4b610fa5447b24a9f79f577c34665be6d64f55b12464f6d0aa6d0681658bd
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.11.72
+  version: 2025.11.85
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2516,10 +2516,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.11.85-pyhd8ed1ab_0.conda
   hash:
-    md5: 77d65cac80f34085f249e2aacd8d267b
-    sha256: 1fb1fe01a0d32d479953fa6ea664f13d9199d2e5ab8c8c8ebe6b16272ad2fe3c
+    md5: 35f4b3f6b6da74385253f20f123a9be0
+    sha256: 41f4b610fa5447b24a9f79f577c34665be6d64f55b12464f6d0aa6d0681658bd
   category: main
   optional: false
 - name: conda-index
