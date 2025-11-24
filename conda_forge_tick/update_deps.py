@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 import pprint
+import re
 import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
@@ -349,6 +350,11 @@ def _modify_package_name_from_github(orig_name, src):
         is_pypi = True
 
     if is_pypi:
+        for s in src:
+            if "url" in s:
+                match = re.search(r"/packages/source/[a-z0-9]/([^/]+)/", s["url"])
+                if match:
+                    return match.group(1)
         return orig_name
     elif is_github:
         url_parts = github_url.split("/")

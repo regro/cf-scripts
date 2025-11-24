@@ -15,6 +15,7 @@ from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
     DepComparison,
     _merge_dep_comparisons_sec,
+    _modify_package_name_from_github,
     _update_sec_deps,
     apply_dep_update,
     generate_dep_hint,
@@ -1132,3 +1133,16 @@ def test_update_deps_version_v1(
         recipe_version=1,
         conda_build_config=conda_build_config,
     )
+
+
+def test_jsii_package_name_resolution():
+    """Test that we get the PyPI name instead of feedstock package name for Grayskull.
+
+    The error was mentioned in:
+    https://github.com/conda-forge/python-jsii-feedstock/pull/73#issuecomment-3569793931
+    """
+    src = {"url": "https://pypi.org/packages/source/j/jsii/jsii-1.119.0.tar.gz"}
+    feedstock_package_name = "python-jsii"
+    resolved_name = _modify_package_name_from_github(feedstock_package_name, src)
+
+    assert resolved_name == "jsii"
