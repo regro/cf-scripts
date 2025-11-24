@@ -2978,7 +2978,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.2
+  version: 3.53.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -3008,14 +3008,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.3-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 65bf4f1f5fe914d7081e6ff7490af856
-    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
+    md5: 57daa819aad77ef9a2b06475b872d5e8
+    sha256: ebb265d4384e28a5fdd6e52e1405faf9b28ac42f15e0333bb03441c5c7da04fa
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.2
+  version: 3.53.3
   manager: conda
   platform: osx-64
   dependencies:
@@ -3045,14 +3045,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.3-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 65bf4f1f5fe914d7081e6ff7490af856
-    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
+    md5: 57daa819aad77ef9a2b06475b872d5e8
+    sha256: ebb265d4384e28a5fdd6e52e1405faf9b28ac42f15e0333bb03441c5c7da04fa
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.53.2
+  version: 3.53.3
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3082,10 +3082,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.2-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.53.3-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 65bf4f1f5fe914d7081e6ff7490af856
-    sha256: 435282c7d1c95c0b8cbcdb54c3c751f14fa86519407b52a7cb0dfe6b53d3744e
+    md5: 57daa819aad77ef9a2b06475b872d5e8
+    sha256: ebb265d4384e28a5fdd6e52e1405faf9b28ac42f15e0333bb03441c5c7da04fa
   category: main
   optional: false
 - name: conda-souschef
