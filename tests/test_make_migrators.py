@@ -196,3 +196,37 @@ def test_make_migrators_initialize_migrators():
             # dump and load the migrators
             dump_migrators(migrators)
             load_migrators(skip_paused=False)
+
+
+@pytest.mark.parametrize(
+    "filter_name, expected_names",
+    [
+        (None, ["python314", "python314t", "python315", "compilers"]),
+        (["python"], ["python314", "python314t", "python315"]),
+        (["PYTHON"], ["python314", "python314t", "python315"]),
+        (["python314"], ["python314", "python314t"]),
+        (["compilers"], ["compilers"]),
+        (["python314", "python315"], ["python314", "python314t", "python315"]),
+        (["python", "compilers"], ["python314", "python314t", "python315", "compilers"]),
+        (["nonexistent"], []),
+    ],
+)
+def test_load_migrators_filter_name(filter_name, expected_names):
+    """Test that load_migrators filters migrators by name correctly."""
+    from unittest.mock import patch
+
+    mock_migrator_names = [
+        "python314",
+        "python314t",
+        "python315",
+        "compilers",
+    ]
+
+    with patch("conda_forge_tick.make_migrators.get_all_keys_for_hashmap") as mock_get_keys:
+        mock_get_keys.return_value = mock_migrator_names
+
+        with patch("conda_forge_tick.make_migrators._load_migrators") as mock_load:
+            mock_load.return_value = []
+            result = load_migrators(skip_paused=True, filter_name=filter_name)
+            assert mock_get_keys.called
+            mock_load.assert_called_once_with(expected_names, skip_paused=True)

@@ -168,10 +168,16 @@ def auto_tick(ctx: CliContext) -> None:
 
 
 @main.command(name="make-status-report")
-def make_status_report() -> None:
+@click.option(
+    "--migrators",
+    multiple=True,
+    help="Only generate status report for specific migrators (by name or report_name). Can be specified multiple times.",
+)
+def make_status_report(migrators: tuple[str, ...]) -> None:
     from . import status_report
 
-    status_report.main()
+    migrator_filter = list(migrators) if migrators else None
+    status_report.main(migrator_filter=migrator_filter)
 
 
 @main.command(name="update-prs")
