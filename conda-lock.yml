@@ -11776,7 +11776,7 @@ package:
   category: main
   optional: false
 - name: pre-commit
-  version: 4.4.0
+  version: 4.5.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -11786,14 +11786,14 @@ package:
     python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.5.0-pyha770c72_0.conda
   hash:
-    md5: c130573bb7a166e93d5bd01c94ae38e1
-    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
+    md5: af8d4882203bccefec6f1aeed70030c6
+    sha256: 8481f4939b1f81cf0db12456819368b41e3f998e4463e41611de4b13752b2c08
   category: main
   optional: false
 - name: pre-commit
-  version: 4.4.0
+  version: 4.5.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -11803,14 +11803,14 @@ package:
     python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.5.0-pyha770c72_0.conda
   hash:
-    md5: c130573bb7a166e93d5bd01c94ae38e1
-    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
+    md5: af8d4882203bccefec6f1aeed70030c6
+    sha256: 8481f4939b1f81cf0db12456819368b41e3f998e4463e41611de4b13752b2c08
   category: main
   optional: false
 - name: pre-commit
-  version: 4.4.0
+  version: 4.5.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -11820,10 +11820,10 @@ package:
     python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.4.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.5.0-pyha770c72_0.conda
   hash:
-    md5: c130573bb7a166e93d5bd01c94ae38e1
-    sha256: 5eee94ab06bb74ad164862d15c18e932493c5b959928e7889b91dee73f550152
+    md5: af8d4882203bccefec6f1aeed70030c6
+    sha256: 8481f4939b1f81cf0db12456819368b41e3f998e4463e41611de4b13752b2c08
   category: main
   optional: false
 - name: progressbar2
@@ -12865,7 +12865,7 @@ package:
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.0
+  version: 1.6.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -12876,14 +12876,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.0-py311h49ec1c0_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.1-py311h49ec1c0_0.conda
   hash:
-    md5: b162c70937079effb76cd0d2544846fc
-    sha256: b25bdaed59ccd03067231a67e895a824d6d8e8b83d7db45e18894d62c843e787
+    md5: 81a3dbba97659f21106f64aabefaab02
+    sha256: 51ea3193428786263becd92eed8bd8a646ccd7055bb523418b2ed75602aa23d2
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.0
+  version: 1.6.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -12893,14 +12893,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.6.0-py311hf197a57_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.6.1-py311hf197a57_0.conda
   hash:
-    md5: cac0466686c4841484a3705eb464b6c8
-    sha256: 5a556ed64bff853288458da403df406313be8d9d5d9fe811f86b4e232fa904c5
+    md5: 57fd679927c012f78dfb31f944f66210
+    sha256: 02b65698094d4d091a2797bc3f1c26f663e24705f894b934fc18c033e5de4bc4
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.0
+  version: 1.6.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -12910,10 +12910,10 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.0-py311h9408147_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.1-py311h9408147_0.conda
   hash:
-    md5: 1821a8f1776aa433872075a4bfe537ba
-    sha256: 82724194e4d66901290895aa6e0f4860cebd6b5c7f3f7369add871ca8bdf3431
+    md5: 2a61a545315c734705d973f7907e161f
+    sha256: a90d649e245aea686fe8d7a9299fa400001c779eb55020c9e1fcfcfa8469006f
   category: main
   optional: false
 - name: pynamodb
