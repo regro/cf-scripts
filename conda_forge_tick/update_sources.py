@@ -954,10 +954,9 @@ class NVIDIA(AbstractSource):
         response = requests.get(actual_url)
         html_content = response.text
         # Search for links to redistrib_*.json in the response and strip the versions from there
-        # re doesn't support repeating patterns, so we assume there are three version numbers
-        redistrib_pattern = re.compile(
-            pattern=r"redistrib_[0-9]+\.[0-9]+\.[0-9]+\.json<"
-        )
+        # re doesn't support repeating patterns, so we cannot use r"redistrib_([0-9]+\.)+json<"
+        # Some packages use X.Y versioning; others use X.Y.Z versioning.
+        redistrib_pattern = re.compile(pattern=r"redistrib_[0-9]+\.(.*)\.json<")
         result = re.findall(redistrib_pattern, html_content)
         stripped_results = [x.removesuffix(".json<").split("_")[1] for x in result]
         stripped_results.sort(key=Version, reverse=True)
