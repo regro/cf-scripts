@@ -14239,7 +14239,7 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.51.0
+  version: 0.52.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -14247,34 +14247,34 @@ package:
     libgcc: '>=14'
     openssl: '>=3.5.4,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.51.0-he64ecbb_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.52.0-he64ecbb_0.conda
   hash:
-    md5: e1689c761143daa09f16a728c7f94a0a
-    sha256: 012910563838a08db870ffedb27e00fd2db3049c197b19df973de0826a10c157
+    md5: a098fff81e97417305b3c90ce5e0d3db
+    sha256: 863833b72c5c7aa1b6bf5ff1acfef34e92652a4c1481334a43d620afe7d94638
   category: main
   optional: false
 - name: rattler-build
-  version: 0.51.0
+  version: 0.52.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.51.0-h9113d71_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.52.0-h9113d71_0.conda
   hash:
-    md5: c175a1b50a1281485dd4a02a303ee847
-    sha256: e17e73328b209a3c11854ba59e3bdf3a4754d95f06c064130bb866dd7ae5d9f3
+    md5: 2a51211e707a01186fb5ab57cde0a7be
+    sha256: e0163c0dab66ac9d43d3ff0fe5ebc9c802a53573685587edd0f7a9eed6f6c157
   category: main
   optional: false
 - name: rattler-build
-  version: 0.51.0
+  version: 0.52.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.51.0-h8d80559_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.52.0-h8d80559_0.conda
   hash:
-    md5: b1fbf24ce4a37a2b2934e60af9709d3f
-    sha256: 3010da129c2c9a617f0f48062eef3a61da2e3eed970b83a8f00477870aa048ff
+    md5: d96bcc88886799afa015ad577eafb889
+    sha256: 4062e173c235079aed7b0c2bcf06589b8594f94691289feda037e32bc246ccb4
   category: main
   optional: false
 - name: rattler-build-conda-compat
@@ -17972,10 +17972,10 @@ package:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/zlib-ng-2.2.5-hde8ca8f_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/zlib-ng-2.2.5-hde8ca8f_1.conda
   hash:
-    md5: 1920c3502e7f6688d650ab81cd3775fd
-    sha256: 3a8e7798deafd0722b6b5da50c36b7f361a80b30165d600f7760d569a162ff95
+    md5: c860578a89dc9b6003d600181612287c
+    sha256: 84ea17cb646d8a916d9335415f57c9e5dd001de158972322c714ebe1b72670b0
   category: main
   optional: false
 - name: zlib-ng
@@ -17985,10 +17985,10 @@ package:
   dependencies:
     __osx: '>=10.13'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-64/zlib-ng-2.2.5-h55e386d_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/zlib-ng-2.2.5-h55e386d_1.conda
   hash:
-    md5: 692a62051af2270eb9c24e8f09e88db6
-    sha256: c2942b36c59dbc152254c6e2e15ff21f8900e06e350b1bda4ebf656a2002d5f5
+    md5: 170c42f18a111a3f60400e734de245c1
+    sha256: f150dfa3f99c5ccf8aac675f869b5fdc673d2eb30b304577cad204798d9bfa18
   category: main
   optional: false
 - name: zlib-ng
@@ -17998,10 +17998,10 @@ package:
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.2.5-h3470cca_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.2.5-h3470cca_1.conda
   hash:
-    md5: c86493f35e79c93b04ff0279092b53e2
-    sha256: 82e3b57478d536b68229d1dbcdabe728fada5dbe77f9238a5fff5fc37a7fa758
+    md5: c2a50447e98f4b6b1357f54bbd9379dd
+    sha256: 90aaf9d2aab71610607e48b5d8110147d71b5316ebff28b18de8b460b9c92e83
   category: main
   optional: false
 - name: zstandard
