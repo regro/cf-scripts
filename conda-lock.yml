@@ -50,6 +50,30 @@ package:
     sha256: fbe2c5e56a653bebb982eda4876a9178aedfc2b545f25d0ce9c4c0b508253d22
   category: main
   optional: false
+- name: _openmp_mutex
+  version: '4.5'
+  manager: conda
+  platform: osx-64
+  dependencies:
+    llvm-openmp: '>=9.0.1'
+  url: https://conda.anaconda.org/conda-forge/osx-64/_openmp_mutex-4.5-7_kmp_llvm.conda
+  hash:
+    md5: eaac87c21aff3ed21ad9656697bb8326
+    sha256: 30006902a9274de8abdad5a9f02ef7c8bb3d69a503486af0c1faee30b023e5b7
+  category: main
+  optional: false
+- name: _openmp_mutex
+  version: '4.5'
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    llvm-openmp: '>=9.0.1'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/_openmp_mutex-4.5-7_kmp_llvm.conda
+  hash:
+    md5: a44032f282e7d2acdeb1c240308052dd
+    sha256: 7acaa2e0782cad032bdaf756b536874346ac1375745fb250e9bdd6a48a7ab3cd
+  category: main
+  optional: false
 - name: _python_abi3_support
   version: '1.0'
   manager: conda
@@ -2289,36 +2313,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.26.16.11.41
+  version: 2025.11.26.22.41.46
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.16.11.41-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.22.41.46-hd8ed1ab_0.conda
   hash:
-    md5: 8cee2b7f81486a535f1b528f392ff059
-    sha256: 70ce0ab3f9cc3ddad23be5ac226a95456341136fe68ef6f253d6d1a8a80f7a19
+    md5: dec8646538724bac07f37685dc0bb1a0
+    sha256: 36dd9fb011bce2ed084fa39f94ed51e200909435dd47031daf3687823cad9e64
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.26.16.11.41
+  version: 2025.11.26.22.41.46
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.16.11.41-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.22.41.46-hd8ed1ab_0.conda
   hash:
-    md5: 8cee2b7f81486a535f1b528f392ff059
-    sha256: 70ce0ab3f9cc3ddad23be5ac226a95456341136fe68ef6f253d6d1a8a80f7a19
+    md5: dec8646538724bac07f37685dc0bb1a0
+    sha256: 36dd9fb011bce2ed084fa39f94ed51e200909435dd47031daf3687823cad9e64
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.26.16.11.41
+  version: 2025.11.26.22.41.46
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.16.11.41-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.26.22.41.46-hd8ed1ab_0.conda
   hash:
-    md5: 8cee2b7f81486a535f1b528f392ff059
-    sha256: 70ce0ab3f9cc3ddad23be5ac226a95456341136fe68ef6f253d6d1a8a80f7a19
+    md5: dec8646538724bac07f37685dc0bb1a0
+    sha256: 36dd9fb011bce2ed084fa39f94ed51e200909435dd47031daf3687823cad9e64
   category: main
   optional: false
 - name: conda-forge-tick
@@ -8084,32 +8108,34 @@ package:
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     _openmp_mutex: '>=4.5'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_13.conda
   hash:
-    md5: b3137606149c607becd89faed5ee4ec6
-    sha256: b2c57cebdcf243f71d96a6c934c643aebb5a38093eb61d8d1aa67dc2e03c9244
+    md5: efdcbfd0069c808d48e6719f89c92e52
+    sha256: b405ccad7fc036e5570cb663dbee4f6db7fc3e8a023fe71918611380165657cd
   category: main
   optional: false
 - name: libgcc
   version: 15.2.0
   manager: conda
   platform: osx-64
-  dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/osx-64/libgcc-15.2.0-h08519bb_12.conda
+  dependencies:
+    _openmp_mutex: ''
+  url: https://conda.anaconda.org/conda-forge/osx-64/libgcc-15.2.0-h08519bb_13.conda
   hash:
-    md5: 816277b926e140e79a173dc03b66ddc6
-    sha256: ab7cd565fea8494ee05447b25d3469d5ec9d58781dd8b4e74d4bfec589c0bb04
+    md5: f763dc1bb85de2672ad049fbec68a92b
+    sha256: 023148ff0a922c3b17e2832ba708a85cfc01665c818b4d7d1d30153bbc4b5e33
   category: main
   optional: false
 - name: libgcc
   version: 15.2.0
   manager: conda
   platform: osx-arm64
-  dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgcc-15.2.0-hcbb3090_12.conda
+  dependencies:
+    _openmp_mutex: ''
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgcc-15.2.0-hcbb3090_13.conda
   hash:
-    md5: b509121005918a5097233991cd558e05
-    sha256: 8428dee18a2bb0d3674628a4ebc51c08facf6ab7b036e5652e5a788cf12c5351
+    md5: 0012f6dd3df042f08ba83ab1192e7dba
+    sha256: d4a1bf80c94af5ee1640291c60791f947e4ce3dc5bb25faa95b6f5d84d82c9af
   category: main
   optional: false
 - name: libgcc-ng
@@ -8118,10 +8144,10 @@ package:
   platform: linux-64
   dependencies:
     libgcc: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/libgcc-ng-15.2.0-h69a702a_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libgcc-ng-15.2.0-h69a702a_13.conda
   hash:
-    md5: 3c4b621138fcfc95ba219344b8a0d91f
-    sha256: b45f45c2362f9e8aaa5b875a7e612f4b4562bd136611a93b7642b45f7d1eaec3
+    md5: f1a67aa7f282dbb755dc8a86246989d3
+    sha256: 8b4a7850c2976ea6e4924f99d042e6bc4b03b8a9cd46f17f6d3643a45ee8314d
   category: main
   optional: false
 - name: libgd
@@ -8199,10 +8225,10 @@ package:
   platform: linux-64
   dependencies:
     libgfortran5: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/libgfortran-15.2.0-h69a702a_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libgfortran-15.2.0-h69a702a_13.conda
   hash:
-    md5: 0ac333def43feadebcfbdb73b6098c03
-    sha256: 9893dd3c099c84490d1e009bec37ce135882b015b848a25da3594a6b10655585
+    md5: 0d1067fda8911da519d7fc15bced6e3e
+    sha256: bf0a0698318561a0027af6fc2aede086799414952c84d43be5c2ac720658f247
   category: main
   optional: false
 - name: libgfortran
@@ -8211,10 +8237,10 @@ package:
   platform: osx-64
   dependencies:
     libgfortran5: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/osx-64/libgfortran-15.2.0-h7e5c614_12.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libgfortran-15.2.0-h7e5c614_13.conda
   hash:
-    md5: a8a0e3eaff335a5d848d74b25d13e21b
-    sha256: abf8010bdd556ff86d2b63efd6f35ed9c586a5e9cc4c31a9599370fa7124491e
+    md5: d4724ff9aac86ab75bf6013351430478
+    sha256: 08d335d3f96a7e14769b38fca8f55cb5a774ac2c959b5d30d953b9339b0a974b
   category: main
   optional: false
 - name: libgfortran
@@ -8223,10 +8249,10 @@ package:
   platform: osx-arm64
   dependencies:
     libgfortran5: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-15.2.0-h07b0088_12.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran-15.2.0-h07b0088_13.conda
   hash:
-    md5: 89a25fb123145350367429d65226f0a2
-    sha256: 57d437f9ae5cd1bf9d5b30d96f29de4b5d92d662b67c72c7fc6804748aab9ade
+    md5: d8700700485e308645145affba149037
+    sha256: 5b04e35914daf17a398b60d626c62a8cfd8b5e2d65703e217cd0ba0a2e6cbfcd
   category: main
   optional: false
 - name: libgfortran5
@@ -8236,10 +8262,10 @@ package:
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=15.2.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libgfortran5-15.2.0-h68bc16d_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libgfortran5-15.2.0-h68bc16d_13.conda
   hash:
-    md5: 3df163304a1e1f6796b6d1d28ed9bdd3
-    sha256: 2d6181a368b93e0f3a8de30dda81792404453a3d3ee1aae0103411338cf2950c
+    md5: f5cd1c419503abab5196946dd9e7d99c
+    sha256: 0f0b0f2b7a345eee5cdc7864a7794e196006b2b45d377a1ad2039afed054eb11
   category: main
   optional: false
 - name: libgfortran5
@@ -8248,10 +8274,10 @@ package:
   platform: osx-64
   dependencies:
     libgcc: '>=15.2.0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-15.2.0-hd16e46c_12.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libgfortran5-15.2.0-hd16e46c_13.conda
   hash:
-    md5: bdaad534910cd432ce3e1928d19a99d2
-    sha256: 42125f32994bcd95c83269bfc3991a205c33188dd60b8a49ce59204c95ba0776
+    md5: 3ef49513ad37475b455c936f7531baa4
+    sha256: 78425b253aacda06cc5022558010fb3bdd8a00ed212b20e0a9948763ed444527
   category: main
   optional: false
 - name: libgfortran5
@@ -8260,10 +8286,10 @@ package:
   platform: osx-arm64
   dependencies:
     libgcc: '>=15.2.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-15.2.0-hdae7583_12.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libgfortran5-15.2.0-hdae7583_13.conda
   hash:
-    md5: 0ac344d71621195a558c94b7c30014ae
-    sha256: a32a7f8e4c41f6ae1d28ffa9b1e55459207a3417e1579b92dd4e5c672f42643c
+    md5: 6b9acc983fd417fa5a2e8f711c27553b
+    sha256: 4774022c467409886aa0b284b794bc38ed1d08163a43c49b33774d91aa120f10
   category: main
   optional: false
 - name: libgit2
@@ -8446,10 +8472,10 @@ package:
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_13.conda
   hash:
-    md5: 4881b9b732ee8b673cd46875d7d36fc6
-    sha256: 49c313bb040d04512c5e29da169dec58c51c6535dc97cc5808d3614bc048723e
+    md5: 5bbcaf03898d70f9592a7cd3d2ff7e28
+    sha256: cdb316241515da4e6dc1f452ba912ac479ee23cb823ef2b319b1de3e10b73e86
   category: main
   optional: false
 - name: libiconv
@@ -9319,10 +9345,10 @@ package:
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-15.2.0-h934c35e_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-15.2.0-h934c35e_13.conda
   hash:
-    md5: b8ef46cab65ab6676c7d5c9581b17ebf
-    sha256: 2954f7b21ad6f0f1b9b5eabf0595039c425f6f6267087e58310dc4855fee8383
+    md5: b98186396f799a0c15d5171f39f8b151
+    sha256: f7c363c5ec37213d2eb490dd76d2acdfb765e41e9f4d9f0d785f3aaada28e039
   category: main
   optional: false
 - name: libstdcxx-ng
@@ -9331,10 +9357,10 @@ package:
   platform: linux-64
   dependencies:
     libstdcxx: 15.2.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-15.2.0-hdf11a46_12.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-15.2.0-hdf11a46_13.conda
   hash:
-    md5: ac15e685fa88f7d070b60b396dd91017
-    sha256: 7540d3b3577b058962d110dfa08ec2a278254dd6f9397d33ad0ede7bf222094e
+    md5: 64638ce314654548491c21abde2ff8ad
+    sha256: 60e0b56a9e8e43efa40763765463d0ef7f634b1971be620a5dbce308a2de35a2
   category: main
   optional: false
 - name: libtiff
@@ -16740,43 +16766,43 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.9.12
+  version: 0.9.13
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.12-h76e24b7_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.9.13-h76e24b7_0.conda
   hash:
-    md5: 98d1d858b06c53c84f7114291effed41
-    sha256: 95f47a1e43bfa0f69b9785c92e1691fbe05ad5c43dbc325239852f2898391e86
+    md5: 885ceff3d462c8622a0fe44d089d6b40
+    sha256: 4f2776f3a76ad6b45ab15c5f090c9c9bc02547463fdbb9f98daf56f51165f5df
   category: main
   optional: false
 - name: uv
-  version: 0.9.12
+  version: 0.9.13
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.12-h3315dae_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.9.13-h3315dae_0.conda
   hash:
-    md5: 431599a89cbb9d5c778ee1afb269fa72
-    sha256: 2c673531d33d86ac903ac82778039bf626a2697c59ab84f77ec7b67567e753dd
+    md5: aa2a0007a26c7c741dd508f4c78e244a
+    sha256: daad62e617701b5a84edfffc360cc2e649abc4fd37af59272afddebb212a74a0
   category: main
   optional: false
 - name: uv
-  version: 0.9.12
+  version: 0.9.13
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.12-h1bde295_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.9.13-h1bde295_0.conda
   hash:
-    md5: 584ef28a0f32a0198dcd1445194b2869
-    sha256: 46d3669a0354151416fb7ff2a9799bece12ae85d3850ab6ac245271cb015b9c5
+    md5: 8efc68894f80b31e23e1240bcc36a716
+    sha256: 82228da16b38b38ae10acd85ad41887c78d542d62fa098d10d839a880d9324d8
   category: main
   optional: false
 - name: uvicorn
