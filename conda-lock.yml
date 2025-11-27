@@ -931,7 +931,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.41.4
+  version: 1.41.5
   manager: conda
   platform: linux-64
   dependencies:
@@ -939,14 +939,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.5-pyhd8ed1ab_0.conda
   hash:
-    md5: d32720b0dc514bf263a8315a837ee14c
-    sha256: 98ff7646addbf85ae566ef263f14d9373ce3d0edcdee68973a16aeeca2a29a86
+    md5: 14350e9c15a4f69bf9ca92db6cea7e36
+    sha256: bde97964d2ebba981c05ad63a2a5d0e0b7dab93731af3476efb5fef7d3f199b2
   category: main
   optional: false
 - name: botocore
-  version: 1.41.4
+  version: 1.41.5
   manager: conda
   platform: osx-64
   dependencies:
@@ -954,14 +954,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.5-pyhd8ed1ab_0.conda
   hash:
-    md5: d32720b0dc514bf263a8315a837ee14c
-    sha256: 98ff7646addbf85ae566ef263f14d9373ce3d0edcdee68973a16aeeca2a29a86
+    md5: 14350e9c15a4f69bf9ca92db6cea7e36
+    sha256: bde97964d2ebba981c05ad63a2a5d0e0b7dab93731af3476efb5fef7d3f199b2
   category: main
   optional: false
 - name: botocore
-  version: 1.41.4
+  version: 1.41.5
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -969,10 +969,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.41.5-pyhd8ed1ab_0.conda
   hash:
-    md5: d32720b0dc514bf263a8315a837ee14c
-    sha256: 98ff7646addbf85ae566ef263f14d9373ce3d0edcdee68973a16aeeca2a29a86
+    md5: 14350e9c15a4f69bf9ca92db6cea7e36
+    sha256: bde97964d2ebba981c05ad63a2a5d0e0b7dab93731af3476efb5fef7d3f199b2
   category: main
   optional: false
 - name: brotli
@@ -12388,7 +12388,7 @@ package:
   category: main
   optional: false
 - name: pydantic
-  version: 2.12.4
+  version: 2.12.5
   manager: conda
   platform: linux-64
   dependencies:
@@ -12398,14 +12398,14 @@ package:
     typing-extensions: '>=4.6.1'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.14.1'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.4-pyh3cfb1c2_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.5-pyhd8ed1ab_0.conda
   hash:
-    md5: bf6ce72315b6759453d8c90a894e9e4c
-    sha256: c51297f0f6ef13776cc5b61c37d00c0d45faaed34f81d196e64bebc989f3e497
+    md5: 00d0d57b14dfec360fd6dd0734cf77cb
+    sha256: 88c3c993b76b7b393a587d6f04a81f35e445ae6a8cc214feee1638996d6ebab6
   category: main
   optional: false
 - name: pydantic
-  version: 2.12.4
+  version: 2.12.5
   manager: conda
   platform: osx-64
   dependencies:
@@ -12415,14 +12415,14 @@ package:
     typing-extensions: '>=4.6.1'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.14.1'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.4-pyh3cfb1c2_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.5-pyhd8ed1ab_0.conda
   hash:
-    md5: bf6ce72315b6759453d8c90a894e9e4c
-    sha256: c51297f0f6ef13776cc5b61c37d00c0d45faaed34f81d196e64bebc989f3e497
+    md5: 00d0d57b14dfec360fd6dd0734cf77cb
+    sha256: 88c3c993b76b7b393a587d6f04a81f35e445ae6a8cc214feee1638996d6ebab6
   category: main
   optional: false
 - name: pydantic
-  version: 2.12.4
+  version: 2.12.5
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -12432,10 +12432,10 @@ package:
     typing-extensions: '>=4.6.1'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.14.1'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.4-pyh3cfb1c2_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.12.5-pyhd8ed1ab_0.conda
   hash:
-    md5: bf6ce72315b6759453d8c90a894e9e4c
-    sha256: c51297f0f6ef13776cc5b61c37d00c0d45faaed34f81d196e64bebc989f3e497
+    md5: 00d0d57b14dfec360fd6dd0734cf77cb
+    sha256: 88c3c993b76b7b393a587d6f04a81f35e445ae6a8cc214feee1638996d6ebab6
   category: main
   optional: false
 - name: pydantic-core
