@@ -1004,6 +1004,11 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     pinning_migrators = []
     longterm_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
+    # Only load python314 and python314t migrators - filter BEFORE submitting to pool
+    allowed_migrators = {"python314", "python314t"}
+    all_names = [name for name in all_names if name in allowed_migrators]
+    print(f"Loading only: {all_names}", flush=True)
+
     with executor("process", 2) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 
@@ -1027,11 +1032,13 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
             else:
                 migrators.append(migrator)
 
-    version_migrator = _make_version_migrator(load_existing_graph())
+    # Commented out - version migrator is slow
+    # version_migrator = _make_version_migrator(load_existing_graph())
 
     RNG.shuffle(pinning_migrators)
     RNG.shuffle(longterm_migrators)
-    migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
+    # migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
+    migrators = migrators + pinning_migrators + longterm_migrators
 
     return migrators
 
