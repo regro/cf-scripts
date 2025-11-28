@@ -194,7 +194,6 @@ def _get_waiting_migrators(migrator: Migrator, attrs: dict) -> list[str]:
     if not wait_for_migrators:
         return []
 
-    # Check if we're actually waiting (i.e., migrators not all closed)
     found_migrators = set()
     for migration in attrs.get("pr_info", {}).get("PRed", []):
         name = migration.get("data", {}).get("name", "")
@@ -203,10 +202,8 @@ def _get_waiting_migrators(migrator: Migrator, attrs: dict) -> list[str]:
         found_migrators.add(name)
         state = migration.get("PR", {}).get("state", "")
         if state != "closed":
-            # Still waiting for this one
             return list(wait_for_migrators)
 
-    # Check if any migrators are missing
     missing_migrators = set(wait_for_migrators) - found_migrators
     if missing_migrators:
         return list(wait_for_migrators)
@@ -409,9 +406,6 @@ def graph_migrator_status(
         if waiting_migrators:
             waiting_migrators_map[node] = waiting_migrators
 
-    # Add fake migrator nodes and edges after processing regular nodes
-    # Create one fake node per waiting migrator PR: migrator_{migrator_name}_{node}_{pr_number}
-    # This represents the PR for the waiting migrator on the node itself (not its predecessors)
     fake_migrator_nodes: Dict[str, Dict] = {}
 
     for node, migrator_names in waiting_migrators_map.items():
@@ -419,42 +413,30 @@ def graph_migrator_status(
         attrs = node_attrs["payload"]
 
         for migrator_name in migrator_names:
-            # Look up the correct migrator instance for the waiting migrator
-            # (not the current migrator being processed)
             migrators_by_name = _get_migrators_by_name()
             if migrator_name not in migrators_by_name:
-                # Migrator not found, skip
                 continue
             waiting_migrator = migrators_by_name[migrator_name]
 
-            # Check if this node has a PR for the waiting migrator
             nuid = waiting_migrator.migrator_uid(attrs)
-            
             nuid_data = frozen_to_json_friendly(nuid)["data"]
             
-            # Find all matching PRs in this node's PRed list
-            # Create one fake node per matching PR
             matching_prs = []
             for pr_json in attrs.get("pr_info", {}).get("PRed", []):
                 if pr_json and pr_json.get("data") == nuid_data:
                     matching_prs.append(pr_json)
             
             if not matching_prs:
-                # Node doesn't have a PR for this migrator yet - skip
                 continue
             
-            # Create a fake node for each matching PR
             for matching_pr_json in matching_prs:
-                # Get PR data
                 pr_data = matching_pr_json.get("PR", {})
                 pr_number = pr_data.get("number")
                 if pr_number is None:
                     continue
                 
-                # Create fake node name: migrator_{migrator_name}_{node}_{pr_number}
                 fake_parent = f"migrator_{migrator_name}_{node}_{pr_number}"
 
-                # Add fake node to graph if it doesn't exist
                 if fake_parent not in gx2.nodes():
                     gx2.add_node(fake_parent, payload={})
 
@@ -472,25 +454,25 @@ def graph_migrator_status(
                     }
                     feedstock_metadata[fake_parent] = fake_migrator_nodes[fake_parent]
 
-                    # Set status based on PR state
                     if pr_status == "closed":
-                        # PR is closed but package is still waiting - this is an error!
                         out["bot-error"].add(fake_parent)
                         print(
                             f"Package '{node}' waiting for migrator '{migrator_name}' but PR #{pr_number} is already closed. "
                             f"Waiting logic may be incorrect.",
                             flush=True,
                         )
+                        blocking_preds = waiting_migrator.get_blocking_predecessors(attrs, gx2)
+                        for pred_node, _ in blocking_preds:
+                            if pred_node in gx2.nodes() and not gx2.has_edge(
+                                pred_node, fake_parent
+                            ):
+                                gx2.add_edge(pred_node, fake_parent)
                     else:
-                        # PR is open or in progress
                         out["in-pr"].add(fake_parent)
 
-                # Add edge from fake migrator node to waiting package
-                # (migrator blocks package, so migrator -> package)
                 if node in gx2.nodes() and not gx2.has_edge(fake_parent, node):
                     gx2.add_edge(fake_parent, node)
 
-    # Populate descendants and children for fake migrator nodes (must be done after all edges are added)
     for node_name, node_metadata in fake_migrator_nodes.items():
         node_metadata["num_descendants"] = len(nx.descendants(gx2, node_name))
         node_metadata["immediate_children"] = [

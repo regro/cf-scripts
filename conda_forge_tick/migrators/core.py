@@ -704,6 +704,69 @@ class Migrator:
 
         return d
 
+    def get_blocking_predecessors(
+        self, attrs: "AttrsTypedDict", graph: nx.DiGraph | None = None
+    ) -> list[tuple[str, dict | None]]:
+        """Get list of predecessors (dependencies) that are blocking this package.
+        
+        Parameters
+        ----------
+        attrs : AttrsTypedDict
+            The node attributes
+        graph : nx.DiGraph | None, optional
+            Graph to use for finding predecessors. If None, uses self.graph.
+            Useful when the node might not be in self.graph.
+        
+        Returns:
+            List of (node_name, pr_data) tuples for blocking predecessors.
+            pr_data is None if predecessor doesn't have this migration in PRed.
+            pr_data is a dict with PR info if predecessor has an open PR for this migration.
+        """
+        use_graph = graph if graph is not None else self.graph
+        if use_graph is None:
+            return []
+        
+        feedstock_name = attrs.get("feedstock_name")
+        if feedstock_name not in use_graph.nodes():
+            return []
+        
+        ignored_deps = getattr(self, "ignored_deps_per_node", {})
+        
+        blocking = []
+        for node, payload in _gen_active_feedstocks_payloads(
+            use_graph.predecessors(feedstock_name),
+            use_graph,
+        ):
+            if node in ignored_deps.get(
+                attrs.get("feedstock_name", None),
+                [],
+            ):
+                continue
+
+            muid = frozen_to_json_friendly(self.migrator_uid(payload))
+
+            if muid not in _sanitized_muids(
+                payload.get("pr_info", {}).get("PRed", []),
+            ):
+                logger.debug("not yet built: %s", node)
+                blocking.append((node, None))
+                continue
+
+            m_pred_json = None
+            for pr_json in payload.get("pr_info", {}).get("PRed", []):
+                if pr_json.get("data") == muid["data"]:
+                    m_pred_json = pr_json
+                    break
+
+            if (
+                m_pred_json
+                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
+            ):
+                logger.debug("not yet built: %s", node)
+                blocking.append((node, m_pred_json.get("PR", {})))
+        
+        return blocking
+
     def order(
         self,
         graph: nx.DiGraph,
@@ -910,44 +973,12 @@ class GraphMigrator(Migrator):
         return True
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        # Check if all upstreams have been built
-        if self.graph is None:
-            raise ValueError("graph is None")
-        for node, payload in _gen_active_feedstocks_payloads(
-            self.graph.predecessors(attrs["feedstock_name"]),
-            self.graph,
-        ):
-            if node in self.ignored_deps_per_node.get(
-                attrs.get("feedstock_name", None),
-                [],
-            ):
-                continue
-
-            muid = frozen_to_json_friendly(self.migrator_uid(payload))
-
-            if muid not in _sanitized_muids(
-                payload.get("pr_info", {}).get("PRed", []),
-            ):
-                logger.debug("not yet built: %s", node)
-                return True
-
-            # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in payload.get("pr_info", {}).get("PRed", []):
-                if m_pred_json["data"] == muid["data"]:
-                    break
-            else:
-                m_pred_json = None
-
-            # note that if the bot is missing the PR we assume it is open
-            # so that errors halt the migration and can be fixed
-            if (
-                m_pred_json
-                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
-            ):
-                logger.debug("not yet built: %s", node)
-                return True
-
-        return False
+        """Check if any predecessors are blocking this package.
+        
+        Returns True if any predecessor is blocking, False otherwise.
+        This method uses get_blocking_predecessors to determine blocking status.
+        """
+        return len(self.get_blocking_predecessors(attrs)) > 0
 
     def filter_not_in_migration(self, attrs, not_bad_str_start=""):
         if super().filter_not_in_migration(attrs, not_bad_str_start):
