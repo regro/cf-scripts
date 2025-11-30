@@ -824,45 +824,45 @@ package:
   category: main
   optional: false
 - name: beautifulsoup4
-  version: 4.14.2
+  version: 4.14.3
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
     soupsieve: '>=1.2'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.2-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.3-pyha770c72_0.conda
   hash:
-    md5: 749ebebabc2cae99b2e5b3edd04c6ca2
-    sha256: b949bd0121bb1eabc282c4de0551cc162b621582ee12b415e6f8297398e3b3b4
+    md5: 5267bef8efea4127aacd1f4e1f149b6e
+    sha256: bf1e71c3c0a5b024e44ff928225a0874fc3c3356ec1a0b6fe719108e6d1288f6
   category: main
   optional: false
 - name: beautifulsoup4
-  version: 4.14.2
+  version: 4.14.3
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
     soupsieve: '>=1.2'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.2-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.3-pyha770c72_0.conda
   hash:
-    md5: 749ebebabc2cae99b2e5b3edd04c6ca2
-    sha256: b949bd0121bb1eabc282c4de0551cc162b621582ee12b415e6f8297398e3b3b4
+    md5: 5267bef8efea4127aacd1f4e1f149b6e
+    sha256: bf1e71c3c0a5b024e44ff928225a0874fc3c3356ec1a0b6fe719108e6d1288f6
   category: main
   optional: false
 - name: beautifulsoup4
-  version: 4.14.2
+  version: 4.14.3
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
     soupsieve: '>=1.2'
     typing-extensions: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.2-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/beautifulsoup4-4.14.3-pyha770c72_0.conda
   hash:
-    md5: 749ebebabc2cae99b2e5b3edd04c6ca2
-    sha256: b949bd0121bb1eabc282c4de0551cc162b621582ee12b415e6f8297398e3b3b4
+    md5: 5267bef8efea4127aacd1f4e1f149b6e
+    sha256: bf1e71c3c0a5b024e44ff928225a0874fc3c3356ec1a0b6fe719108e6d1288f6
   category: main
   optional: false
 - name: blinker
@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.29.08.28.23
+  version: 2025.11.30.17.09.31
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.29.08.28.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.17.09.31-hd8ed1ab_0.conda
   hash:
-    md5: 7fc88f845d1fad5b5b719a7341e0f029
-    sha256: 6bade5a4dc569bddd48ee7eba7fb25341bfd01f9afa0785ba6d5db62a21b4cbd
+    md5: 7c47ad2340df1d789cf6749c5d5264b6
+    sha256: 934fae0b592ddd5ef776d34ba0f2af5b34166c19fe62cea48fec9b5b0bbb4a4b
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.29.08.28.23
+  version: 2025.11.30.17.09.31
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.29.08.28.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.17.09.31-hd8ed1ab_0.conda
   hash:
-    md5: 7fc88f845d1fad5b5b719a7341e0f029
-    sha256: 6bade5a4dc569bddd48ee7eba7fb25341bfd01f9afa0785ba6d5db62a21b4cbd
+    md5: 7c47ad2340df1d789cf6749c5d5264b6
+    sha256: 934fae0b592ddd5ef776d34ba0f2af5b34166c19fe62cea48fec9b5b0bbb4a4b
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.29.08.28.23
+  version: 2025.11.30.17.09.31
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.29.08.28.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.17.09.31-hd8ed1ab_0.conda
   hash:
-    md5: 7fc88f845d1fad5b5b719a7341e0f029
-    sha256: 6bade5a4dc569bddd48ee7eba7fb25341bfd01f9afa0785ba6d5db62a21b4cbd
+    md5: 7c47ad2340df1d789cf6749c5d5264b6
+    sha256: 934fae0b592ddd5ef776d34ba0f2af5b34166c19fe62cea48fec9b5b0bbb4a4b
   category: main
   optional: false
 - name: conda-forge-tick
