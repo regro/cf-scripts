@@ -987,11 +987,47 @@ def _load(name):
         return make_from_lazy_json_data(lzj.data)
 
 
-def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
+def load_migrators(
+    skip_paused: bool = True, filter_name: List[str] | None = None
+) -> MutableSequence[Migrator]:
     """Load all current migrators.
 
     Parameters
     ----------
+    skip_paused : bool, optional
+        Whether to skip paused migrators, defaults to True.
+    filter_name : list of str, optional
+        Filter migrators by name (case-insensitive). Only migrators matching any of the
+        provided names (either by migrator.name or migrator.report_name) will be loaded.
+
+    Returns
+    -------
+    migrators : list of Migrator
+        The list of migrators to run in the correct randomized order.
+    """
+    all_names = get_all_keys_for_hashmap("migrators")
+
+    # Filter names if specified
+    if filter_name:
+        filter_lowers = [f.lower() for f in filter_name]
+        all_names = [
+            n
+            for n in all_names
+            if any(filter_lower in n.lower() for filter_lower in filter_lowers)
+        ]
+
+    return _load_migrators(all_names, skip_paused=skip_paused)
+
+
+def _load_migrators(
+    all_names: List[str], skip_paused: bool = True
+) -> MutableSequence[Migrator]:
+    """Load migrators from a list of names.
+
+    Parameters
+    ----------
+    all_names : list of str
+        List of migrator names to load.
     skip_paused : bool, optional
         Whether to skip paused migrators, defaults to True.
 
@@ -1003,7 +1039,7 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     migrators = []
     pinning_migrators = []
     longterm_migrators = []
-    all_names = get_all_keys_for_hashmap("migrators")
+
     with executor("process", 2) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 

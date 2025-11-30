@@ -164,3 +164,27 @@ def test_cli_mock_update_prs(cmd_mock: MagicMock, job: int, n_jobs: int):
 
     assert result.exit_code == 0
     cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs)
+
+
+@pytest.mark.parametrize(
+    "migrators, expected_filter",
+    [
+        ([], None),
+        (["python314"], ["python314"]),
+        (["python314", "python315"], ["python314", "python315"]),
+        (["compilers"], ["compilers"]),
+    ],
+)
+@mock.patch("conda_forge_tick.status_report.main")
+def test_cli_mock_make_status_report_with_migrators(
+    cmd_mock: MagicMock, migrators: list[str], expected_filter: list[str] | None
+):
+    runner = CliRunner()
+    args = ["make-status-report"]
+    for migrator in migrators:
+        args.extend(["--migrators", migrator])
+
+    result = runner.invoke(main, args)
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(migrator_filter=expected_filter)
