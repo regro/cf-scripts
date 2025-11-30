@@ -1011,7 +1011,8 @@ def load_migrators(
     if filter_name:
         filter_lowers = [f.lower() for f in filter_name]
         all_names = [
-            n for n in all_names
+            n
+            for n in all_names
             if any(filter_lower in n.lower() for filter_lower in filter_lowers)
         ]
 
