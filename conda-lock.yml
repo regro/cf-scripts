@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.30.20.44.07
+  version: 2025.12.01.01.53.02
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.20.44.07-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.01.01.53.02-hd8ed1ab_0.conda
   hash:
-    md5: b164857d5ed705cac60e6844c7d4020d
-    sha256: 2ca7d24f3c83fdb202302de404ca63b90b470a6b57ee031b872a90f5f33b8e52
+    md5: 652e8df97b8978f12e162cd6be844f59
+    sha256: 72eceecc1f773297d3ce77cfa7f3bb45ddae4950aad96d9788f393706534e418
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.30.20.44.07
+  version: 2025.12.01.01.53.02
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.20.44.07-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.01.01.53.02-hd8ed1ab_0.conda
   hash:
-    md5: b164857d5ed705cac60e6844c7d4020d
-    sha256: 2ca7d24f3c83fdb202302de404ca63b90b470a6b57ee031b872a90f5f33b8e52
+    md5: 652e8df97b8978f12e162cd6be844f59
+    sha256: 72eceecc1f773297d3ce77cfa7f3bb45ddae4950aad96d9788f393706534e418
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.11.30.20.44.07
+  version: 2025.12.01.01.53.02
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.11.30.20.44.07-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.01.01.53.02-hd8ed1ab_0.conda
   hash:
-    md5: b164857d5ed705cac60e6844c7d4020d
-    sha256: 2ca7d24f3c83fdb202302de404ca63b90b470a6b57ee031b872a90f5f33b8e52
+    md5: 652e8df97b8978f12e162cd6be844f59
+    sha256: 72eceecc1f773297d3ce77cfa7f3bb45ddae4950aad96d9788f393706534e418
   category: main
   optional: false
 - name: conda-forge-tick
@@ -14949,7 +14949,7 @@ package:
   category: main
   optional: false
 - name: rpds-py
-  version: 0.29.0
+  version: 0.30.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -14957,38 +14957,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.29.0-py311h902ca64_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rpds-py-0.30.0-py311h902ca64_0.conda
   hash:
-    md5: 9c57ad209dc7af39ada3b571202daf8d
-    sha256: 70c8800cdcb9f2a23e6bb1922c9a82d1388884f9edf528e25c9cb9d7c7f85358
+    md5: 3893f7b40738f9fe87510cb4468cdda5
+    sha256: bf5e6197fb08b8c6e421ca0126e966b7c3ae62b84d7b98523356b4fd5ae6f8ae
   category: main
   optional: false
 - name: rpds-py
-  version: 0.29.0
+  version: 0.30.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.29.0-py311hd2a4513_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.30.0-py311hd2a4513_0.conda
   hash:
-    md5: 5f09b04150af3ea8ef4badee1e98e586
-    sha256: 5455f3be4c4d07473ee67ec67f17f0e00621001f58574ede5e10eff01c979d45
+    md5: e9c6e8d9c5d7aa0309332460fef57f49
+    sha256: ae8d3455662c94043e1bebefe594bb7e0c83d142dca73fa4dfb8c046b08f8831
   category: main
   optional: false
 - name: rpds-py
-  version: 0.29.0
+  version: 0.30.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.29.0-py311h71babbd_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rpds-py-0.30.0-py311h71babbd_0.conda
   hash:
-    md5: 54f1b55ac09042b3b3803242791dce4b
-    sha256: fd4fa06c031bd7377636365fce6626e5ebe20e6a8ca88af7494a4baefa662953
+    md5: 4408829b022e8e0d19365c0c00be00c4
+    sha256: 15873755f078583cea046f7ca7fc0d5348d1f29a16a30b73bdb53dd62f2ba379
   category: main
   optional: false
 - name: ruamel.yaml
