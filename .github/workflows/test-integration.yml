@@ -101,4 +101,4 @@ jobs:
 
       - name: Print Proxy Logs
         run: cat /tmp/mitmproxy.log
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' && ! cancelled() && ! failure() }}
+        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' && ! cancelled() }}
