@@ -1587,7 +1587,9 @@ def trim_pr_json_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson], force: bool = False, trust_last_modified: bool = True
+    pr_json: Union[Dict, LazyJson],
+    force: bool = False,
+    trust_last_modified: bool = True,
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
@@ -1673,13 +1675,12 @@ def refresh_pr(
             # GitHub API bug: returns 304 even when PR now has conflicts
             # See https://github.com/regro/cf-scripts/issues/5150
             trust_last_modified = True
-            if (
-                pr_json.get("mergeable_state") == "clean"
-                and "Last-Modified" in pr_json
-            ):
+            if pr_json.get("mergeable_state") == "clean" and "Last-Modified" in pr_json:
                 try:
                     # Parse Last-Modified (Date header) to check if cached data is >7 days old
-                    last_modified = utils.parsedate_to_datetime(pr_json["Last-Modified"])
+                    last_modified = utils.parsedate_to_datetime(
+                        pr_json["Last-Modified"]
+                    )
                     now = datetime.now(last_modified.tzinfo)
                     age_days = (now - last_modified).total_seconds() / 86400
 
