@@ -156,14 +156,23 @@ def test_cli_mock_update_upstream_versions(
     cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs, package=package)
 
 
-@pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
+@pytest.mark.parametrize(
+    "job, n_jobs, feedstock", [(1, 5, None), (3, 7, None), (4, 4, "foo")]
+)
 @mock.patch("conda_forge_tick.update_prs.main")
-def test_cli_mock_update_prs(cmd_mock: MagicMock, job: int, n_jobs: int):
+def test_cli_mock_update_prs(
+    cmd_mock: MagicMock, job: int, n_jobs: int, feedstock: str | None
+):
+    fs = [f"--feedstock={feedstock}"] if feedstock is not None else []
     runner = CliRunner()
-    result = runner.invoke(main, ["update-prs", f"--job={job}", f"--n-jobs={n_jobs}"])
+    result = runner.invoke(
+        main, ["update-prs", f"--job={job}", f"--n-jobs={n_jobs}"] + fs
+    )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs)
+    cmd_mock.assert_called_once_with(
+        mock.ANY, job=job, n_jobs=n_jobs, feedstock=feedstock
+    )
 
 
 @pytest.mark.parametrize(
