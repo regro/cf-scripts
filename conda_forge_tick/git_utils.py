@@ -1587,7 +1587,7 @@ def trim_pr_json_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson], force: bool = False
+    pr_json: Union[Dict, LazyJson], force: bool = False, trust_last_modified: bool = True
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
@@ -1603,6 +1603,11 @@ def lazy_update_pr_json(
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
         according to the Last-Modified. Default is False.
+    trust_last_modified : bool, optional
+        If False, skip sending the if-modified-since header even if Last-Modified
+        is present. This works around a GitHub API bug where it returns 304 even
+        when the PR state has changed (e.g., conflicts). See
+        https://github.com/regro/cf-scripts/issues/5150 for details. Default is True.
 
     Returns
     -------
@@ -1613,7 +1618,7 @@ def lazy_update_pr_json(
         "Authorization": f"token {get_bot_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force and "Last-Modified" in pr_json:
+    if not force and trust_last_modified and "Last-Modified" in pr_json:
         hdrs["if-modified-since"] = pr_json["Last-Modified"]
 
     if "repo" not in pr_json["base"] or (
@@ -1641,7 +1646,9 @@ def lazy_update_pr_json(
     if r.status_code == 200:
         pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
-        pr_json["Last-Modified"] = r.headers["Last-Modified"]
+        # Store the Date header in Last-Modified to track when we last got fresh data
+        # This helps us identify stale cached data (see #5150)
+        pr_json["Last-Modified"] = r.headers.get("Date", r.headers.get("Last-Modified"))
     else:
         pr_json = trim_pr_json_keys(pr_json)
 
@@ -1662,7 +1669,28 @@ def refresh_pr(
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json))
+            # Check if we should distrust Last-Modified for old "clean" PRs
+            # GitHub API bug: returns 304 even when PR now has conflicts
+            # See https://github.com/regro/cf-scripts/issues/5150
+            trust_last_modified = True
+            if (
+                pr_json.get("mergeable_state") == "clean"
+                and "Last-Modified" in pr_json
+            ):
+                try:
+                    # Parse Last-Modified (Date header) to check if cached data is >7 days old
+                    last_modified = utils.parsedate_to_datetime(pr_json["Last-Modified"])
+                    now = datetime.now(last_modified.tzinfo)
+                    age_days = (now - last_modified).total_seconds() / 86400
+
+                    if age_days > 7:
+                        trust_last_modified = False
+                except (ValueError, TypeError):
+                    trust_last_modified = False
+
+            pr_json = lazy_update_pr_json(
+                copy.deepcopy(pr_json), trust_last_modified=trust_last_modified
+            )
 
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
