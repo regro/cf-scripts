@@ -82,6 +82,7 @@ def main(
 
     ctx.debug = debug
     ctx.dry_run = dry_run
+    ctx.online = online
 
     if online:
         logger.info("Running in online mode")
@@ -183,13 +184,18 @@ def make_status_report(migrators: tuple[str, ...]) -> None:
 @main.command(name="update-prs")
 @job_option
 @n_jobs_option
+@click.option(
+    "--feedstock",
+    default=None,
+    help="Only update PRs for this specific feedstock (must end with '-feedstock' suffix)",
+)
 @pass_context
-def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
+def update_prs(ctx: CliContext, job: int, n_jobs: int, feedstock: str | None) -> None:
     from . import update_prs
 
     check_job_param_relative(job, n_jobs)
 
-    update_prs.main(ctx, job=job, n_jobs=n_jobs)
+    update_prs.main(ctx, job=job, n_jobs=n_jobs, feedstock=feedstock)
 
 
 @main.command(name="make-mappings")
