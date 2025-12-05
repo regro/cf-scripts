@@ -1,10 +1,9 @@
 """Tests for update_prs module."""
 
-import pytest
 import networkx as nx
+import pytest
 
 from conda_forge_tick.update_prs import _filter_feedstock_nodes, _update_pr
-
 
 
 @pytest.mark.parametrize(

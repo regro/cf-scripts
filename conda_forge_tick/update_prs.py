@@ -66,7 +66,7 @@ def _combined_update_function(
     return None
 
 
-# as a seprate function for easier coverage testing without triggering
+# as a separate function for easier coverage testing without triggering
 # _update_pr, we can still test _update_pr with no
 # matching nodes and it returns 0,0 immediately.
 def _filter_feedstock_nodes(node_ids, feedstock_filter):
@@ -90,7 +90,9 @@ def _filter_feedstock_nodes(node_ids, feedstock_filter):
     return [node_id for node_id in node_ids if node_id == feedstock_filter]
 
 
-def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None, offline=False):
+def _update_pr(
+    update_function, dry_run, gx, job, n_jobs, feedstock_filter=None, offline=False
+):
     failed_refresh = 0
     succeeded_refresh = 0
     futures = {}
@@ -146,7 +148,11 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None,
                 if pr_json and (not pr_can_be_archived(pr_json, now=now)):
                     _pr_json = copy.deepcopy(pr_json.data)
                     future = pool.submit(
-                        update_function, _pr_json, dry_run, remake_prs_with_conflicts, offline
+                        update_function,
+                        _pr_json,
+                        dry_run,
+                        remake_prs_with_conflicts,
+                        offline,
                     )
                     futures[future] = (node_id, i, pr_json)
 
@@ -224,7 +230,13 @@ def update_pr_combined(
         The updated graph.
     """
     succeeded_refresh, failed_refresh = _update_pr(
-        _combined_update_function, dry_run, gx, job, n_jobs, feedstock_filter=feedstock, offline=offline
+        _combined_update_function,
+        dry_run,
+        gx,
+        job,
+        n_jobs,
+        feedstock_filter=feedstock,
+        offline=offline,
     )
 
     logger.info("JSON Refresh failed for %d PRs", failed_refresh)
@@ -232,7 +244,9 @@ def update_pr_combined(
     return gx
 
 
-def main(ctx: CliContext, job: int = 1, n_jobs: int = 1, feedstock: str | None = None) -> None:
+def main(
+    ctx: CliContext, job: int = 1, n_jobs: int = 1, feedstock: str | None = None
+) -> None:
     if feedstock and not feedstock.endswith("-feedstock"):
         raise ValueError(
             f"Feedstock name must end with '-feedstock': got '{feedstock}', "
@@ -242,4 +256,6 @@ def main(ctx: CliContext, job: int = 1, n_jobs: int = 1, feedstock: str | None =
     gx = load_existing_graph()
     # In offline mode, skip operations that write to GitHub
     offline = not ctx.online
-    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock, offline=offline)
+    update_pr_combined(
+        gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock, offline=offline
+    )
