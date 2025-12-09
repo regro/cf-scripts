@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Dict, Iterator, Optional, Union
 
 import backoff
+import dateutil.parser
 import github
 import github.Repository
 import github3
@@ -68,6 +69,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
+    "last_fetched": None,
     "id": None,
     "number": None,
     "html_url": None,
@@ -1651,6 +1653,8 @@ def lazy_update_pr_json(
         # Store the Date header in Last-Modified to track when we last got fresh data
         # This helps us identify stale cached data (see #5150)
         pr_json["Last-Modified"] = r.headers.get("Date", r.headers.get("Last-Modified"))
+        # Record the current time as when we last fetched fresh data
+        pr_json["last_fetched"] = datetime.now()
     else:
         pr_json = trim_pr_json_keys(pr_json)
 
@@ -1675,14 +1679,18 @@ def refresh_pr(
             # GitHub API bug: returns 304 even when PR now has conflicts
             # See https://github.com/regro/cf-scripts/issues/5150
             trust_last_modified = True
-            if pr_json.get("mergeable_state") == "clean" and "Last-Modified" in pr_json:
+            if pr_json.get("mergeable_state") == "clean" and "last_fetched" in pr_json:
                 try:
-                    # Parse Last-Modified (Date header) to check if cached data is >7 days old
-                    last_modified = utils.parsedate_to_datetime(
-                        pr_json["Last-Modified"]
+                    # Check if cached data is >7 days old using last_fetched timestamp
+                    last_fetched = pr_json["last_fetched"]
+                    if isinstance(last_fetched, str):
+                        # Handle ISO format string if needed
+                        last_fetched = dateutil.parser.isoparse(last_fetched)
+
+                    now = datetime.now(
+                        last_fetched.tzinfo if last_fetched.tzinfo else None
                     )
-                    now = datetime.now(last_modified.tzinfo)
-                    age_days = (now - last_modified).total_seconds() / 86400
+                    age_days = (now - last_fetched).total_seconds() / 86400
 
                     if age_days > 7:
                         trust_last_modified = False
