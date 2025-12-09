@@ -1663,6 +1663,7 @@ def lazy_update_pr_json(
 def refresh_pr(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
+    pr_refresh_age_days: float = 7.0,
 ) -> Optional[dict]:
     if pr_json["state"] != "closed":
         if dry_run:
@@ -1673,23 +1674,27 @@ def refresh_pr(
             # GitHub API bug: returns 304 even when PR now has conflicts
             # See https://github.com/regro/cf-scripts/issues/5150
             force_refresh = False
-            if pr_json.get("mergeable_state") == "clean" and "last_fetched" in pr_json:
-                try:
-                    # Check if cached data is >7 days old using last_fetched timestamp
-                    last_fetched = pr_json["last_fetched"]
-                    if isinstance(last_fetched, str):
-                        # Handle ISO format string if needed
-                        last_fetched = dateutil.parser.isoparse(last_fetched)
-
-                    now = datetime.now(
-                        last_fetched.tzinfo if last_fetched.tzinfo else None
-                    )
-                    age_days = (now - last_fetched).total_seconds() / 86400
-
-                    if age_days > 7:
-                        force_refresh = True
-                except (ValueError, TypeError):
+            if pr_json.get("mergeable_state") == "clean":
+                if "last_fetched" not in pr_json:
+                    # Force refresh if last_fetched is missing (unknown freshness)
                     force_refresh = True
+                else:
+                    try:
+                        # Check if cached data is older than threshold using last_fetched timestamp
+                        last_fetched = pr_json["last_fetched"]
+                        if isinstance(last_fetched, str):
+                            # Handle ISO format string if needed
+                            last_fetched = dateutil.parser.isoparse(last_fetched)
+
+                        now = datetime.now(
+                            last_fetched.tzinfo if last_fetched.tzinfo else None
+                        )
+                        age_days = (now - last_fetched).total_seconds() / 86400
+
+                        if age_days > pr_refresh_age_days:
+                            force_refresh = True
+                    except (ValueError, TypeError):
+                        force_refresh = True
 
             pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), force=force_refresh)
 
