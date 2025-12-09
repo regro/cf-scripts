@@ -61,7 +61,6 @@ def test_returns_zero_when_feedstock_not_found():
         job=1,
         n_jobs=1,
         feedstock_filter="nonexistent-feedstock",
-        offline=True,
     )
 
     assert succeeded == 0

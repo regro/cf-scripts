@@ -1589,9 +1589,7 @@ def trim_pr_json_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson],
-    force: bool = False,
-    force_refresh: bool = False,
+    pr_json: Union[Dict, LazyJson], force: bool = False
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 

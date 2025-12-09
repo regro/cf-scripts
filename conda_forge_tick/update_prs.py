@@ -255,5 +255,4 @@ def main(
         )
 
     gx = load_existing_graph()
-    # In offline mode, skip operations that write to GitHub
     update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock)
