@@ -33,7 +33,7 @@ KEEP_PR_FRACTION = 0.5
 
 
 def _combined_update_function(
-    pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool, offline: bool = False
+    pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
 ) -> dict | None:
     return_it = False
 
@@ -42,24 +42,21 @@ def _combined_update_function(
         return_it = True
         pr_json.update(pr_data)
 
-    # close_out_labels and close_out_dirty_prs try to write to GitHub
-    # Skip them in offline mode
-    if not offline:
-        pr_data = close_out_labels(pr_json, dry_run=dry_run)
+    pr_data = close_out_labels(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    if remake_prs_with_conflicts:
+        pr_data = refresh_pr(pr_json, dry_run=dry_run)
         if pr_data is not None:
             return_it = True
             pr_json.update(pr_data)
 
-        if remake_prs_with_conflicts:
-            pr_data = refresh_pr(pr_json, dry_run=dry_run)
-            if pr_data is not None:
-                return_it = True
-                pr_json.update(pr_data)
-
-            pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
-            if pr_data is not None:
-                return_it = True
-                pr_json.update(pr_data)
+        pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
+        if pr_data is not None:
+            return_it = True
+            pr_json.update(pr_data)
 
     if return_it:
         return pr_json
@@ -148,11 +145,7 @@ def _update_pr(
                 if pr_json and (not pr_can_be_archived(pr_json, now=now)):
                     _pr_json = copy.deepcopy(pr_json.data)
                     future = pool.submit(
-                        update_function,
-                        _pr_json,
-                        dry_run,
-                        remake_prs_with_conflicts,
-                        offline,
+                        update_function, _pr_json, dry_run, remake_prs_with_conflicts
                     )
                     futures[future] = (node_id, i, pr_json)
 
@@ -203,7 +196,6 @@ def update_pr_combined(
     job=1,
     n_jobs=1,
     feedstock: str | None = None,
-    offline: bool = False,
 ) -> nx.DiGraph:
     """Update PRs in the graph.
 
@@ -220,9 +212,6 @@ def update_pr_combined(
     feedstock : str | None, optional
         If provided, only update PRs for this specific feedstock.
         Must end with "-feedstock" suffix (validated in main()).
-    offline : bool, optional
-        If True, skip operations that write to GitHub (close_out_labels, close_out_dirty_prs).
-        Default is False.
 
     Returns
     -------
@@ -230,13 +219,7 @@ def update_pr_combined(
         The updated graph.
     """
     succeeded_refresh, failed_refresh = _update_pr(
-        _combined_update_function,
-        dry_run,
-        gx,
-        job,
-        n_jobs,
-        feedstock_filter=feedstock,
-        offline=offline,
+        _combined_update_function, dry_run, gx, job, n_jobs, feedstock_filter=feedstock
     )
 
     logger.info("JSON Refresh failed for %d PRs", failed_refresh)
@@ -255,7 +238,4 @@ def main(
 
     gx = load_existing_graph()
     # In offline mode, skip operations that write to GitHub
-    offline = not ctx.online
-    update_pr_combined(
-        gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock, offline=offline
-    )
+    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock)

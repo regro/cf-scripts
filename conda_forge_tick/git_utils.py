@@ -1645,10 +1645,9 @@ def lazy_update_pr_json(
     if r.status_code == 200:
         pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
-        # Store the Date header in Last-Modified to track when we last got fresh data
-        # This helps us identify stale cached data (see #5150)
-        pr_json["Last-Modified"] = r.headers.get("Date", r.headers.get("Last-Modified"))
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
         # Record the current time as when we last fetched fresh data
+        # This helps us identify stale cached data (see #5150)
         pr_json["last_fetched"] = datetime.now()
     else:
         pr_json = trim_pr_json_keys(pr_json)
