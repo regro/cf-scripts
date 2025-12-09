@@ -5,4 +5,3 @@ from dataclasses import dataclass
 class CliContext:
     debug: bool = True
     dry_run: bool = True
-    online: bool = False

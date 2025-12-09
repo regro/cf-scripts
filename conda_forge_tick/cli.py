@@ -82,7 +82,6 @@ def main(
 
     ctx.debug = debug
     ctx.dry_run = dry_run
-    ctx.online = online
 
     if online:
         logger.info("Running in online mode")
