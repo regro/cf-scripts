@@ -87,9 +87,7 @@ def _filter_feedstock_nodes(node_ids, feedstock_filter):
     return [node_id for node_id in node_ids if node_id == feedstock_filter]
 
 
-def _update_pr(
-    update_function, dry_run, gx, job, n_jobs, feedstock_filter=None
-):
+def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None):
     failed_refresh = 0
     succeeded_refresh = 0
     futures = {}
