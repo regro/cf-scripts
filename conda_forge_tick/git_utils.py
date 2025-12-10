@@ -1671,31 +1671,35 @@ def refresh_pr(
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            # Check if we should distrust Last-Modified for old "clean" PRs
+            # Check if we should distrust Last-Modified for old PRs
             # GitHub API bug: returns 304 even when PR now has conflicts
             # See https://github.com/regro/cf-scripts/issues/5150
+            # we could only do so for "clean" PR, but as the 304 anyway consume API
+            # might as well do it.
+            # This also ensure all the json will soon get the 'last_fetched' key
+            # and logic can be simplified.
             force_refresh = False
-            if pr_json.get("mergeable_state") == "clean":
-                if "last_fetched" not in pr_json:
-                    # Force refresh if last_fetched is missing (unknown freshness)
-                    force_refresh = True
-                else:
-                    try:
-                        # Check if cached data is older than threshold using last_fetched timestamp
-                        last_fetched = pr_json["last_fetched"]
-                        if isinstance(last_fetched, str):
-                            # Handle ISO format string if needed
-                            last_fetched = dateutil.parser.isoparse(last_fetched)
+            if "last_fetched" not in pr_json:
+                # TODO: Dec 2025, not all pr_json have 'last_fetch',
+                # this will need to be simplified in a few weeks once the bot has
+                # updated every PRs.
+                # Force refresh if last_fetched is missing (unknown freshness)
+                force_refresh = True
+            else:
+                try:
+                    last_fetched = pr_json["last_fetched"]
+                    if isinstance(last_fetched, str):
+                        last_fetched = dateutil.parser.isoparse(last_fetched)
 
-                        now = datetime.now(
-                            last_fetched.tzinfo if last_fetched.tzinfo else None
-                        )
-                        age_days = (now - last_fetched).total_seconds() / 86400
+                    now = datetime.now(
+                        last_fetched.tzinfo if last_fetched.tzinfo else None
+                    )
+                    age_days = (now - last_fetched).total_seconds() / 86400
 
-                        if age_days > pr_refresh_age_days:
-                            force_refresh = True
-                    except (ValueError, TypeError):
+                    if age_days > pr_refresh_age_days:
                         force_refresh = True
+                except (ValueError, TypeError):
+                    force_refresh = True
 
             pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), force=force_refresh)
 
