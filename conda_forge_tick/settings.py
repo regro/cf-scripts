@@ -97,7 +97,7 @@ class BotSettings(BaseSettings):
     """
     Number of days after which to refresh PR cache for 'clean' PRs to detect potential conflicts.
     Works around GitHub API bug #5150 where Last-Modified caching can hide merge conflicts.
-    Set to 0 to always refresh. Can be overridden per-feedstock in conda-forge.yml.
+    Set to 0 to always refresh.
     """
 
 

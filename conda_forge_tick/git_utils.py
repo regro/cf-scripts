@@ -1680,9 +1680,6 @@ def refresh_pr(
             # and logic can be simplified.
             force_refresh = False
             if "last_fetched" not in pr_json:
-                # TODO: Dec 2025, not all pr_json have 'last_fetch',
-                # this will need to be simplified in a few weeks once the bot has
-                # updated every PRs.
                 # Force refresh if last_fetched is missing (unknown freshness)
                 force_refresh = True
             else:
