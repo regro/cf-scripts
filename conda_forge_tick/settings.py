@@ -93,6 +93,13 @@ class BotSettings(BaseSettings):
     Specified in seconds.
     """
 
+    pr_refresh_age_days: float = 7.0
+    """
+    Number of days after which to refresh PR cache for 'clean' PRs to detect potential conflicts.
+    Works around GitHub API bug #5150 where Last-Modified caching can hide merge conflicts.
+    Set to 0 to always refresh.
+    """
+
 
 _use_settings_override: BotSettings | None = None
 """

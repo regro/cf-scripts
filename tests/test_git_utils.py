@@ -1762,6 +1762,7 @@ def test_trim_pr_json_keys():
     pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",
+        "last_fetched": "2024-01-01T00:00:00+00:00",
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
@@ -1773,12 +1774,14 @@ def test_trim_pr_json_keys():
     assert pr_json["head"] == {}
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
+    assert pr_json["last_fetched"] == "2024-01-01T00:00:00+00:00"
 
 
 def test_trim_pr_json_keys_src():
     src_pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",
+        "last_fetched": "2024-01-01T00:00:00+00:00",
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
@@ -1791,6 +1794,7 @@ def test_trim_pr_json_keys_src():
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
     assert "r" not in pr_json
+    assert pr_json["last_fetched"] == "2024-01-01T00:00:00+00:00"
 
 
 @pytest.mark.skipif(
