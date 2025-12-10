@@ -33,16 +33,11 @@ KEEP_PR_FRACTION = 0.5
 
 
 def _combined_update_function(
-    pr_json: dict,
-    dry_run: bool,
-    remake_prs_with_conflicts: bool,
-    pr_refresh_age_days: float = 7.0,
+    pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
 ) -> dict | None:
     return_it = False
 
-    pr_data = refresh_pr(
-        pr_json, dry_run=dry_run, pr_refresh_age_days=pr_refresh_age_days
-    )
+    pr_data = refresh_pr(pr_json, dry_run=dry_run)
     if pr_data is not None:
         return_it = True
         pr_json.update(pr_data)
@@ -53,9 +48,7 @@ def _combined_update_function(
         pr_json.update(pr_data)
 
     if remake_prs_with_conflicts:
-        pr_data = refresh_pr(
-            pr_json, dry_run=dry_run, pr_refresh_age_days=pr_refresh_age_days
-        )
+        pr_data = refresh_pr(pr_json, dry_run=dry_run)
         if pr_data is not None:
             return_it = True
             pr_json.update(pr_data)
@@ -140,13 +133,6 @@ def _update_pr(
                 True,
             )
 
-            pr_refresh_age_days = get_keys_default(
-                node,
-                ["conda-forge.yml", "bot", "pr_refresh_age_days"],
-                {},
-                7.0,
-            )
-
             prs = node.get("pr_info", {}).get("PRed", [])
 
             for i, migration in enumerate(prs):
@@ -163,7 +149,6 @@ def _update_pr(
                         _pr_json,
                         dry_run,
                         remake_prs_with_conflicts,
-                        pr_refresh_age_days,
                     )
                     futures[future] = (node_id, i, pr_json)
 

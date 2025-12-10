@@ -1661,8 +1661,11 @@ def lazy_update_pr_json(
 def refresh_pr(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
-    pr_refresh_age_days: float = 7.0,
 ) -> Optional[dict]:
+    from conda_forge_tick.settings import settings
+
+    pr_refresh_age_days = settings().pr_refresh_age_days
+
     if pr_json["state"] != "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])

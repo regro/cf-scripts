@@ -246,13 +246,6 @@ class BotConfig(BaseModel):
         description="Automatically remake untouched bot PRs with conflicts.",
     )
 
-    pr_refresh_age_days: Optional[float] = Field(
-        default=7.0,
-        description="Number of days after which to refresh PR cache for 'clean' PRs "
-        "to detect potential conflicts. Works around GitHub API bug #5150 where "
-        "Last-Modified caching can hide merge conflicts. Set to 0 to always refresh.",
-    )
-
 
 if __name__ == "__main__":
     # This is used to generate the model dump for conda-smithy internal use
