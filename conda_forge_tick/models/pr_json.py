@@ -116,7 +116,7 @@ class PullRequestDataValid(ValidatedBaseModel):
     Taken from the GitHub response header.
     """
 
-    last_fetched: datetime | None = Field(default=None)
+    last_fetched: str | None = Field(default=None)
     """
     Timestamp when we last fetched fresh PR data from GitHub API.
     Used to determine if cached data is stale, independent of Last-Modified.
