@@ -1682,11 +1682,11 @@ def refresh_pr(
             if isinstance(last_fetched, str):
                 last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
             else:
-                last_fetched = datetime.now() - timedelta(days=pr_refresh_age_days + 1)
+                last_fetched_date = datetime.now() - timedelta(
+                    days=pr_refresh_age_days + 1
+                )
             now = datetime.now(
-                last_fetched_date.tzinfo
-                if last_fetched_date.tzinfo
-                else None
+                last_fetched_date.tzinfo if last_fetched_date.tzinfo else None
             )
             age_days = (now - last_fetched_date).total_seconds() / 86400
 
