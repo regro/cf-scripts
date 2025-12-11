@@ -1682,7 +1682,7 @@ def refresh_pr(
 
             last_fetched: str | None = pr_json.get("last_fetched", None)
             try:
-                # `except:` handles case when last_fetched is None or unparseable
+                # `except:` handles case when last_fetched is None or unparsable
                 last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
                 last_fetched_tz = (
                     last_fetched_date.tzinfo if last_fetched_date.tzinfo else None
