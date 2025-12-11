@@ -1679,7 +1679,7 @@ def refresh_pr(
             # This also ensure all the json will soon get the 'last_fetched' key
             # and logic can be simplified.
             last_fetched: str | None = pr_json.get("last_fetched", None)
-            if isinstance(last_fetched, str):
+            if last_fetched
                 last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
             else:
                 last_fetched_date = datetime.now() - timedelta(
