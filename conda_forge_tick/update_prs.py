@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 NUM_GITHUB_THREADS = 2
-KEEP_PR_FRACTION = 0.5
+KEEP_PR_FRACTION = 0.25
 
 
 def _combined_update_function(
