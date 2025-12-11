@@ -1680,30 +1680,20 @@ def refresh_pr(
             # and logic can be simplified.
             force_refresh = False
 
-            if "last_fetched" not in pr_json:
-                # Force refresh if last_fetched is missing (unknown freshness)
-                force_refresh = True
-            else:
-                try:
-                    last_fetched: str | None = pr_json["last_fetched"]
-                    if not isinstance(last_fetched, str):
-                        force_refresh = True
-                    else:
-                        last_fetched_date: datetime = dateutil.parser.isoparse(
-                            last_fetched
-                        )
-
-                        now = datetime.now(
-                            last_fetched_date.tzinfo
-                            if last_fetched_date.tzinfo
-                            else None
-                        )
-                        age_days = (now - last_fetched_date).total_seconds() / 86400
-
-                        if age_days > pr_refresh_age_days:
-                            force_refresh = True
-                except (ValueError, TypeError):
+            last_fetched: str | None = pr_json.get("last_fetched", None)
+            try:
+                # `except:` handles case when last_fetched is None or unparsable
+                last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
+                last_fetched_tz = (
+                    last_fetched_date.tzinfo if last_fetched_date.tzinfo else None
+                )
+                now = datetime.now(last_fetched_tz)
+                age_days = (now - last_fetched_date).total_seconds() / 86400
+                if age_days > pr_refresh_age_days:
                     force_refresh = True
+            except (ValueError, TypeError):
+                # Force refresh if last_fetched is missing or unusable (unknown freshness)
+                force_refresh = True
 
             pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), force=force_refresh)
 
