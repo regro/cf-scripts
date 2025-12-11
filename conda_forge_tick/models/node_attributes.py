@@ -52,7 +52,7 @@ class BuildPlatformInfo(StrictBaseModel):
     """
 
 
-class NodeAttributesValid(StrictBaseModel):
+class NodeAttributesValid(ValidatedBaseModel):
     archived: bool
     """
     Is the feedstock repository archived?
