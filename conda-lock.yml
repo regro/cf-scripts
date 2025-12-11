@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.11.12.04.21
+  version: 2025.12.11.13.15.40
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.12.04.21-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.13.15.40-hd8ed1ab_0.conda
   hash:
-    md5: 5067e8ded7e52fdf3a5d21f047e3308f
-    sha256: 3585fd317d0f49e332221ae748727f80833607d25a11357cddd9487334bbbff7
+    md5: 0facc39288bc03a676b00615181a1f9b
+    sha256: 93812b65de0a51f1f2f1178b7e0e8f81509d55c898427f0bb4fdea3fef8bc8cd
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.11.12.04.21
+  version: 2025.12.11.13.15.40
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.12.04.21-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.13.15.40-hd8ed1ab_0.conda
   hash:
-    md5: 5067e8ded7e52fdf3a5d21f047e3308f
-    sha256: 3585fd317d0f49e332221ae748727f80833607d25a11357cddd9487334bbbff7
+    md5: 0facc39288bc03a676b00615181a1f9b
+    sha256: 93812b65de0a51f1f2f1178b7e0e8f81509d55c898427f0bb4fdea3fef8bc8cd
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.11.12.04.21
+  version: 2025.12.11.13.15.40
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.12.04.21-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.11.13.15.40-hd8ed1ab_0.conda
   hash:
-    md5: 5067e8ded7e52fdf3a5d21f047e3308f
-    sha256: 3585fd317d0f49e332221ae748727f80833607d25a11357cddd9487334bbbff7
+    md5: 0facc39288bc03a676b00615181a1f9b
+    sha256: 93812b65de0a51f1f2f1178b7e0e8f81509d55c898427f0bb4fdea3fef8bc8cd
   category: main
   optional: false
 - name: conda-forge-tick
@@ -16182,7 +16182,7 @@ package:
   category: main
   optional: false
 - name: tornado
-  version: 6.5.2
+  version: 6.5.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -16190,38 +16190,38 @@ package:
     libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/tornado-6.5.2-py311h49ec1c0_2.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/tornado-6.5.3-py311h49ec1c0_0.conda
   hash:
-    md5: 8d7a63fc9653ed0bdc253a51d9a5c371
-    sha256: 1913516458f92df2a0b415426dce27cc14922415787f4b672a707b233631b1e0
+    md5: a0d8cab7384ccfca582b952d9c8c619a
+    sha256: 0d5c53a3ae7531ddf6bc28fb95edded05f1908f3ccffe5ab820f5992b81e5418
   category: main
   optional: false
 - name: tornado
-  version: 6.5.2
+  version: 6.5.3
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/tornado-6.5.2-py311hf197a57_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/tornado-6.5.3-py311hf197a57_0.conda
   hash:
-    md5: 04c6997f161e260378aa174f3faeb0dc
-    sha256: 88e4ca9e96d042313c62e8037574262622171c99a0ff3afd9747fbeb84963186
+    md5: 45cfb83dd6fda1523868be421ea631d0
+    sha256: de643b1f09444ca93c6048c36cbf2eafef2e7c59e6979ff33efaa0486a3cfb4d
   category: main
   optional: false
 - name: tornado
-  version: 6.5.2
+  version: 6.5.3
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.5.2-py311h9408147_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.5.3-py311h9408147_0.conda
   hash:
-    md5: e3af56f478d9919acac254ff82ad150c
-    sha256: 70d4187bb8ec0016b9928e76eeaea0b2a021f741ea40a6ea2ee4b9c142ddaf24
+    md5: 003b0ea34f01257e6b4f68ad208fb692
+    sha256: 8234acb3e895b7d9c720818c8d1d2771d5f7f1619807cc949e7ffffb8c13a29d
   category: main
   optional: false
 - name: tqdm
