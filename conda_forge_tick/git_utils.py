@@ -1679,22 +1679,29 @@ def refresh_pr(
             # This also ensure all the json will soon get the 'last_fetched' key
             # and logic can be simplified.
             force_refresh = False
+
             if "last_fetched" not in pr_json:
                 # Force refresh if last_fetched is missing (unknown freshness)
                 force_refresh = True
             else:
                 try:
-                    last_fetched = pr_json["last_fetched"]
-                    if isinstance(last_fetched, str):
-                        last_fetched = dateutil.parser.isoparse(last_fetched)
-
-                    now = datetime.now(
-                        last_fetched.tzinfo if last_fetched.tzinfo else None
-                    )
-                    age_days = (now - last_fetched).total_seconds() / 86400
-
-                    if age_days > pr_refresh_age_days:
+                    last_fetched: str | None = pr_json["last_fetched"]
+                    if not isinstance(last_fetched, str):
                         force_refresh = True
+                    else:
+                        last_fetched_date: datetime = dateutil.parser.isoparse(
+                            last_fetched
+                        )
+
+                        now = datetime.now(
+                            last_fetched_date.tzinfo
+                            if last_fetched_date.tzinfo
+                            else None
+                        )
+                        age_days = (now - last_fetched_date).total_seconds() / 86400
+
+                        if age_days > pr_refresh_age_days:
+                            force_refresh = True
                 except (ValueError, TypeError):
                     force_refresh = True
 
