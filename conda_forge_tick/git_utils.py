@@ -12,7 +12,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timedelta
 from email import utils
 from functools import cached_property
 from pathlib import Path
@@ -1678,32 +1678,22 @@ def refresh_pr(
             # might as well do it.
             # This also ensure all the json will soon get the 'last_fetched' key
             # and logic can be simplified.
-            force_refresh = False
+            last_fetched: str | None = pr_json.get("last_fetched", None)
+            if isinstance(last_fetched, str):
+                last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
+            else:
+                last_fetched = datetime.now() - timedelta(days=pr_refresh_age_days + 1)
+            now = datetime.now(
+                last_fetched_date.tzinfo
+                if last_fetched_date.tzinfo
+                else None
+            )
+            age_days = (now - last_fetched_date).total_seconds() / 86400
 
-            if "last_fetched" not in pr_json:
-                # Force refresh if last_fetched is missing (unknown freshness)
+            if age_days > pr_refresh_age_days:
                 force_refresh = True
             else:
-                try:
-                    last_fetched: str | None = pr_json["last_fetched"]
-                    if not isinstance(last_fetched, str):
-                        force_refresh = True
-                    else:
-                        last_fetched_date: datetime = dateutil.parser.isoparse(
-                            last_fetched
-                        )
-
-                        now = datetime.now(
-                            last_fetched_date.tzinfo
-                            if last_fetched_date.tzinfo
-                            else None
-                        )
-                        age_days = (now - last_fetched_date).total_seconds() / 86400
-
-                        if age_days > pr_refresh_age_days:
-                            force_refresh = True
-                except (ValueError, TypeError):
-                    force_refresh = True
+                force_refresh = False
 
             pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), force=force_refresh)
 
