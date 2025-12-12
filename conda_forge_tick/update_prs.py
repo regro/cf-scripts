@@ -20,6 +20,7 @@ from conda_forge_tick.git_utils import (
 from conda_forge_tick.utils import get_keys_default, pr_can_be_archived
 
 from .executors import executor
+from .settings import settings
 from .utils import load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
@@ -29,7 +30,6 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 NUM_GITHUB_THREADS = 2
-KEEP_PR_FRACTION = 0.125
 
 
 def _combined_update_function(
@@ -92,6 +92,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None)
     succeeded_refresh = 0
     futures = {}
     node_ids = list(gx.nodes)
+    update_frac = settings().frac_update_pr_json
 
     # Apply feedstock filter if provided
     # When filtering to a specific feedstock, disable random sampling
@@ -135,7 +136,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None)
 
             for i, migration in enumerate(prs):
                 # Skip random sampling if a specific feedstock is selected
-                if not feedstock_filter and RNG.random() >= KEEP_PR_FRACTION:
+                if not feedstock_filter and RNG.random() >= update_frac:
                     continue
 
                 pr_json = migration.get("PR", None)
