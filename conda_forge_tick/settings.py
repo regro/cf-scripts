@@ -87,7 +87,7 @@ class BotSettings(BaseSettings):
     In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
     """
 
-    frac_update_pr_json: Fraction = 0.25
+    frac_update_pr_json: Fraction = 0.05
     """
     The fraction of feedstocks (randomly selected) to update in the prs job.
     In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
@@ -99,7 +99,7 @@ class BotSettings(BaseSettings):
     Specified in seconds.
     """
 
-    pr_refresh_age_days: float = 14.0
+    pr_refresh_age_days: float = 7.0
     """
     Number of days after which to refresh PR cache for 'clean' PRs to detect potential conflicts.
     Works around GitHub API bug #5150 where Last-Modified caching can hide merge conflicts.
