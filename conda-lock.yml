@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.15.38.47
+  version: 2025.12.12.16.57.37
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.15.38.47-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.16.57.37-hd8ed1ab_0.conda
   hash:
-    md5: a3825185b5d0482a2c048fbc9b9b4722
-    sha256: 80269dcfbae3dbf90b130a5929f86d568bce863bc3ecea1b525b770fb09ef310
+    md5: 9f82d0582cc4c64e810fc497ce74bbcf
+    sha256: 22c552ab9939a96bd84a5b312e331df8ce15f15625355edd67baa307e04b44aa
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.15.38.47
+  version: 2025.12.12.16.57.37
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.15.38.47-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.16.57.37-hd8ed1ab_0.conda
   hash:
-    md5: a3825185b5d0482a2c048fbc9b9b4722
-    sha256: 80269dcfbae3dbf90b130a5929f86d568bce863bc3ecea1b525b770fb09ef310
+    md5: 9f82d0582cc4c64e810fc497ce74bbcf
+    sha256: 22c552ab9939a96bd84a5b312e331df8ce15f15625355edd67baa307e04b44aa
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.15.38.47
+  version: 2025.12.12.16.57.37
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.15.38.47-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.16.57.37-hd8ed1ab_0.conda
   hash:
-    md5: a3825185b5d0482a2c048fbc9b9b4722
-    sha256: 80269dcfbae3dbf90b130a5929f86d568bce863bc3ecea1b525b770fb09ef310
+    md5: 9f82d0582cc4c64e810fc497ce74bbcf
+    sha256: 22c552ab9939a96bd84a5b312e331df8ce15f15625355edd67baa307e04b44aa
   category: main
   optional: false
 - name: conda-forge-tick
@@ -3845,7 +3845,7 @@ package:
   dependencies:
     click: '>=8.0'
     cloudpickle: '>=3.0.0'
-    cytoolz: '>=0.11.2'
+    cytoolz: '>=0.12.0'
     dask-core: '>=2025.12.0,<2025.12.1.0a0'
     jinja2: '>=2.10.3'
     locket: '>=1.0.0'
@@ -3856,14 +3856,14 @@ package:
     pyyaml: '>=5.4.1'
     sortedcontainers: '>=2.0.5'
     tblib: '>=1.6.0'
-    toolz: '>=0.11.2'
+    toolz: '>=0.12.0'
     tornado: '>=6.2.0'
     urllib3: '>=1.26.5'
     zict: '>=3.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_1.conda
   hash:
-    md5: b32cd8073ff460432854a80b165ac794
-    sha256: f608c858fe38ddaac6e692d3ba2e3806291117b443a3ff35f95805338bd96677
+    md5: 613cea9275c4773d0b53c879838ac0ad
+    sha256: efaf699a2b8dc4bc23ed517184c7fa3182a9f9072a0e97566ea5a1c532916bee
   category: main
   optional: false
 - name: distributed
@@ -3873,7 +3873,7 @@ package:
   dependencies:
     click: '>=8.0'
     cloudpickle: '>=3.0.0'
-    cytoolz: '>=0.11.2'
+    cytoolz: '>=0.12.0'
     dask-core: '>=2025.12.0,<2025.12.1.0a0'
     jinja2: '>=2.10.3'
     locket: '>=1.0.0'
@@ -3884,14 +3884,14 @@ package:
     pyyaml: '>=5.4.1'
     sortedcontainers: '>=2.0.5'
     tblib: '>=1.6.0'
-    toolz: '>=0.11.2'
+    toolz: '>=0.12.0'
     tornado: '>=6.2.0'
     urllib3: '>=1.26.5'
     zict: '>=3.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_1.conda
   hash:
-    md5: b32cd8073ff460432854a80b165ac794
-    sha256: f608c858fe38ddaac6e692d3ba2e3806291117b443a3ff35f95805338bd96677
+    md5: 613cea9275c4773d0b53c879838ac0ad
+    sha256: efaf699a2b8dc4bc23ed517184c7fa3182a9f9072a0e97566ea5a1c532916bee
   category: main
   optional: false
 - name: distributed
@@ -3901,7 +3901,7 @@ package:
   dependencies:
     click: '>=8.0'
     cloudpickle: '>=3.0.0'
-    cytoolz: '>=0.11.2'
+    cytoolz: '>=0.12.0'
     dask-core: '>=2025.12.0,<2025.12.1.0a0'
     jinja2: '>=2.10.3'
     locket: '>=1.0.0'
@@ -3912,14 +3912,14 @@ package:
     pyyaml: '>=5.4.1'
     sortedcontainers: '>=2.0.5'
     tblib: '>=1.6.0'
-    toolz: '>=0.11.2'
+    toolz: '>=0.12.0'
     tornado: '>=6.2.0'
     urllib3: '>=1.26.5'
     zict: '>=3.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2025.12.0-pyhcf101f3_1.conda
   hash:
-    md5: b32cd8073ff460432854a80b165ac794
-    sha256: f608c858fe38ddaac6e692d3ba2e3806291117b443a3ff35f95805338bd96677
+    md5: 613cea9275c4773d0b53c879838ac0ad
+    sha256: efaf699a2b8dc4bc23ed517184c7fa3182a9f9072a0e97566ea5a1c532916bee
   category: main
   optional: false
 - name: distro
