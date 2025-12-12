@@ -1302,6 +1302,7 @@ class GitHubBackend(GitPlatformBackend):
             k: self._github3_session.last_response_headers.get(k, None)
             for k in PullRequestDataValid.HEADER_FIELDS
         }
+        header_fields["last_fetched"] = datetime.now()
 
         # note: this ignores extra fields in the response
         return PullRequestDataValid.model_validate(response.as_dict() | header_fields)
@@ -1470,6 +1471,7 @@ class DryRunBackend(GitPlatformBackend):
             {
                 "ETag": "GITHUB_PR_ETAG",
                 "Last-Modified": utils.format_datetime(now),
+                "last_fetched": datetime.now(),
                 "id": 13371337,
                 "html_url": f"https://github.com/{target_owner}/{target_repo}/pulls/1337",
                 "created_at": now,
