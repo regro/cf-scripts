@@ -50,17 +50,19 @@ YAML_PATHS = [
             "9.4.0",
             VERSION_WITH_JPEGTURBO,
         ),
-        (
+        pytest.param(
             "qtqtmain_octave_before_meta.yaml",
             ("qtqtmain_octave_after_meta.yaml", "qtqtmain_octave_xz_after_meta.yaml"),
             "2025.3.75",
             VERSION_WITH_QTQTMAIN,
+            marks=pytest.mark.xfail(reason="qgis URLs do not always work!"),
         ),
-        (
+        pytest.param(
             "qtqtmain_qgis_before_meta.yaml",
             "qtqtmain_qgis_after_meta.yaml",
             "3.18.3",
             VERSION_WITH_QTQTMAIN,
+            marks=pytest.mark.xfail(reason="qgis URLs do not always work!"),
         ),
     ],
 )
