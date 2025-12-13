@@ -553,17 +553,21 @@ def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
             except Exception:
                 raise
             else:
+                # We return a reference to the lazyjson object,
+                # but not the object itself. Otherwise, dumps + loads done later
+                # writes an empty blob.
+                pr_lazy_json_ref = pr_lazy_json.json_ref
+
                 # if we pushed the file, then we remove the local copy so it is
                 # not synced again later.
                 # other bot jobs can write this file and this job should only
                 # touch it once.
                 with lazy_json_override_backends(["file"], use_file_cache=False):
                     remove_key_for_hashmap(pr_lazy_json.hashmap, pr_lazy_json.node)
+                del pr_lazy_json
 
-                # We then return a reference to the lazyjson object,
-                # but not the object itself. Otherwise, dumps + loads done later
-                # writes an empty blob.
-                pr_lazy_json = pr_lazy_json.json_ref
+                # set the value for return
+                pr_lazy_json = pr_lazy_json_ref
     else:
         pr_lazy_json = False
 
