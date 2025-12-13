@@ -973,6 +973,7 @@ class LazyJson(MutableMapping):
             node = self.file_name[: -len(".json")]
         self.hashmap = key
         self.node = node
+        self.json_ref = {"__lazy_json__": self.file_name}
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
@@ -1106,7 +1107,7 @@ def default(obj: Any) -> Any:
         If the object is not JSON serializable.
     """
     if isinstance(obj, LazyJson):
-        return {"__lazy_json__": obj.file_name}
+        return obj.json_ref
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
     elif isinstance(obj, nx.DiGraph):

@@ -500,7 +500,7 @@ def run_with_tmpdir(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> (
-    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
+    tuple[MigrationUidTypedDict, dict | LazyJson | Literal[False]]
     | tuple[Literal[False], Literal[False]]
 ):
     """
@@ -523,8 +523,8 @@ def run_with_tmpdir(
         )
 
 
-def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
-    pr_lazy_json: LazyJson | Literal[False]
+def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
+    pr_lazy_json: dict | LazyJson | Literal[False]
     if pr_data:
         # FIXME DEBUG - check if last_fetched is set here
         print(
@@ -559,6 +559,11 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
                 # touch it once.
                 with lazy_json_override_backends(["file"], use_file_cache=False):
                     remove_key_for_hashmap(pr_lazy_json.hashmap, pr_lazy_json.node)
+
+                # We then return a reference to the lazyjson object,
+                # but not the object itself. Otherwise, dumps + loads done later
+                # writes an empty blob.
+                pr_lazy_json = pr_lazy_json.json_ref
     else:
         pr_lazy_json = False
 
@@ -573,7 +578,7 @@ def run(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> (
-    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
+    tuple[MigrationUidTypedDict, dict | LazyJson | Literal[False]]
     | tuple[Literal[False], Literal[False]]
 ):
     """For a given feedstock and migration run the migration.
