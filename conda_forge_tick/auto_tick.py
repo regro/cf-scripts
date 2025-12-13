@@ -40,6 +40,7 @@ from conda_forge_tick.git_utils import (
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
+    lazy_json_override_backends,
     lazy_json_transaction,
     remove_key_for_hashmap,
     sync_lazy_json_object,
@@ -532,8 +533,17 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
-
+            try:
+                sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+            except Exception:
+                raise
+            else:
+                # if we pushed the file, then we remove the local copy so it is
+                # not synced again later.
+                # other bot jobs can write this file and this job should only
+                # touch it once.
+                with lazy_json_override_backends(["file"], use_file_cache=False):
+                    remove_key_for_hashmap(pr_lazy_json.hashmap, pr_lazy_json.node)
     else:
         pr_lazy_json = False
 
