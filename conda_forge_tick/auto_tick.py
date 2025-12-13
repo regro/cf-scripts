@@ -533,6 +533,7 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
 
         if "id" in pr_lazy_json:
             sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+
     else:
         pr_lazy_json = False
 
