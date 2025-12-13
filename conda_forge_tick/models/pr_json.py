@@ -98,7 +98,6 @@ class PullRequestDataValid(ValidatedBaseModel):
     HEADER_FIELDS: ClassVar[set[str]] = {
         "ETag",
         "Last-Modified",
-        "last_fetched",
     }
     """
     A set of all header fields that are stored in the PR object.

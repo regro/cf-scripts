@@ -526,11 +526,26 @@ def run_with_tmpdir(
 def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
     pr_lazy_json: LazyJson | Literal[False]
     if pr_data:
+        # FIXME DEBUG - check if last_fetched is set here
+        print(
+            "\n\nPR DATA KEYS:",
+            pr_data.model_dump(mode="json"),
+            "\n\n",
+            flush=True,
+        )
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
         )
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+
+        # FIXME DEBUG - check if last_fetched is set here
+        print(
+            "\n\nPR JSON KEYS:",
+            pr_lazy_json.data,
+            "\n\n",
+            flush=True,
+        )
 
         if "id" in pr_lazy_json:
             try:
