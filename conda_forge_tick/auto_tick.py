@@ -40,7 +40,6 @@ from conda_forge_tick.git_utils import (
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
-    lazy_json_override_backends,
     lazy_json_transaction,
     remove_key_for_hashmap,
     sync_lazy_json_object,
@@ -500,7 +499,7 @@ def run_with_tmpdir(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> (
-    tuple[MigrationUidTypedDict, dict | LazyJson | Literal[False]]
+    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
     | tuple[Literal[False], Literal[False]]
 ):
     """
@@ -523,8 +522,8 @@ def run_with_tmpdir(
         )
 
 
-def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
-    pr_lazy_json: dict | LazyJson | Literal[False]
+def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
+    pr_lazy_json: LazyJson | Literal[False]
     if pr_data:
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
@@ -533,46 +532,7 @@ def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            try:
-                sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
-            except Exception:
-                raise
-            else:
-                lzj_pth = pr_lazy_json.sharded_path
-                print(
-                    "\n\nBEFORE JSON BLOB ON DISK:",
-                    os.path.exists(lzj_pth),
-                    "\n\n",
-                    flush=True,
-                )
-
-                # We return a reference to the lazyjson object,
-                # but not the object itself. Otherwise, dumps + loads done later
-                # writes an empty blob.
-                pr_lazy_json_ref = pr_lazy_json.json_ref
-
-                # if we pushed the file, then we remove the local copy so it is
-                # not synced again later.
-                # other bot jobs can write this file and this job should only
-                # touch it once.
-                with lazy_json_override_backends(["file"], use_file_cache=False):
-                    remove_key_for_hashmap(pr_lazy_json.hashmap, pr_lazy_json.node)
-                print(
-                    "\n\nAFTER JSON BLOB ON DISK:",
-                    os.path.exists(lzj_pth),
-                    "\n\n",
-                    flush=True,
-                )
-                del pr_lazy_json
-                print(
-                    "\n\nAFTER AFTER JSON BLOB ON DISK:",
-                    os.path.exists(lzj_pth),
-                    "\n\n",
-                    flush=True,
-                )
-
-                # set the value for return
-                pr_lazy_json = pr_lazy_json_ref
+            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
     else:
         pr_lazy_json = False
 
@@ -587,7 +547,7 @@ def run(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> (
-    tuple[MigrationUidTypedDict, dict | LazyJson | Literal[False]]
+    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
     | tuple[Literal[False], Literal[False]]
 ):
     """For a given feedstock and migration run the migration.
@@ -769,12 +729,6 @@ def run(
         )
 
     pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
-    print(
-        "\n\nFINAL PR LAZY JSON:",
-        pr_lazy_json,
-        "\n\n",
-        flush=True,
-    )
 
     # If we've gotten this far then the node is good
     with context.attrs["pr_info"] as pri:
