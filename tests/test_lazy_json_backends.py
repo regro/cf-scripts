@@ -540,6 +540,7 @@ def test_lazy_json_default(tmpdir):
         assert os.path.exists(lj.file_name)
         assert os.path.exists(fpth)
         assert lj.json_ref == {"__lazy_json__": lj.file_name}
+        assert lj.sharded_path == get_sharded_path(f"{lj.hashmap}/{lj.node}.json")
 
         with open(fpth) as ff:
             assert ff.read() == json.dumps({})

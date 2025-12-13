@@ -974,6 +974,7 @@ class LazyJson(MutableMapping):
         self.hashmap = key
         self.node = node
         self.json_ref = {"__lazy_json__": self.file_name}
+        self.sharded_path = get_sharded_path(f"{self.hashmap}/{self.node}.json")
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":

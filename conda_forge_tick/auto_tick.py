@@ -526,26 +526,11 @@ def run_with_tmpdir(
 def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
     pr_lazy_json: dict | LazyJson | Literal[False]
     if pr_data:
-        # FIXME DEBUG - check if last_fetched is set here
-        print(
-            "\n\nPR DATA KEYS:",
-            pr_data.model_dump(mode="json"),
-            "\n\n",
-            flush=True,
-        )
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
         )
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
-
-        # FIXME DEBUG - check if last_fetched is set here
-        print(
-            "\n\nPR JSON KEYS:",
-            pr_lazy_json.data,
-            "\n\n",
-            flush=True,
-        )
 
         if "id" in pr_lazy_json:
             try:
@@ -553,6 +538,14 @@ def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
             except Exception:
                 raise
             else:
+                lzj_pth = pr_lazy_json.sharded_path
+                print(
+                    "\n\nBEFORE JSON BLOB ON DISK:",
+                    os.path.exists(lzj_pth),
+                    "\n\n",
+                    flush=True,
+                )
+
                 # We return a reference to the lazyjson object,
                 # but not the object itself. Otherwise, dumps + loads done later
                 # writes an empty blob.
@@ -564,7 +557,19 @@ def _make_and_sync_pr_lazy_json(pr_data) -> dict | LazyJson | Literal[False]:
                 # touch it once.
                 with lazy_json_override_backends(["file"], use_file_cache=False):
                     remove_key_for_hashmap(pr_lazy_json.hashmap, pr_lazy_json.node)
+                print(
+                    "\n\nAFTER JSON BLOB ON DISK:",
+                    os.path.exists(lzj_pth),
+                    "\n\n",
+                    flush=True,
+                )
                 del pr_lazy_json
+                print(
+                    "\n\nAFTER AFTER JSON BLOB ON DISK:",
+                    os.path.exists(lzj_pth),
+                    "\n\n",
+                    flush=True,
+                )
 
                 # set the value for return
                 pr_lazy_json = pr_lazy_json_ref
@@ -764,6 +769,12 @@ def run(
         )
 
     pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
+    print(
+        "\n\nFINAL PR LAZY JSON:",
+        pr_lazy_json,
+        "\n\n",
+        flush=True,
+    )
 
     # If we've gotten this far then the node is good
     with context.attrs["pr_info"] as pri:
