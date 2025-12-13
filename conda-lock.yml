@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.23.31.02
+  version: 2025.12.13.19.42.55
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.23.31.02-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.13.19.42.55-hd8ed1ab_0.conda
   hash:
-    md5: b6c4d3ff40da5e07796cb35e917ec4e0
-    sha256: f02cbfdc4e45e573c5aa92078d56db47b1b12d5e852f55a2b49017ba826721e2
+    md5: 721497acddde3c87c3f1d7f16a988d9f
+    sha256: 3abcc159c230ea0254c70bbdc61248e058399e72aac100e4776759fb67bd9bf5
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.23.31.02
+  version: 2025.12.13.19.42.55
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.23.31.02-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.13.19.42.55-hd8ed1ab_0.conda
   hash:
-    md5: b6c4d3ff40da5e07796cb35e917ec4e0
-    sha256: f02cbfdc4e45e573c5aa92078d56db47b1b12d5e852f55a2b49017ba826721e2
+    md5: 721497acddde3c87c3f1d7f16a988d9f
+    sha256: 3abcc159c230ea0254c70bbdc61248e058399e72aac100e4776759fb67bd9bf5
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.12.23.31.02
+  version: 2025.12.13.19.42.55
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.12.23.31.02-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.13.19.42.55-hd8ed1ab_0.conda
   hash:
-    md5: b6c4d3ff40da5e07796cb35e917ec4e0
-    sha256: f02cbfdc4e45e573c5aa92078d56db47b1b12d5e852f55a2b49017ba826721e2
+    md5: 721497acddde3c87c3f1d7f16a988d9f
+    sha256: 3abcc159c230ea0254c70bbdc61248e058399e72aac100e4776759fb67bd9bf5
   category: main
   optional: false
 - name: conda-forge-tick
@@ -4960,7 +4960,7 @@ package:
   category: main
   optional: false
 - name: fonttools
-  version: 4.61.0
+  version: 4.61.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -4971,14 +4971,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     unicodedata2: '>=15.1.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/fonttools-4.61.0-py311h3778330_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/fonttools-4.61.1-py311h3778330_0.conda
   hash:
-    md5: f5ee391df23b7f50676ebe79fc53ee03
-    sha256: 0f6c2689b025bc26455d43ff48faee40945de2f5486f95674bcf68715b81c86a
+    md5: 2e8ccb31890a95d5cd90d74a11c7d5e2
+    sha256: 8f7eb3a66854785ae1867386f6c8d19791fac7a4d41b335d3117a6e896a154f1
   category: main
   optional: false
 - name: fonttools
-  version: 4.61.0
+  version: 4.61.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -4988,14 +4988,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     unicodedata2: '>=15.1.0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/fonttools-4.61.0-py311he13f9b5_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/fonttools-4.61.1-py311he13f9b5_0.conda
   hash:
-    md5: 9ff79245540ce7edae0c718a92a704a8
-    sha256: bbe9deffc6f3c836f9083215728381c7a861c3a69e238c01d506e6c68e6ed6e6
+    md5: 16170c1aade6f6b935c585ccedf49f58
+    sha256: 85bf9b4e506d6627c97ea35b884b7c322eb901e0a881499c287643e5125b76ec
   category: main
   optional: false
 - name: fonttools
-  version: 4.61.0
+  version: 4.61.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -5005,10 +5005,10 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     unicodedata2: '>=15.1.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/fonttools-4.61.0-py311ha9b3269_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/fonttools-4.61.1-py311ha9b3269_0.conda
   hash:
-    md5: 35b79f1e3e53eb1abe734678db018c95
-    sha256: 68066fad4c16c56f424520ac89194b2f616945b98c79487d79d63e5335766465
+    md5: 1cd0bcb3eee550d601c84b28b7df1ac3
+    sha256: dbde6d3ea8058747fb7800aafbb5a0bf650f6f25e4b2ee53206eedadbb73054e
   category: main
   optional: false
 - name: freetype
