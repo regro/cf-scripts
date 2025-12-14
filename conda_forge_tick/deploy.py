@@ -295,6 +295,10 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
 
                 msg = _get_pth_commit_message(pth)
 
+                # FIXME - remove this debugging print
+                if "pr_json/" in pth:
+                    with open(pth, "r") as fp:
+                        print("about to push file:", pth, fp.read(), flush=True)
                 push_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
             except Exception as e:
                 logger.warning(
