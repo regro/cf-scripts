@@ -195,6 +195,68 @@ class FileLazyJsonBackend(LazyJsonBackend):
         return data_str
 
 
+class ReadOnlyFileLazyJsonBackend(LazyJsonBackend):
+    @contextlib.contextmanager
+    def transaction_context(self) -> Iterator[Self]:
+        # context not required
+        yield self
+
+    @contextlib.contextmanager
+    def snapshot_context(self) -> Iterator[Self]:
+        # context not required
+        yield self
+
+    def hexists(self, name: str, key: str) -> bool:
+        return os.path.exists(get_sharded_path(f"{name}/{key}.json"))
+
+    def hset(self, name: str, key: str, value: str) -> None:
+        raise RuntimeError(
+            "The read-only LazyJson file backend does not allow writing data!"
+        )
+
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
+        raise RuntimeError(
+            "The read-only LazyJson file backend does not allow writing data!"
+        )
+
+    def hmget(self, name: str, keys: Iterable[str]) -> list[str]:
+        return [self.hget(name, key) for key in keys]
+
+    def hgetall(self, name: str, hashval: bool = False) -> dict[str, str]:
+        return {
+            key: (
+                hashlib.sha256(self.hget(name, key).encode("utf-8")).hexdigest()
+                if hashval
+                else self.hget(name, key)
+            )
+            for key in self.hkeys(name)
+        }
+
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
+        raise RuntimeError(
+            "The read-only LazyJson file backend does not allow deleting data!"
+        )
+
+    def hkeys(self, name: str) -> list[str]:
+        jlen = len(".json")
+        fnames: Iterable[str]
+        if name == "lazy_json":
+            fnames = glob.glob("*.json")
+            fnames = set(fnames) - {
+                "ranked_hubs_authorities.json",
+                "all_feedstocks.json",
+            }
+        else:
+            fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
+        return [os.path.basename(fname)[:-jlen] for fname in fnames]
+
+    def hget(self, name: str, key: str) -> str:
+        sharded_path = get_sharded_path(f"{name}/{key}.json")
+        with open(sharded_path) as f:
+            data_str = f.read()
+        return data_str
+
+
 class GithubLazyJsonBackend(LazyJsonBackend):
     """
     Read-only backend that makes live requests to https://raw.githubusercontent.com
@@ -691,7 +753,9 @@ LAZY_JSON_BACKENDS: dict[str, type[LazyJsonBackend]] = {
     "mongodb": MongoDBLazyJsonBackend,
     "github": GithubLazyJsonBackend,
     "github_api": GithubAPILazyJsonBackend,
+    "file-read-only": ReadOnlyFileLazyJsonBackend,
 }
+READ_ONLY_LAZY_JSON_BACKENDS = ("file-read-only",)
 
 
 def sync_lazy_json_hashmap(
@@ -1032,24 +1096,42 @@ class LazyJson(MutableMapping):
                 if (
                     CF_TICK_GRAPH_DATA_USE_FILE_CACHE
                     and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file"
+                    and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                    not in READ_ONLY_LAZY_JSON_BACKENDS
                 ):
                     file_backend.hset(self.hashmap, self.node, data_str)
 
-            self._data_hash_at_load = hashlib.sha256(
-                data_str.encode("utf-8"),
-            ).hexdigest()
+            # read-only backends can have the data on disk out of sync with the data in memory
+            # thus we do not set a hash so that things are always dumped if the backend
+            # is changed back to a non-read-only backend
+            if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND not in READ_ONLY_LAZY_JSON_BACKENDS:
+                self._data_hash_at_load = hashlib.sha256(
+                    data_str.encode("utf-8"),
+                ).hexdigest()
+            else:
+                self._data_hash_at_load = None
             self._data = loads(data_str)
 
     def _dump(self, purge=False) -> None:
         self._load()
         data_str = dumps(self._data)
         curr_hash = hashlib.sha256(data_str.encode("utf-8")).hexdigest()
-        if curr_hash != self._data_hash_at_load:
-            self._data_hash_at_load = curr_hash
+        if self._data_hash_at_load is None or curr_hash != self._data_hash_at_load:
+            # the hash is for the data on disk, but for read-only backends we never touch that data
+            # so we do not touch the hash
+            if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND not in READ_ONLY_LAZY_JSON_BACKENDS:
+                self._data_hash_at_load = curr_hash
 
             # cache it locally
-            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
+            if (
+                CF_TICK_GRAPH_DATA_USE_FILE_CACHE
+                and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                not in READ_ONLY_LAZY_JSON_BACKENDS
+            ):
                 file_backend = LAZY_JSON_BACKENDS["file"]()
+                # FIXME - remove print debug
+                if self.hashmap == "pr_json":
+                    print("dumping:", self.hashmap, self.node, data_str, flush=True)
                 file_backend.hset(self.hashmap, self.node, data_str)
 
             # sync changes to all backends
@@ -1057,12 +1139,17 @@ class LazyJson(MutableMapping):
                 if backend_name == "file" and CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
                     continue
                 backend = LAZY_JSON_BACKENDS[backend_name]()
+                # FIXME - remove print debug
+                if self.hashmap == "pr_json":
+                    print("dumping:", self.hashmap, self.node, data_str, flush=True)
                 backend.hset(self.hashmap, self.node, data_str)
 
         if purge:
             # this evicts the json from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this
-            self._data = None
+            # we never purge data for a read-only backend since data in mem may not match data on disk
+            if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND not in READ_ONLY_LAZY_JSON_BACKENDS:
+                self._data = None
             self._data_hash_at_load = None
 
     def __getitem__(self, item: Any) -> Any:

@@ -945,3 +945,182 @@ def test_lazy_json_backends_github_api_nopush():
                         raise e
                     else:
                         pass
+
+
+@pytest.mark.parametrize("hashmap", ["lazy_json", "pr_info"])
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file-read-only",
+    ],
+)
+def test_lazy_json_backends_ops_readonly(backend, hashmap, tmpdir):
+    be = LAZY_JSON_BACKENDS[backend]()
+    rwbe = LAZY_JSON_BACKENDS["file"]()
+    key = "blah"
+    value = dumps({"a": 1, "b": 2})
+    key_again = "blahblah"
+    value_again = dumps({"a": 1, "b": 2, "c": 3})
+
+    with pushd(tmpdir):
+        try:
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            with pytest.raises(RuntimeError):
+                be.hset(hashmap, key, value)
+            rwbe.hset(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            assert not be.hsetnx(hashmap, key, dumps({}))
+            assert be.hget(hashmap, key) == value
+
+            with pytest.raises(RuntimeError):
+                be.hdel(hashmap, [key])
+            rwbe.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            with pytest.raises(RuntimeError):
+                assert be.hsetnx(hashmap, key, value)
+            assert rwbe.hsetnx(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            with pytest.raises(RuntimeError):
+                be.hdel(hashmap, [key])
+            rwbe.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            mapping = {key: value, key_again: value_again}
+            with pytest.raises(RuntimeError):
+                be.hmset(hashmap, mapping)
+            rwbe.hmset(hashmap, mapping)
+            assert be.hget(hashmap, key) == value
+            assert be.hget(hashmap, key_again) == value_again
+            assert be.hexists(hashmap, key)
+            assert be.hexists(hashmap, key_again)
+            assert set(be.hkeys(hashmap)) == {key, key_again}
+
+            assert be.hmget(hashmap, [key, key_again]) == [value, value_again]
+            assert be.hmget(hashmap, [key_again, key]) == [value_again, value]
+
+            assert be.hgetall(hashmap) == mapping
+
+            assert be.hgetall(hashmap, hashval=True) == {
+                key: hashlib.sha256(value.encode("utf-8")).hexdigest(),
+                key_again: hashlib.sha256(value_again.encode("utf-8")).hexdigest(),
+            }
+        finally:
+            rwbe.hdel(hashmap, [key, key_again])
+
+
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file-read-only",
+    ],
+)
+def test_lazy_json_read_only(tmpdir, backend):
+    with pushd(tmpdir):
+        old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                backend
+            )
+
+            f = "hi.json"
+            sharded_path = get_sharded_path(f)
+            assert not os.path.exists(f)
+            lj = LazyJson(f)
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
+
+            with lazy_json_override_backends(["file"]):
+                with lj:
+                    pass
+                assert os.path.exists(lj.file_name)
+                assert os.path.exists(sharded_path)
+                with open(sharded_path) as ff:
+                    assert ff.read() == json.dumps({})
+
+            with pytest.raises(AssertionError):
+                lj.update({"hi": "globe"})
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({})
+            p = pickle.dumps(lj)
+            lj2 = pickle.loads(p)
+            assert not getattr(lj2, "_data", None)
+
+            with pytest.raises(RuntimeError):
+                with lj as attrs:
+                    attrs["hi"] = "world"
+            assert lj == {"hi": "world"}
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({})
+
+            with lazy_json_override_backends(["file"]):
+                with lj as attrs:
+                    attrs["hi"] = "world"
+            assert lj["hi"] == "world"
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with pytest.raises(RuntimeError):
+                with lj as attrs:
+                    attrs.update({"hi": "globe"})
+                    attrs.setdefault("lst", []).append("universe")
+            assert lj == {"hi": "globe", "lst": ["universe"]}
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with pytest.raises(RuntimeError):
+                with lj as attrs:
+                    del attrs["hi"]
+            assert lj == {"lst": ["universe"]}
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with pytest.raises(RuntimeError):
+                with lj as attrs:
+                    attrs.pop("lst")
+            assert lj == {}
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            assert len(lj) == 0
+
+            with lazy_json_override_backends(["file"]):
+                with lj as attrs:
+                    attrs["hi"] = "world"
+            assert lj["hi"] == "world"
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+            with pytest.raises(RuntimeError):
+                with lj as attrs:
+                    attrs.clear()
+            assert lj == {}
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+        finally:
+            be = LAZY_JSON_BACKENDS["file"]()
+            be.hdel("lazy_json", ["hi"])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
