@@ -1042,11 +1042,21 @@ class LazyJson(MutableMapping):
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
-            LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
+            # FIXME - remove debugging
+            print(
+                "possibly making empty dict json file:",
+                self.hashmap,
+                self.node,
+                flush=True,
+            )
+            val = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
                 self.hashmap,
                 self.node,
                 dumps({}),
             )
+            # FIXME - remove debugging
+            if val:
+                print("made empty dict json file:", self.hashmap, self.node, flush=True)
 
     @property
     def data(self):
