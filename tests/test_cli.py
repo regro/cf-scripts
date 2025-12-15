@@ -156,6 +156,22 @@ def test_cli_mock_update_upstream_versions(
     cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs, package=package)
 
 
+@pytest.mark.parametrize("git_only", [True, False])
+@mock.patch("conda_forge_tick.deploy.deploy")
+def test_cli_mock_deploy_to_github_git_only(
+    cmd_mock: MagicMock,
+    git_only,
+):
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["deploy-to-github"] + (["--git-only"] if git_only else []),
+    )
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only)
+
+
 @pytest.mark.parametrize(
     "job, n_jobs, feedstock", [(1, 5, None), (3, 7, None), (4, 4, "foo")]
 )

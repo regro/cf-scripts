@@ -182,7 +182,7 @@ def _deploy_batch(
     return n_added_this_batch
 
 
-def _get_files_to_delete():
+def _get_files_to_delete() -> set[str]:
     r = subprocess.run(
         ["git", "diff", "--name-status", "--cached"],
         text=True,
@@ -219,7 +219,69 @@ def _reset_and_restore_file(pth):
     subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
 
 
-def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
+def _deploy_via_api(
+    do_git_ops: bool,
+    files_to_add: set[str],
+    files_to_delete: set[str],
+    files_done: set[str],
+    files_to_try_again: set[str],
+) -> tuple[bool, set[str], set[str], set[str]]:
+    if len(files_to_add) + len(files_to_delete) <= 200:
+        for pth in files_to_add:
+            if do_git_ops:
+                break
+
+            try:
+                print(
+                    f"pushing file '{pth}' to the graph via the GitHub API", flush=True
+                )
+
+                msg = _get_pth_commit_message(pth)
+
+                push_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
+            except Exception as e:
+                logger.warning(
+                    "git push via API failed - trying via git CLI", exc_info=e
+                )
+                do_git_ops = True
+                files_to_try_again.add(pth)
+            else:
+                files_done.add(pth)
+
+        for pth in files_to_delete:
+            if do_git_ops:
+                break
+
+            try:
+                print(
+                    f"deleting file '{pth}' from the graph via the GitHub API",
+                    flush=True,
+                )
+
+                # make a nice message for stuff managed via LazyJson
+                msg = _get_pth_commit_message(pth)
+
+                delete_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
+            except Exception as e:
+                logger.warning(
+                    "git delete via API failed - trying via git CLI", exc_info=e
+                )
+                do_git_ops = True
+            else:
+                files_done.add(pth)
+
+    else:
+        do_git_ops = True
+
+    for pth in files_done:
+        _reset_and_restore_file(pth)
+
+    return do_git_ops, files_to_add, files_done, files_to_try_again
+
+
+def deploy(
+    ctx: CliContext, dirs_to_deploy: list[str] | None = None, git_only: bool = False
+):
     """Deploy the graph to GitHub."""
     if ctx.dry_run:
         print("(dry run) deploying")
@@ -228,7 +290,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
     with fold_log_lines("cleaning up disk space for deploy"):
         clean_disk_space()
 
-    files_to_add = set()
+    files_to_add: set[str] = set()
     if dirs_to_deploy is None:
         drs_to_deploy = [
             "status",
@@ -281,60 +343,15 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] | None = None):
     print("found %d files to delete" % len(files_to_delete), flush=True)
 
     do_git_ops = False
-    files_to_try_again = set()
-    files_done = set()
-    if len(files_to_add) + len(files_to_delete) <= 200:
-        for pth in files_to_add:
-            if do_git_ops:
-                break
-
-            try:
-                print(
-                    f"pushing file '{pth}' to the graph via the GitHub API", flush=True
-                )
-
-                msg = _get_pth_commit_message(pth)
-
-                push_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
-            except Exception as e:
-                logger.warning(
-                    "git push via API failed - trying via git CLI", exc_info=e
-                )
-                do_git_ops = True
-                files_to_try_again.add(pth)
-            else:
-                files_done.add(pth)
-
-        for pth in files_to_delete:
-            if do_git_ops:
-                break
-
-            try:
-                print(
-                    f"deleting file '{pth}' from the graph via the GitHub API",
-                    flush=True,
-                )
-
-                # make a nice message for stuff managed via LazyJson
-                msg = _get_pth_commit_message(pth)
-
-                delete_file_via_gh_api(pth, settings().graph_github_backend_repo, msg)
-            except Exception as e:
-                logger.warning(
-                    "git delete via API failed - trying via git CLI", exc_info=e
-                )
-                do_git_ops = True
-            else:
-                files_done.add(pth)
-
-    else:
-        do_git_ops = True
-
-    for pth in files_done:
-        _reset_and_restore_file(pth)
+    files_to_try_again: set[str] = set()
+    files_done: set[str] = set()
+    if not git_only:
+        (do_git_ops, files_to_add, files_done, files_to_try_again) = _deploy_via_api(
+            do_git_ops, files_to_add, files_to_delete, files_done, files_to_try_again
+        )
 
     batch = 0
-    if do_git_ops:
+    if do_git_ops or git_only:
         files_to_add = (files_to_add - files_done) | files_to_try_again
         n_added = 0
         while files_to_add:

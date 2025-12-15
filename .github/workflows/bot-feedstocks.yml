@@ -64,7 +64,7 @@ jobs:
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          conda-forge-tick deploy-to-github
+          conda-forge-tick deploy-to-github --git-only
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}

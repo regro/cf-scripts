@@ -205,11 +205,16 @@ def make_mappings() -> None:
 
 
 @main.command(name="deploy-to-github")
+@click.option(
+    "--git-only",
+    is_flag=True,
+    help="If given, only deploy graph data to GitHub via the git command line.",
+)
 @pass_context
-def deploy_to_github(ctx: CliContext) -> None:
+def deploy_to_github(ctx: CliContext, git_only: bool) -> None:
     from . import deploy
 
-    deploy.deploy(ctx)
+    deploy.deploy(ctx, git_only=git_only)
 
 
 @main.command(name="backup-lazy-json")
