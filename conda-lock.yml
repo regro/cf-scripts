@@ -1345,39 +1345,39 @@ package:
   category: main
   optional: false
 - name: cachetools
-  version: 6.2.3
+  version: 6.2.4
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.4-pyhd8ed1ab_0.conda
   hash:
-    md5: a01f0a9bc9367892fe1b771e9be394dd
-    sha256: 1d1b7e5207f64876ed27adb245f30bd5369b6d8afcfa0b01118fddb71d370708
+    md5: 629c8fd0c11eb853732608e2454abf8e
+    sha256: e00325243791f4337d147224e4e1508de450aeeab1abc0470f2227748deddbfc
   category: main
   optional: false
 - name: cachetools
-  version: 6.2.3
+  version: 6.2.4
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.4-pyhd8ed1ab_0.conda
   hash:
-    md5: a01f0a9bc9367892fe1b771e9be394dd
-    sha256: 1d1b7e5207f64876ed27adb245f30bd5369b6d8afcfa0b01118fddb71d370708
+    md5: 629c8fd0c11eb853732608e2454abf8e
+    sha256: e00325243791f4337d147224e4e1508de450aeeab1abc0470f2227748deddbfc
   category: main
   optional: false
 - name: cachetools
-  version: 6.2.3
+  version: 6.2.4
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-6.2.4-pyhd8ed1ab_0.conda
   hash:
-    md5: a01f0a9bc9367892fe1b771e9be394dd
-    sha256: 1d1b7e5207f64876ed27adb245f30bd5369b6d8afcfa0b01118fddb71d370708
+    md5: 629c8fd0c11eb853732608e2454abf8e
+    sha256: e00325243791f4337d147224e4e1508de450aeeab1abc0470f2227748deddbfc
   category: main
   optional: false
 - name: cairo
@@ -14003,31 +14003,31 @@ package:
   category: main
   optional: false
 - name: python-librt
-  version: 0.7.3
+  version: 0.7.4
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/python-librt-0.7.3-py311h62e9434_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/python-librt-0.7.4-py311h62e9434_0.conda
   hash:
-    md5: 929b28f6080efa4bce8081c1f934e627
-    sha256: b0f51908f5567aa18b1e9cf96dd3d900e202cbdcc72317c04e7cd0182ef28e5a
+    md5: 54a5e18ab64adc75bbac72ffda3b400a
+    sha256: df35f42ef9c74b8bf6c57ecbbc7c8ec77d52af9543e5d866f76d6601974ba64d
   category: main
   optional: false
 - name: python-librt
-  version: 0.7.3
+  version: 0.7.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/python-librt-0.7.3-py311h5bb9006_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/python-librt-0.7.4-py311h5bb9006_0.conda
   hash:
-    md5: 219b40df38f195cb1b75e1a1a939ceb6
-    sha256: 38ed7ebba3a6b4d2117a7f58a826c751f353e72739108fc6217645fa0511a15e
+    md5: 70e4a359294cec224113bd73528551ae
+    sha256: afeb3546addc57fe2f6881d6337dd6276c54c918dc09af9755b35ad45e22e372
   category: main
   optional: false
 - name: python-multipart
