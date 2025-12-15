@@ -2389,7 +2389,7 @@ package:
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.12.44
+  version: 2025.12.46
   manager: conda
   platform: linux-64
   dependencies:
@@ -2449,14 +2449,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.44-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.46-pyhd8ed1ab_0.conda
   hash:
-    md5: a60d27924d166b8e56daa1bdfd7e1f2a
-    sha256: 80c813870a4d118fc61b2dd2a43e1b358cab3827ba9dd24cb121a8be64d29f29
+    md5: 1a217da9dbd4f5f176b91e219f9a5bc8
+    sha256: e5ee63090aee23c4cc8a1ad1908db185dc4ee72b6e0cf66aa074679f0b27a968
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.12.44
+  version: 2025.12.46
   manager: conda
   platform: osx-64
   dependencies:
@@ -2516,14 +2516,14 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.44-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.46-pyhd8ed1ab_0.conda
   hash:
-    md5: a60d27924d166b8e56daa1bdfd7e1f2a
-    sha256: 80c813870a4d118fc61b2dd2a43e1b358cab3827ba9dd24cb121a8be64d29f29
+    md5: 1a217da9dbd4f5f176b91e219f9a5bc8
+    sha256: e5ee63090aee23c4cc8a1ad1908db185dc4ee72b6e0cf66aa074679f0b27a968
   category: main
   optional: false
 - name: conda-forge-tick
-  version: 2025.12.44
+  version: 2025.12.46
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2583,10 +2583,10 @@ package:
     wget: ''
     wurlitzer: ''
     yaml: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.44-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-tick-2025.12.46-pyhd8ed1ab_0.conda
   hash:
-    md5: a60d27924d166b8e56daa1bdfd7e1f2a
-    sha256: 80c813870a4d118fc61b2dd2a43e1b358cab3827ba9dd24cb121a8be64d29f29
+    md5: 1a217da9dbd4f5f176b91e219f9a5bc8
+    sha256: e5ee63090aee23c4cc8a1ad1908db185dc4ee72b6e0cf66aa074679f0b27a968
   category: main
   optional: false
 - name: conda-index
@@ -11107,7 +11107,7 @@ package:
   category: main
   optional: false
 - name: orjson
-  version: 3.11.4
+  version: 3.11.5
   manager: conda
   platform: linux-64
   dependencies:
@@ -11115,38 +11115,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.4-py311h902ca64_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.5-py311h7098c77_0.conda
   hash:
-    md5: 90e178bc05a7f1313bd0d5ac5470a81e
-    sha256: 3405e5f6c56de81028ef759dabf4aa84312f0e19036c4c90956cafaea7aa0703
+    md5: d51594b3fe7ebde171b813acebe680e4
+    sha256: d5a790e7b02892cf7985a77df56d110e22f87671d356360de1a8fd2a7f6c5c7f
   category: main
   optional: false
 - name: orjson
-  version: 3.11.4
+  version: 3.11.5
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.4-py311hd2a4513_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/orjson-3.11.5-py311h5f0599c_0.conda
   hash:
-    md5: 681e28822673391ade6c96a352d10ae4
-    sha256: aa3dc8d2ee2ceec2e6c552787b537f533915d4b79f009dcdb1bcc4440bbd8834
+    md5: 0d250dbbf32653e2ef5f2426f789460e
+    sha256: c3e9ee41d2d0e72ffa7c80f974ca8f8cec065e71f1bf2aa2d22bbaf0271ae2fe
   category: main
   optional: false
 - name: orjson
-  version: 3.11.4
+  version: 3.11.5
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.4-py311h71babbd_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.5-py311ha9ac294_0.conda
   hash:
-    md5: 581b82e1666a6b426dcca66d0b8ddcbf
-    sha256: 2f50f7e392eeae0e70ce590ddb0207015f430ab4a3820194c574a66d5f5b9129
+    md5: 203e3294a7866b178ba5ac96eedb1c92
+    sha256: 599056c7178d9df5d2710633af09585a94c7a1f5264ff75a0072075179db4ff9
   category: main
   optional: false
 - name: packaging
@@ -14449,40 +14449,43 @@ package:
   category: main
   optional: false
 - name: readline
-  version: '8.2'
+  version: '8.3'
   manager: conda
   platform: linux-64
   dependencies:
-    libgcc: '>=13'
+    __glibc: '>=2.17,<3.0.a0'
+    libgcc: '>=14'
     ncurses: '>=6.5,<7.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/readline-8.3-h853b02a_0.conda
   hash:
-    md5: 283b96675859b20a825f8fa30f311446
-    sha256: 2d6d0c026902561ed77cd646b5021aef2d4db22e57a5b0178dfc669231e06d2c
+    md5: d7d95fc8287ea7bf33e0e7116d2b95ec
+    sha256: 12ffde5a6f958e285aa22c191ca01bbd3d6e710aa852e00618fa6ddc59149002
   category: main
   optional: false
 - name: readline
-  version: '8.2'
+  version: '8.3'
   manager: conda
   platform: osx-64
   dependencies:
+    __osx: '>=10.13'
     ncurses: '>=6.5,<7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/readline-8.2-h7cca4af_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/readline-8.3-h68b038d_0.conda
   hash:
-    md5: 342570f8e02f2f022147a7f841475784
-    sha256: 53017e80453c4c1d97aaf78369040418dea14cf8f46a2fa999f31bd70b36c877
+    md5: eefd65452dfe7cce476a519bece46704
+    sha256: 4614af680aa0920e82b953fece85a03007e0719c3399f13d7de64176874b80d5
   category: main
   optional: false
 - name: readline
-  version: '8.2'
+  version: '8.3'
   manager: conda
   platform: osx-arm64
   dependencies:
+    __osx: '>=11.0'
     ncurses: '>=6.5,<7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.3-h46df422_0.conda
   hash:
-    md5: 63ef3f6e6d6d5c589e64f11263dc5676
-    sha256: 7db04684d3904f6151eff8673270922d31da1eea7fa73254d01c437f49702e34
+    md5: f8381319127120ce51e081dce4865cf4
+    sha256: a77010528efb4b548ac2a4484eaf7e1c3907f2aec86123ed9c5212ae44502477
   category: main
   optional: false
 - name: referencing
