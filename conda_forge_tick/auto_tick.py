@@ -536,8 +536,12 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
             try:
                 sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
             except Exception:
+                # we will deploy via git later if this fails
                 pass
             else:
+                # this function removes the local copy of the pr_json on disk
+                # when the deploy via git happens, the bot will ignore this
+                # bit of pr_json completely and prefer the copy already pushed
                 reset_and_restore_file(pr_lazy_json.sharded_path)
 
     else:

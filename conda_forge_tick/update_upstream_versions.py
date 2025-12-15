@@ -471,6 +471,9 @@ def _update_upstream_versions_process_pool(
                     # will sync in deploy later if this fails
                     pass
                 else:
+                    # this function removes the local copy of the pr_json on disk
+                    # when the deploy via git happens, the bot will ignore this
+                    # bit of pr_json completely and prefer the copy already pushed
                     reset_and_restore_file(version_attrs.sharded_path)
 
 
