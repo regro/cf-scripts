@@ -1954,7 +1954,7 @@ package:
   category: main
   optional: false
 - name: conda
-  version: 25.11.0
+  version: 25.11.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1979,14 +1979,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.11.0-py311h38be061_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-25.11.1-py311h38be061_0.conda
   hash:
-    md5: 17491ad07684d20ef3f1dd1b3b23e52f
-    sha256: fc4b11654af636a58893a57c0a4509334ccaed162cbf9d0f330f42ce0e49df1a
+    md5: 35baaa353a5ca6814589c87672076d13
+    sha256: f8cf33cdbae30deb7efb13bb920e15cbdaf2588c6e709f8eb18741443237157c
   category: main
   optional: false
 - name: conda
-  version: 25.11.0
+  version: 25.11.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -2011,14 +2011,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.11.0-py311h6eed73b_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.11.1-py311h6eed73b_0.conda
   hash:
-    md5: b1fcf697817615d1a8583ac206b4ebd5
-    sha256: 297925931c25a812e880968c0cb2f08c35ae15367794ddb21c7e119a6e6b083b
+    md5: 885a2120c2d44b46aac57914a1f5cb26
+    sha256: 26b671d52b41113e3a1ed72a083d1dd3749030635629505d34f7f949b347f066
   category: main
   optional: false
 - name: conda
-  version: 25.11.0
+  version: 25.11.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2043,10 +2043,10 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.11.0-py311h267d04e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.11.1-py311h267d04e_0.conda
   hash:
-    md5: 5540ac0cd680bc920034fcbf442907da
-    sha256: 1c2b3e02a92733aee77badf12a38cd69650f1baf094ec3333e5069a1c20a3c38
+    md5: 69171af2c2937c807205372f8db64d16
+    sha256: ba5dd12110d1d19fcb2bcc273cd33159c51f45b1fd0bb5a90b8f6340f0e18099
   category: main
   optional: false
 - name: conda-build
