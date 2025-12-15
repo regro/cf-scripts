@@ -6,7 +6,12 @@ import sys
 import time
 
 from .cli_context import CliContext
-from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
+from .git_utils import (
+    delete_file_via_gh_api,
+    get_bot_token,
+    push_file_via_gh_api,
+    reset_and_restore_file,
+)
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
     get_lazy_json_backends,
@@ -213,12 +218,6 @@ def _get_pth_commit_message(pth):
     return msg
 
 
-def _reset_and_restore_file(pth):
-    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
-    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
-    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
-
-
 def _deploy_via_api(
     do_git_ops: bool,
     files_to_add: set[str],
@@ -274,7 +273,7 @@ def _deploy_via_api(
         do_git_ops = True
 
     for pth in files_done:
-        _reset_and_restore_file(pth)
+        reset_and_restore_file(pth)
 
     return do_git_ops, files_to_add, files_done, files_to_try_again
 

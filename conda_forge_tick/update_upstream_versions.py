@@ -29,6 +29,7 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
+from conda_forge_tick.git_utils import reset_and_restore_file
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, sync_lazy_json_object
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
@@ -469,6 +470,8 @@ def _update_upstream_versions_process_pool(
                 except Exception:
                     # will sync in deploy later if this fails
                     pass
+                else:
+                    reset_and_restore_file(version_attrs.sharded_path)
 
 
 @functools.lru_cache(maxsize=1)

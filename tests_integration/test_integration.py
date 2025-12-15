@@ -306,7 +306,7 @@ def test_scenario(
     with in_fresh_cf_graph():
         with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         # because of an implementation detail in the bot, we need to run make-migrators twice

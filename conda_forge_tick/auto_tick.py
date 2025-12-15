@@ -36,6 +36,7 @@ from conda_forge_tick.git_utils import (
     RepositoryNotFoundError,
     github_backend,
     is_github_api_limit_reached,
+    reset_and_restore_file,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -532,7 +533,12 @@ def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson | Literal[False]:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+            try:
+                sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+            except Exception:
+                pass
+            else:
+                reset_and_restore_file(pr_lazy_json.sharded_path)
 
     else:
         pr_lazy_json = False
