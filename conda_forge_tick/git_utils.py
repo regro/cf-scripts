@@ -1962,3 +1962,11 @@ def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
                 interval = base**tr
                 interval = rfrac * interval + (rfrac * RNG.uniform(0, 1) * interval)
                 time.sleep(interval)
+
+
+@lock_git_operation()
+def reset_and_restore_file(pth: str):
+    """Reset the status of a file tracked by git to its version at the current commit."""
+    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)

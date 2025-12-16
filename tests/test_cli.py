@@ -169,7 +169,29 @@ def test_cli_mock_deploy_to_github_git_only(
     )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only)
+    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only, dirs_to_ignore=[])
+
+
+@pytest.mark.parametrize("dirs_to_ignore", [None, "pr_json", "pr_json,pr_info"])
+@mock.patch("conda_forge_tick.deploy.deploy")
+def test_cli_mock_deploy_to_github_dirs_to_ignore(
+    cmd_mock: MagicMock,
+    dirs_to_ignore,
+):
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["deploy-to-github"]
+        + ([f"--dirs-to-ignore={dirs_to_ignore}"] if dirs_to_ignore else []),
+    )
+
+    if dirs_to_ignore:
+        kws = {"dirs_to_ignore": dirs_to_ignore.split(",")}
+    else:
+        kws = {"dirs_to_ignore": []}
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(mock.ANY, git_only=False, **kws)
 
 
 @pytest.mark.parametrize(

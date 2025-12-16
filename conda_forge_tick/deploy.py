@@ -6,7 +6,12 @@ import sys
 import time
 
 from .cli_context import CliContext
-from .git_utils import delete_file_via_gh_api, get_bot_token, push_file_via_gh_api
+from .git_utils import (
+    delete_file_via_gh_api,
+    get_bot_token,
+    push_file_via_gh_api,
+    reset_and_restore_file,
+)
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
     get_lazy_json_backends,
@@ -131,20 +136,9 @@ def _deploy_batch(
         except Exception as e:
             print(e, flush=True)
 
-        # make sure the graph can load, if not we will error
-        try:
-            gx = load_existing_graph()
-            # TODO: be more selective about which json to check
-            for node, attrs in gx.nodes.items():
-                with attrs["payload"]:
-                    pass
-            graph_ok = True
-        except Exception:
-            graph_ok = False
-
         status = 1
         num_try = 0
-        while status != 0 and num_try < 20 and graph_ok:
+        while status != 0 and num_try < 20:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
                     print(">>>>>>>>>>>> git pull", flush=True)
@@ -175,7 +169,7 @@ def _deploy_batch(
                     time.sleep(interval)
             num_try += 1
 
-        if status != 0 or not graph_ok:
+        if status != 0:
             # we did try to push to a branch but it never worked so we'll just stop
             raise RuntimeError("bot did not push its data! stopping!")
 
@@ -211,12 +205,6 @@ def _get_pth_commit_message(pth):
         msg_pth = f"{parts[0]}/{parts[-1]}"
     msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
     return msg
-
-
-def _reset_and_restore_file(pth):
-    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
-    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
-    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
 
 
 def _deploy_via_api(
@@ -274,18 +262,27 @@ def _deploy_via_api(
         do_git_ops = True
 
     for pth in files_done:
-        _reset_and_restore_file(pth)
+        reset_and_restore_file(pth)
 
     return do_git_ops, files_to_add, files_done, files_to_try_again
 
 
 def deploy(
-    ctx: CliContext, dirs_to_deploy: list[str] | None = None, git_only: bool = False
+    ctx: CliContext,
+    dirs_to_deploy: list[str] | None = None,
+    git_only: bool = False,
+    dirs_to_ignore: list[str] | None = None,
 ):
-    """Deploy the graph to GitHub."""
     if ctx.dry_run:
-        print("(dry run) deploying")
+        print("(dry run) deploying", flush=True)
         return
+
+    # make sure the graph can load, if not it will error
+    gx = load_existing_graph()
+    # TODO: be more selective about which json to check
+    for node, attrs in gx.nodes.items():
+        with attrs["payload"]:
+            pass
 
     with fold_log_lines("cleaning up disk space for deploy"):
         clean_disk_space()
@@ -304,6 +301,11 @@ def deploy(
             drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
             drs_to_deploy += ["graph.json"]
     else:
+        if dirs_to_ignore is not None:
+            raise RuntimeError(
+                "You cannot specify both `dirs_to_deploy` "
+                "and `dirs_to_ignore` when deploying the graph!"
+            )
         drs_to_deploy = dirs_to_deploy
 
     for dr in drs_to_deploy:
@@ -337,9 +339,29 @@ def deploy(
             ).stdout.splitlines(),
         )
 
-    print("found %d files to add" % len(files_to_add), flush=True)
-
     files_to_delete = _get_files_to_delete()
+
+    if dirs_to_ignore is not None:
+        print("ignoring dirs:", dirs_to_ignore, flush=True)
+        new_files_to_add = set()
+        for fn in files_to_add:
+            if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
+                reset_and_restore_file(fn)
+                print("ignoring file to add:", fn, flush=True)
+            else:
+                new_files_to_add.add(fn)
+        files_to_add = new_files_to_add
+
+        new_files_to_delete = set()
+        for fn in files_to_delete:
+            if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
+                reset_and_restore_file(fn)
+                print("ignoring file to delete:", fn, flush=True)
+            else:
+                new_files_to_delete.add(fn)
+        files_to_delete = new_files_to_delete
+
+    print("found %d files to add" % len(files_to_add), flush=True)
     print("found %d files to delete" % len(files_to_delete), flush=True)
 
     do_git_ops = False
