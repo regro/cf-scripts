@@ -169,7 +169,7 @@ def test_cli_mock_deploy_to_github_git_only(
     )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only)
+    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only, dirs_to_ignore=[])
 
 
 @pytest.mark.parametrize("dirs_to_ignore", [None, "pr_json", "pr_json,pr_info"])
