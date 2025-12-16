@@ -342,10 +342,12 @@ def deploy(
     files_to_delete = _get_files_to_delete()
 
     if dirs_to_ignore is not None:
+        print("ignoring dirs:", dirs_to_ignore, flush=True)
         new_files_to_add = set()
         for fn in files_to_add:
             if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
                 reset_and_restore_file(fn)
+                print("ignoring file to add:", fn, flush=True)
             else:
                 new_files_to_add.add(fn)
         files_to_add = new_files_to_add
@@ -354,6 +356,7 @@ def deploy(
         for fn in files_to_delete:
             if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
                 reset_and_restore_file(fn)
+                print("ignoring file to delete:", fn, flush=True)
             else:
                 new_files_to_delete.add(fn)
         files_to_delete = new_files_to_delete
