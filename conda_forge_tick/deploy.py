@@ -136,20 +136,9 @@ def _deploy_batch(
         except Exception as e:
             print(e, flush=True)
 
-        # make sure the graph can load, if not we will error
-        try:
-            gx = load_existing_graph()
-            # TODO: be more selective about which json to check
-            for node, attrs in gx.nodes.items():
-                with attrs["payload"]:
-                    pass
-            graph_ok = True
-        except Exception:
-            graph_ok = False
-
         status = 1
         num_try = 0
-        while status != 0 and num_try < 20 and graph_ok:
+        while status != 0 and num_try < 20:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
                     print(">>>>>>>>>>>> git pull", flush=True)
@@ -180,7 +169,7 @@ def _deploy_batch(
                     time.sleep(interval)
             num_try += 1
 
-        if status != 0 or not graph_ok:
+        if status != 0:
             # we did try to push to a branch but it never worked so we'll just stop
             raise RuntimeError("bot did not push its data! stopping!")
 
@@ -284,10 +273,16 @@ def deploy(
     git_only: bool = False,
     dirs_to_ignore: list[str] | None = None,
 ):
-    """Deploy the graph to GitHub."""
     if ctx.dry_run:
-        print("(dry run) deploying")
+        print("(dry run) deploying", flush=True)
         return
+
+    # make sure the graph can load, if not it will error
+    gx = load_existing_graph()
+    # TODO: be more selective about which json to check
+    for node, attrs in gx.nodes.items():
+        with attrs["payload"]:
+            pass
 
     with fold_log_lines("cleaning up disk space for deploy"):
         clean_disk_space()
@@ -312,9 +307,6 @@ def deploy(
                 "and `dirs_to_ignore` when deploying the graph!"
             )
         drs_to_deploy = dirs_to_deploy
-
-    if dirs_to_ignore is not None:
-        drs_to_deploy = [dr for dr in drs_to_deploy if dr not in dirs_to_ignore]
 
     for dr in drs_to_deploy:
         if not os.path.exists(dr):
@@ -347,9 +339,26 @@ def deploy(
             ).stdout.splitlines(),
         )
 
-    print("found %d files to add" % len(files_to_add), flush=True)
-
     files_to_delete = _get_files_to_delete()
+
+    if dirs_to_ignore is not None:
+        new_files_to_add = set()
+        for fn in files_to_add:
+            if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
+                reset_and_restore_file(fn)
+            else:
+                new_files_to_add.add(fn)
+        files_to_add = new_files_to_add
+
+        new_files_to_delete = set()
+        for fn in files_to_delete:
+            if any(fn.startswith(f"{dr}/") for dr in dirs_to_ignore):
+                reset_and_restore_file(fn)
+            else:
+                new_files_to_delete.add(fn)
+        files_to_delete = new_files_to_delete
+
+    print("found %d files to add" % len(files_to_add), flush=True)
     print("found %d files to delete" % len(files_to_delete), flush=True)
 
     do_git_ops = False
