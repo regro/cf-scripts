@@ -279,7 +279,10 @@ def _deploy_via_api(
 
 
 def deploy(
-    ctx: CliContext, dirs_to_deploy: list[str] | None = None, git_only: bool = False
+    ctx: CliContext,
+    dirs_to_deploy: list[str] | None = None,
+    git_only: bool = False,
+    dirs_to_ignore: list[str] | None = None,
 ):
     """Deploy the graph to GitHub."""
     if ctx.dry_run:
@@ -303,7 +306,15 @@ def deploy(
             drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
             drs_to_deploy += ["graph.json"]
     else:
+        if dirs_to_ignore is not None:
+            raise RuntimeError(
+                "You cannot specify both `dirs_to_deploy` "
+                "and `dirs_to_ignore` when deploying the graph!"
+            )
         drs_to_deploy = dirs_to_deploy
+
+    if dirs_to_ignore is not None:
+        drs_to_deploy = [dr for dr in drs_to_deploy if dr not in dirs_to_ignore]
 
     for dr in drs_to_deploy:
         if not os.path.exists(dr):
