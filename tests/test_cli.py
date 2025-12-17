@@ -77,7 +77,6 @@ takes_context_commands = (
     "update-upstream-versions",
     "auto-tick",
     "update-prs",
-    "deploy-to-github",
     "backup-lazy-json",
     "sync-lazy-json-across-backends",
     "cache-lazy-json-to-disk",
@@ -169,7 +168,9 @@ def test_cli_mock_deploy_to_github_git_only(
     )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, git_only=git_only, dirs_to_ignore=[])
+    cmd_mock.assert_called_once_with(
+        dry_run=False, git_only=git_only, dirs_to_ignore=[]
+    )
 
 
 @pytest.mark.parametrize("dirs_to_ignore", [None, "pr_json", "pr_json,pr_info"])
@@ -191,7 +192,7 @@ def test_cli_mock_deploy_to_github_dirs_to_ignore(
         kws = {"dirs_to_ignore": []}
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, git_only=False, **kws)
+    cmd_mock.assert_called_once_with(dry_run=False, git_only=False, **kws)
 
 
 @pytest.mark.parametrize(
