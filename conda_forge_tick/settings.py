@@ -81,7 +81,7 @@ class BotSettings(BaseSettings):
     Therefore, you don't need to set this when debugging locally.
     """
 
-    batch_size_update_upstream_versions_deploy: int = 20
+    batch_size_update_upstream_versions_deploy: int = 100
     """The batch size used to push upstream version updates to the graph as they are found.
     """
 
