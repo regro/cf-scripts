@@ -81,6 +81,10 @@ class BotSettings(BaseSettings):
     Therefore, you don't need to set this when debugging locally.
     """
 
+    batch_size_update_upstream_versions_deploy: int = 20
+    """The batch size used to push upstream version updates to the graph as they are found.
+    """
+
     frac_make_graph: Fraction = 0.1
     """
     The fraction of feedstocks (randomly selected) to update in the make-graph job.

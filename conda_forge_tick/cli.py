@@ -223,7 +223,7 @@ def deploy_to_github(ctx: CliContext, git_only: bool, dirs_to_ignore: str) -> No
     from . import deploy
 
     deploy.deploy(
-        ctx,
+        dry_run=ctx.dry_run,
         git_only=git_only,
         dirs_to_ignore=[] if dirs_to_ignore is None else dirs_to_ignore.split(","),
     )

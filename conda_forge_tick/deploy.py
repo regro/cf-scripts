@@ -5,7 +5,6 @@ import subprocess
 import sys
 import time
 
-from .cli_context import CliContext
 from .git_utils import (
     delete_file_via_gh_api,
     get_bot_token,
@@ -268,12 +267,12 @@ def _deploy_via_api(
 
 
 def deploy(
-    ctx: CliContext,
+    dry_run: bool = False,
     dirs_to_deploy: list[str] | None = None,
     git_only: bool = False,
     dirs_to_ignore: list[str] | None = None,
 ):
-    if ctx.dry_run:
+    if dry_run:
         print("(dry run) deploying", flush=True)
         return
 

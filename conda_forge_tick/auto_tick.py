@@ -1362,7 +1362,9 @@ def main(ctx: CliContext) -> None:
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
         deploy(
-            ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"], git_only=True
+            dry_run=ctx.dry_run,
+            dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"],
+            git_only=True,
         )
 
     # record tmp dir so we can be sure to clean it later
