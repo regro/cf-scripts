@@ -140,10 +140,13 @@ def _deploy_batch(
         while status != 0 and num_try < 20:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
-                    print(">>>>>>>>>>>> git pull", flush=True)
-                    _n_added = _pull_changes(batch)
-                    n_added += _n_added
-                    n_added_this_batch += _n_added
+                    # pull twice right away to reduce chance of changes between
+                    # pull and push
+                    for pull_itr in range(2):
+                        print(">>>>>>>>>>>> git pull %d/2" % (pull_itr + 1), flush=True)
+                        _n_added = _pull_changes(batch)
+                        n_added += _n_added
+                        n_added_this_batch += _n_added
                 except Exception as e:
                     print(
                         ">>>>>>>>>>>> git pull failed: %s" % repr(e),
