@@ -970,3 +970,4 @@ def test_lazy_json_backends_contexts_double_write():
 
             # now the file exists at the end of the context block
             assert os.path.exists(lzj.sharded_path)
+            assert lzj.data == {"hi": "world"}
