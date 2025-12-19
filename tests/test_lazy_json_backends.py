@@ -945,3 +945,29 @@ def test_lazy_json_backends_github_api_nopush():
                         raise e
                     else:
                         pass
+
+
+def test_lazy_json_backends_contexts_double_write():
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with lazy_json_override_backends(["file"], use_file_cache=False):
+            lzj = LazyJson("test.json")
+            # old behavior always makes a file on init
+            # we remove it here so that we can test
+            assert os.path.exists(lzj.sharded_path)
+            os.remove(lzj.sharded_path)
+
+            with lzj:
+                # file should not yet exist
+                assert not os.path.exists(lzj.sharded_path)
+
+                # even if we get the data, the file should not yet exist
+                assert lzj.data == {}
+                assert not os.path.exists(lzj.sharded_path)
+
+                # setting data doesn't make the file
+                lzj["hi"] = "world"
+                assert not os.path.exists(lzj.sharded_path)
+
+            # now the file exists at the end of the context block
+            assert os.path.exists(lzj.sharded_path)
+            assert lzj.data == {"hi": "world"}
