@@ -1,4 +1,5 @@
 import contextlib
+import tempfile
 import textwrap
 from io import StringIO
 from unittest import mock
@@ -6,6 +7,8 @@ from unittest.mock import MagicMock, mock_open
 
 import pytest
 
+from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     DEFAULT_GRAPH_FILENAME,
     _munge_dict_repr,
@@ -93,23 +96,25 @@ def test_get_keys_default_none():
 
 
 def test_load_graph():
-    with mock.patch("builtins.open", mock_open(read_data=DEMO_GRAPH)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(DEMO_GRAPH)
+
         gx = load_graph()
 
         assert gx is not None
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
-
 
 def test_load_graph_empty_graph():
-    with mock.patch("builtins.open", mock_open(read_data=EMPTY_JSON)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(EMPTY_JSON)
+
         gx = load_graph()
 
         assert gx is None
-
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
 @mock.patch("os.path.exists")
