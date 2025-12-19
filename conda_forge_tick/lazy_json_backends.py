@@ -1023,8 +1023,15 @@ class LazyJson(MutableMapping):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-                backend.hsetnx(self.hashmap, self.node, dumps({}))
-                data_str = backend.hget(self.hashmap, self.node)
+                if backend.hexists(self.hashmap, self.node):
+                    data_str = backend.hget(self.hashmap, self.node)
+                else:
+                    data_str = dumps({})
+                    if not self._in_context:
+                        # need to push file to backend since will not get
+                        # done at end of context manager
+                        backend.hset(self.hashmap, self.node, data_str)
+
                 if isinstance(data_str, bytes):  # type: ignore[unreachable]
                     data_str = data_str.decode("utf-8")  # type: ignore[unreachable]
 
