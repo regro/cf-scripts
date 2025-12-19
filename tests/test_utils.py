@@ -127,23 +127,23 @@ def test_load_graph_file_does_not_exist(exists_mock: MagicMock):
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME, "w")])
 
 
-@mock.patch("os.path.isfile")
-def test_load_existing_graph(isfile_mock: MagicMock):
-    isfile_mock.return_value = True
-    with mock.patch("builtins.open", mock_open(read_data=DEMO_GRAPH)) as mock_file:
+def test_load_existing_graph():
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(DEMO_GRAPH)
+
         gx = load_existing_graph()
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
-
 
 def test_load_existing_graph_empty_graph():
-    with mock.patch("builtins.open", mock_open(read_data=EMPTY_JSON)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(EMPTY_JSON)
+
         with pytest.raises(ValueError, match="empty JSON"):
             load_existing_graph()
-
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
 @mock.patch("os.path.exists")
