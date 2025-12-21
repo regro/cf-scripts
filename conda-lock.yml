@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.20.18.11.09
+  version: 2025.12.21.08.15.33
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.20.18.11.09-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.21.08.15.33-hd8ed1ab_0.conda
   hash:
-    md5: af1218f9721e7a2ee9b7d8c48f4869d2
-    sha256: 95e464ff957938288a75fc27614cd36d3066a3e84da78fc8d139ff0fed37505c
+    md5: 8119a6c487534d709138298b275f0a61
+    sha256: 22ab87a5ddb356d22d8005b30f58e6a2d0a13641f826571f729701be32536aa9
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.20.18.11.09
+  version: 2025.12.21.08.15.33
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.20.18.11.09-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.21.08.15.33-hd8ed1ab_0.conda
   hash:
-    md5: af1218f9721e7a2ee9b7d8c48f4869d2
-    sha256: 95e464ff957938288a75fc27614cd36d3066a3e84da78fc8d139ff0fed37505c
+    md5: 8119a6c487534d709138298b275f0a61
+    sha256: 22ab87a5ddb356d22d8005b30f58e6a2d0a13641f826571f729701be32536aa9
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.20.18.11.09
+  version: 2025.12.21.08.15.33
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.20.18.11.09-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.21.08.15.33-hd8ed1ab_0.conda
   hash:
-    md5: af1218f9721e7a2ee9b7d8c48f4869d2
-    sha256: 95e464ff957938288a75fc27614cd36d3066a3e84da78fc8d139ff0fed37505c
+    md5: 8119a6c487534d709138298b275f0a61
+    sha256: 22ab87a5ddb356d22d8005b30f58e6a2d0a13641f826571f729701be32536aa9
   category: main
   optional: false
 - name: conda-forge-tick
@@ -9510,16 +9510,16 @@ package:
   category: main
   optional: false
 - name: libuuid
-  version: 2.41.2
+  version: 2.41.3
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.41.2-h5347b49_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.41.3-h5347b49_0.conda
   hash:
-    md5: 41f5c09a211985c3ce642d60721e7c3e
-    sha256: 030447cf827c471abd37092ab9714fde82b8222106f22fde94bc7a64e2704c40
+    md5: db409b7c1720428638e7c0d509d3e1b5
+    sha256: 1a7539cfa7df00714e8943e18de0b06cceef6778e420a5ee3a2a145773758aee
   category: main
   optional: false
 - name: libuv
