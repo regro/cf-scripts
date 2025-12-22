@@ -2695,7 +2695,7 @@ package:
   category: main
   optional: false
 - name: conda-lock
-  version: 3.0.4
+  version: 4.0.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -2707,7 +2707,7 @@ package:
     click: '>=8.0'
     click-default-group: ''
     crashtest: '>=0.4.1,<0.5.0'
-    dulwich: '>=0.22.6,<0.23.0'
+    dulwich: '>=0.22.6,<0.25.0'
     ensureconda: '>=1.4.7'
     filelock: ''
     gitpython: '>=3.1.30'
@@ -2736,14 +2736,14 @@ package:
     typing_extensions: '>=4.6.1'
     virtualenv: '>=20.26.6,<21.0.0'
     zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.4-pyh367d9c9_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-4.0.0-pyha191276_0.conda
   hash:
-    md5: e9cdc696228d9701ec8142fd3ba16f58
-    sha256: 9cfd82d7185758f3923655623f220faa907f4d8275d861210b1bd83a3e3a9833
+    md5: 200b26b7a09a051550692d90831a3449
+    sha256: 77b3d6b0e8af66fba10d6163aba870b3bc3e4c4e7ad0c829bd5cf034f47f437d
   category: main
   optional: false
 - name: conda-lock
-  version: 3.0.4
+  version: 4.0.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -2755,7 +2755,7 @@ package:
     click: '>=8.0'
     click-default-group: ''
     crashtest: '>=0.4.1,<0.5.0'
-    dulwich: '>=0.22.6,<0.23.0'
+    dulwich: '>=0.22.6,<0.25.0'
     ensureconda: '>=1.4.7'
     filelock: ''
     gitpython: '>=3.1.30'
@@ -2785,14 +2785,14 @@ package:
     virtualenv: '>=20.26.6,<21.0.0'
     xattr: '>=1.0.0,<2.0.0'
     zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.4-pyhb3ed7dc_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-4.0.0-pyh5552912_0.conda
   hash:
-    md5: 0fee5d5a9df19104dcecf4541097e70e
-    sha256: e614472059d1172b242d635ad2ee136780fc83746bbf49b92298ce1a0d3d5a33
+    md5: 0b61fc8c8f0c436e0602df2d9b9b1313
+    sha256: ce71f3ef33eeb9c0407c91d7033078aa68f5bf494e49972e8dee95d9b00e4e7a
   category: main
   optional: false
 - name: conda-lock
-  version: 3.0.4
+  version: 4.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2804,7 +2804,7 @@ package:
     click: '>=8.0'
     click-default-group: ''
     crashtest: '>=0.4.1,<0.5.0'
-    dulwich: '>=0.22.6,<0.23.0'
+    dulwich: '>=0.22.6,<0.25.0'
     ensureconda: '>=1.4.7'
     filelock: ''
     gitpython: '>=3.1.30'
@@ -2834,10 +2834,10 @@ package:
     virtualenv: '>=20.26.6,<21.0.0'
     xattr: '>=1.0.0,<2.0.0'
     zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-3.0.4-pyhb3ed7dc_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-lock-4.0.0-pyh5552912_0.conda
   hash:
-    md5: 0fee5d5a9df19104dcecf4541097e70e
-    sha256: e614472059d1172b242d635ad2ee136780fc83746bbf49b92298ce1a0d3d5a33
+    md5: 0b61fc8c8f0c436e0602df2d9b9b1313
+    sha256: ce71f3ef33eeb9c0407c91d7033078aa68f5bf494e49972e8dee95d9b00e4e7a
   category: main
   optional: false
 - name: conda-oci-mirror
@@ -4007,49 +4007,52 @@ package:
   category: main
   optional: false
 - name: dulwich
-  version: 0.22.8
+  version: 0.24.10
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
+    libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-    urllib3: '>=1.25'
-  url: https://conda.anaconda.org/conda-forge/linux-64/dulwich-0.22.8-py311h9e33e62_0.conda
+    typing_extensions: '>=4.6.0'
+    urllib3: '>=2.2.2'
+  url: https://conda.anaconda.org/conda-forge/linux-64/dulwich-0.24.10-py311hc8fb587_1.conda
   hash:
-    md5: 2d2e806c71919732efcb879a192f37e7
-    sha256: 64f2704c4b3907fefae27e744b414aa3f81df1df2b6c88a440723b88fe2d7477
+    md5: a7981f8edc6d070b789f157de2fe13de
+    sha256: a224b99edc1c4fbc243b20bef5997ca7b1dd7970a9eecaa469b2a06462024cba
   category: main
   optional: false
 - name: dulwich
-  version: 0.22.8
+  version: 0.24.10
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-    urllib3: '>=1.25'
-  url: https://conda.anaconda.org/conda-forge/osx-64/dulwich-0.22.8-py311h3b9c2be_0.conda
+    typing_extensions: '>=4.6.0'
+    urllib3: '>=2.2.2'
+  url: https://conda.anaconda.org/conda-forge/osx-64/dulwich-0.24.10-py311hef35832_1.conda
   hash:
-    md5: 1e59e251e1263df70b041012cbebbf33
-    sha256: 53d5efaa84042a6d36c039516395ce9308917d1a50d6c315670880a133426f1c
+    md5: 42b0ccb7b13a1f162a2f03aa50846cb3
+    sha256: 9d7c9fa2c243ecf19d95f8cbbe84ceda081484177e3b9370652bc35169b81c68
   category: main
   optional: false
 - name: dulwich
-  version: 0.22.8
+  version: 0.24.10
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-    urllib3: '>=1.25'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/dulwich-0.22.8-py311h3ff9189_0.conda
+    typing_extensions: '>=4.6.0'
+    urllib3: '>=2.2.2'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/dulwich-0.24.10-py311h0f0954d_1.conda
   hash:
-    md5: 1d7e4d1a3e814510311f893206565d22
-    sha256: 21fd442c9ff7b8081b0997cc95cb3389d6709262dfd59ceaef6e41755a4080f2
+    md5: 3494799f826381f418fcf2636cd34b0c
+    sha256: f365f7dbb4b8b1da80fd8e0837506da98ee37d2c9a82e3f36dd47b4a3b628a85
   category: main
   optional: false
 - name: editables
