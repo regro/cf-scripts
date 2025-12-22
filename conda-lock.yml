@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.22.12.38.44
+  version: 2025.12.22.22.48.19
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.12.38.44-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.22.48.19-hd8ed1ab_0.conda
   hash:
-    md5: d97b85c0083ab3acf8e5c3c483d0c654
-    sha256: a5d691dfc7ec7ea63df6dc1e296d6b1ac886abc1987fecfecad6045a323d0e8e
+    md5: ef3f757dbc65dd52e16d3ce3a5cfd910
+    sha256: 3d53628d65bd4aa08e69f1c869d052def464ef3704d078728f28ac3b4142d7f0
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.22.12.38.44
+  version: 2025.12.22.22.48.19
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.12.38.44-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.22.48.19-hd8ed1ab_0.conda
   hash:
-    md5: d97b85c0083ab3acf8e5c3c483d0c654
-    sha256: a5d691dfc7ec7ea63df6dc1e296d6b1ac886abc1987fecfecad6045a323d0e8e
+    md5: ef3f757dbc65dd52e16d3ce3a5cfd910
+    sha256: 3d53628d65bd4aa08e69f1c869d052def464ef3704d078728f28ac3b4142d7f0
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.22.12.38.44
+  version: 2025.12.22.22.48.19
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.12.38.44-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.22.22.48.19-hd8ed1ab_0.conda
   hash:
-    md5: d97b85c0083ab3acf8e5c3c483d0c654
-    sha256: a5d691dfc7ec7ea63df6dc1e296d6b1ac886abc1987fecfecad6045a323d0e8e
+    md5: ef3f757dbc65dd52e16d3ce3a5cfd910
+    sha256: 3d53628d65bd4aa08e69f1c869d052def464ef3704d078728f28ac3b4142d7f0
   category: main
   optional: false
 - name: conda-forge-tick
@@ -4444,7 +4444,7 @@ package:
   category: main
   optional: false
 - name: fastapi-cli
-  version: 0.0.16
+  version: 0.0.20
   manager: conda
   platform: linux-64
   dependencies:
@@ -4453,14 +4453,14 @@ package:
     tomli: '>=2.0.0'
     typer: '>=0.15.1'
     uvicorn-standard: '>=0.15.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.16-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.20-pyhcf101f3_0.conda
   hash:
-    md5: 4f82a266e2d5b199db16cdb42341d785
-    sha256: 4136b0c277188b205332983278c7b278ea946dc1c78a381e0f5bc79204b8ac97
+    md5: e2b464522fa49c5948c4da6c8d8ea9b3
+    sha256: 284cae62b2061a9f423b468f720deeff98783eccff6bf3b32965afb21a53e349
   category: main
   optional: false
 - name: fastapi-cli
-  version: 0.0.16
+  version: 0.0.20
   manager: conda
   platform: osx-64
   dependencies:
@@ -4469,14 +4469,14 @@ package:
     tomli: '>=2.0.0'
     typer: '>=0.15.1'
     uvicorn-standard: '>=0.15.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.16-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.20-pyhcf101f3_0.conda
   hash:
-    md5: 4f82a266e2d5b199db16cdb42341d785
-    sha256: 4136b0c277188b205332983278c7b278ea946dc1c78a381e0f5bc79204b8ac97
+    md5: e2b464522fa49c5948c4da6c8d8ea9b3
+    sha256: 284cae62b2061a9f423b468f720deeff98783eccff6bf3b32965afb21a53e349
   category: main
   optional: false
 - name: fastapi-cli
-  version: 0.0.16
+  version: 0.0.20
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -4485,10 +4485,10 @@ package:
     tomli: '>=2.0.0'
     typer: '>=0.15.1'
     uvicorn-standard: '>=0.15.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.16-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-cli-0.0.20-pyhcf101f3_0.conda
   hash:
-    md5: 4f82a266e2d5b199db16cdb42341d785
-    sha256: 4136b0c277188b205332983278c7b278ea946dc1c78a381e0f5bc79204b8ac97
+    md5: e2b464522fa49c5948c4da6c8d8ea9b3
+    sha256: 284cae62b2061a9f423b468f720deeff98783eccff6bf3b32965afb21a53e349
   category: main
   optional: false
 - name: fastapi-core
