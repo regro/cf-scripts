@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.25.01.57.59
+  version: 2025.12.29.00.55.13
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.25.01.57.59-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.29.00.55.13-hd8ed1ab_0.conda
   hash:
-    md5: d9e25dd6d8f12df9c2c611c84ed5c733
-    sha256: 2f1ccb8dea7c491b54f04483303e2d2b97302624712bae5de15968d97febffc8
+    md5: 16b83266d3a90bf5071cd38f5a983af6
+    sha256: 436659078e4ab52d368ca620d05584cd87ef8fcb4d2beefb522004f53c6bf0ff
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.25.01.57.59
+  version: 2025.12.29.00.55.13
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.25.01.57.59-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.29.00.55.13-hd8ed1ab_0.conda
   hash:
-    md5: d9e25dd6d8f12df9c2c611c84ed5c733
-    sha256: 2f1ccb8dea7c491b54f04483303e2d2b97302624712bae5de15968d97febffc8
+    md5: 16b83266d3a90bf5071cd38f5a983af6
+    sha256: 436659078e4ab52d368ca620d05584cd87ef8fcb4d2beefb522004f53c6bf0ff
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2025.12.25.01.57.59
+  version: 2025.12.29.00.55.13
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.25.01.57.59-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.12.29.00.55.13-hd8ed1ab_0.conda
   hash:
-    md5: d9e25dd6d8f12df9c2c611c84ed5c733
-    sha256: 2f1ccb8dea7c491b54f04483303e2d2b97302624712bae5de15968d97febffc8
+    md5: 16b83266d3a90bf5071cd38f5a983af6
+    sha256: 436659078e4ab52d368ca620d05584cd87ef8fcb4d2beefb522004f53c6bf0ff
   category: main
   optional: false
 - name: conda-forge-tick
@@ -3250,7 +3250,7 @@ package:
   category: main
   optional: false
 - name: coverage
-  version: 7.13.0
+  version: 7.13.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -3259,14 +3259,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.13.0-py311h3778330_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.13.1-py311h3778330_0.conda
   hash:
-    md5: 95294f5480dae437d7c15d40238c9b1c
-    sha256: e3d66a16a01d1729374ede4191736d99537b2115c7002a3abc65b2f29bcd1a68
+    md5: 9d38ee59f3535da3ee59652dcef8fd96
+    sha256: 86a8776cf59368a34133ab6328075a9b3c1b7fb51ca514d2441ef760098555cf
   category: main
   optional: false
 - name: coverage
-  version: 7.13.0
+  version: 7.13.1
   manager: conda
   platform: osx-64
   dependencies:
@@ -3274,14 +3274,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/coverage-7.13.0-py311he13f9b5_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/coverage-7.13.1-py311h53ebfaf_0.conda
   hash:
-    md5: 89194385f87374a1665bc0e73e794187
-    sha256: 0d9f2d0a48e0d3a471451ce0f38f6c07fc083cff6cd6db5c9cfe7b7032065e7e
+    md5: f54f582dcc9004a301d81faa922748dd
+    sha256: 5354201b4bfc66de0c76d4714ca8ecd1a21d234bae6dfac94240dfc5ac634208
   category: main
   optional: false
 - name: coverage
-  version: 7.13.0
+  version: 7.13.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3289,10 +3289,10 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.13.0-py311ha9b3269_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.13.1-py311hc290fe0_0.conda
   hash:
-    md5: 7b7329b38fa1855f4099f59edf8debe1
-    sha256: 6f5eda53e40192f6aed58b6767c82cdf5c1475710d403f1e285c62da3ffa254e
+    md5: 53d158dac330987a37965b6cc2bf8ba8
+    sha256: b7ccae793428bf2a7f88a006738be3e87f86e70eb95c0431a20ae5b9829aa646
   category: main
   optional: false
 - name: cpp-expected
@@ -14672,12 +14672,12 @@ package:
     certifi: '>=2017.4.17'
     charset-normalizer: '>=2,<4'
     idna: '>=2.5,<4'
-    python: '>=3.9'
+    python: ''
     urllib3: '>=1.21.1,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhcf101f3_1.conda
   hash:
-    md5: db0c6b99149880c8ba515cf4abe93ee4
-    sha256: 8dc54e94721e9ab545d7234aa5192b74102263d3e704e6d0c8aa7008f2da2a7b
+    md5: c65df89a0b2e321045a9e01d1337b182
+    sha256: 7813c38b79ae549504b2c57b3f33394cea4f2ad083f0994d2045c2e24cb538c5
   category: main
   optional: false
 - name: requests
@@ -14688,12 +14688,12 @@ package:
     certifi: '>=2017.4.17'
     charset-normalizer: '>=2,<4'
     idna: '>=2.5,<4'
-    python: '>=3.9'
+    python: ''
     urllib3: '>=1.21.1,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhcf101f3_1.conda
   hash:
-    md5: db0c6b99149880c8ba515cf4abe93ee4
-    sha256: 8dc54e94721e9ab545d7234aa5192b74102263d3e704e6d0c8aa7008f2da2a7b
+    md5: c65df89a0b2e321045a9e01d1337b182
+    sha256: 7813c38b79ae549504b2c57b3f33394cea4f2ad083f0994d2045c2e24cb538c5
   category: main
   optional: false
 - name: requests
@@ -14704,12 +14704,12 @@ package:
     certifi: '>=2017.4.17'
     charset-normalizer: '>=2,<4'
     idna: '>=2.5,<4'
-    python: '>=3.9'
+    python: ''
     urllib3: '>=1.21.1,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.5-pyhcf101f3_1.conda
   hash:
-    md5: db0c6b99149880c8ba515cf4abe93ee4
-    sha256: 8dc54e94721e9ab545d7234aa5192b74102263d3e704e6d0c8aa7008f2da2a7b
+    md5: c65df89a0b2e321045a9e01d1337b182
+    sha256: 7813c38b79ae549504b2c57b3f33394cea4f2ad083f0994d2045c2e24cb538c5
   category: main
   optional: false
 - name: requests-mock
