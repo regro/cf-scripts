@@ -12003,7 +12003,7 @@ package:
   category: main
   optional: false
 - name: psutil
-  version: 7.2.0
+  version: 7.2.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -12011,38 +12011,38 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.2.0-py311haee01d2_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.2.1-py311haee01d2_0.conda
   hash:
-    md5: 17c1d1a7ef29de1cb677a05f636c56ab
-    sha256: e38b615e289595e7d985567f72872c0c75132ae359d9cd358242351723ca4765
+    md5: 8cc656ea4773e02929cc58745669b116
+    sha256: 3ff5620fe75ff73b2aa61f6199bf46872b49664d8e7c5d12c2ff6fee14456291
   category: main
   optional: false
 - name: psutil
-  version: 7.2.0
+  version: 7.2.1
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: ''
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.2.0-py311ha332486_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/psutil-7.2.1-py311ha332486_0.conda
   hash:
-    md5: db03d542c9667025c872331a5f7b1c1d
-    sha256: f01215ff9a33b479e6771d3f5494845cd17b65da2b024a379ec232ce3f4b4f57
+    md5: c42a0a8d2142fe088f30184eda994187
+    sha256: 231a811314ba27657296152993d6a27309a3b224699f3e94e78228eee6601a44
   category: main
   optional: false
 - name: psutil
-  version: 7.2.0
+  version: 7.2.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.11.*
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.2.0-py311he363849_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-7.2.1-py311he363849_0.conda
   hash:
-    md5: e0ee519c647e181a1cb77c4ab1fd6dba
-    sha256: 2caab57364af4eb966a7d416cb18d040ad07f71d46448f971386b4e22e2c07e6
+    md5: 0ce5afa1058d64953fb531c09fec2a85
+    sha256: fcba06f49b4b4179249f85e5854c76855b1d27f143912429418cf4c1812a5401
   category: main
   optional: false
 - name: pthread-stubs
