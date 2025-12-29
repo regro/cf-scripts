@@ -458,7 +458,14 @@ def _make_grayskull_recipe_v1(
         is_arch=not package_is_noarch,
     )
     _validate_grayskull_recipe_v1(recipe=recipe)
-    return _generate_grayskull_recipe_v1(recipe=recipe, configuration=config)
+    recipe_str = _generate_grayskull_recipe_v1(recipe=recipe, configuration=config)
+
+    # Grayskull generates `match(python, ...)` for noarch recipes, but v1 recipes
+    # use `python_min` in their variant configs (CFEP-25). Replace to make the
+    # recipe renderable. See: https://github.com/conda/grayskull/issues/574
+    recipe_str = recipe_str.replace("match(python,", "match(python_min,")
+
+    return recipe_str
 
 
 def get_grayskull_comparison(attrs, version_key="version"):
