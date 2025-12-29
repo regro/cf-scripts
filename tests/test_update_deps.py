@@ -1148,9 +1148,6 @@ def test_jsii_package_name_resolution():
     assert resolved_name == "jsii"
 
 
-@pytest.mark.xfail(
-    reason="Grayskull generates skip: match(python, ...) but variant config only has python_min"
-)
 def test_get_grayskull_comparison_v1_python_min_mismatch():
     """Test that get_grayskull_comparison works for v1 recipes using python_min.
 
