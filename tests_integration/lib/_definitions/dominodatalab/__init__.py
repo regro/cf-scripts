@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -18,10 +19,24 @@ class VersionUpdate(TestCase):
 
         @router.get("/pypi.org/pypi/dominodatalab/json")
         def handle_pypi_json_api():
+            # Must include 'urls' with sdist info for grayskull to find the package
             return {
-                # rest omitted
-                "info": {"name": "dominodatalab", "version": "2.0.0"}
+                "info": {"name": "dominodatalab", "version": "2.0.0"},
+                "urls": [
+                    {
+                        "packagetype": "sdist",
+                        "url": "https://files.pythonhosted.org/packages/d8/6d/1e321187451c1cc1670e615497474f9c54f04ad5f4ff7e831ea2dc3eeb23/dominodatalab-2.0.0.tar.gz",
+                    }
+                ],
             }
+
+        @router.get("/pypi.org/pypi/dominodatalab/2.0.0/json")
+        def handle_pypi_version_json_api():
+            return json.loads(
+                Path(__file__)
+                .parent.joinpath("pypi_version_json_response.json")
+                .read_text()
+            )
 
         return router
 

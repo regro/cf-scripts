@@ -76,6 +76,7 @@ def get_transparent_urls() -> set[str]:
         "https://pypi.io/packages/source/*",
         "https://pypi.org/packages/source/*",
         "https://files.pythonhosted.org/packages/*",
+        "https://spdx.org/*",  # Needed for grayskull license discovery
         "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
         "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
         "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
