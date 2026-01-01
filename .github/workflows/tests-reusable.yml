@@ -48,7 +48,7 @@ jobs:
       NUM_SPLITS: 2
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -61,7 +61,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -110,7 +110,7 @@ jobs:
           python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: set up docker buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
 
       - name: build docker image
@@ -123,7 +123,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb  # v5.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -170,7 +170,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-${{ matrix.group }}
@@ -178,7 +178,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-${{ matrix.group }}
@@ -202,7 +202,7 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -215,7 +215,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -277,7 +277,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: restore test durations
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb  # v5.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -317,7 +317,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-mongodb
@@ -325,7 +325,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-mongodb
@@ -342,7 +342,7 @@ jobs:
       run:
         shell: bash -leo pipefail {0}
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -355,7 +355,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -374,7 +374,7 @@ jobs:
           condarc-file: autotick-bot/condarc
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: coverage-*
@@ -386,13 +386,13 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.1.8
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.1.8
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -402,7 +402,7 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: test-durations-*
@@ -414,7 +414,7 @@ jobs:
           jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations
