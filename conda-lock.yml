@@ -12567,42 +12567,42 @@ package:
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.11.0
+  version: 2.10.6
   manager: conda
   platform: linux-64
   dependencies:
     pydantic: '>=2.5.2'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.11.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: b74145c95d910d3dd4195cf7d7567c35
-    sha256: e984052b8922b8996add05d595b68430e4f28b7d93846693b2729dc1e0504685
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.11.0
+  version: 2.10.6
   manager: conda
   platform: osx-64
   dependencies:
     pydantic: '>=2.5.2'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.11.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: b74145c95d910d3dd4195cf7d7567c35
-    sha256: e984052b8922b8996add05d595b68430e4f28b7d93846693b2729dc1e0504685
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-extra-types
-  version: 2.11.0
+  version: 2.10.6
   manager: conda
   platform: osx-arm64
   dependencies:
     pydantic: '>=2.5.2'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.11.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.10.6-pyh3cfb1c2_0.conda
   hash:
-    md5: b74145c95d910d3dd4195cf7d7567c35
-    sha256: e984052b8922b8996add05d595b68430e4f28b7d93846693b2729dc1e0504685
+    md5: c60c737e23715462044d9dba67fdf10c
+    sha256: 0a03f1e0771be4bcc5b174b1b45453127d3cf006ab5801fb457d1b7b9421d1ad
   category: main
   optional: false
 - name: pydantic-settings
@@ -12973,7 +12973,7 @@ package:
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.1
+  version: 1.6.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -12984,14 +12984,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.1-py311h49ec1c0_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.2-py311h49ec1c0_0.conda
   hash:
-    md5: 81a3dbba97659f21106f64aabefaab02
-    sha256: 51ea3193428786263becd92eed8bd8a646ccd7055bb523418b2ed75602aa23d2
+    md5: f9aa8eb9262de538769344f6d0d30899
+    sha256: aa5fccb60978c45e44a8239d0f8b17edebfd04c6783fd577424a3e9da65529d0
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.1
+  version: 1.6.2
   manager: conda
   platform: osx-64
   dependencies:
@@ -13001,14 +13001,14 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.6.1-py311hf197a57_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pynacl-1.6.2-py311hc71d4c3_0.conda
   hash:
-    md5: 57fd679927c012f78dfb31f944f66210
-    sha256: 02b65698094d4d091a2797bc3f1c26f663e24705f894b934fc18c033e5de4bc4
+    md5: 1ffabc54bc7a893822553249b365c1d4
+    sha256: 279220b4dda0c4234b3ee773da9d9731f32280a641c3fa86b1d4b911a48758b5
   category: main
   optional: false
 - name: pynacl
-  version: 1.6.1
+  version: 1.6.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -13018,10 +13018,10 @@ package:
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.1-py311h9408147_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.2-py311hc949640_0.conda
   hash:
-    md5: 2a61a545315c734705d973f7907e161f
-    sha256: a90d649e245aea686fe8d7a9299fa400001c779eb55020c9e1fcfcfa8469006f
+    md5: 9aed4f71c5f83e2ae3fa21bd86369746
+    sha256: c89e6d64569b7298aca1e2b211bd4ddc489cae869425e5af3a51e65ed5523832
   category: main
   optional: false
 - name: pynamodb
