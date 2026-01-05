@@ -24,8 +24,8 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: free disk space for stackvana
-        uses: endersonmenezes/free-disk-space@v3
+      - name: free disk space
+        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
         with:
           remove_android: true
           remove_dotnet: true

@@ -48,9 +48,9 @@ jobs:
       NUM_SPLITS: 2
 
     steps:
-      - name: free disk space for stackvana
+      - name: free disk space
         if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@v3
+        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
         with:
           remove_android: true
           remove_dotnet: true
@@ -211,9 +211,9 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - name: free disk space for stackvana
+      - name: free disk space
         if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@v3
+        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
         with:
           remove_android: true
           remove_dotnet: true
@@ -360,9 +360,9 @@ jobs:
       run:
         shell: bash -leo pipefail {0}
     steps:
-      - name: free disk space for stackvana
+      - name: free disk space
         if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@v3
+        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
         with:
           remove_android: true
           remove_dotnet: true
