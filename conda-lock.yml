@@ -11424,39 +11424,39 @@ package:
   category: main
   optional: false
 - name: pathspec
-  version: 1.0.0
+  version: 1.0.1
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c27944cfd04162af4832834f5f110bd0
-    sha256: 1493d56d7a02bdcaacc28a4fc2c1249230a6cf24750608e2b30bdf5c9154bb70
+    md5: 9873e55afc3f873196da6ac80382918b
+    sha256: c2d058ffe4f8caae71793a6e6f52bcbd0be660f11958ed2349b6476287117714
   category: main
   optional: false
 - name: pathspec
-  version: 1.0.0
+  version: 1.0.1
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c27944cfd04162af4832834f5f110bd0
-    sha256: 1493d56d7a02bdcaacc28a4fc2c1249230a6cf24750608e2b30bdf5c9154bb70
+    md5: 9873e55afc3f873196da6ac80382918b
+    sha256: c2d058ffe4f8caae71793a6e6f52bcbd0be660f11958ed2349b6476287117714
   category: main
   optional: false
 - name: pathspec
-  version: 1.0.0
+  version: 1.0.1
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pathspec-1.0.1-pyhd8ed1ab_0.conda
   hash:
-    md5: c27944cfd04162af4832834f5f110bd0
-    sha256: 1493d56d7a02bdcaacc28a4fc2c1249230a6cf24750608e2b30bdf5c9154bb70
+    md5: 9873e55afc3f873196da6ac80382918b
+    sha256: c2d058ffe4f8caae71793a6e6f52bcbd0be660f11958ed2349b6476287117714
   category: main
   optional: false
 - name: pcre2
@@ -14387,7 +14387,7 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.55.0
+  version: 0.55.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -14395,34 +14395,34 @@ package:
     libgcc: '>=14'
     openssl: '>=3.5.4,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.55.0-he64ecbb_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.55.1-he64ecbb_0.conda
   hash:
-    md5: a36d6e58d8260e43e893c47ea441ce8b
-    sha256: e298cd1344d9059f51246a3ea4733b42fad38f254d3655889c5ee6349e9963f4
+    md5: b6a10478e09eedf17c5a9f2a1e334c00
+    sha256: d4115e45191c507e70c15d4fc0cf4bd283c64214c05f0ee6e35811b2d76a2348
   category: main
   optional: false
 - name: rattler-build
-  version: 0.55.0
+  version: 0.55.1
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.55.0-h4728fb8_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.55.1-h4728fb8_0.conda
   hash:
-    md5: 8bdec9934155ec538f4d1687e753f387
-    sha256: 641378066f6bf94156d6cac4656fb09e915d106f011e73d2f25f2b817adf830b
+    md5: 1ca76f21400eff10be29693ec70e2e23
+    sha256: 3dbef844ccb2fb28fe6c2b5e315155274e1aac5afff2a368452f4dd365442c2c
   category: main
   optional: false
 - name: rattler-build
-  version: 0.55.0
+  version: 0.55.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.55.0-h6fdd925_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.55.1-h6fdd925_0.conda
   hash:
-    md5: 4f6d4b933cf8d4eb2d032339b25933d1
-    sha256: 3131bbb52d67096e49813f0615214443a4215ccfc587e34a24c03ed3f0bcde06
+    md5: 6b38c4d55fbdf0f06d3c08674d2a9379
+    sha256: 7d31a25e45823fc4fda6281b019c7875d2626ea8b1522cd58c56c6035b92e5c5
   category: main
   optional: false
 - name: rattler-build-conda-compat
