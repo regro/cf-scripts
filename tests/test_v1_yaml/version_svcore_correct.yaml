@@ -24,7 +24,7 @@ recipe:
   version: ${{ version }}
 
 source:
-  url: https://eups.lsst.codes/stack/src/tags/${{ dm_tag }}.list
+  url: https://eups.lsst.codes/stack/src/tags/old_tags/${{ dm_tag }}.list
   sha256: 0dc3553cde005ead150677f51170511b2dedb44a44d62ca00ffa5ef728698cf3
 
 build:
