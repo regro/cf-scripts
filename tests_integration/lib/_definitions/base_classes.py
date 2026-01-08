@@ -189,6 +189,31 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
+    def assert_pr_body_not_contains(
+        self,
+        feedstock: str,
+        new_version: str,
+        not_included: list[str],
+    ):
+        """
+        Assert that the version update PR body does NOT contain certain strings.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        new_version
+            The new version that is expected.
+        not_included
+            A list of strings that must NOT be present in the PR body.
+
+        Raises
+        ------
+        AssertionError
+            If any of the strings are found in the PR body.
+        """
+        pass
+
 
 class TestCase(ABC):
     """
