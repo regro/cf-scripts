@@ -263,3 +263,19 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
         recipe = self._get_pr_content_recipe_v1(pr)
         assert recipe["requirements"]["run"] == run_requirements
+
+    def assert_pr_title_starts_with(
+        self,
+        feedstock: str,
+        pr_title_contains: str,
+        expected_prefix: str,
+    ):
+        pr = self._get_matching_pr(feedstock, pr_title_contains)
+        assert pr.title.startswith(expected_prefix), (
+            f"PR title '{pr.title}' does not start with expected prefix '{expected_prefix}'"
+        )
+        LOGGER.info(
+            "PR title for %s verified to start with '%s'.",
+            feedstock,
+            expected_prefix,
+        )
