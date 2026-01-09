@@ -13704,7 +13704,7 @@ package:
   category: main
   optional: false
 - name: python-build
-  version: 1.3.0
+  version: 1.4.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -13712,16 +13712,16 @@ package:
     importlib-metadata: '>=4.6'
     packaging: '>=19.0'
     pyproject_hooks: ''
-    python: '>=3.9'
+    python: '>=3.10'
     tomli: '>=1.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.3.0-pyhff2d567_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.0-pyh332efcf_0.conda
   hash:
-    md5: ed5d43e9ef92cc2a9872f9bdfe94b984
-    sha256: b2df2264f0936b9f95e13ac79b596fac86d3b649812da03a61543e11e669714c
+    md5: dbbb75958b0b03842dcf9be2f200fc10
+    sha256: 195e483a12bcec40b817f4001d4d4b8ea1cb2de66a62aeabfff6e32e29b3f407
   category: main
   optional: false
 - name: python-build
-  version: 1.3.0
+  version: 1.4.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -13729,16 +13729,16 @@ package:
     importlib-metadata: '>=4.6'
     packaging: '>=19.0'
     pyproject_hooks: ''
-    python: '>=3.9'
+    python: '>=3.10'
     tomli: '>=1.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.3.0-pyhff2d567_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.0-pyh332efcf_0.conda
   hash:
-    md5: ed5d43e9ef92cc2a9872f9bdfe94b984
-    sha256: b2df2264f0936b9f95e13ac79b596fac86d3b649812da03a61543e11e669714c
+    md5: dbbb75958b0b03842dcf9be2f200fc10
+    sha256: 195e483a12bcec40b817f4001d4d4b8ea1cb2de66a62aeabfff6e32e29b3f407
   category: main
   optional: false
 - name: python-build
-  version: 1.3.0
+  version: 1.4.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -13746,12 +13746,12 @@ package:
     importlib-metadata: '>=4.6'
     packaging: '>=19.0'
     pyproject_hooks: ''
-    python: '>=3.9'
+    python: '>=3.10'
     tomli: '>=1.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.3.0-pyhff2d567_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.0-pyh332efcf_0.conda
   hash:
-    md5: ed5d43e9ef92cc2a9872f9bdfe94b984
-    sha256: b2df2264f0936b9f95e13ac79b596fac86d3b649812da03a61543e11e669714c
+    md5: dbbb75958b0b03842dcf9be2f200fc10
+    sha256: 195e483a12bcec40b817f4001d4d4b8ea1cb2de66a62aeabfff6e32e29b3f407
   category: main
   optional: false
 - name: python-dateutil
