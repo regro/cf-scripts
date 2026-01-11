@@ -15154,7 +15154,7 @@ package:
   category: main
   optional: false
 - name: scipy
-  version: 1.16.3
+  version: 1.17.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -15169,14 +15169,14 @@ package:
     numpy: '>=1.25.2'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.16.3-py311hbe70eeb_2.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.17.0-py311hbe70eeb_0.conda
   hash:
-    md5: 1f9587850322d7d77ea14d4fee3d16d8
-    sha256: a13084f1556674ea74de2ecbe50333d938dab8ef27f536408592ba312363c400
+    md5: a1698614a27f4bd96815bac2ab22e1fc
+    sha256: b054e25d5987c860725d5fa817cd3d408b28dd83cfb9f7c13bef8076de9aff84
   category: main
   optional: false
 - name: scipy
-  version: 1.16.3
+  version: 1.17.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -15190,14 +15190,14 @@ package:
     numpy: '>=1.25.2'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.16.3-py311hd77d3c2_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.17.0-py311h553d447_0.conda
   hash:
-    md5: 5153a584333b37a433b5e1244606ef3d
-    sha256: dee00542bb0aed60d6160883365c19317fe63b34ea0f3237a8725fee297341f6
+    md5: e4671acf4b4d29d1fec1eea486d56b5d
+    sha256: 0bc1cf46ec0df66c70e0a9faccdb4b41b15bb25d8448f15c6ca10523da828f4b
   category: main
   optional: false
 - name: scipy
-  version: 1.16.3
+  version: 1.17.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -15211,10 +15211,10 @@ package:
     numpy: '>=1.25.2'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.16.3-py311ha71c161_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.17.0-py311he9931d0_0.conda
   hash:
-    md5: 1283a5d5d1c10e981638d2bd02c4eac6
-    sha256: 3a3bd525f126e7414c07bcf915060a36bfc3dac4cf31335585be942128d4337f
+    md5: b37fab35e0fb703ec6734637d1622443
+    sha256: 5bb1fde0bf7751f9932966655a9af7e639d917d5cd64520a14833b2714843577
   category: main
   optional: false
 - name: scrypt
