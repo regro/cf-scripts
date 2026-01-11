@@ -12921,52 +12921,52 @@ package:
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.5
+  version: 4.16.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    dnspython: <3.0.0,>=1.16.0
+    dnspython: <3.0.0,>=2.6.1
     libgcc: '>=14'
     libstdcxx: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.15.5-py311h1ddb823_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.16.0-py311h1ddb823_0.conda
   hash:
-    md5: 6b2b57e10f5516b3510068cafb0ee80f
-    sha256: 091b929fb9515582b13e892dedd681d046bfd3395d7e154f51ea68cb46abfe9e
+    md5: 02f7aba890904af3fd33e42142671215
+    sha256: 497d3b4877a8ef3f01666dd65bf6f55fecf30eb73b80e1af8b99d5b7bd356e94
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.5
+  version: 4.16.0
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-    dnspython: <3.0.0,>=1.16.0
+    dnspython: <3.0.0,>=2.6.1
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.15.5-py311h11ccb26_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.16.0-py311h204c208_0.conda
   hash:
-    md5: 95417813b8c9870822edd0e3bbf10929
-    sha256: b16b7504464d815b07f6ea98a64335dbd0a3b2dd76daf99df2ef896782b923f6
+    md5: 7f13063c86feb21ac5dec38134b2fca4
+    sha256: 28fa30e09e3b2b16f1e916b2450ca0e2fdefd4c73888f3ad73d3f4a6a6a46149
   category: main
   optional: false
 - name: pymongo
-  version: 4.15.5
+  version: 4.16.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    dnspython: <3.0.0,>=1.16.0
+    dnspython: <3.0.0,>=2.6.1
     libcxx: '>=19'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.15.5-py311h251fd82_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.16.0-py311h8325047_0.conda
   hash:
-    md5: cc0a823923b84c345cb27e9d6e1a6238
-    sha256: 3a74157e123c27172c8e2833354d435eb783b6ddaaa63e7674ed9e4923db4eea
+    md5: 7e84c5fa213e04696dc1c69d165240c2
+    sha256: e70c43a55787daaad17a11bf9c968be18d4745a74310220e46f916eaeef5689d
   category: main
   optional: false
 - name: pynacl
