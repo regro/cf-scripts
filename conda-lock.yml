@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.11.08.19.15
+  version: 2026.01.12.02.27.58
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.11.08.19.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.12.02.27.58-hd8ed1ab_0.conda
   hash:
-    md5: dc4289830cda891a88010ac1ed2b3098
-    sha256: 735a3d8f4dad6a043f6fc1c95235f87e84fbcfeee60eb34cf13d111fe9d48a96
+    md5: 4954ddd0f7fd1a7dece2389465b1f7db
+    sha256: af8e2725c01889ce43e2fde841e5679f60c0764b1e50f1ee6a70b9d618a4fc9d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.11.08.19.15
+  version: 2026.01.12.02.27.58
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.11.08.19.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.12.02.27.58-hd8ed1ab_0.conda
   hash:
-    md5: dc4289830cda891a88010ac1ed2b3098
-    sha256: 735a3d8f4dad6a043f6fc1c95235f87e84fbcfeee60eb34cf13d111fe9d48a96
+    md5: 4954ddd0f7fd1a7dece2389465b1f7db
+    sha256: af8e2725c01889ce43e2fde841e5679f60c0764b1e50f1ee6a70b9d618a4fc9d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.11.08.19.15
+  version: 2026.01.12.02.27.58
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.11.08.19.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.12.02.27.58-hd8ed1ab_0.conda
   hash:
-    md5: dc4289830cda891a88010ac1ed2b3098
-    sha256: 735a3d8f4dad6a043f6fc1c95235f87e84fbcfeee60eb34cf13d111fe9d48a96
+    md5: 4954ddd0f7fd1a7dece2389465b1f7db
+    sha256: af8e2725c01889ce43e2fde841e5679f60c0764b1e50f1ee6a70b9d618a4fc9d
   category: main
   optional: false
 - name: conda-forge-tick
@@ -7271,46 +7271,46 @@ package:
   category: main
   optional: false
 - name: lcms2
-  version: '2.17'
+  version: '2.18'
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-    libjpeg-turbo: '>=3.0.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/lcms2-2.17-h717163a_0.conda
+    libgcc: '>=14'
+    libjpeg-turbo: '>=3.1.2,<4.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/lcms2-2.18-h0c24ade_0.conda
   hash:
-    md5: 000e85703f0fd9594c81710dd5066471
-    sha256: d6a61830a354da022eae93fa896d0991385a875c6bba53c82263a289deda9db8
+    md5: 6f2e2c8f58160147c4d1c6f4c14cbac4
+    sha256: 836ec4b895352110335b9fdcfa83a8dcdbe6c5fb7c06c4929130600caea91c0a
   category: main
   optional: false
 - name: lcms2
-  version: '2.17'
+  version: '2.18'
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
-    libjpeg-turbo: '>=3.0.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/lcms2-2.17-h72f5680_0.conda
+    libjpeg-turbo: '>=3.1.2,<4.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
+  url: https://conda.anaconda.org/conda-forge/osx-64/lcms2-2.18-h90db99b_0.conda
   hash:
-    md5: bf210d0c63f2afb9e414a858b79f0eaa
-    sha256: bcb81543e49ff23e18dea79ef322ab44b8189fb11141b1af99d058503233a5fc
+    md5: 753acc10c7277f953f168890e5397c80
+    sha256: 3ec16c491425999a8461e1b7c98558060a4645a20cf4c9ac966103c724008cc2
   category: main
   optional: false
 - name: lcms2
-  version: '2.17'
+  version: '2.18'
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    libjpeg-turbo: '>=3.0.0,<4.0a0'
-    libtiff: '>=4.7.0,<4.8.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/lcms2-2.17-h7eeda09_0.conda
+    libjpeg-turbo: '>=3.1.2,<4.0a0'
+    libtiff: '>=4.7.1,<4.8.0a0'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/lcms2-2.18-hdfa7624_0.conda
   hash:
-    md5: 92a61fd30b19ebd5c1621a5bfe6d8b5f
-    sha256: 310a62c2f074ebd5aa43b3cd4b00d46385ce680fa2132ecee255a200e2d2f15f
+    md5: 6631a7bd2335bb9699b1dbc234b19784
+    sha256: d768da024ab74a4b30642401877fa914a68bdc238667f16b1ec2e0e98b2451a6
   category: main
   optional: false
 - name: ld64
@@ -9333,43 +9333,43 @@ package:
   category: main
   optional: false
 - name: libsqlite
-  version: 3.51.1
+  version: 3.51.2
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.51.1-h0c1763c_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.51.2-h0c1763c_0.conda
   hash:
-    md5: ad1fd565aff83b543d726382c0ab0af2
-    sha256: 5ef162b2a1390d1495a759734afe2312a358a58441cf8f378be651903646f3b7
+    md5: f7d30045eccb83f2bb8053041f42db3c
+    sha256: c1ff4589b48d32ca0a2628970d869fa9f7b2c2d00269a3761edc7e9e4c1ab7b8
   category: main
   optional: false
 - name: libsqlite
-  version: 3.51.1
+  version: 3.51.2
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.51.1-hb99441e_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.51.2-hb99441e_0.conda
   hash:
-    md5: ec7a2bad1b422f3966e4776442adb05c
-    sha256: d62dcce2ecf555864db393fa0fdc0492f9f644c0435f516d0ba4c5f9f934234b
+    md5: d910105ce2b14dfb2b32e92ec7653420
+    sha256: 710a7ea27744199023c92e66ad005de7f8db9cf83f10d5a943d786f0dac53b7c
   category: main
   optional: false
 - name: libsqlite
-  version: 3.51.1
+  version: 3.51.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.51.1-h1b79a29_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.51.2-h1b79a29_0.conda
   hash:
-    md5: 8c3951797658e10b610929c3e57e9ad9
-    sha256: f2c3cbf2ca7d697098964a748fbf19d6e4adcefa23844ec49f0166f1d36af83c
+    md5: faedef456ba5004af365d450eb38217d
+    sha256: f942afee5568a0bfba020e52c3f22b788e14017a8dc302652d2ca500756a8a5a
   category: main
   optional: false
 - name: libssh2
@@ -16076,39 +16076,39 @@ package:
   category: main
   optional: false
 - name: tomli
-  version: 2.3.0
+  version: 2.4.0
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.3.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.0-pyhcf101f3_0.conda
   hash:
-    md5: d2732eb636c264dc9aa4cbee404b1a53
-    sha256: cb77c660b646c00a48ef942a9e1721ee46e90230c7c570cdeb5a893b5cce9bff
+    md5: 72e780e9aa2d0a3295f59b1874e3768b
+    sha256: 62940c563de45790ba0f076b9f2085a842a65662268b02dd136a8e9b1eaf47a8
   category: main
   optional: false
 - name: tomli
-  version: 2.3.0
+  version: 2.4.0
   manager: conda
   platform: osx-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.3.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.0-pyhcf101f3_0.conda
   hash:
-    md5: d2732eb636c264dc9aa4cbee404b1a53
-    sha256: cb77c660b646c00a48ef942a9e1721ee46e90230c7c570cdeb5a893b5cce9bff
+    md5: 72e780e9aa2d0a3295f59b1874e3768b
+    sha256: 62940c563de45790ba0f076b9f2085a842a65662268b02dd136a8e9b1eaf47a8
   category: main
   optional: false
 - name: tomli
-  version: 2.3.0
+  version: 2.4.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.3.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.0-pyhcf101f3_0.conda
   hash:
-    md5: d2732eb636c264dc9aa4cbee404b1a53
-    sha256: cb77c660b646c00a48ef942a9e1721ee46e90230c7c570cdeb5a893b5cce9bff
+    md5: 72e780e9aa2d0a3295f59b1874e3768b
+    sha256: 62940c563de45790ba0f076b9f2085a842a65662268b02dd136a8e9b1eaf47a8
   category: main
   optional: false
 - name: tomli-w
