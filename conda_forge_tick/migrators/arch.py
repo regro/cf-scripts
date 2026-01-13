@@ -68,6 +68,7 @@ def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
 class ArchRebuild(GraphMigrator):
     """A Migrator that adds aarch64 and ppc64le builds to feedstocks."""
 
+    allowed_schema_versions = {0, 1}
     migrator_version = 1
     rerender = True
     # We purposefully don't want to bump build number for this migrator
@@ -155,7 +156,8 @@ class ArchRebuild(GraphMigrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
+            recipe_file = next(filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml")))
+            self.set_build_number(recipe_file)
 
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
@@ -311,7 +313,8 @@ class _CrossCompileRebuild(GraphMigrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
+            recipe_file = next(filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml")))
+            self.set_build_number(recipe_file)
 
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
@@ -344,6 +347,7 @@ class _CrossCompileRebuild(GraphMigrator):
 class OSXArm(_CrossCompileRebuild):
     """A Migrator that adds osx-arm64 builds to feedstocks."""
 
+    allowed_schema_versions = {0, 1}
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
     pkg_list_filename = "osx_arm64.txt"
@@ -378,6 +382,7 @@ class OSXArm(_CrossCompileRebuild):
 class WinArm64(_CrossCompileRebuild):
     """A Migrator that adds win-arm64 builds to feedstocks."""
 
+    allowed_schema_versions = {0, 1}
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}
     pkg_list_filename = "win_arm64.txt"
