@@ -35,6 +35,7 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
     allowed_schema_versions = {0, 1}
+
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         if (
             attrs["feedstock_name"] == "libtool"

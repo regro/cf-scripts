@@ -1,4 +1,5 @@
 import copy
+import os
 from textwrap import dedent
 from typing import Any, Collection, Literal, Optional, Sequence
 
@@ -156,7 +157,9 @@ class ArchRebuild(GraphMigrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
-            recipe_file = next(filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml")))
+            recipe_file = next(
+                filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml"))
+            )
             self.set_build_number(recipe_file)
 
             with open("conda-forge.yml") as f:
@@ -313,7 +316,9 @@ class _CrossCompileRebuild(GraphMigrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
-            recipe_file = next(filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml")))
+            recipe_file = next(
+                filter(os.path.exists, ("recipe/recipe.yaml", "recipe/meta.yaml"))
+            )
             self.set_build_number(recipe_file)
 
             with open("conda-forge.yml") as f:

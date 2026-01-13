@@ -129,8 +129,8 @@ def provide_source_code_local(recipe_dir):
     recipe_dir : str
         The path to the recipe directory.
 
-    Returns
-    -------
+    Yields
+    ------
     str
         The path to the source code directory.
 
@@ -194,7 +194,7 @@ def _provide_source_code_v0(recipe_dir, variant_config_file):
     md = md[0][0]
 
     # provide source dir
-    yield provide(md)
+    return provide(md)
 
 
 def _provide_source_code_v1(recipe_dir, variant_config_file):
@@ -239,6 +239,6 @@ def _provide_source_code_v1(recipe_dir, variant_config_file):
         for line in out.stderr.decode("utf-8").splitlines():
             text_to_search = "Work directory: "
             if text_to_search in line:
-                yield line[(line.index(text_to_search) + len(text_to_search)) :]
+                return line[(line.index(text_to_search) + len(text_to_search)) :]
     finally:
         os.remove(f"{recipe_dir}/minimal_recipe.yaml")
