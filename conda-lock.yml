@@ -5619,14 +5619,14 @@ package:
   category: main
   optional: false
 - name: grayskull
-  version: 2.9.2
+  version: 3.0.0
   manager: conda
   platform: linux-64
   dependencies:
     beautifulsoup4: ''
     colorama: ''
     conda-recipe-manager: ''
-    conda-souschef: '>=2.2.3'
+    conda-souschef: '>=3.0.1'
     packaging: '>=21.3'
     pip: ''
     pkginfo: ''
@@ -5640,21 +5640,21 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.0-pyhcf101f3_0.conda
   hash:
-    md5: 726ea54dcb11f3747c7980aeb68cef5c
-    sha256: 9cb73d7bc283d135cd4d82ad509fb4a54c48c32dfc29dfabeeb9b02b8cfe6f6c
+    md5: b062a692fd4464b14dbd56a2ff9e1a60
+    sha256: 78cf6f1378c718c60ce4229a8def100f8ff80a6b629800c4e1f3c6a78402ddfd
   category: main
   optional: false
 - name: grayskull
-  version: 2.9.2
+  version: 3.0.0
   manager: conda
   platform: osx-64
   dependencies:
     beautifulsoup4: ''
     colorama: ''
     conda-recipe-manager: ''
-    conda-souschef: '>=2.2.3'
+    conda-souschef: '>=3.0.1'
     packaging: '>=21.3'
     pip: ''
     pkginfo: ''
@@ -5668,21 +5668,21 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.0-pyhcf101f3_0.conda
   hash:
-    md5: 726ea54dcb11f3747c7980aeb68cef5c
-    sha256: 9cb73d7bc283d135cd4d82ad509fb4a54c48c32dfc29dfabeeb9b02b8cfe6f6c
+    md5: b062a692fd4464b14dbd56a2ff9e1a60
+    sha256: 78cf6f1378c718c60ce4229a8def100f8ff80a6b629800c4e1f3c6a78402ddfd
   category: main
   optional: false
 - name: grayskull
-  version: 2.9.2
+  version: 3.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
     beautifulsoup4: ''
     colorama: ''
     conda-recipe-manager: ''
-    conda-souschef: '>=2.2.3'
+    conda-souschef: '>=3.0.1'
     packaging: '>=21.3'
     pip: ''
     pkginfo: ''
@@ -5696,10 +5696,10 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.9.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.0-pyhcf101f3_0.conda
   hash:
-    md5: 726ea54dcb11f3747c7980aeb68cef5c
-    sha256: 9cb73d7bc283d135cd4d82ad509fb4a54c48c32dfc29dfabeeb9b02b8cfe6f6c
+    md5: b062a692fd4464b14dbd56a2ff9e1a60
+    sha256: 78cf6f1378c718c60ce4229a8def100f8ff80a6b629800c4e1f3c6a78402ddfd
   category: main
   optional: false
 - name: gtk3
