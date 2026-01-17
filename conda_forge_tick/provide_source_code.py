@@ -1,12 +1,15 @@
 import glob
+import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
 
 import wurlitzer
+import yaml
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -149,38 +152,90 @@ def provide_source_code_local(recipe_dir):
 
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
-            from conda_build.api import render
-            from conda_build.config import get_or_merge_config
-            from conda_build.source import provide
-
-            # Use conda build to do all the downloading/extracting bits
-            config = get_or_merge_config(None)
             ci_support_files = sorted(
                 glob.glob(os.path.join(recipe_dir, "../.ci_support/*.yaml"))
             )
             if ci_support_files:
-                config.variant_config_files = [ci_support_files[0]]
+                variant_config_file = ci_support_files[0]
             else:
-                config.variant_config_files = [
-                    # try global pinnings
-                    os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
-                ]
+                # try global pinnings
+                variant_config_file = os.path.join(
+                    os.environ["CONDA_PREFIX"], "conda_build_config.yaml"
+                )
+            if os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
+                result = _provide_source_code_v1(recipe_dir, variant_config_file)
+                if result is not None:
+                    yield result
+            else:
+                from conda_build.api import render
+                from conda_build.config import get_or_merge_config
+                from conda_build.source import provide
 
-            md = render(
-                recipe_dir,
-                config=config,
-                finalize=False,
-                bypass_env_check=True,
-            )
-            if not md:
-                return None
-            md = md[0][0]
+                # Use conda build to do all the downloading/extracting bits
+                config = get_or_merge_config(None)
+                config.variant_config_files = [variant_config_file]
+                md = render(
+                    recipe_dir,
+                    config=config,
+                    finalize=False,
+                    bypass_env_check=True,
+                )
+                if not md:
+                    return None
+                md = md[0][0]
 
-            # provide source dir
-            yield provide(md)
+                yield provide(md)
+
     except (SystemExit, Exception) as e:
         _print_out()
         logger.error("Error in getting conda build src!", exc_info=e)
         raise RuntimeError("conda build src exception: " + str(e))
 
     _print_out()
+
+
+def _provide_source_code_v1(recipe_dir, variant_config_file):
+    recipe_json = subprocess.check_output(
+        [
+            "rattler-build",
+            "build",
+            "--render-only",
+            "-r",
+            f"{recipe_dir}/recipe.yaml",
+            "-m",
+            variant_config_file,
+        ]
+    )
+    recipe_meta = json.loads(recipe_json)[0]
+    recipe = recipe_meta["recipe"]
+    minimal_recipe = {
+        "context": recipe.get("context", {}),
+        "package": recipe.get("package", {}),
+        "source": recipe["source"],
+        "build": {
+            "script": {
+                "content": "exit 1",
+            },
+        },
+    }
+    with open(f"{recipe_dir}/minimal_recipe.yaml", "w") as f:
+        yaml.dump(minimal_recipe, f)
+    try:
+        out = subprocess.run(
+            [
+                "rattler-build",
+                "build",
+                "-r",
+                f"{recipe_dir}/minimal_recipe.yaml",
+                "-m",
+                variant_config_file,
+            ],
+            check=False,
+            capture_output=True,
+        )
+        for line in out.stderr.decode("utf-8").splitlines():
+            text_to_search = "Work directory: "
+            if text_to_search in line:
+                return line[(line.index(text_to_search) + len(text_to_search)) :]
+    finally:
+        os.remove(f"{recipe_dir}/minimal_recipe.yaml")
