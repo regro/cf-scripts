@@ -129,8 +129,8 @@ def provide_source_code_local(recipe_dir):
     recipe_dir : str
         The path to the recipe directory.
 
-    Yields
-    ------
+    Returns
+    -------
     str
         The path to the source code directory.
 
@@ -163,9 +163,28 @@ def provide_source_code_local(recipe_dir):
                     os.environ["CONDA_PREFIX"], "conda_build_config.yaml"
                 )
             if os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
-                yield from _provide_source_code_v1(recipe_dir, variant_config_file)
+                result = _provide_source_code_v1(recipe_dir, variant_config_file)
+                if result is not None:
+                    yield result
             else:
-                yield from _provide_source_code_v0(recipe_dir, variant_config_file)
+                from conda_build.api import render
+                from conda_build.config import get_or_merge_config
+                from conda_build.source import provide
+
+                # Use conda build to do all the downloading/extracting bits
+                config = get_or_merge_config(None)
+                config.variant_config_files = [variant_config_file]
+                md = render(
+                    recipe_dir,
+                    config=config,
+                    finalize=False,
+                    bypass_env_check=True,
+                )
+                if not md:
+                    return None
+                md = md[0][0]
+
+                yield provide(md)
 
     except (SystemExit, Exception) as e:
         _print_out()
