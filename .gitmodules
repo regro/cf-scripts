@@ -19,3 +19,6 @@
 [submodule "tests_integration/lib/_definitions/dominodatalab/resources/feedstock"]
 	path = tests_integration/lib/_definitions/dominodatalab/resources/feedstock
 	url = https://github.com/conda-forge/dominodatalab-feedstock.git
+[submodule "tests_integration/lib/_definitions/witr/resources/feedstock"]
+	path = tests_integration/lib/_definitions/witr/resources/feedstock
+	url = https://github.com/conda-forge/witr-feedstock.git

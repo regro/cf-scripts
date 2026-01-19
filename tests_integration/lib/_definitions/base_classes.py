@@ -214,6 +214,31 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
+    def assert_pr_title_starts_with(
+        self,
+        feedstock: str,
+        pr_title_contains: str,
+        expected_prefix: str,
+    ):
+        """
+        Assert that a PR title starts with an expected prefix.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        pr_title_contains
+            A string that must be included in the PR title to identify the PR.
+        expected_prefix
+            The expected prefix that the PR title should start with.
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
 
 class TestCase(ABC):
     """

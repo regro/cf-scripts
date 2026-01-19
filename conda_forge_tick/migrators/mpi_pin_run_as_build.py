@@ -74,6 +74,8 @@ def _parse_cbc_mpi(lines):
 
 
 class MPIPinRunAsBuildCleanup(MiniMigrator):
+    allowed_schema_versions = {0, 1}
+
     def filter(self, attrs, not_bad_str_start=""):
         host_req = (attrs.get("requirements", {}) or {}).get("host", set()) or set()
 
