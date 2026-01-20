@@ -3769,11 +3769,11 @@ package:
   platform: linux-64
   dependencies:
     python: '>=3.10'
-    wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
+    wrapt: <3,>=1.10
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_1.conda
   hash:
-    md5: bf74a83f7a0f2a21b5d709997402cac4
-    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
+    md5: 5498feb783ab29db6ca8845f68fa0f03
+    sha256: 7d57a7b8266043ffb99d092ebc25e89a0a2490bed4146b9432c83c2c476fa94d
   category: main
   optional: false
 - name: deprecated
@@ -3782,11 +3782,11 @@ package:
   platform: osx-64
   dependencies:
     python: '>=3.10'
-    wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
+    wrapt: <3,>=1.10
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_1.conda
   hash:
-    md5: bf74a83f7a0f2a21b5d709997402cac4
-    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
+    md5: 5498feb783ab29db6ca8845f68fa0f03
+    sha256: 7d57a7b8266043ffb99d092ebc25e89a0a2490bed4146b9432c83c2c476fa94d
   category: main
   optional: false
 - name: deprecated
@@ -3795,11 +3795,11 @@ package:
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-    wrapt: <2,>=1.10
-  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_0.conda
+    wrapt: <3,>=1.10
+  url: https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_1.conda
   hash:
-    md5: bf74a83f7a0f2a21b5d709997402cac4
-    sha256: c994a70449d548dd388768090c71c1da81e1e128a281547ab9022908d46878c5
+    md5: 5498feb783ab29db6ca8845f68fa0f03
+    sha256: 7d57a7b8266043ffb99d092ebc25e89a0a2490bed4146b9432c83c2c476fa94d
   category: main
   optional: false
 - name: distlib
@@ -5619,7 +5619,7 @@ package:
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.1
+  version: 3.0.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -5640,14 +5640,14 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
   hash:
-    md5: 2b35ad86e9cc460dc21ad5d26e12852c
-    sha256: e1fb22e4f02add0835ffb9a0ccfb323904e379d3ace326eace4173271a484c50
+    md5: 85d7744615e9bcbc837121a9f59a11f7
+    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.1
+  version: 3.0.2
   manager: conda
   platform: osx-64
   dependencies:
@@ -5668,14 +5668,14 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
   hash:
-    md5: 2b35ad86e9cc460dc21ad5d26e12852c
-    sha256: e1fb22e4f02add0835ffb9a0ccfb323904e379d3ace326eace4173271a484c50
+    md5: 85d7744615e9bcbc837121a9f59a11f7
+    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.1
+  version: 3.0.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -5696,10 +5696,10 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
   hash:
-    md5: 2b35ad86e9cc460dc21ad5d26e12852c
-    sha256: e1fb22e4f02add0835ffb9a0ccfb323904e379d3ace326eace4173271a484c50
+    md5: 85d7744615e9bcbc837121a9f59a11f7
+    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
   category: main
   optional: false
 - name: gtk3
@@ -17411,7 +17411,7 @@ package:
   category: main
   optional: false
 - name: wrapt
-  version: 1.17.3
+  version: 2.0.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -17419,38 +17419,38 @@ package:
     libgcc: '>=14'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/wrapt-1.17.3-py311h49ec1c0_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/wrapt-2.0.1-py311h49ec1c0_1.conda
   hash:
-    md5: 47c1c27dee6c31bf8eefbdbdde817d83
-    sha256: efcb41a300b58624790d2ce1c6ac9c1da7d23dd91c3d329bd22853866f8f8533
+    md5: e8442f5d358d1449deaf4ba76f5e212c
+    sha256: 81327871ef18cbdd095e1e7650a198fd13f02355a39f23f1e377aa6d899f8ce0
   category: main
   optional: false
 - name: wrapt
-  version: 1.17.3
+  version: 2.0.1
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/wrapt-1.17.3-py311h13e5629_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/wrapt-2.0.1-py311hf197a57_1.conda
   hash:
-    md5: e61d11880c60001e858cc591ce35973f
-    sha256: 69a040e11d6967e7a3b8a0a1730016e7668e7904686450fa8bc2ff74de68fe7a
+    md5: 54e2a24577747909ae96011f103a1757
+    sha256: 20e08397523fa073a572a47d63f4ac004087f09932e0928eef8d6786218be59c
   category: main
   optional: false
 - name: wrapt
-  version: 1.17.3
+  version: 2.0.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.11,<3.12.0a0'
     python_abi: 3.11.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-1.17.3-py311h3696347_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-2.0.1-py311h9408147_1.conda
   hash:
-    md5: a2f91e76263f4b55cca328110ef4d50b
-    sha256: db6de7e82c923f05807b4ec4413ab706ee3183f6ef89ad906277c60dea013e92
+    md5: fd167167b3aabafec6a4e77562128f0b
+    sha256: 4701eef37ea9905f36250e94027348ef33768ccac77a579c7f0d6c508e6b9918
   category: main
   optional: false
 - name: wsproto
