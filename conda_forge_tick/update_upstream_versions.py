@@ -28,8 +28,9 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 
 from conda_forge_tick.cli_context import CliContext
+from conda_forge_tick.deploy import deploy
 from conda_forge_tick.executors import executor
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps, sync_lazy_json_object
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 from conda_forge_tick.settings import (
     ENV_CONDA_FORGE_ORG,
     ENV_GRAPH_GITHUB_BACKEND_REPO,
@@ -137,11 +138,11 @@ def get_latest_version_local(
     for source in sources_to_use:
         try:
             logger.debug("Fetching latest version for %s from %s...", name, source.name)
-            url = source.get_url(attrs)
+            url = source.get_url(attrs)  # type: ignore[arg-type]
             if url is None:
                 continue
             logger.debug("Using URL %s", url)
-            ver = source.get_version(url, attrs)
+            ver = source.get_version(url, attrs)  # type: ignore[arg-type]
             if not ver:
                 logger.debug("Upstream: Could not find version on %s", source.name)
                 continue
@@ -421,6 +422,7 @@ def _update_upstream_versions_process_pool(
 
         n_tot = len(futures)
         n_left = len(futures)
+        n_changed = 0
         start = time.time()
         # eta :: elapsed time average
         eta = -1.0
@@ -464,11 +466,25 @@ def _update_upstream_versions_process_pool(
                 version_attrs.update(version_data)
 
             if changed:
+                n_changed += 1
+
+            if n_changed == settings().batch_size_update_upstream_versions_deploy:
                 try:
-                    sync_lazy_json_object(version_attrs, "file", ["github_api"])
+                    deploy(dirs_to_deploy=["versions"], git_only=True)
                 except Exception:
-                    # will sync in deploy later if this fails
+                    # we will try again later
                     pass
+                else:
+                    n_changed = 0
+
+    if n_changed > 0:
+        try:
+            deploy(dirs_to_deploy=["versions"], git_only=True)
+        except Exception:
+            # we will try again later
+            pass
+        else:
+            n_changed = 0
 
 
 @functools.lru_cache(maxsize=1)
@@ -552,7 +568,7 @@ def update_upstream_versions(
     )
 
     logger.info("Updating upstream versions")
-    updater(to_update, sources)
+    updater(to_update, sources)  # type: ignore[arg-type]
 
 
 def main(

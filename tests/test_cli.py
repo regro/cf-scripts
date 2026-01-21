@@ -77,7 +77,6 @@ takes_context_commands = (
     "update-upstream-versions",
     "auto-tick",
     "update-prs",
-    "deploy-to-github",
     "backup-lazy-json",
     "sync-lazy-json-across-backends",
     "cache-lazy-json-to-disk",
@@ -156,11 +155,84 @@ def test_cli_mock_update_upstream_versions(
     cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs, package=package)
 
 
-@pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
-@mock.patch("conda_forge_tick.update_prs.main")
-def test_cli_mock_update_prs(cmd_mock: MagicMock, job: int, n_jobs: int):
+@pytest.mark.parametrize("git_only", [True, False])
+@mock.patch("conda_forge_tick.deploy.deploy")
+def test_cli_mock_deploy_to_github_git_only(
+    cmd_mock: MagicMock,
+    git_only,
+):
     runner = CliRunner()
-    result = runner.invoke(main, ["update-prs", f"--job={job}", f"--n-jobs={n_jobs}"])
+    result = runner.invoke(
+        main,
+        ["deploy-to-github"] + (["--git-only"] if git_only else []),
+    )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs)
+    cmd_mock.assert_called_once_with(
+        dry_run=False, git_only=git_only, dirs_to_ignore=[]
+    )
+
+
+@pytest.mark.parametrize("dirs_to_ignore", [None, "pr_json", "pr_json,pr_info"])
+@mock.patch("conda_forge_tick.deploy.deploy")
+def test_cli_mock_deploy_to_github_dirs_to_ignore(
+    cmd_mock: MagicMock,
+    dirs_to_ignore,
+):
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["deploy-to-github"]
+        + ([f"--dirs-to-ignore={dirs_to_ignore}"] if dirs_to_ignore else []),
+    )
+
+    if dirs_to_ignore:
+        kws = {"dirs_to_ignore": dirs_to_ignore.split(",")}
+    else:
+        kws = {"dirs_to_ignore": []}
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(dry_run=False, git_only=False, **kws)
+
+
+@pytest.mark.parametrize(
+    "job, n_jobs, feedstock", [(1, 5, None), (3, 7, None), (4, 4, "foo")]
+)
+@mock.patch("conda_forge_tick.update_prs.main")
+def test_cli_mock_update_prs(
+    cmd_mock: MagicMock, job: int, n_jobs: int, feedstock: str | None
+):
+    fs = [f"--feedstock={feedstock}"] if feedstock is not None else []
+    runner = CliRunner()
+    result = runner.invoke(
+        main, ["update-prs", f"--job={job}", f"--n-jobs={n_jobs}"] + fs
+    )
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(
+        mock.ANY, job=job, n_jobs=n_jobs, feedstock=feedstock
+    )
+
+
+@pytest.mark.parametrize(
+    "migrators, expected_filter",
+    [
+        ([], None),
+        (["python314"], ["python314"]),
+        (["python314", "python315"], ["python314", "python315"]),
+        (["compilers"], ["compilers"]),
+    ],
+)
+@mock.patch("conda_forge_tick.status_report.main")
+def test_cli_mock_make_status_report_with_migrators(
+    cmd_mock: MagicMock, migrators: list[str], expected_filter: list[str] | None
+):
+    runner = CliRunner()
+    args = ["make-status-report"]
+    for migrator in migrators:
+        args.extend(["--migrators", migrator])
+
+    result = runner.invoke(main, args)
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(migrator_filter=expected_filter)

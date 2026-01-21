@@ -115,6 +115,13 @@ class PullRequestDataValid(ValidatedBaseModel):
     Taken from the GitHub response header.
     """
 
+    last_fetched: datetime | None = Field(default=None)
+    """
+    Timestamp when we last fetched fresh PR data from GitHub API.
+    Used to determine if cached data is stale, independent of Last-Modified.
+    Stored in ISO 8601 format with timezone information.
+    """
+
     id: int | None = None
     """
     The GitHub Pull Request ID (not: the PR number).

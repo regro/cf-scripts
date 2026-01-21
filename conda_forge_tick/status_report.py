@@ -344,6 +344,14 @@ def graph_migrator_status(
             )
             node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 
+            for timestamp_field in ["created_at", "updated_at"]:
+                timestamp = pr_json["PR"].get(timestamp_field, None)
+                if timestamp is not None:
+                    timestamp = dateutil.parser.parse(timestamp)
+                    if timestamp.tzinfo is None:
+                        timestamp = timestamp.replace(tzinfo=datetime.timezone.utc)
+                    node_metadata[timestamp_field] = timestamp.isoformat()
+
     out2: Dict = {}
     for k in out.keys():
         out2[k] = list(
@@ -411,7 +419,18 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     return closed_status
 
 
-def main() -> None:
+def main(migrator_filter: str | list[str] | None = None) -> None:
+    """Generate status report for migrators.
+
+    Parameters
+    ----------
+    migrator_filter : str or list of str, optional
+        Filter migrators by name. Can be a single string or a list of strings.
+        If None, all migrators are included.
+    """
+    # Convert single string to list for internal API
+    if isinstance(migrator_filter, str):
+        migrator_filter = [migrator_filter]
     with fold_log_lines("loading existing status data, graph and migrators"):
         r = requests.get(
             "https://raw.githubusercontent.com/conda-forge/"
@@ -441,7 +460,7 @@ def main() -> None:
             smithy_version=smithy_version,
             pinning_version=pinning_version,
         )
-        migrators = load_migrators(skip_paused=False)
+        migrators = load_migrators(skip_paused=False, filter_name=migrator_filter)
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)

@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 import pprint
+import re
 import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
@@ -349,6 +350,11 @@ def _modify_package_name_from_github(orig_name, src):
         is_pypi = True
 
     if is_pypi:
+        for s in src:
+            if "url" in s:
+                match = re.search(r"/packages/source/[a-z0-9]/([^/]+)/", s["url"])
+                if match:
+                    return match.group(1)
         return orig_name
     elif is_github:
         url_parts = github_url.split("/")
@@ -707,7 +713,7 @@ def _apply_env_dep_comparison(
             continue
         # Add new package.
         if patch.before is None:
-            new_deps.append(patch.after)
+            new_deps.append(patch.after)  # type: ignore[arg-type]
         # Remove old package.
         elif patch.after is None:
             new_deps.remove(patch.before)
@@ -732,7 +738,8 @@ def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
 
     for section in SECTIONS_TO_UPDATE:
         new_recipe["requirements"][section] = _apply_env_dep_comparison(
-            recipe["requirements"][section], dep_comparison[section]
+            recipe["requirements"][section],
+            dep_comparison[section],  # type: ignore[index]
         )
 
     return new_recipe

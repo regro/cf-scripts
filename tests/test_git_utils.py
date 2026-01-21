@@ -1343,6 +1343,7 @@ def test_github_backend_create_pull_request_mock(
     assert pr_data.updated_at == datetime.datetime(
         2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
     )
+    assert pr_data.last_fetched is not None
 
     assert (
         pr_data.e_tag
@@ -1728,6 +1729,7 @@ def test_dry_run_backend_create_pull_request(caplog):
     # pr_data validation
     assert pr_data.e_tag == "GITHUB_PR_ETAG"
     assert pr_data.last_modified is not None
+    assert pr_data.last_fetched is not None
     assert pr_data.id == 13371337
     assert (
         str(pr_data.html_url)
@@ -1762,6 +1764,7 @@ def test_trim_pr_json_keys():
     pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",
+        "last_fetched": "2024-01-01T00:00:00+00:00",
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
@@ -1773,12 +1776,14 @@ def test_trim_pr_json_keys():
     assert pr_json["head"] == {}
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
+    assert pr_json["last_fetched"] == "2024-01-01T00:00:00+00:00"
 
 
 def test_trim_pr_json_keys_src():
     src_pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",
+        "last_fetched": "2024-01-01T00:00:00+00:00",
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
@@ -1791,6 +1796,7 @@ def test_trim_pr_json_keys_src():
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
     assert "r" not in pr_json
+    assert pr_json["last_fetched"] == "2024-01-01T00:00:00+00:00"
 
 
 @pytest.mark.skipif(

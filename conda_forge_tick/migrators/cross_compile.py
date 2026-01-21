@@ -34,6 +34,8 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
+    allowed_schema_versions = {0, 1}
+
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         if (
             attrs["feedstock_name"] == "libtool"
@@ -97,22 +99,40 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                     with open("build.sh", "w") as f:
                         f.write("".join(lines))
 
-                    with open("meta.yaml") as f:
+                    recipe_file = next(
+                        filter(os.path.exists, ("recipe.yaml", "meta.yaml"))
+                    )
+                    with open(recipe_file) as f:
                         lines = f.readlines()
                     for i, line in enumerate(lines):
-                        if line.strip().startswith("- {{ compiler"):
+                        if recipe_file == "meta.yaml" and line.strip().startswith(
+                            "- {{ compiler"
+                        ):
                             new_line = " " * (len(line) - len(line.lstrip()))
                             new_line += "- gnuconfig  # [unix]\n"
                             lines.insert(i, new_line)
                             break
 
-                    with open("meta.yaml", "w") as f:
+                        if recipe_file == "recipe.yaml" and line.strip().startswith(
+                            "- ${{ compiler"
+                        ):
+                            new_line = " " * (len(line) - len(line.lstrip()))
+                            new_line += "- if: unix\n"
+                            lines.insert(i, new_line)
+                            new_line = " " * (len(line) - len(line.lstrip()))
+                            new_line += "  then: gnuconfig\n"
+                            lines.insert(i + 1, new_line)
+                            break
+
+                    with open(recipe_file, "w") as f:
                         f.write("".join(lines))
         except RuntimeError:
             return
 
 
 class GuardTestingMigrator(CrossCompilationMigratorBase):
+    allowed_schema_versions = {0, 1}
+
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
             if not os.path.exists("build.sh"):
@@ -131,7 +151,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                     lines.insert(
                         i,
                         'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" '
-                        '|| "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+                        '|| "${CROSSCOMPILING_EMULATOR:-}" != "" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
@@ -149,35 +169,41 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
 
 
 class GuardTestingWinMigrator(CrossCompilationMigratorBase):
+    allowed_schema_versions = {0, 1}
+
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            if not os.path.exists("bld.bat"):
-                return
-            with open("bld.bat") as f:
-                lines = list(f.readlines())
+            for batch_file in ("bld.bat", "build.bat"):
+                if not os.path.exists(batch_file):
+                    continue
+                with open(batch_file) as f:
+                    lines = list(f.readlines())
 
-            for i, line in enumerate(lines):
-                if "CONDA_BUILD_CROSS_COMPILATION" in line:
-                    return
-                if (
-                    line.strip().startswith("make check")
-                    or line.strip().startswith("ctest")
-                    or line.strip().startswith("make test")
-                ):
-                    lines.insert(i, 'if not "%CONDA_BUILD_SKIP_TESTS%"=="1" (\n')
-                    insert_after = i + 1
-                    while len(lines) > insert_after and lines[insert_after].endswith(
-                        "\\\n",
+                for i, line in enumerate(lines):
+                    if "CONDA_BUILD_CROSS_COMPILATION" in line:
+                        return
+                    if (
+                        line.strip().startswith("make check")
+                        or line.strip().startswith("ctest")
+                        or line.strip().startswith("make test")
                     ):
-                        insert_after += 1
-                    if lines[insert_after][-1] != "\n":
-                        lines[insert_after] += "\n"
-                    lines.insert(insert_after + 1, ")\n")
-                    break
-            else:
-                return
-            with open("bld.bat", "w") as f:
-                f.write("".join(lines))
+                        lines.insert(i, 'if not "%CONDA_BUILD_SKIP_TESTS%"=="1" (\n')
+                        insert_after = i + 1
+                        while len(lines) > insert_after and lines[
+                            insert_after
+                        ].endswith(
+                            "\\\n",
+                        ):
+                            insert_after += 1
+                        if lines[insert_after][-1] != "\n":
+                            lines[insert_after] += "\n"
+                        lines.insert(insert_after + 1, ")\n")
+                        break
+                else:
+                    return
+                with open(batch_file, "w") as f:
+                    f.write("".join(lines))
+                break
 
 
 class CrossPythonMigrator(MiniMigrator):
@@ -265,6 +291,8 @@ class CrossPythonMigrator(MiniMigrator):
 
 
 class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
+    allowed_schema_versions = {0, 1}
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
         return "cmake" not in build_reqs or skip_migrator_due_to_schema(
@@ -294,6 +322,8 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
 
 class UpdateCMakeArgsWinMigrator(CrossCompilationMigratorBase):
+    allowed_schema_versions = {0, 1}
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
         return "cmake" not in build_reqs or skip_migrator_due_to_schema(
@@ -302,24 +332,26 @@ class UpdateCMakeArgsWinMigrator(CrossCompilationMigratorBase):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            if not os.path.exists("bld.bat"):
-                return
-            with open("bld.bat") as f:
-                lines = list(f.readlines())
+            for batch_file in ("bld.bat", "build.bat"):
+                if not os.path.exists(batch_file):
+                    continue
+                with open(batch_file) as f:
+                    lines = list(f.readlines())
 
-            for i, line in enumerate(lines):
-                if "%CMAKE_ARGS%" in line:
+                for i, line in enumerate(lines):
+                    if "%CMAKE_ARGS%" in line:
+                        return
+
+                for i, line in enumerate(lines):
+                    if line.startswith("cmake "):
+                        lines[i] = "cmake %CMAKE_ARGS% " + line[len("cmake ") :]
+                        break
+                else:
                     return
 
-            for i, line in enumerate(lines):
-                if line.startswith("cmake "):
-                    lines[i] = "cmake %CMAKE_ARGS% " + line[len("cmake ") :]
-                    break
-            else:
-                return
-
-            with open("bld.bat", "w") as f:
-                f.write("".join(lines))
+                with open(batch_file, "w") as f:
+                    f.write("".join(lines))
+                break
 
 
 class Build2HostMigrator(MiniMigrator):
@@ -374,6 +406,7 @@ class Build2HostMigrator(MiniMigrator):
 
 
 class NoCondaInspectMigrator(MiniMigrator):
+    allowed_schema_versions = {0, 1}
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
@@ -385,7 +418,8 @@ class NoCondaInspectMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
-            with open("meta.yaml") as fp:
+            recipe_file = next(filter(os.path.exists, ("recipe.yaml", "meta.yaml")))
+            with open(recipe_file) as fp:
                 meta_yaml = fp.readlines()
 
             new_lines = []
@@ -394,7 +428,7 @@ class NoCondaInspectMigrator(MiniMigrator):
                     continue
                 new_lines.append(line)
 
-            with open("meta.yaml", "w") as f:
+            with open(recipe_file, "w") as f:
                 f.write("".join(new_lines))
 
 

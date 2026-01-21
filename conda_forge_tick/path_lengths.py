@@ -1,16 +1,35 @@
 """Functions to find the longest paths between nodes in a graph."""
 
+from abc import abstractmethod
 from collections import defaultdict
 from copy import deepcopy
-from typing import DefaultDict, Dict, Iterable, List, Sequence, Set, TypeVar
+from typing import (
+    Any,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Protocol,
+    Sequence,
+    Set,
+    TypeVar,
+)
 
 import networkx as nx
 from networkx.classes.digraph import DiGraph
 
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        pass
+
+
 T = TypeVar("T")
+CT = TypeVar("CT", bound=Comparable)
 
 
-def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:
+def cyclic_topological_sort(graph: DiGraph, sources: Iterable[CT]) -> Sequence[CT]:
     """Return a list of nodes in a graph with cycles in topological order.
 
     Performs a topological sort of `graph` starting from the node `source`.
@@ -22,7 +41,7 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
     ----------
     graph : networkx.classes.digraph.DiGraph
         A directed graph.
-    source : iterable
+    sources : iterable
         The names of the source nodes
 
     Returns
@@ -32,7 +51,7 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
 
     """
     g2 = deepcopy(graph)
-    order: List[T] = []
+    order: List[CT] = []
     for source in sorted(sources):
         _visit(g2, source, order)
     return list(reversed(order))

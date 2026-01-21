@@ -76,7 +76,9 @@ def _dump_yaml_to_str(data: dict) -> str:
         return f.getvalue()
 
 
-def update_build_number(file: Path, new_build_number: int | Callable = 0) -> str:
+def update_build_number(
+    file: Path, new_build_number: int | Callable[[Any], int] = 0
+) -> str:
     """
     Update the build number in the recipe file.
 

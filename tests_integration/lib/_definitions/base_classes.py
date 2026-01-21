@@ -135,6 +135,35 @@ class AbstractIntegrationTestHelper(ABC):
         """
         pass
 
+    def assert_bot_pr_contents_v1(
+        self,
+        feedstock: str,
+        title_contains: str,
+        included: list[str],
+        not_included: list[str],
+    ):
+        """
+        Assert that the bot has opened a PR for a v1 recipe and some
+        defined strings are either included or not included in the new recipe.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        title_contains
+            A string that must be included in the PR title.
+        included
+            A list of strings that must be included in the new recipe.
+        not_included
+            A list of strings that must not be present in the new recipe.
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
     def assert_new_run_requirements_equal_v1(
         self,
         feedstock: str,
@@ -152,6 +181,31 @@ class AbstractIntegrationTestHelper(ABC):
             The new version that is expected.
         run_requirements
             A list of requirements.
+
+        Raises
+        ------
+        AssertionError
+            If the assertion fails.
+        """
+        pass
+
+    def assert_pr_title_starts_with(
+        self,
+        feedstock: str,
+        pr_title_contains: str,
+        expected_prefix: str,
+    ):
+        """
+        Assert that a PR title starts with an expected prefix.
+
+        Parameters
+        ----------
+        feedstock
+            The feedstock we expect the PR for, without the -feedstock suffix.
+        pr_title_contains
+            A string that must be included in the PR title to identify the PR.
+        expected_prefix
+            The expected prefix that the PR title should start with.
 
         Raises
         ------

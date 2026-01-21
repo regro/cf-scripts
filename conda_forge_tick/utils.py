@@ -19,6 +19,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import (
     Any,
+    ContextManager,
     Dict,
     Iterable,
     MutableMapping,
@@ -44,6 +45,7 @@ from conda_forge_feedstock_ops.container_utils import (
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
+from .migrators_types import AttrsTypedDict
 from .recipe_parser import CondaMetaYAML
 from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
@@ -136,11 +138,11 @@ def parse_munged_run_export(p: str) -> Dict:
     return cast(Dict, yaml_safe_load(p))
 
 
-REPRINTED_LINES = {}
+REPRINTED_LINES: dict[str, set[str]] = {}
 
 
 @contextlib.contextmanager
-def filter_reprinted_lines(key):
+def filter_reprinted_lines(key: str):
     global REPRINTED_LINES
     if key not in REPRINTED_LINES:
         REPRINTED_LINES[key] = set()
@@ -250,9 +252,7 @@ def parse_recipe_yaml(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
+        The value of or path to global pinning file.
     use_container
         Whether to use a container to run the parsing.
         If None, the function will use a container if the environment
@@ -300,7 +300,7 @@ def parse_recipe_yaml_containerized(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
@@ -308,6 +308,21 @@ def parse_recipe_yaml_containerized(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
+
+    def _run(_args, _mount_dir):
+        return run_container_operation(
+            _args,
+            input=text,
+            mount_readonly=True,
+            mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
+        )
+
     args = [
         "conda-forge-tick-container",
         "parse-recipe-yaml",
@@ -318,23 +333,30 @@ def parse_recipe_yaml_containerized(
     if platform_arch is not None:
         args += ["--platform-arch", platform_arch]
 
-    if cbc_path is not None:
-        args += ["--cbc-path", str(cbc_path)]
-
     if for_pinning:
         args += ["--for-pinning"]
 
-    return run_container_operation(
-        args,
-        input=text,
-        mount_readonly=True,
-        extra_container_args=[
-            "-e",
-            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
-            "-e",
-            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
-        ],
-    )
+    if cbc_path is not None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chmod(tmpdir, 0o755)
+
+            tmp_cbc_path = os.path.join(tmpdir, "cbc_path.yaml")
+            if os.path.exists(cbc_path):
+                with open(cbc_path) as fp_r:
+                    cbc_data = fp_r.read()
+            else:
+                cbc_data = str(cbc_path)
+
+            with open(tmp_cbc_path, "w") as fp:
+                fp.write(cbc_data)
+
+            args += ["--cbc-path", "/cf_feedstock_ops_dir/cbc_path.yaml"]
+
+            data = _run(args, tmpdir)
+    else:
+        data = _run(args, None)
+
+    return data
 
 
 def _flatten_requirement_pin_dicts(
@@ -359,7 +381,7 @@ def _flatten_requirement_pin_dicts(
     def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
         return [flatten_pin(s) for s in list]
 
-    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
+    def flatten_requirements(output: MutableMapping[str, Any]) -> None:
         if "requirements" in output:
             requirements = output["requirements"]
             for key in ["build", "host", "run"]:
@@ -378,15 +400,15 @@ def _flatten_requirement_pin_dicts(
 
     for recipe in recipes:
         if "requirements" in recipe:
-            flatten_requirements(recipe)
+            flatten_requirements(recipe)  # type: ignore[arg-type]
 
         if "outputs" in recipe:
             for output in recipe["outputs"]:
-                flatten_requirements(output)
+                flatten_requirements(output)  # type: ignore[arg-type]
 
         if "tests" in recipe:
             # script tests can have `run` and `build` requirements
-            for test in recipe["tests"]:
+            for test in recipe["tests"]:  # type: ignore[typeddict-item]
                 if "requirements" in test:
                     flatten_requirements(test)
 
@@ -410,7 +432,7 @@ def parse_recipe_yaml_local(
     platform_arch : str, optional
         The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : Path | str, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
@@ -432,7 +454,7 @@ def parse_recipe_yaml_local(
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     else:
-        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)  # type: ignore
     parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
@@ -471,38 +493,66 @@ def _render_recipe_yaml(
     ----------
     text : str
         The recipe YAML text to render.
-    platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
+    platform_arch : str, optional
+        The platform-arch (e.g., 'linux-64').
     cbc_path : str | Path, optional
-        The path to global pinning file.
+        The value of or path to global pinning file.
 
     Returns
     -------
     dict[str, Any]
         The rendered recipe as a dictionary.
+
+    Raises
+    ------
+    RuntimeError
+        If no output recipes are found.
     """
-    variant_config_flags = (
-        [] if cbc_path is None else ["--variant-config", str(cbc_path)]
-    )
-    target_platform_flags = (
-        []
-        if platform_arch is None or variant_config_flags
-        else ["--target-platform", platform_arch]
-    )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        if cbc_path is not None and not os.path.exists(str(cbc_path)):
+            _cbc_path = os.path.join(tmpdir, "conda_build_config.yaml")
+            with open(_cbc_path, "w") as fp:
+                fp.write(str(cbc_path))
 
-    prepared_text = replace_compiler_with_stub(text)
+            variant_config_flags = ["--variant-config", _cbc_path]
+        else:
+            variant_config_flags = (
+                [] if cbc_path is None else ["--variant-config", str(cbc_path)]
+            )
+        target_platform_flags = (
+            []
+            if platform_arch is None or variant_config_flags
+            else ["--target-platform", platform_arch]
+        )
 
-    res = subprocess.run(
-        ["rattler-build", "build", "--render-only"]
-        + variant_config_flags
-        + target_platform_flags,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        input=prepared_text,
-        check=True,
-    )
-    return [output["recipe"] for output in orjson.loads(res.stdout)]
+        prepared_text = replace_compiler_with_stub(text)
+
+        res = subprocess.run(
+            ["rattler-build", "build", "--render-only"]
+            + variant_config_flags
+            + target_platform_flags,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            input=prepared_text,
+            check=False,
+        )
+        if res.stdout:
+            outputs = [output["recipe"] for output in orjson.loads(res.stdout)]
+        else:
+            outputs = []
+
+        if res.returncode != 0 or len(outputs) == 0:
+            logger.critical(
+                "error parsing recipe.yaml:\n%s\n%s", res.stdout, res.stderr
+            )
+            res.check_returncode()
+
+        if len(outputs) == 0:
+            raise RuntimeError(
+                f"Failed to render recipe YAML! No output recipes found!\n{res.stdout}\n{res.stderr}"
+            )
+        return outputs
 
 
 def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1151,7 +1201,7 @@ def _parse_meta_yaml_impl(
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other: Set) -> Set:
+    def __and__(self, other: Set) -> Set:  # type: ignore[override]
         return other
 
     def __rand__(self, other: Set) -> Set:
@@ -1167,7 +1217,7 @@ class UniversalSet(Set):
         raise StopIteration
 
     def __len__(self) -> int:
-        return float("inf")
+        return float("inf")  # type: ignore[return-value]
 
 
 class NullUndefined(jinja2.Undefined):
@@ -1317,11 +1367,11 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]: ...
 
 
 @typing.overload
-def as_iterable(x: T) -> Tuple[T]: ...
+def as_iterable(x: Any) -> Iterable: ...
 
 
 @typing.no_type_check
-def as_iterable(iterable_or_scalar):
+def as_iterable(iterable_or_scalar: Any) -> Iterable:
     """Convert an object into an iterable.
 
     Parameters
@@ -1375,11 +1425,35 @@ def sanitize_string(instr: str) -> str:
     return instr
 
 
-def get_keys_default(dlike, keys, default, final_default):
+def get_keys_default(
+    dlike: AttrsTypedDict | Mapping | LazyJson,
+    keys: list | tuple,
+    default: Any,
+    final_default: Any,
+) -> Any:
+    """Get a value at a key path from a dict-like object w/ defaults.
+
+    Parameters
+    ----------
+    dlike : dict | LazyJson
+        A dict-like object.
+    keys : list | tuple
+        A list-like set of keys specify the value to get from the dict.
+    default : Any
+        The default value for intermediate keys.
+    final_default : Any
+        The default value for the final key.
+
+    Returns
+    -------
+    value : Any
+        The value of the final key in `keys` or `final_default` if
+        no value is found.
+    """
     defaults = [default] * (len(keys) - 1) + [final_default]
     val = dlike
     for k, _d in zip(keys, defaults):
-        val = val.get(k, _d) or _d
+        val = val.get(k, _d) or _d  # type: ignore[assignment]
     return val
 
 
@@ -1590,19 +1664,43 @@ def pr_can_be_archived(
         now = time.time()
 
     if not isinstance(pr, LazyJson):
-        pr = contextlib.nullcontext(pr)
+        pr_ctx: ContextManager[dict] | LazyJson = contextlib.nullcontext(pr)
+    else:
+        pr_ctx = pr
 
-    with pr as pr:
+    with pr_ctx as pr:
         pr_lm = pr.get("Last-Modified", None)
         if pr_lm is not None:
             pr_lm = dateparser.parse(pr_lm)
 
+        if isinstance(pr, LazyJson):
+            pr_empty = pr.data == {}
+        else:
+            pr_empty = pr == {}
+
         if (
             pr_lm is None
             or now - pr_lm.timestamp() > settings().pull_request_reopen_window
-        ) and (
-            pr.get("state", None) == "closed" or (archive_empty_prs and pr.data == {})
-        ):
+        ) and (pr.get("state", None) == "closed" or (archive_empty_prs and pr_empty)):
             return True
         else:
             return False
+
+
+def get_platform_arch_from_ci_support_filename(ci_support_filename):
+    """Extract the platform and architecture as `(plat, arch)` from the ".ci_support" filename."""
+    cbc_name_parts = ci_support_filename.replace(".yaml", "").split("_")
+    plat = cbc_name_parts[0]
+    if len(cbc_name_parts) == 1:
+        arch = "64"
+    else:
+        if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
+            arch = cbc_name_parts[1]
+        else:
+            arch = "64"
+    # some older cbc yaml files have things like "linux64"
+    for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
+        if plat.endswith(_tt):
+            plat = plat[: -len(_tt)]
+            break
+    return (plat, arch)

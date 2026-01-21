@@ -66,6 +66,7 @@ def get_transparent_urls() -> set[str]:
         "https://raw.githubusercontent.com/regro/cf-scripts/refs/heads/main/conda_forge_tick/cf_tick_schema.json",
         "https://raw.githubusercontent.com/conda-forge/conda-smithy/refs/heads/main/conda_smithy/data/conda-forge.json",
         "https://api.github.com/*",
+        "https://github.com/*/archive/refs/tags/*",
         f"https://github.com/{GitHubAccount.REGRO_ORG}/*",
         f"https://github.com/{GitHubAccount.CONDA_FORGE_ORG}/*",
         f"https://github.com/{GitHubAccount.BOT_USER}/*",

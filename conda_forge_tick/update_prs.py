@@ -20,6 +20,7 @@ from conda_forge_tick.git_utils import (
 from conda_forge_tick.utils import get_keys_default, pr_can_be_archived
 
 from .executors import executor
+from .settings import settings
 from .utils import load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
@@ -29,12 +30,11 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 NUM_GITHUB_THREADS = 2
-KEEP_PR_FRACTION = 0.5
 
 
 def _combined_update_function(
     pr_json: dict, dry_run: bool, remake_prs_with_conflicts: bool
-) -> dict:
+) -> dict | None:
     return_it = False
 
     pr_data = refresh_pr(pr_json, dry_run=dry_run)
@@ -60,15 +60,47 @@ def _combined_update_function(
 
     if return_it:
         return pr_json
-    else:
-        return None
+    return None
 
 
-def _update_pr(update_function, dry_run, gx, job, n_jobs):
+# as a separate function for easier coverage testing without triggering
+# _update_pr, we can still test _update_pr with no
+# matching nodes and it returns 0,0 immediately.
+def _filter_feedstock_nodes(node_ids, feedstock_filter):
+    """Filter node IDs to match a specific feedstock.
+
+    Parameters
+    ----------
+    node_ids : list of str
+        List of all node IDs in the graph.
+    feedstock_filter : str or None
+        The feedstock name to filter for (must include "-feedstock" suffix).
+
+    Returns
+    -------
+    list of str
+        Filtered node IDs matching the feedstock.
+    """
+    if not feedstock_filter:
+        return node_ids
+
+    return [node_id for node_id in node_ids if node_id == feedstock_filter]
+
+
+def _update_pr(update_function, dry_run, gx, job, n_jobs, feedstock_filter=None):
     failed_refresh = 0
     succeeded_refresh = 0
     futures = {}
     node_ids = list(gx.nodes)
+    update_frac = settings().frac_update_pr_json
+
+    # Apply feedstock filter if provided
+    # When filtering to a specific feedstock, disable random sampling
+    node_ids = _filter_feedstock_nodes(node_ids, feedstock_filter)
+    if feedstock_filter and not node_ids:
+        logger.warning("No feedstock found matching: %s", feedstock_filter)
+        return 0, 0
+
     job_index = job - 1
     node_ids = [
         node_id
@@ -101,8 +133,10 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             )
 
             prs = node.get("pr_info", {}).get("PRed", [])
+
             for i, migration in enumerate(prs):
-                if RNG.random() >= KEEP_PR_FRACTION:
+                # Skip random sampling if a specific feedstock is selected
+                if not feedstock_filter and RNG.random() >= update_frac:
                     continue
 
                 pr_json = migration.get("PR", None)
@@ -110,7 +144,10 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 if pr_json and (not pr_can_be_archived(pr_json, now=now)):
                     _pr_json = copy.deepcopy(pr_json.data)
                     future = pool.submit(
-                        update_function, _pr_json, dry_run, remake_prs_with_conflicts
+                        update_function,
+                        _pr_json,
+                        dry_run,
+                        remake_prs_with_conflicts,
                     )
                     futures[future] = (node_id, i, pr_json)
 
@@ -160,9 +197,31 @@ def update_pr_combined(
     dry_run: bool = False,
     job=1,
     n_jobs=1,
+    feedstock: str | None = None,
 ) -> nx.DiGraph:
+    """Update PRs in the graph.
+
+    Parameters
+    ----------
+    gx : nx.DiGraph
+        The graph containing feedstock nodes.
+    dry_run : bool, optional
+        If True, don't actually update PRs on GitHub. Default is False.
+    job : int, optional
+        The job number (1-indexed) for parallel processing. Default is 1.
+    n_jobs : int, optional
+        The total number of jobs for parallel processing. Default is 1.
+    feedstock : str | None, optional
+        If provided, only update PRs for this specific feedstock.
+        Must end with "-feedstock" suffix (validated in main()).
+
+    Returns
+    -------
+    nx.DiGraph
+        The updated graph.
+    """
     succeeded_refresh, failed_refresh = _update_pr(
-        _combined_update_function, dry_run, gx, job, n_jobs
+        _combined_update_function, dry_run, gx, job, n_jobs, feedstock_filter=feedstock
     )
 
     logger.info("JSON Refresh failed for %d PRs", failed_refresh)
@@ -170,6 +229,14 @@ def update_pr_combined(
     return gx
 
 
-def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
+def main(
+    ctx: CliContext, job: int = 1, n_jobs: int = 1, feedstock: str | None = None
+) -> None:
+    if feedstock and not feedstock.endswith("-feedstock"):
+        raise ValueError(
+            f"Feedstock name must end with '-feedstock': got '{feedstock}', "
+            f"expected '{feedstock}-feedstock'"
+        )
+
     gx = load_existing_graph()
-    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
+    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs, feedstock=feedstock)

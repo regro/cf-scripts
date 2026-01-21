@@ -10,3 +10,12 @@
 [submodule "tests_integration/lib/_definitions/fastapi/resources/feedstock"]
 	path = tests_integration/lib/_definitions/fastapi/resources/feedstock
 	url = https://github.com/conda-forge/fastapi-feedstock.git
+[submodule "tests_integration/lib/_definitions/polars/resources/feedstock"]
+	path = tests_integration/lib/_definitions/polars/resources/feedstock
+	url = https://github.com/conda-forge/polars-feedstock.git
+[submodule "tests_integration/lib/_definitions/zizmor/feedstock"]
+	path = tests_integration/lib/_definitions/zizmor/resources/feedstock
+	url = https://github.com/conda-forge/zizmor-feedstock.git
+[submodule "tests_integration/lib/_definitions/witr/resources/feedstock"]
+	path = tests_integration/lib/_definitions/witr/resources/feedstock
+	url = https://github.com/conda-forge/witr-feedstock.git

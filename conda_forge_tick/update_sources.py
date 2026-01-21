@@ -9,6 +9,7 @@ import subprocess
 import typing
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import Iterator, List, Optional
 
@@ -25,19 +26,19 @@ from conda_forge_tick.migrators_types import (
     RecipeTypedDict,
     SourceTypedDict,
 )
-from conda_forge_tick.utils import get_keys_default, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import (
+    get_keys_default,
+    get_platform_arch_from_ci_support_filename,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+)
 from conda_forge_tick.version_filters import is_tag_ignored, is_version_ignored
 
 from .hashing import hash_url
 
-CRAN_INDEX: Optional[dict] = None
+CRAN_INDEX: dict[str, str] = {}
 
 logger = logging.getLogger(__name__)
-
-CURL_ONLY_URL_SLUGS = [
-    "https://eups.lsst.codes/",
-    "ftp://ftp.info-zip.org/",
-]
 
 
 def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
@@ -49,13 +50,13 @@ def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
-        sources = typing.cast("typing.List[SourceTypedDict]", source)
+        sources = typing.cast("typing.List[SourceTypedDict]", source)  # type: ignore[unreachable]
     urls = set()
     for s in sources:
         if "url" in s:
             # if it is a list for instance
             if not isinstance(s["url"], str):
-                urls.update(s["url"])
+                urls.update(s["url"])  # type: ignore[unreachable]
             else:
                 urls.add(s["url"])
     return urls
@@ -353,10 +354,10 @@ class CRAN(AbstractSource):
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         self.init()
-        urls = node_attrs.get("url", None)
+        urls: str | list[str] | None = node_attrs.get("url", None)
         if urls is None:
             return None
-        if not isinstance(node_attrs["url"], list):
+        if not isinstance(urls, list):
             urls = [urls]
         for url in urls:
             if self.url_contains not in url:
@@ -380,7 +381,7 @@ class CRAN(AbstractSource):
         return ver
 
 
-ROS_DISTRO_INDEX: Optional[dict] = None
+ROS_DISTRO_INDEX: dict = {}
 
 
 class ROSDistro(AbstractSource):
@@ -420,7 +421,7 @@ class ROSDistro(AbstractSource):
     def init(self) -> None:
         global ROS_DISTRO_INDEX
         if not ROS_DISTRO_INDEX:
-            self.version_url_cache = {}
+            self.version_url_cache: dict[str, str] = {}
             try:
                 ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
@@ -471,45 +472,67 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str, timeout: int | float = 5) -> bool:
+def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp.
     """
-    if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
-        try:
-            output = subprocess.check_output(
-                ["wget", "--spider", url],
-                stderr=subprocess.STDOUT,
-                timeout=timeout,
-            )
-        except Exception as e:
-            logger.debug("url_exists wget exception", exc_info=e)
-            return False
-        # For FTP servers an exception is not thrown
-        if "No such file" in output.decode("utf-8"):
-            return False
-        if "not retrieving" in output.decode("utf-8"):
-            return False
+    url_exists = False
 
-        return True
+    if use_curl:
+        res = subprocess.run(
+            ["curl", "-fsLI", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists curl exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
+            url_exists = False
+        else:
+            url_exists = True
     else:
-        try:
-            subprocess.run(
-                ["curl", "-fsLI", url],
-                capture_output=True,
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logger.debug("url_exists curl exception", exc_info=e)
-            return False
+        res = subprocess.run(
+            ["wget", "--spider", url],
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            text=True,
+            timeout=timeout,
+        )
+        if res.returncode != 0:
+            try:
+                res.check_returncode()
+            except subprocess.CalledProcessError as e:
+                logger.debug(
+                    "url_exists wget exception:\n%s\n%s",
+                    res.stdout,
+                    res.stderr,
+                    exc_info=e,
+                )
+            url_exists = False
+        else:
+            # For FTP servers an exception is not thrown
+            if "No such file" in res.stdout:
+                url_exists = False
+            elif "not retrieving" in res.stdout:
+                url_exists = False
+            else:
+                url_exists = True
 
-        return True
+    return url_exists
 
 
-def url_exists_swap_exts(url: str):
-    if url_exists(url):
+def url_exists_swap_exts(url: str, use_curl: bool = False):
+    if url_exists(url, use_curl=use_curl):
         return True, url
 
     # TODO this is too expensive
@@ -523,7 +546,7 @@ def url_exists_swap_exts(url: str):
 
 class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
-    next_ver_func = None
+    next_ver_func: Callable[[str], Iterator[str]]
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
         if "feedstock_name" not in node_attrs:
@@ -531,13 +554,35 @@ class BaseRawURL(AbstractSource):
         if "version" not in node_attrs:
             return None
 
-        # TODO: pull this from the graph itself
         content = node_attrs["raw_meta_yaml"]
-
         if any(ln.startswith("{% set version") for ln in content.splitlines()):
             has_version_jinja2 = True
         else:
             has_version_jinja2 = False
+
+        # get a ci_support pinning file if we have one
+        ci_support_keys = set()
+        for key in node_attrs.keys():
+            if key.startswith("ci_support_"):
+                ci_support_keys.add(key)
+        if ci_support_keys:
+            ci_support_key = sorted(ci_support_keys)[0]
+            plat, arch = get_platform_arch_from_ci_support_filename(
+                ci_support_key.replace("ci_support", "")
+            )
+            platform_arch = f"{plat}-{arch}"
+            cbc_data = node_attrs[ci_support_key]  # type: ignore[literal-required]
+        else:
+            platform_arch = None
+            cbc_data = None
+
+        # figure out if we should try URLS w/ curl
+        use_curl = get_keys_default(
+            node_attrs,
+            ["conda-forge.yml", "bot", "version_updates", "use_curl"],
+            {},
+            False,
+        )
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
@@ -574,7 +619,9 @@ class BaseRawURL(AbstractSource):
                 if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
                     new_meta = parse_meta_yaml(new_content)
                 else:
-                    new_meta = parse_recipe_yaml(new_content)
+                    new_meta = parse_recipe_yaml(
+                        new_content, platform_arch=platform_arch, cbc_path=cbc_data
+                    )
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
@@ -603,7 +650,7 @@ class BaseRawURL(AbstractSource):
                         continue
 
                     logger.debug("trying url: %s", url)
-                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    _exists, _url_to_use = url_exists_swap_exts(url, use_curl=use_curl)
                     if not _exists:
                         logger.debug(
                             "version %s does not exist for url %s",
@@ -670,7 +717,7 @@ class GitTags(AbstractSource):
     name = "GitTags"
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
-        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)
+        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)  # type: ignore[return-value]
 
     def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         try:
@@ -797,26 +844,6 @@ class GithubReleases(AbstractSource):
         return latest
 
 
-# TODO: this one does not work because the atom feeds from libraries.io
-# all return 403 and I cannot find the correct URL to use
-# also url_contains is not defined
-# also package_name is not defined
-class LibrariesIO(VersionFromFeed):
-    name = "LibrariesIO"
-
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
-        urls = node_attrs.get("url", None)
-        if urls is None:
-            return None
-        if not isinstance(urls, list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
-
 class NVIDIA(AbstractSource):
     """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
 
@@ -875,7 +902,7 @@ class NVIDIA(AbstractSource):
             logger.debug("Found explicit bot/version_updates/nvidia/compute_subdir.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_compute_subdir = node_attrs["meta_yaml"]["extra"]["feedstock-name"]  # type: ignore[typeddict-item]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_compute_subdir = node_attrs["feedstock_name"]
@@ -892,7 +919,7 @@ class NVIDIA(AbstractSource):
             logger.debug("Found explicit bot/version_updates/nvidia/json_name.")
         elif "feedstock-name" in node_attrs["meta_yaml"]["extra"]:
             logger.debug("Found extra/feedstock-name.")
-            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]
+            nvidia_redist_json_name = node_attrs["meta_yaml"]["extra"]["feedstock-name"]  # type: ignore[typeddict-item]
         else:
             logger.debug("Found the feedstock's name.")
             nvidia_redist_json_name = node_attrs["feedstock_name"]
@@ -927,10 +954,9 @@ class NVIDIA(AbstractSource):
         response = requests.get(actual_url)
         html_content = response.text
         # Search for links to redistrib_*.json in the response and strip the versions from there
-        # re doesn't support repeating patterns, so we assume there are three version numbers
-        redistrib_pattern = re.compile(
-            pattern=r"redistrib_[0-9]+\.[0-9]+\.[0-9]+\.json<"
-        )
+        # re doesn't support repeating patterns, so we cannot use r"redistrib_([0-9]+\.)+json<"
+        # Some packages use X.Y versioning; others use X.Y.Z versioning.
+        redistrib_pattern = re.compile(pattern=r"redistrib_[0-9]+\.(.*)\.json<")
         result = re.findall(redistrib_pattern, html_content)
         stripped_results = [x.removesuffix(".json<").split("_")[1] for x in result]
         stripped_results.sort(key=Version, reverse=True)

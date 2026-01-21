@@ -81,9 +81,19 @@ class BotSettings(BaseSettings):
     Therefore, you don't need to set this when debugging locally.
     """
 
+    batch_size_update_upstream_versions_deploy: int = 100
+    """The batch size used to push upstream version updates to the graph as they are found.
+    """
+
     frac_make_graph: Fraction = 0.1
     """
     The fraction of feedstocks (randomly selected) to update in the make-graph job.
+    In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
+    """
+
+    frac_update_pr_json: Fraction = 0.5
+    """
+    The fraction of feedstocks (randomly selected) to update in the prs job.
     In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
     """
 
@@ -91,6 +101,13 @@ class BotSettings(BaseSettings):
     """
     A pull request that is closed can be reopened if it is done so within this amount of time.
     Specified in seconds.
+    """
+
+    pr_refresh_age_days: float = 7.0
+    """
+    Number of days after which to refresh PR cache for 'clean' PRs to detect potential conflicts.
+    Works around GitHub API bug #5150 where Last-Modified caching can hide merge conflicts.
+    Set to 0 to always refresh.
     """
 
 

@@ -283,43 +283,47 @@ def test_scenario(
 
     with in_fresh_cf_graph():
         invoke_bot_command(["--debug", "gather-all-feedstocks"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         invoke_bot_command(["--debug", "make-graph", "--update-nodes-and-edges"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         invoke_bot_command(["--debug", "make-graph"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         with mitmproxy_env():
             invoke_bot_command(["--debug", "update-upstream-versions"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         with mitmproxy_env():
             invoke_bot_command(["--debug", "make-migrators"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(
+            ["--debug", "deploy-to-github", "--git-only", "--dirs-to-ignore=pr_json"]
+        )
 
     with in_fresh_cf_graph():
         # because of an implementation detail in the bot, we need to run make-migrators twice
         # for changes to be picked up
         with mitmproxy_env():
             invoke_bot_command(["--debug", "make-migrators"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(["--debug", "deploy-to-github", "--git-only"])
 
     with in_fresh_cf_graph():
         # due to a similar implementation detail, we need to run auto-tick twice
         # for changes to be picked up
         with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
-        invoke_bot_command(["--debug", "deploy-to-github"])
+        invoke_bot_command(
+            ["--debug", "deploy-to-github", "--git-only", "--dirs-to-ignore=pr_json"]
+        )
 
     run_all_validate_functions(scenario)

@@ -973,6 +973,8 @@ class LazyJson(MutableMapping):
             node = self.file_name[: -len(".json")]
         self.hashmap = key
         self.node = node
+        self.json_ref = {"__lazy_json__": self.file_name}
+        self.sharded_path = get_sharded_path(f"{self.hashmap}/{self.node}.json")
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
@@ -1021,8 +1023,15 @@ class LazyJson(MutableMapping):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-                backend.hsetnx(self.hashmap, self.node, dumps({}))
-                data_str = backend.hget(self.hashmap, self.node)
+                if backend.hexists(self.hashmap, self.node):
+                    data_str = backend.hget(self.hashmap, self.node)
+                else:
+                    data_str = dumps({})
+                    if not self._in_context:
+                        # need to push file to backend since will not get
+                        # done at end of context manager
+                        backend.hset(self.hashmap, self.node, data_str)
+
                 if isinstance(data_str, bytes):  # type: ignore[unreachable]
                     data_str = data_str.decode("utf-8")  # type: ignore[unreachable]
 
@@ -1106,7 +1115,7 @@ def default(obj: Any) -> Any:
         If the object is not JSON serializable.
     """
     if isinstance(obj, LazyJson):
-        return {"__lazy_json__": obj.file_name}
+        return obj.json_ref
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
     elif isinstance(obj, nx.DiGraph):

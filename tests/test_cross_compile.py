@@ -88,14 +88,17 @@ version_migrator_arm_and_power = Version(
 )
 
 
-def test_correct_config_sub(tmp_path):
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_correct_config_sub(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\n./configure")
     run_test_migration(
         m=version_migrator_autoconf,
-        inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("config_recipe_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("config_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("config_recipe_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "4.5.0"},
         mr_out={
@@ -104,19 +107,23 @@ def test_correct_config_sub(tmp_path):
             "version": "4.5.0",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     with open(tmp_path / "recipe/build.sh") as f:
         assert len(f.readlines()) == 4
 
 
-def test_make_check(tmp_path):
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_make_check(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
     with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\nmake check")
     run_test_migration(
         m=version_migrator_autoconf,
-        inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("config_recipe_correct_make_check.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("config_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("config_recipe_correct_make_check.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "4.5.0"},
         mr_out={
@@ -125,12 +132,13 @@ def test_make_check(tmp_path):
             "version": "4.5.0",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     expected = [
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
         "cp $BUILD_PREFIX/share/gnuconfig/config.* ./config\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR:-}" != "" ]]; then\n',
         "make check\n",
         "fi\n",
     ]
@@ -139,16 +147,20 @@ def test_make_check(tmp_path):
         assert lines == expected
 
 
-def test_cmake(tmp_path):
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_cmake(tmp_path, recipe_version: int):
     tmp_path.joinpath("recipe").mkdir()
+    bld_bat = "bld.bat" if recipe_version == 0 else "build.bat"
     with open(tmp_path / "recipe/build.sh", "w") as f:
         f.write("#!/bin/bash\ncmake ..\nctest")
-    with open(tmp_path / "recipe/bld.bat", "w") as f:
+    with open(tmp_path / f"recipe/{bld_bat}", "w") as f:
         f.write("cmake ..\nctest")
     run_test_migration(
         m=version_migrator_cmake,
-        inp=YAML_PATH.joinpath("config_recipe.yaml").read_text(),
-        output=YAML_PATH.joinpath("config_recipe_correct_cmake.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("config_recipe.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("config_recipe_correct_cmake.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "4.5.0"},
         mr_out={
@@ -157,11 +169,12 @@ def test_cmake(tmp_path):
             "version": "4.5.0",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
     expected_unix = [
         "#!/bin/bash\n",
         "cmake ${CMAKE_ARGS} ..\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR:-}" != "" ]]; then\n',
         "ctest\n",
         "fi\n",
     ]
@@ -174,7 +187,7 @@ def test_cmake(tmp_path):
     with open(tmp_path / "recipe/build.sh") as f:
         lines = f.readlines()
         assert lines == expected_unix
-    with open(tmp_path / "recipe/bld.bat") as f:
+    with open(tmp_path / f"recipe/{bld_bat}") as f:
         lines = f.readlines()
         assert lines == expected_win
 
@@ -339,11 +352,14 @@ def test_build2host_bhskip(recipe_version, tmp_path):
     )
 
 
-def test_nocondainspect(tmp_path):
+@pytest.mark.parametrize("recipe_version", [0, 1])
+def test_nocondainspect(tmp_path, recipe_version: int):
     run_test_migration(
         m=version_migrator_nci,
-        inp=YAML_PATH.joinpath("python_recipe_nci.yaml").read_text(),
-        output=YAML_PATH.joinpath("python_recipe_nci_correct.yaml").read_text(),
+        inp=YAML_PATHS[recipe_version].joinpath("python_recipe_nci.yaml").read_text(),
+        output=YAML_PATHS[recipe_version]
+        .joinpath("python_recipe_nci_correct.yaml")
+        .read_text(),
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
@@ -352,6 +368,7 @@ def test_nocondainspect(tmp_path):
             "version": "1.19.1",
         },
         tmp_path=tmp_path,
+        recipe_version=recipe_version,
     )
 
 

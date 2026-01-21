@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Dict, Iterator, Optional, Union
 
 import backoff
+import dateutil.parser
 import github
 import github.Repository
 import github3
@@ -68,6 +69,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
+    "last_fetched": None,
     "id": None,
     "number": None,
     "html_url": None,
@@ -1300,6 +1302,7 @@ class GitHubBackend(GitPlatformBackend):
             k: self._github3_session.last_response_headers.get(k, None)
             for k in PullRequestDataValid.HEADER_FIELDS
         }
+        header_fields["last_fetched"] = datetime.now()
 
         # note: this ignores extra fields in the response
         return PullRequestDataValid.model_validate(response.as_dict() | header_fields)
@@ -1468,6 +1471,7 @@ class DryRunBackend(GitPlatformBackend):
             {
                 "ETag": "GITHUB_PR_ETAG",
                 "Last-Modified": utils.format_datetime(now),
+                "last_fetched": datetime.now(),
                 "id": 13371337,
                 "html_url": f"https://github.com/{target_owner}/{target_repo}/pulls/1337",
                 "created_at": now,
@@ -1642,6 +1646,9 @@ def lazy_update_pr_json(
         pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
         pr_json["Last-Modified"] = r.headers["Last-Modified"]
+        # Record the current time as when we last fetched fresh data
+        # This helps us identify stale cached data (see #5150)
+        pr_json["last_fetched"] = datetime.now()
     else:
         pr_json = trim_pr_json_keys(pr_json)
 
@@ -1657,12 +1664,40 @@ def refresh_pr(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
 ) -> Optional[dict]:
+    from conda_forge_tick.settings import settings
+
+    pr_refresh_age_days = settings().pr_refresh_age_days
+
     if pr_json["state"] != "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json))
+            # Check if we should distrust Last-Modified for old PRs
+            # GitHub API bug: returns 304 even when PR now has conflicts
+            # See https://github.com/regro/cf-scripts/issues/5150
+            # we could only do so for "clean" PR, but as the 304 anyway consume API
+            # might as well do it.
+            # This also ensure all the json will soon get the 'last_fetched' key
+            # and logic can be simplified.
+            force_refresh = False
+
+            last_fetched: str | None = pr_json.get("last_fetched", None)
+            try:
+                # `except:` handles case when last_fetched is None or unparsable
+                last_fetched_date: datetime = dateutil.parser.isoparse(last_fetched)
+                last_fetched_tz = (
+                    last_fetched_date.tzinfo if last_fetched_date.tzinfo else None
+                )
+                now = datetime.now(last_fetched_tz)
+                age_days = (now - last_fetched_date).total_seconds() / 86400
+                if age_days > pr_refresh_age_days:
+                    force_refresh = True
+            except (ValueError, TypeError):
+                # Force refresh if last_fetched is missing or unusable (unknown freshness)
+                force_refresh = True
+
+            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), force=force_refresh)
 
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
@@ -1927,3 +1962,11 @@ def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
                 interval = base**tr
                 interval = rfrac * interval + (rfrac * RNG.uniform(0, 1) * interval)
                 time.sleep(interval)
+
+
+@lock_git_operation()
+def reset_and_restore_file(pth: str):
+    """Reset the status of a file tracked by git to its version at the current commit."""
+    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)

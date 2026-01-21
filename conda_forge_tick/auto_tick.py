@@ -856,6 +856,8 @@ def _run_migrator_on_feedstock_branch(
                     pri["PRed"].append(d)
 
             sync_pr_info = True
+            if isinstance(migrator, Version):
+                sync_version_pr_info = True
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
@@ -883,10 +885,6 @@ def _run_migrator_on_feedstock_branch(
             ),  # we do not use any HTML formats here since at one point status page had them
             is_version=is_version,
         )
-        if is_version:
-            sync_version_pr_info = True
-        else:
-            sync_pr_info = True
 
     except URLError as e:
         logger.exception("URLError ERROR", exc_info=e)
@@ -899,7 +897,6 @@ def _run_migrator_on_feedstock_branch(
                 "code": getattr(e, "code"),
                 "url": getattr(e, "url"),
             }
-        sync_pr_info = True
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -914,11 +911,6 @@ def _run_migrator_on_feedstock_branch(
             ),
             is_version=is_version,
         )
-
-        if is_version:
-            sync_version_pr_info = True
-        else:
-            sync_pr_info = True
 
     except Exception as e:
         logger.exception("NON GITHUB ERROR", exc_info=e)
@@ -945,7 +937,6 @@ def _run_migrator_on_feedstock_branch(
                         "\n",
                     ),
                 }
-            sync_pr_info = True
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -960,11 +951,6 @@ def _run_migrator_on_feedstock_branch(
             ),
             is_version=is_version,
         )
-
-        if is_version:
-            sync_version_pr_info = True
-        else:
-            sync_pr_info = True
 
     else:
         if migrator_uid:
@@ -1361,7 +1347,11 @@ def main(ctx: CliContext) -> None:
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
-        deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
+        deploy(
+            dry_run=ctx.dry_run,
+            dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"],
+            git_only=True,
+        )
 
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")

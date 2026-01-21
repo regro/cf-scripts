@@ -1,0 +1,531 @@
+{
+  "archived": false,
+  "branch": "main",
+  "ci_support_linux_64_python3.12.____cpython.yaml": "channel_sources:\n- conda-forge\nchannel_targets:\n- conda-forge main\ndocker_image:\n- quay.io/condaforge/linux-anvil-x86_64:alma9\nlsst_pyver:\n- '3.12'\npin_run_as_build:\n  python:\n    min_pin: x.x\n    max_pin: x.x\npython:\n- 3.12.* *_cpython\nrubin_env:\n- '11'\ntarget_platform:\n- linux-64\n",
+  "conda-forge.yml": {
+    "bot": {
+      "automerge": true,
+      "version_updates": {
+        "use_curl": true
+      }
+    },
+    "conda_build": {
+      "pkg_format": "2"
+    },
+    "conda_build_tool": "rattler-build",
+    "conda_forge_output_validation": true,
+    "github": {
+      "branch_name": "main",
+      "tooling_branch_name": "main"
+    }
+  },
+  "feedstock_hash": "c03372e4fd57edb14b10c9a8d81103a389bce7f6",
+  "feedstock_hash_ts": 1759582431,
+  "feedstock_name": "stackvana-core",
+  "hash_type": "sha256",
+  "linux_64_meta_yaml": {
+    "about": {
+      "home": "https://github.com/beckermr/stackvana-core",
+      "license": "GPL-3.0-or-later",
+      "license_family": "GPL-3.0-or-later",
+      "license_file": "LICENSE",
+      "summary": "core build tooling for stackvana"
+    },
+    "build": {
+      "number": "1",
+      "run_exports": {
+        "weak": [
+          "stackvana-core-impl"
+        ]
+      }
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "beckermr"
+      ]
+    },
+    "outputs": [
+      {
+        "build": {
+          "strong": [],
+          "weak": [
+            "stackvana-core-impl"
+          ]
+        },
+        "name": "stackvana-core",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python"
+          ],
+          "run": [
+            "python",
+            "stackvana-core-impl"
+          ]
+        },
+        "tests": [
+          {
+            "script": [
+              "eups -h",
+              "eups list",
+              "if [[ ! ${STACKVANA_ACTIVATED} ]]; then exit 1; fi"
+            ]
+          }
+        ],
+        "version": "0.2025.40"
+      },
+      {
+        "build": null,
+        "name": "stackvana-core-impl",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python",
+            "rubin-env-nosysroot 11.*"
+          ],
+          "run": [
+            "python",
+            "rubin-env-nosysroot"
+          ]
+        },
+        "tests": [
+          {
+            "requirements": {
+              "run": [
+                "python",
+                "rubin-env-nosysroot =11"
+              ]
+            },
+            "script": {
+              "content": "run_test_impl.sh",
+              "interpreter": "bash"
+            }
+          }
+        ],
+        "version": "0.2025.40"
+      }
+    ],
+    "package": {
+      "name": "stackvana-core",
+      "version": "0.2025.40"
+    },
+    "requirements": {
+      "host": [
+        "python"
+      ],
+      "run": [
+        "python",
+        "stackvana-core-impl"
+      ]
+    },
+    "schema_version": 1,
+    "source": {
+      "sha256": "0dc3553cde005ead150677f51170511b2dedb44a44d62ca00ffa5ef728698cf3",
+      "url": "https://eups.lsst.cloud/stack/src/tags/w_2025_40.list"
+    }
+  },
+  "linux_64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": []
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot",
+        "stackvana-core-impl"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    }
+  },
+  "meta_yaml": {
+    "about": {
+      "home": "https://github.com/beckermr/stackvana-core",
+      "license": "GPL-3.0-or-later",
+      "license_family": "GPL-3.0-or-later",
+      "license_file": "LICENSE",
+      "summary": "core build tooling for stackvana"
+    },
+    "build": {
+      "number": "1",
+      "run_exports": {
+        "weak": [
+          "stackvana-core-impl"
+        ]
+      }
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "beckermr"
+      ]
+    },
+    "outputs": [
+      {
+        "build": {
+          "strong": [],
+          "weak": [
+            "stackvana-core-impl"
+          ]
+        },
+        "name": "stackvana-core",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python"
+          ],
+          "run": [
+            "python",
+            "stackvana-core-impl"
+          ]
+        },
+        "tests": [
+          {
+            "script": [
+              "eups -h",
+              "eups list",
+              "if [[ ! ${STACKVANA_ACTIVATED} ]]; then exit 1; fi"
+            ]
+          }
+        ],
+        "version": "0.2025.40"
+      },
+      {
+        "build": null,
+        "name": "stackvana-core-impl",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python",
+            "rubin-env-nosysroot 11.*"
+          ],
+          "run": [
+            "python",
+            "rubin-env-nosysroot"
+          ]
+        },
+        "tests": [
+          {
+            "requirements": {
+              "run": [
+                "python",
+                "rubin-env-nosysroot =11"
+              ]
+            },
+            "script": {
+              "content": "run_test_impl.sh",
+              "interpreter": "bash"
+            }
+          }
+        ],
+        "version": "0.2025.40"
+      },
+      {
+        "build": {
+          "strong": [],
+          "weak": [
+            "stackvana-core-impl"
+          ]
+        },
+        "name": "stackvana-core",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python"
+          ],
+          "run": [
+            "python",
+            "stackvana-core-impl"
+          ]
+        },
+        "tests": [
+          {
+            "script": [
+              "eups -h",
+              "eups list",
+              "if [[ ! ${STACKVANA_ACTIVATED} ]]; then exit 1; fi"
+            ]
+          }
+        ],
+        "version": "0.2025.40"
+      },
+      {
+        "build": null,
+        "name": "stackvana-core-impl",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python",
+            "rubin-env-nosysroot 11.*"
+          ],
+          "run": [
+            "python",
+            "rubin-env-nosysroot"
+          ]
+        },
+        "tests": [
+          {
+            "requirements": {
+              "run": [
+                "python",
+                "rubin-env-nosysroot =11"
+              ]
+            },
+            "script": {
+              "content": "run_test_impl.sh",
+              "interpreter": "bash"
+            }
+          }
+        ],
+        "version": "0.2025.40"
+      }
+    ],
+    "package": {
+      "name": "stackvana-core",
+      "version": "0.2025.40"
+    },
+    "requirements": {
+      "host": [
+        "python"
+      ],
+      "run": [
+        "python",
+        "stackvana-core-impl"
+      ]
+    },
+    "schema_version": 1,
+    "source": {
+      "sha256": "0dc3553cde005ead150677f51170511b2dedb44a44d62ca00ffa5ef728698cf3",
+      "url": "https://eups.lsst.cloud/stack/src/tags/w_2025_40.list"
+    }
+  },
+  "name": "stackvana-core",
+  "osx_64_meta_yaml": {
+    "about": {
+      "home": "https://github.com/beckermr/stackvana-core",
+      "license": "GPL-3.0-or-later",
+      "license_family": "GPL-3.0-or-later",
+      "license_file": "LICENSE",
+      "summary": "core build tooling for stackvana"
+    },
+    "build": {
+      "number": "1",
+      "run_exports": {
+        "weak": [
+          "stackvana-core-impl"
+        ]
+      }
+    },
+    "extra": {
+      "recipe-maintainers": [
+        "beckermr"
+      ]
+    },
+    "outputs": [
+      {
+        "build": {
+          "strong": [],
+          "weak": [
+            "stackvana-core-impl"
+          ]
+        },
+        "name": "stackvana-core",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python"
+          ],
+          "run": [
+            "python",
+            "stackvana-core-impl"
+          ]
+        },
+        "tests": [
+          {
+            "script": [
+              "eups -h",
+              "eups list",
+              "if [[ ! ${STACKVANA_ACTIVATED} ]]; then exit 1; fi"
+            ]
+          }
+        ],
+        "version": "0.2025.40"
+      },
+      {
+        "build": null,
+        "name": "stackvana-core-impl",
+        "requirements": {
+          "build": [],
+          "host": [
+            "python",
+            "rubin-env-nosysroot 11.*"
+          ],
+          "run": [
+            "python",
+            "rubin-env-nosysroot"
+          ]
+        },
+        "tests": [
+          {
+            "requirements": {
+              "run": [
+                "python",
+                "rubin-env-nosysroot =11"
+              ]
+            },
+            "script": {
+              "content": "run_test_impl.sh",
+              "interpreter": "bash"
+            }
+          }
+        ],
+        "version": "0.2025.40"
+      }
+    ],
+    "package": {
+      "name": "stackvana-core",
+      "version": "0.2025.40"
+    },
+    "requirements": {
+      "host": [
+        "python"
+      ],
+      "run": [
+        "python",
+        "stackvana-core-impl"
+      ]
+    },
+    "schema_version": 1,
+    "source": {
+      "sha256": "0dc3553cde005ead150677f51170511b2dedb44a44d62ca00ffa5ef728698cf3",
+      "url": "https://eups.lsst.cloud/stack/src/tags/w_2025_40.list"
+    }
+  },
+  "osx_64_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": []
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot",
+        "stackvana-core-impl"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    }
+  },
+  "outputs_names": {
+    "__set__": true,
+    "elements": [
+      "stackvana-core",
+      "stackvana-core-impl"
+    ]
+  },
+  "parsing_error": false,
+  "platforms": [
+    "linux_64",
+    "osx_64"
+  ],
+  "pr_info": {
+    "__lazy_json__": "pr_info/stackvana-core.json"
+  },
+  "raw_meta_yaml": "# LSST DM versions are prefixed with letters\n#\n#  - a weekly build is 'w_2018_50'\n#  - a major release is 'v18_1'\n#\n# In order to play nice with conda, we take the following conventions\n#\n#  - for a weekly build 'w_2018_50', the conda version is '0.2018.50'\n#  - for a major version 'v18_1_0', the conda version is '18.1.0'\n#\ncontext:\n  name: stackvana-core\n  version: \"0.2025.40\"\n  raw_major_version: '${{ (version | split(\".\"))[0] }}'\n  raw_minor_version: '${{ (version | split(\".\"))[1] }}'\n  raw_patch_version: '${{ (version | split(\".\"))[2] }}'\n  patch_version: ${{ \"_\" + raw_patch_version if (raw_patch_version | length) == 2 else \"_0\"  + raw_patch_version }}\n  weekly_dm_tag: ${{ \"w_\" + raw_minor_version + patch_version }}\n  non_weekly_dm_tag: ${{ \"v\" + (version | replace(\".\", \"_\")) }}\n  dm_tag: ${{ weekly_dm_tag if raw_major_version == '0' else non_weekly_dm_tag }}\n\nrecipe:\n  name: ${{ name|lower }}\n  version: ${{ version }}\n\nsource:\n  url: https://eups.lsst.cloud/stack/src/tags/${{ dm_tag }}.list\n  sha256: 0dc3553cde005ead150677f51170511b2dedb44a44d62ca00ffa5ef728698cf3\n\nbuild:\n  skip:\n    - win\n    - match(python, \"!=${{ lsst_pyver }}\")\n  number: 1\n  merge_build_and_host_envs: true\n\noutputs:\n  - package:\n      name: stackvana-core\n\n    requirements:\n      host:\n        - python\n      run:\n        - python\n        - ${{ pin_subpackage('stackvana-core-impl', exact=True) }}\n      run_exports:\n        - ${{ pin_subpackage('stackvana-core-impl', exact=True) }}\n\n    tests:\n      - script:\n          - eups -h\n          - eups list\n          - if [[ ! ${STACKVANA_ACTIVATED} ]]; then exit 1; fi\n\n  - package:\n      name: stackvana-core-impl\n\n    build:\n      script:\n        file: build_impl.sh\n        env:\n          LSST_PYVER: ${{ lsst_pyver }}\n\n    requirements:\n      host:\n        - python\n        - rubin-env-nosysroot =${{ rubin_env }}\n      run:\n        - python\n        - ${{ pin_compatible('rubin-env-nosysroot', upper_bound='x') }}\n\n    tests:\n      - script: run_test_impl.sh\n        requirements:\n          run:\n            - python\n            - rubin-env-nosysroot =${{ rubin_env }}\n\nabout:\n  homepage: https://github.com/beckermr/stackvana-core\n  license: GPL-3.0-or-later\n  license_file:\n    - LICENSE\n    - COPYRIGHT\n  summary: core build tooling for stackvana\n\nextra:\n  recipe-maintainers:\n    - beckermr\n",
+  "req": {
+    "__set__": true,
+    "elements": [
+      "python",
+      "rubin-env-nosysroot",
+      "stackvana-core-impl"
+    ]
+  },
+  "requirements": {
+    "build": {
+      "__set__": true,
+      "elements": []
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot",
+        "stackvana-core-impl"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot"
+      ]
+    }
+  },
+  "strong_exports": false,
+  "total_requirements": {
+    "build": {
+      "__set__": true,
+      "elements": []
+    },
+    "host": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot 11.*"
+      ]
+    },
+    "run": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot",
+        "stackvana-core-impl"
+      ]
+    },
+    "test": {
+      "__set__": true,
+      "elements": [
+        "python",
+        "rubin-env-nosysroot =11"
+      ]
+    }
+  },
+  "url": "https://eups.lsst.cloud/stack/src/tags/w_2025_40.list",
+  "version": "0.2025.40",
+  "version_pr_info": {
+    "__lazy_json__": "version_pr_info/stackvana-core.json"
+  }
+}

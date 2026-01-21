@@ -168,22 +168,33 @@ def auto_tick(ctx: CliContext) -> None:
 
 
 @main.command(name="make-status-report")
-def make_status_report() -> None:
+@click.option(
+    "--migrators",
+    multiple=True,
+    help="Only generate status report for specific migrators (by name or report_name). Can be specified multiple times.",
+)
+def make_status_report(migrators: tuple[str, ...]) -> None:
     from . import status_report
 
-    status_report.main()
+    migrator_filter = list(migrators) if migrators else None
+    status_report.main(migrator_filter=migrator_filter)
 
 
 @main.command(name="update-prs")
 @job_option
 @n_jobs_option
+@click.option(
+    "--feedstock",
+    default=None,
+    help="Only update PRs for this specific feedstock (must end with '-feedstock' suffix)",
+)
 @pass_context
-def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
+def update_prs(ctx: CliContext, job: int, n_jobs: int, feedstock: str | None) -> None:
     from . import update_prs
 
     check_job_param_relative(job, n_jobs)
 
-    update_prs.main(ctx, job=job, n_jobs=n_jobs)
+    update_prs.main(ctx, job=job, n_jobs=n_jobs, feedstock=feedstock)
 
 
 @main.command(name="make-mappings")
@@ -194,11 +205,28 @@ def make_mappings() -> None:
 
 
 @main.command(name="deploy-to-github")
+@click.option(
+    "--git-only",
+    is_flag=True,
+    help="If given, only deploy graph data to GitHub via the git command line.",
+)
+@click.option(
+    "--dirs-to-ignore",
+    default=None,
+    help=(
+        "Comma-separated list of directories to ignore. If given, directories will "
+        "not be deployed."
+    ),
+)
 @pass_context
-def deploy_to_github(ctx: CliContext) -> None:
+def deploy_to_github(ctx: CliContext, git_only: bool, dirs_to_ignore: str) -> None:
     from . import deploy
 
-    deploy.deploy(ctx)
+    deploy.deploy(
+        dry_run=ctx.dry_run,
+        git_only=git_only,
+        dirs_to_ignore=[] if dirs_to_ignore is None else dirs_to_ignore.split(","),
+    )
 
 
 @main.command(name="backup-lazy-json")

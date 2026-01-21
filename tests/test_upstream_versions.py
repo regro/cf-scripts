@@ -13,7 +13,7 @@ import pytest
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson, load
 from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
@@ -30,6 +30,7 @@ from conda_forge_tick.update_sources import (
 from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_process_pool,
     _update_upstream_versions_sequential,
+    all_version_sources,
     filter_nodes_for_job,
     get_latest_version,
     include_node,
@@ -41,6 +42,7 @@ from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
+NODE_ATTRS_PATH = os.path.join(os.path.dirname(__file__), "test_node_attrs")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -1187,6 +1189,121 @@ extra:
     - conda-forge/cuda
 """  # noqa
 
+sample_nvpl = """
+{% set version = "0.4.1.1" %}
+{% set soversion = ".".join(version.split(".")[:3]) %}
+{% set somajor = version.split(".")[0] %}
+{% set arm_variant_type = arm_variant_type|default("sbsa") %}
+
+package:
+  name: libnvpl-blas-split
+  version: {{ version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/nvpl/redist/nvpl_blas/linux-sbsa/nvpl_blas-linux-sbsa-{{ version }}-archive.tar.xz
+  sha256: 57704e2e211999c899bca26346b946b881b609554914245131b390410f7b93e8
+
+build:
+  number: 1
+  # nvpl is only for ARM architecture
+  skip: true  # [not aarch64]
+  script:
+    - cp -rv include $PREFIX
+    - cp -rv lib $PREFIX
+    - check-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*  # [linux]
+
+requirements:
+  build:
+    - cf-nvidia-tools 1.*  # [linux]
+
+outputs:
+
+  - name: libnvpl-blas-dev
+    build:
+      run_exports:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor) }}
+    files:
+      - include/nvpl_blas*
+      - include/nvpl_blas*/**
+      - lib/cmake/nvpl_blas*/**
+      - lib/libnvpl_blas*.so
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor, exact=True) }}
+        - _nvpl_dev_mutex
+        - libnvpl-common-dev
+      run:
+        - _nvpl_dev_mutex
+        - {{ pin_compatible("libnvpl-common-dev", max_pin="x.x.x") }}
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor, exact=True) }}
+      run_constrained:
+        - arm-variant * {{ arm_variant_type }}
+    test:
+      files:
+        - test
+      requires:   # [build_platform == target_platform]
+        - {{ compiler("c") }}  # [build_platform == target_platform]
+        - {{ compiler("cxx") }}  # [build_platform == target_platform]
+        - {{ stdlib("c") }}  # [build_platform == target_platform]
+        - cmake   # [build_platform == target_platform]
+        - ninja  # [build_platform == target_platform]
+      commands:
+        - cmake ${CMAKE_ARGS} -GNinja test  # [build_platform == target_platform]
+        - cmake --build .  # [build_platform == target_platform]
+        - test -f $PREFIX/include/nvpl_blas.h
+        - test -f $PREFIX/lib/cmake/nvpl_blas/nvpl_blas-config.cmake
+        - test -f $PREFIX/lib/libnvpl_blas_core.so
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so
+
+  - name: libnvpl-blas{{ somajor }}
+    build:
+      run_exports:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor) }}
+    files:
+      - lib/libnvpl_blas*.so.*
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ stdlib("c") }}
+        - arm-variant * {{ arm_variant_type }}
+      run_constrained:
+        - arm-variant * {{ arm_variant_type }}
+    test:
+      commands:
+        - test -f $PREFIX/lib/libnvpl_blas_core.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_core.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so.{{ soversion }}
+
+about:
+  home: https://developer.nvidia.com/nvpl
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  license_file: LICENSE
+  license_url: https://docs.nvidia.com/nvpl/license.html
+  summary: >-
+    The NVIDIA Performance Libraries (NVPL) are a collection of high performance mathematical libraries optimized for the NVIDIA Grace Armv9.0 architecture.
+  description: >-
+    The NVIDIA Performance Libraries (NVPL) are a collection of high performance mathematical libraries optimized for the NVIDIA Grace Armv9.0 architecture.
+
+    These CPU-only libraries have no dependencies on CUDA or CTK, and are drop in replacements for standard C and Fortran mathematical APIs allowing HPC applications to achieve maximum performance on the Grace platform.
+  doc_url: https://docs.nvidia.com/nvpl/
+
+extra:
+  feedstock-name: libnvpl-blas
+  recipe-maintainers:
+    - conda-forge/cuda
+"""  # noqa
+
+
 latest_url_nvidia_test_list = [
     (
         "libnvjpeg2k-split",
@@ -1218,6 +1335,24 @@ latest_url_nvidia_test_list = [
                 "version_updates": {
                     "nvidia": {
                         "json_name": "libcutensor",
+                    }
+                }
+            }
+        },
+    ),
+    (
+        "libnvpl-blas",
+        sample_nvpl,
+        "0.4.1.1",
+        None,
+        NVIDIA(),
+        {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "compute_subdir": "nvpl",
+                        "json_name": "nvpl_blas",
                     }
                 }
             }
@@ -1641,13 +1776,13 @@ def test_update_upstream_versions_sequential(
     assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
-    sync_lazy_json_object_mock: MagicMock,
+    deploy_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -1706,13 +1841,13 @@ def test_update_upstream_versions_process_pool(
     assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
-    sync_lazy_json_object_mock: MagicMock,
+    deploy_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -1754,13 +1889,13 @@ def test_update_upstream_versions_process_pool_exception(
     assert "source a error" in caplog.text
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.sync_lazy_json_object")
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
     lazy_json_mock: MagicMock,
     executor_mock: MagicMock,
-    sync_lazy_json_object_mock: MagicMock,
+    deploy_mock: MagicMock,
     version_update_frac_always,
     caplog,
 ):
@@ -2050,3 +2185,18 @@ def test_latest_version_pypi_canonical_url(tmpdir):
     print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
 
     assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_stackvana_v1(tmpdir):
+    tmp_node_attrs = os.path.join(str(tmpdir), "cf-scripts-test.json")
+    with open(os.path.join(NODE_ATTRS_PATH, "stackvana-core.json")) as fp:
+        na = load(fp)
+    pmy = LazyJson(tmp_node_attrs)
+    with pmy as _pmy:
+        _pmy.update(na)
+    attempt = get_latest_version(
+        "stackvana-core", pmy, all_version_sources(), use_container=False
+    )
+
+    print("found:", attempt["new_version"])
+    assert "new_version" in attempt and attempt["new_version"] is not None
