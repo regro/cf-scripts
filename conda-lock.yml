@@ -11181,39 +11181,39 @@ package:
   category: main
   optional: false
 - name: packaging
-  version: '25.0'
+  version: '26.0'
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.0-pyhcf101f3_0.conda
   hash:
-    md5: 58335b26c38bf4a20f399384c33cbcf9
-    sha256: 289861ed0c13a15d7bbb408796af4de72c2fe67e2bcb0de98f4c3fce259d7991
+    md5: b76541e68fea4d511b1ac46a28dcd2c6
+    sha256: c1fc0f953048f743385d31c468b4a678b3ad20caffdeaa94bed85ba63049fd58
   category: main
   optional: false
 - name: packaging
-  version: '25.0'
+  version: '26.0'
   manager: conda
   platform: osx-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.0-pyhcf101f3_0.conda
   hash:
-    md5: 58335b26c38bf4a20f399384c33cbcf9
-    sha256: 289861ed0c13a15d7bbb408796af4de72c2fe67e2bcb0de98f4c3fce259d7991
+    md5: b76541e68fea4d511b1ac46a28dcd2c6
+    sha256: c1fc0f953048f743385d31c468b4a678b3ad20caffdeaa94bed85ba63049fd58
   category: main
   optional: false
 - name: packaging
-  version: '25.0'
+  version: '26.0'
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.0-pyhcf101f3_0.conda
   hash:
-    md5: 58335b26c38bf4a20f399384c33cbcf9
-    sha256: 289861ed0c13a15d7bbb408796af4de72c2fe67e2bcb0de98f4c3fce259d7991
+    md5: b76541e68fea4d511b1ac46a28dcd2c6
+    sha256: c1fc0f953048f743385d31c468b4a678b3ad20caffdeaa94bed85ba63049fd58
   category: main
   optional: false
 - name: pango
