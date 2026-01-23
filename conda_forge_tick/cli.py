@@ -235,7 +235,9 @@ def make_mappings() -> None:
     ),
 )
 @pass_context
-def deploy_to_github(ctx: CliContext, git_only: bool, dirs_to_ignore: str, dirs_to_deploy: str) -> None:
+def deploy_to_github(
+    ctx: CliContext, git_only: bool, dirs_to_ignore: str, dirs_to_deploy: str
+) -> None:
     from . import deploy
 
     deploy.deploy(
