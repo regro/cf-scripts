@@ -1351,7 +1351,7 @@ def main(ctx: CliContext) -> None:
         deploy(
             dry_run=ctx.dry_run,
             dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"],
-            git_only=True,
+            git_only=False,
         )
 
     # record tmp dir so we can be sure to clean it later
