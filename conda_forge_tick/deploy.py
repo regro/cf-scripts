@@ -304,7 +304,7 @@ def deploy(
             drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
             drs_to_deploy += ["graph.json"]
     else:
-        if dirs_to_ignore is not None:
+        if dirs_to_ignore:
             raise RuntimeError(
                 "You cannot specify both `dirs_to_deploy` "
                 "and `dirs_to_ignore` when deploying the graph!"
