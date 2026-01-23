@@ -950,7 +950,7 @@ UpdateKind = Literal["update-grayskull"]
 
 @pytest.fixture
 def conda_build_config() -> str:
-    yaml_ = yaml.YAML(typ='unsafe', pure=True)
+    yaml_ = yaml.YAML(typ="unsafe", pure=True)
     return yaml_.dump({"python_min": ["3.9"]})
 
 
