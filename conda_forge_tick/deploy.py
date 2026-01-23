@@ -107,8 +107,9 @@ def _deploy_batch(
     batch,
     n_added,
     max_per_batch=200,
-    exp_backoff_base: float = 1.4,
+    exp_backoff_base: float = 1.1,
     exp_backoff_rfrac: float = 0.5,
+    max_tries: int = 30,
 ):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
@@ -137,7 +138,7 @@ def _deploy_batch(
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 20:
+        while status != 0 and num_try < max_tries:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
                     # pull twice right away to reduce chance of changes between

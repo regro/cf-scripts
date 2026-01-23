@@ -1347,6 +1347,7 @@ def main(ctx: CliContext) -> None:
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
+        gc.collect()
         deploy(
             dry_run=ctx.dry_run,
             dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"],
