@@ -1142,4 +1142,4 @@ def test_jsii_package_name_resolution():
     feedstock_package_name = "python-jsii"
     resolved_name = _modify_package_name_from_github(feedstock_package_name, src)
 
-    assert resolved_name == "python-jsii"
+    assert resolved_name == "jsii"
