@@ -6,7 +6,6 @@ from typing import Literal
 
 import networkx as nx
 import pytest
-from ruamel import yaml
 from test_migrators import run_test_migration
 
 from conda_forge_tick.lazy_json_backends import load
@@ -950,8 +949,7 @@ UpdateKind = Literal["update-grayskull"]
 
 @pytest.fixture
 def conda_build_config() -> str:
-    yaml_ = yaml.YAML(typ="unsafe", pure=True)
-    return yaml_.dump({"python_min": ["3.9"]})
+    return 'python_min: ["3.9"]\n'
 
 
 @pytest.mark.parametrize(
