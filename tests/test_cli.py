@@ -169,7 +169,10 @@ def test_cli_mock_deploy_to_github_git_only(
 
     assert result.exit_code == 0
     cmd_mock.assert_called_once_with(
-        dry_run=False, git_only=git_only, dirs_to_ignore=[]
+        dry_run=False,
+        git_only=git_only,
+        dirs_to_ignore=[],
+        dirs_to_deploy=[],
     )
 
 
@@ -192,7 +195,9 @@ def test_cli_mock_deploy_to_github_dirs_to_ignore(
         kws = {"dirs_to_ignore": []}
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(dry_run=False, git_only=False, **kws)
+    cmd_mock.assert_called_once_with(
+        dry_run=False, git_only=False, dirs_to_deploy=[], **kws
+    )
 
 
 @pytest.mark.parametrize(

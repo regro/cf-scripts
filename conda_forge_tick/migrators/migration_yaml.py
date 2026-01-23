@@ -434,7 +434,8 @@ class MigrationYaml(GraphMigrator):
                 cbc_contents = f.read()
             merged_cbc = merge_migrator_cbc(self.yaml_contents, cbc_contents)
             with pushd(os.path.join(recipe_dir, "migrations")):
-                os.remove(f"{self.name}.yaml")
+                if os.path.exists(f"{self.name}.yaml"):
+                    os.remove(f"{self.name}.yaml")
             # replace the conda build config with the merged one
             with pushd(recipe_dir), open("conda_build_config.yaml", "w") as f:
                 f.write(merged_cbc)
