@@ -307,7 +307,11 @@ def test_scenario(
         with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(
-            ["--debug", "deploy-to-github", "--dirs-to-ignore=pr_json,version_pr_info,pr_info"]
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-ignore=pr_json,version_pr_info,pr_info",
+            ]
         )
 
     with in_fresh_cf_graph():
@@ -323,7 +327,11 @@ def test_scenario(
         with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(
-            ["--debug", "deploy-to-github", "--dirs-to-ignore=pr_json,version_pr_info,pr_info"]
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-ignore=pr_json,version_pr_info,pr_info",
+            ]
         )
 
     run_all_validate_functions(scenario)
