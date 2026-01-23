@@ -291,7 +291,7 @@ def deploy(
         clean_disk_space()
 
     files_to_add: set[str] = set()
-    if dirs_to_deploy is None:
+    if not dirs_to_deploy:
         drs_to_deploy = [
             "status",
             "mappings",
@@ -344,7 +344,7 @@ def deploy(
 
     files_to_delete = _get_files_to_delete()
 
-    if dirs_to_ignore is not None:
+    if dirs_to_ignore:
         print("ignoring dirs:", dirs_to_ignore, flush=True)
         new_files_to_add = set()
         for fn in files_to_add:
