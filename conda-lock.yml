@@ -2356,36 +2356,36 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.23.10.41.46
+  version: 2026.01.23.16.09.22
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.10.41.46-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.16.09.22-hd8ed1ab_0.conda
   hash:
-    md5: 6a837fde6789b0c69172edb7f7217fcf
-    sha256: 27f8363e8848a483bcd3de7a1408b692034a03cff942576ad2c76ba703373ab7
+    md5: 5a8c5edaa440494ff44cf0179370d365
+    sha256: bc9fec222c4db81134a305a1a028b05fc54d6134afba4da7b96d536a97593d1f
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.23.10.41.46
+  version: 2026.01.23.16.09.22
   manager: conda
   platform: osx-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.10.41.46-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.16.09.22-hd8ed1ab_0.conda
   hash:
-    md5: 6a837fde6789b0c69172edb7f7217fcf
-    sha256: 27f8363e8848a483bcd3de7a1408b692034a03cff942576ad2c76ba703373ab7
+    md5: 5a8c5edaa440494ff44cf0179370d365
+    sha256: bc9fec222c4db81134a305a1a028b05fc54d6134afba4da7b96d536a97593d1f
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.01.23.10.41.46
+  version: 2026.01.23.16.09.22
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.10.41.46-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.01.23.16.09.22-hd8ed1ab_0.conda
   hash:
-    md5: 6a837fde6789b0c69172edb7f7217fcf
-    sha256: 27f8363e8848a483bcd3de7a1408b692034a03cff942576ad2c76ba703373ab7
+    md5: 5a8c5edaa440494ff44cf0179370d365
+    sha256: bc9fec222c4db81134a305a1a028b05fc54d6134afba4da7b96d536a97593d1f
   category: main
   optional: false
 - name: conda-forge-tick
@@ -5982,7 +5982,7 @@ package:
   category: main
   optional: false
 - name: hatch
-  version: 1.16.2
+  version: 1.16.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -6004,14 +6004,14 @@ package:
     userpath: '>=1.7,<2'
     uv: '>=0.5.23'
     virtualenv: '>=20.26.6'
-  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.3-pyhcf101f3_0.conda
   hash:
-    md5: b0372215a32f2e872be20946648c9970
-    sha256: 5c8cfb76b4d527e91517312d19e3482b5627b9475b32ceb3b432cd205235a3bc
+    md5: fa1a9e9bf9c27a07924e7be31825b420
+    sha256: 8eeb0759c702589a3fd0f1b9ad3c85f52b534db2f4d0d0c6397e0d172a5be644
   category: main
   optional: false
 - name: hatch
-  version: 1.16.2
+  version: 1.16.3
   manager: conda
   platform: osx-64
   dependencies:
@@ -6033,14 +6033,14 @@ package:
     userpath: '>=1.7,<2'
     uv: '>=0.5.23'
     virtualenv: '>=20.26.6'
-  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.3-pyhcf101f3_0.conda
   hash:
-    md5: b0372215a32f2e872be20946648c9970
-    sha256: 5c8cfb76b4d527e91517312d19e3482b5627b9475b32ceb3b432cd205235a3bc
+    md5: fa1a9e9bf9c27a07924e7be31825b420
+    sha256: 8eeb0759c702589a3fd0f1b9ad3c85f52b534db2f4d0d0c6397e0d172a5be644
   category: main
   optional: false
 - name: hatch
-  version: 1.16.2
+  version: 1.16.3
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -6062,10 +6062,10 @@ package:
     userpath: '>=1.7,<2'
     uv: '>=0.5.23'
     virtualenv: '>=20.26.6'
-  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.16.3-pyhcf101f3_0.conda
   hash:
-    md5: b0372215a32f2e872be20946648c9970
-    sha256: 5c8cfb76b4d527e91517312d19e3482b5627b9475b32ceb3b432cd205235a3bc
+    md5: fa1a9e9bf9c27a07924e7be31825b420
+    sha256: 8eeb0759c702589a3fd0f1b9ad3c85f52b534db2f4d0d0c6397e0d172a5be644
   category: main
   optional: false
 - name: hatchling
