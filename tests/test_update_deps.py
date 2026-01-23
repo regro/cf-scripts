@@ -136,7 +136,7 @@ def test_get_grayskull_comparison():
         attrs = load(f)
     d, rs = get_grayskull_comparison(attrs)
     assert rs != ""
-    assert d["run"]["cf_minus_df"] == {"python <3.9"}
+    assert d["run"]["cf_minus_df"] == {"python <3.9", "stdlib-list"}
     assert any(_d.startswith("python") for _d in d["run"]["df_minus_cf"])
 
 
@@ -150,7 +150,6 @@ def test_update_run_deps():
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
 
-    d["run"]["df_minus_cf"].remove("pyyaml")
     recipe.meta["requirements"]["run"].append("pyyaml")
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=False)
     print("\n" + recipe.dumps())
@@ -298,7 +297,6 @@ requirements:
     - python <3.9
     - pip
   run:
-    - pyyaml
     - python <3.9
     - stdlib-list
 
@@ -898,8 +896,8 @@ def test_apply_dep_update_v1(
                     "df_minus_cf": {"python >=3.7"},
                 },
                 "run": {
-                    "cf_minus_df": {"python <3.9"},
-                    "df_minus_cf": {"pyyaml", "python >=3.7"},
+                    "cf_minus_df": {"python <3.9", "stdlib-list"},
+                    "df_minus_cf": {"python >=3.7"},
                 },
             },
         ),
@@ -1144,4 +1142,4 @@ def test_jsii_package_name_resolution():
     feedstock_package_name = "python-jsii"
     resolved_name = _modify_package_name_from_github(feedstock_package_name, src)
 
-    assert resolved_name == "jsii"
+    assert resolved_name == "python-jsii"
