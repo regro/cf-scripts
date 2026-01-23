@@ -159,6 +159,14 @@ def update_upstream_versions(
     update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, package=package)
 
 
+@main.command(name="prep-auto-tick")
+@pass_context
+def prep_auto_tick(ctx: CliContext) -> None:
+    from . import auto_tick
+
+    auto_tick.main_prep(ctx)
+
+
 @main.command(name="auto-tick")
 @pass_context
 def auto_tick(ctx: CliContext) -> None:
@@ -218,14 +226,23 @@ def make_mappings() -> None:
         "not be deployed."
     ),
 )
+@click.option(
+    "--dirs-to-deploy",
+    default=None,
+    help=(
+        "Comma-separated list of directories to deplot. If given, all other "
+        "directories will be ignored."
+    ),
+)
 @pass_context
-def deploy_to_github(ctx: CliContext, git_only: bool, dirs_to_ignore: str) -> None:
+def deploy_to_github(ctx: CliContext, git_only: bool, dirs_to_ignore: str, dirs_to_deploy: str) -> None:
     from . import deploy
 
     deploy.deploy(
         dry_run=ctx.dry_run,
         git_only=git_only,
         dirs_to_ignore=[] if dirs_to_ignore is None else dirs_to_ignore.split(","),
+        dirs_to_deploy=[] if dirs_to_deploy is None else dirs_to_deploy.split(","),
     )
 
 

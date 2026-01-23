@@ -25,7 +25,6 @@ from conda_forge_tick.contexts import (
     FeedstockContext,
     MigratorSessionContext,
 )
-from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
@@ -1340,19 +1339,17 @@ def _update_graph_with_pr_info():
     dump_graph(gx)
 
 
-def main(ctx: CliContext) -> None:
-    start_time = time.time()
-
+def main_prep(ctx: CliContext) -> None:
     _setup_limits()
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
-        gc.collect()
-        deploy(
-            dry_run=ctx.dry_run,
-            dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"],
-            git_only=False,
-        )
+
+
+def main(ctx: CliContext) -> None:
+    start_time = time.time()
+
+    _setup_limits()
 
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")
