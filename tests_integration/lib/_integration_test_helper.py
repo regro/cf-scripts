@@ -175,7 +175,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         old_hash: str,
     ):
         recipe = self._get_pr_content_recipe_v1(pr)
-        yaml_ = yaml.YAML(typ='unsafe', pure=True)
+        yaml_ = yaml.YAML(typ="unsafe", pure=True)
         recipe_raw = yaml_.dump(recipe)
         assert recipe["context"]["version"] == new_version
         assert recipe["source"]["sha256"] == new_hash
@@ -240,7 +240,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         self._assert_version_pr_meta(feedstock, pr)
 
         recipe = self._get_pr_content_recipe_v1(pr)
-        yaml_ = yaml.YAML(typ='unsafe', pure=True)
+        yaml_ = yaml.YAML(typ="unsafe", pure=True)
         recipe_raw = yaml_.dump(recipe)
 
         for included_str in included:
