@@ -5619,7 +5619,7 @@ package:
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.2
+  version: 3.1.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -5640,14 +5640,14 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.0-pyhcf101f3_0.conda
   hash:
-    md5: 85d7744615e9bcbc837121a9f59a11f7
-    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
+    md5: 5c072ac946664bfa47d8cd5cddd6a890
+    sha256: 3432a23eec0d6ad7d26c4928fef2e014caea51e89e962c5d8652510ca589d102
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.2
+  version: 3.1.0
   manager: conda
   platform: osx-64
   dependencies:
@@ -5668,14 +5668,14 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.0-pyhcf101f3_0.conda
   hash:
-    md5: 85d7744615e9bcbc837121a9f59a11f7
-    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
+    md5: 5c072ac946664bfa47d8cd5cddd6a890
+    sha256: 3432a23eec0d6ad7d26c4928fef2e014caea51e89e962c5d8652510ca589d102
   category: main
   optional: false
 - name: grayskull
-  version: 3.0.2
+  version: 3.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -5696,10 +5696,10 @@ package:
     stdlib-list: ''
     tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.0.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.0-pyhcf101f3_0.conda
   hash:
-    md5: 85d7744615e9bcbc837121a9f59a11f7
-    sha256: 62475869839098ffe164b4a600ca3a030416b88387ddbfd97d7d28e432198b50
+    md5: 5c072ac946664bfa47d8cd5cddd6a890
+    sha256: 3432a23eec0d6ad7d26c4928fef2e014caea51e89e962c5d8652510ca589d102
   category: main
   optional: false
 - name: gtk3
