@@ -1,3 +1,4 @@
+import io
 import logging
 import shutil
 import subprocess
@@ -175,8 +176,10 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         old_hash: str,
     ):
         recipe = self._get_pr_content_recipe_v1(pr)
-        yaml_ = yaml.YAML(typ="unsafe", pure=True)
-        recipe_raw = yaml_.dump(recipe)
+        yaml_ = yaml.YAML(typ="full", pure=True)
+        sio = io.StringIO()
+        yaml_.dump(recipe, stream=sio)
+        recipe_raw = sio.getvalue()
         assert recipe["context"]["version"] == new_version
         assert recipe["source"]["sha256"] == new_hash
         assert old_version not in recipe_raw
@@ -240,9 +243,10 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         self._assert_version_pr_meta(feedstock, pr)
 
         recipe = self._get_pr_content_recipe_v1(pr)
-        yaml_ = yaml.YAML(typ="unsafe", pure=True)
-        recipe_raw = yaml_.dump(recipe)
-
+        yaml_ = yaml.YAML(typ="full", pure=True)
+        sio = io.StringIO()
+        yaml_.dump(recipe, stream=sio)
+        recipe_raw = sio.getvalue()
         for included_str in included:
             assert included_str in recipe_raw, f"{included_str} not in recipe_raw"
 
