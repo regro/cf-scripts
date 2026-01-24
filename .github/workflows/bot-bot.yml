@@ -65,7 +65,10 @@ jobs:
 
           pushd cf-graph
 
+          conda-forge-tick prep-auto-tick
+          conda-forge-tick deploy-to-github --dirs-to-deploy=pr_json,version_pr_info,pr_info
           conda-forge-tick auto-tick
+
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
