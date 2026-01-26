@@ -161,7 +161,7 @@ def test_update_run_deps():
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=True)
     print("\n" + recipe.dumps())
     assert updated_deps
-    assert "python >=3.7" in recipe.dumps()
+    assert "python >=3.9" in recipe.dumps()
 
 
 def test_get_depfinder_comparison():
@@ -896,11 +896,11 @@ def test_apply_dep_update_v1(
             {
                 "host": {
                     "cf_minus_df": {"python <3.9"},
-                    "df_minus_cf": {"python >=3.7"},
+                    "df_minus_cf": {"python 3.9.*"},
                 },
                 "run": {
                     "cf_minus_df": {"python <3.9"},
-                    "df_minus_cf": {"pyyaml", "python >=3.7"},
+                    "df_minus_cf": {"pyyaml", "python >=3.9"},
                 },
             },
         ),
