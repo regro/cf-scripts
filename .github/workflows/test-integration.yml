@@ -70,6 +70,8 @@ jobs:
         if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
         working-directory: cf-scripts
         run: |
+          # hack for testing
+          micromamba install conda-forge-pinning==2025.02.25.13.14.53
           pip install --no-deps --no-build-isolation -e .
 
       - name: Run mitmproxy certificate setup wizard
