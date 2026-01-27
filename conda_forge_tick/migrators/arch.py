@@ -185,7 +185,12 @@ class ArchRebuild(GraphMigrator):
         return muid
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        return "Arch Migrator"
+        title = "Arch Migrator"
+        branch = feedstock_ctx.attrs.get("branch", "main")
+        if branch not in ["main", "master"]:
+            return f"[{branch}] " + title
+        else:
+            return title
 
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
@@ -362,7 +367,12 @@ class OSXArm(_CrossCompileRebuild):
         super().__init__(*args, **kwargs)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        return "ARM OSX Migrator"
+        title = "ARM OSX Migrator"
+        branch = feedstock_ctx.attrs.get("branch", "main")
+        if branch not in ["main", "master"]:
+            return f"[{branch}] " + title
+        else:
+            return title
 
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
@@ -397,7 +407,12 @@ class WinArm64(_CrossCompileRebuild):
         super().__init__(*args, **kwargs)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        return "Support Windows ARM64 platform"
+        title = "Support Windows ARM64 platform"
+        branch = feedstock_ctx.attrs.get("branch", "main")
+        if branch not in ["main", "master"]:
+            return f"[{branch}] " + title
+        else:
+            return title
 
     def pr_body(
         self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = True
