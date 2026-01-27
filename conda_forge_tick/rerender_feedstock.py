@@ -1,3 +1,5 @@
+import os
+
 from conda_forge_feedstock_ops.rerender import rerender as _rerender
 
 
@@ -21,4 +23,12 @@ def rerender_feedstock(feedstock_dir, timeout=900, use_container=None):
     str
         The commit message for the rerender. If None, the rerender didn't change anything.
     """
-    return _rerender(feedstock_dir, timeout=timeout, use_container=use_container)
+    local_pinnings = os.path.join(
+        os.path.expandvars("${CONDA_PREFIX}"), "conda_build_config.yaml"
+    )
+    return _rerender(
+        feedstock_dir,
+        exclusive_config_file=local_pinnings,
+        timeout=timeout,
+        use_container=use_container,
+    )
