@@ -3,7 +3,10 @@ import copy
 import logging
 import os
 import subprocess
+import sys
 import tempfile
+import time
+from threading import Event, Thread
 
 logger = logging.getLogger(__name__)
 
@@ -104,3 +107,82 @@ def clean_disk_space(ci_service: str = "github-actions") -> None:
                 raise ValueError(f"Unknown CI service: {ci_service}")
 
             subprocess.run(["bash", "clean_disk.sh"])
+
+
+class _StreamToStderr(Thread):
+    def __init__(self, buffer, stop_event, timeout=None):
+        super().__init__()
+        self.buffer = buffer
+        self.lines = []
+        self.timeout = timeout
+        self.stop_event = stop_event
+
+    def run(self):
+        t0 = time.time()
+        while True:
+            if self.stop_event.is_set():
+                break
+
+            if self.timeout is not None and time.time() - t0 > self.timeout:
+                break
+
+            try:
+                line = self.buffer.readline()
+            except Exception:
+                line = ""
+
+            if line:
+                self.lines.append(line)
+                sys.stderr.write(line)
+                sys.stderr.flush()
+
+        self.output = "".join(self.lines)
+
+
+def run_subprocess_with_tee(args, timeout=None):
+    proc = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    os.set_blocking(proc.stdout.fileno(), False)  # type: ignore
+    os.set_blocking(proc.stderr.fileno(), False)  # type: ignore
+
+    stop_event = Event()
+    threads = [
+        _StreamToStderr(proc.stdout, stop_event, timeout=timeout),
+        _StreamToStderr(proc.stderr, stop_event, timeout=timeout),
+    ]
+    for out_thread in threads:
+        out_thread.start()
+
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+    finally:
+        stop_event.set()
+        for out_thread in threads:
+            out_thread.join()
+
+        try:
+            out, err = proc.communicate(timeout=30)
+        except Exception:
+            out, err = "", ""
+
+    for line in (err + out).splitlines():
+        sys.stderr.write(line + "\n")
+        sys.stderr.flush()
+
+    final_out = ""
+    for out_thread in threads:
+        final_out += out_thread.output
+    proc.stdout = final_out + out + err  # type: ignore
+
+    return subprocess.CompletedProcess(
+        args=args,
+        returncode=proc.returncode,
+        stdout=final_out + out + err,
+        stderr=None,
+    )

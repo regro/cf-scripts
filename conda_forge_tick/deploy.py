@@ -15,7 +15,7 @@ from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
     get_lazy_json_backends,
 )
-from .os_utils import clean_disk_space
+from .os_utils import clean_disk_space, run_subprocess_with_tee
 from .settings import settings
 from .utils import (
     fold_log_lines,
@@ -70,10 +70,13 @@ def _parse_gh_conflicts(output):
 
 
 def _pull_changes(batch):
-    r = subprocess.run(
+    print(
+        "pulling changes",
+        flush=True,
+    )
+
+    r = run_subprocess_with_tee(
         ["git", "pull", "-s", "recursive", "-X", "theirs"],
-        text=True,
-        capture_output=True,
     )
     n_added = 0
     if r.returncode != 0:
@@ -94,7 +97,9 @@ def _pull_changes(batch):
                 ],
             )
 
-        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+        r = run_subprocess_with_tee(["pull", "-s", "recursive", "-X", "theirs"])
+        r.check_returncode()
+        _flush_io()
 
     _flush_io()
 
@@ -217,6 +222,11 @@ def _deploy_via_api(
     files_done: set[str],
     files_to_try_again: set[str],
 ) -> tuple[bool, set[str], set[str], set[str]]:
+    print(
+        "starting deploy via API",
+        flush=True,
+    )
+
     if len(files_to_add) + len(files_to_delete) <= 200:
         for pth in files_to_add:
             if do_git_ops:
@@ -265,7 +275,16 @@ def _deploy_via_api(
         do_git_ops = True
 
     for pth in files_done:
+        print(
+            f"resetting file '{pth}' to version on HEAD",
+            flush=True,
+        )
         reset_and_restore_file(pth)
+
+    print(
+        "done with deploy via API",
+        flush=True,
+    )
 
     return do_git_ops, files_to_add, files_done, files_to_try_again
 
