@@ -146,6 +146,7 @@ def test_update_run_deps():
     ) as f:
         attrs = load(f)
     d, _ = get_grayskull_comparison(attrs)
+
     lines = attrs["raw_meta_yaml"].splitlines()
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
@@ -159,7 +160,7 @@ def test_update_run_deps():
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=True)
     print("\n" + recipe.dumps())
     assert updated_deps
-    assert "python >=3.9" in recipe.dumps()
+    assert "python >={{ python_min }}" in recipe.dumps()
 
 
 def test_get_depfinder_comparison():

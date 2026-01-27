@@ -518,6 +518,19 @@ def get_grayskull_comparison(attrs, version_key="version"):
         d[section]["cf_minus_df"] = cf_minus_df
         d[section]["df_minus_cf"] = df_minus_cf
 
+    for section in SECTIONS_TO_PARSE:
+        for sec in ["cf_minus_df", "df_minus_cf"]:
+            new_set = set()
+            for req in d[section][sec]:
+                if req == "python .*":
+                    new_set.add("python {{ python_min }}.*")
+                elif req == "python >=":
+                    new_set.add("python >={{ python_min }}")
+                else:
+                    new_set.add(req)
+
+            d[section][sec] = new_set
+
     return d, grayskull_recipe
 
 
