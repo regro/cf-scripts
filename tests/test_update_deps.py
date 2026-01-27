@@ -6,7 +6,6 @@ from typing import Literal
 
 import networkx as nx
 import pytest
-from ruamel import yaml
 from test_migrators import run_test_migration
 
 from conda_forge_tick.lazy_json_backends import load
@@ -137,7 +136,7 @@ def test_get_grayskull_comparison():
         attrs = load(f)
     d, rs = get_grayskull_comparison(attrs)
     assert rs != ""
-    assert d["run"]["cf_minus_df"] == {"python <3.9"}
+    assert d["run"]["cf_minus_df"] == {"python <3.9", "stdlib-list"}
     assert any(_d.startswith("python") for _d in d["run"]["df_minus_cf"])
 
 
@@ -147,11 +146,11 @@ def test_update_run_deps():
     ) as f:
         attrs = load(f)
     d, _ = get_grayskull_comparison(attrs)
+
     lines = attrs["raw_meta_yaml"].splitlines()
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
 
-    d["run"]["df_minus_cf"].remove("pyyaml")
     recipe.meta["requirements"]["run"].append("pyyaml")
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=False)
     print("\n" + recipe.dumps())
@@ -161,7 +160,7 @@ def test_update_run_deps():
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=True)
     print("\n" + recipe.dumps())
     assert updated_deps
-    assert "python >=3.9" in recipe.dumps()
+    assert "python >={{ python_min }}" in recipe.dumps()
 
 
 def test_get_depfinder_comparison():
@@ -299,7 +298,6 @@ requirements:
     - python <3.9
     - pip
   run:
-    - pyyaml
     - python <3.9
     - stdlib-list
 
@@ -896,11 +894,11 @@ def test_apply_dep_update_v1(
             {
                 "host": {
                     "cf_minus_df": {"python <3.9"},
-                    "df_minus_cf": {"python 3.9.*"},
+                    "df_minus_cf": {"python {{ python_min }}.*"},
                 },
                 "run": {
-                    "cf_minus_df": {"python <3.9"},
-                    "df_minus_cf": {"pyyaml", "python >=3.9"},
+                    "cf_minus_df": {"python <3.9", "stdlib-list"},
+                    "df_minus_cf": {"python >={{ python_min }}"},
                 },
             },
         ),
@@ -950,7 +948,7 @@ UpdateKind = Literal["update-grayskull"]
 
 @pytest.fixture
 def conda_build_config() -> str:
-    return yaml.dump({"python_min": ["3.9"]})
+    return 'python_min: ["3.9"]\n'
 
 
 @pytest.mark.parametrize(

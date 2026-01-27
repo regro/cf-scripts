@@ -1,3 +1,4 @@
+import io
 import logging
 import shutil
 import subprocess
@@ -6,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from github import Github, PullRequest
+from github import Auth, Github, PullRequest
 from ruamel import yaml
 
 from conda_forge_tick.git_utils import GitCli
@@ -96,7 +97,7 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
 
     @staticmethod
     def _get_matching_pr(feedstock: str, pr_title_contains: str) -> PullRequest:
-        gh = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
+        gh = Github(auth=Auth.Token(get_github_token(GitHubAccount.CONDA_FORGE_ORG)))
 
         full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
         repo = gh.get_organization(GitHubAccount.CONDA_FORGE_ORG).get_repo(
@@ -163,7 +164,8 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
             cli.clone_repo(pr.head.repo.clone_url, target_dir)
             cli.checkout_branch(target_dir, pr.head.ref)
             with open(target_dir / "recipe" / "recipe.yaml") as f:
-                return yaml.safe_load(f)
+                yaml_ = yaml.YAML(typ="safe", pure=True)
+                return yaml_.load(f)
 
     def _assert_version_pr_content_v1(
         self,
@@ -174,7 +176,10 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         old_hash: str,
     ):
         recipe = self._get_pr_content_recipe_v1(pr)
-        recipe_raw = yaml.dump(recipe)
+        yaml_ = yaml.YAML(typ="full", pure=True)
+        sio = io.StringIO()
+        yaml_.dump(recipe, stream=sio)
+        recipe_raw = sio.getvalue()
         assert recipe["context"]["version"] == new_version
         assert recipe["source"]["sha256"] == new_hash
         assert old_version not in recipe_raw
@@ -238,8 +243,10 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         self._assert_version_pr_meta(feedstock, pr)
 
         recipe = self._get_pr_content_recipe_v1(pr)
-        recipe_raw = yaml.dump(recipe)
-
+        yaml_ = yaml.YAML(typ="full", pure=True)
+        sio = io.StringIO()
+        yaml_.dump(recipe, stream=sio)
+        recipe_raw = sio.getvalue()
         for included_str in included:
             assert included_str in recipe_raw, f"{included_str} not in recipe_raw"
 
