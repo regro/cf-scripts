@@ -239,6 +239,7 @@ If your migrator needs special configuration, you should write a new factory fun
 - `BOT_TOKEN`: a GitHub token for the bot user
 - `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
+- `CF_TICK_USE_LOCAL_PINNINGS`: set to `true` to force the bot to always use the local copy of the pinnings file for rerenders, set during integration testing
 
 Additional environment variables are described in [the settings module](conda_forge_tick/settings.py).
 
