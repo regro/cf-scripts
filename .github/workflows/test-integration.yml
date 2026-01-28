@@ -12,6 +12,9 @@ concurrency:
   group: cf-scripts-integration-tests
   cancel-in-progress: false
 
+env:
+  CF_TICK_USE_LOCAL_PINNINGS: "true"
+
 defaults:
   run:
     shell: bash -leo pipefail {0}

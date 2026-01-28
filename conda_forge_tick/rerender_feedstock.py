@@ -23,9 +23,13 @@ def rerender_feedstock(feedstock_dir, timeout=900, use_container=None):
     str
         The commit message for the rerender. If None, the rerender didn't change anything.
     """
-    local_pinnings = os.path.join(
-        os.path.expandvars("${CONDA_PREFIX}"), "conda_build_config.yaml"
-    )
+    if str(os.environ.get("CF_TICK_USE_LOCAL_PINNINGS", "false")).lower() == "true":
+        local_pinnings = os.path.join(
+            os.path.expandvars("${CONDA_PREFIX}"), "conda_build_config.yaml"
+        )
+    else:
+        local_pinnings = None
+
     return _rerender(
         feedstock_dir,
         exclusive_config_file=local_pinnings,
