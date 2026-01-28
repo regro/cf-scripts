@@ -271,6 +271,27 @@ class IntegrationTestHelper(AbstractIntegrationTestHelper):
         recipe = self._get_pr_content_recipe_v1(pr)
         assert recipe["requirements"]["run"] == run_requirements
 
+    def assert_pr_body_not_contains(
+        self,
+        feedstock: str,
+        new_version: str,
+        not_included: list[str],
+    ):
+        pr = self._get_matching_version_pr(feedstock=feedstock, new_version=new_version)
+        pr_body = pr.body or ""
+
+        for not_included_str in not_included:
+            assert not_included_str not in pr_body, (
+                f"'{not_included_str}' should NOT be in PR body but was found.\n"
+                f"PR body:\n{pr_body}"
+            )
+
+        LOGGER.info(
+            "PR body for %s v%s validated successfully (excluded strings not found).",
+            feedstock,
+            new_version,
+        )
+
     def assert_pr_title_starts_with(
         self,
         feedstock: str,
