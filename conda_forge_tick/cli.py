@@ -214,6 +214,11 @@ def make_mappings() -> None:
 
 @main.command(name="deploy-to-github")
 @click.option(
+    "--no-pull",
+    is_flag=True,
+    help="Do not pull the changes to the local repo after deployment.",
+)
+@click.option(
     "--git-only",
     is_flag=True,
     help="If given, only deploy graph data to GitHub via the git command line.",
@@ -236,7 +241,11 @@ def make_mappings() -> None:
 )
 @pass_context
 def deploy_to_github(
-    ctx: CliContext, git_only: bool, dirs_to_ignore: str, dirs_to_deploy: str
+    ctx: CliContext,
+    git_only: bool,
+    dirs_to_ignore: str,
+    dirs_to_deploy: str,
+    no_pull: bool,
 ) -> None:
     from . import deploy
 
@@ -245,6 +254,7 @@ def deploy_to_github(
         git_only=git_only,
         dirs_to_ignore=[] if dirs_to_ignore is None else dirs_to_ignore.split(","),
         dirs_to_deploy=[] if dirs_to_deploy is None else dirs_to_deploy.split(","),
+        no_pull=no_pull,
     )
 
 

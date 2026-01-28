@@ -275,6 +275,7 @@ def deploy(
     dirs_to_deploy: list[str] | None = None,
     git_only: bool = False,
     dirs_to_ignore: list[str] | None = None,
+    no_pull: bool = False,
 ):
     if dry_run:
         print("(dry run) deploying", flush=True)
@@ -389,5 +390,5 @@ def deploy(
 
         print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
     else:
-        if files_done:
+        if files_done and not no_pull:
             _pull_changes(batch)
