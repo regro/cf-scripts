@@ -82,10 +82,18 @@ jobs:
 
           pushd cf-graph
 
-          conda-forge-tick deploy-to-github --git-only --dirs-to-deploy=pr_json,version_pr_info,pr_info
+          conda-forge-tick deploy-to-github --dirs-to-deploy=pr_json,version_pr_info,pr_info --no-pull
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
+
+      - name: reclone graph
+        if: success() && ! env.CI_SKIP
+        run: |
+          mv cf-graph cf-graph-old
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space
+        env:
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: run migrations
         if: success() && ! env.CI_SKIP
