@@ -916,7 +916,7 @@ def _make_version_migrator(
         version_migrator = Version(
             python_nodes=python_nodes,
             total_graph=gx,
-            pr_limit=PR_LIMIT * 2,
+            pr_limit=MAX_PR_LIMIT,
             piggy_back_migrations=_make_mini_migrators_with_defaults(
                 extra_mini_migrators=[
                     PipWheelMigrator(),
