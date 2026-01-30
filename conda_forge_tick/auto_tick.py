@@ -779,8 +779,10 @@ def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
         # settings
         if isinstance(migrator, Version):
             # this threshold is set by experience
-            if num_to_do > 100:
+            if num_to_do > 50:
                 migrator.pr_limit = migrator.pr_limit * 2
+            elif num_to_do > 100:
+                migrator.pr_limit = migrator.pr_limit * 4
 
         pr_limit = getattr(migrator, "pr_limit", PR_LIMIT)
         _share = min(pr_limit, num_to_do)
