@@ -95,7 +95,7 @@ RNG = secrets.SystemRandom()
 
 PR_LIMIT = 5
 PR_ATTEMPT_LIMIT_FACTOR = 2
-MAX_PR_LIMIT = 40
+MAX_PR_LIMIT = 20
 FORCE_PR_AFTER_SOLVER_ATTEMPTS = 10
 CHECK_SOLVABLE_TIMEOUT = 30  # in days
 DEFAULT_MINI_MIGRATORS = [
@@ -916,7 +916,7 @@ def _make_version_migrator(
         version_migrator = Version(
             python_nodes=python_nodes,
             total_graph=gx,
-            pr_limit=MAX_PR_LIMIT,
+            pr_limit=PR_LIMIT * 2,
             piggy_back_migrations=_make_mini_migrators_with_defaults(
                 extra_mini_migrators=[
                     PipWheelMigrator(),
