@@ -758,8 +758,6 @@ def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
     num_nodes = []
     shares = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
-        pr_limit = getattr(migrator, "pr_limit", PR_LIMIT)
-
         num_to_do = 0.0
         for node_name in migrator.effective_graph.nodes:
             with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
@@ -774,6 +772,19 @@ def _compute_time_per_migrator(migrators, max_attempts_for_share=3):
         num_nodes_not_tried.append(num_to_do)
         num_nodes.append(len(migrator.effective_graph.nodes))
 
+        # we bump the version migrator pr_limit up adaptively
+        # if there is a backlog
+        # TODO: we should do this when the migrator is made, but we
+        # need to rework max_attempts_for_share to be set in global
+        # settings
+        if isinstance(migrator, Version):
+            # this threshold is set by experience
+            if num_to_do > 50:
+                migrator.pr_limit = migrator.pr_limit * 2
+            elif num_to_do > 100:
+                migrator.pr_limit = migrator.pr_limit * 4
+
+        pr_limit = getattr(migrator, "pr_limit", PR_LIMIT)
         _share = min(pr_limit, num_to_do)
         shares.append(_share)
 
