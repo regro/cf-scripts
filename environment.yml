@@ -33,7 +33,7 @@ dependencies:
   - frozendict
   - git <2.50
   - github3.py
-  - grayskull >=2.5
+  - grayskull >=3.1.0
   - jinja2
   - lockfile
   - mamba >=0.23
