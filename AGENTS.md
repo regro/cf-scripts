@@ -10,10 +10,7 @@ This is **autotick-bot** (conda-forge-tick), the automated maintenance bot for t
 
 ### Development Setup
 ```bash
-# Using environment.yml
-conda env create -f environment.yml
-
-# Or using the lockfile
+# Using the lockfile
 conda-lock install conda-lock.yml
 
 # Install in editable mode
