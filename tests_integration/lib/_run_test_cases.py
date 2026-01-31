@@ -1,7 +1,7 @@
 import logging
 from importlib import resources
 
-from github import Github
+from github import Auth, Github
 
 from conda_forge_tick.settings import settings
 
@@ -14,7 +14,7 @@ EMPTY_GRAPH_DIR = resources.files("tests_integration.resources").joinpath("empty
 
 
 def close_all_open_pull_requests():
-    github = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
+    github = Github(auth=Auth.Token(get_github_token(GitHubAccount.CONDA_FORGE_ORG)))
     org = github.get_organization(GitHubAccount.CONDA_FORGE_ORG)
 
     for repo in org.get_repos():

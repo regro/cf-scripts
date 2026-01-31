@@ -8,17 +8,18 @@ platforms:
 dependencies:
   - attrs
   - backoff
-  - bcrypt <5
+  - bcrypt
   - cachecontrol
   - cachetools
   - click
-  - conda
+  - conda >=25
+  - conda-build >=25
   - conda-lock
   - conda-forge-feedstock-check-solvable >=0.8.0
-  - conda-forge-feedstock-ops >=0.12.0
+  - conda-forge-feedstock-ops >=0.14.0
   - conda-forge-pinning
   - conda-libmamba-solver
-  - conda-forge-metadata >=0.3.0
+  - conda-forge-metadata >=0.12.0
   - conda-package-handling
   - conda-smithy >=3.34.1
   - conda-build >=3.24.0
@@ -49,7 +50,7 @@ dependencies:
   - pygithub
   - pymongo
   - pynamodb
-  - python=3.11
+  - python=3.12
   - python-dateutil
   - python-graphviz
   - rattler-build >=0.35.4

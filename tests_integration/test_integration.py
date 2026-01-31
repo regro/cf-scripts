@@ -305,9 +305,22 @@ def test_scenario(
 
     with in_fresh_cf_graph():
         with mitmproxy_env():
+            invoke_bot_command(["--debug", "prep-auto-tick"])
+        invoke_bot_command(
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-deploy=pr_json,version_pr_info,pr_info",
+            ]
+        )
+        with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(
-            ["--debug", "deploy-to-github", "--git-only", "--dirs-to-ignore=pr_json"]
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-ignore=pr_json,version_pr_info,pr_info",
+            ]
         )
 
     with in_fresh_cf_graph():
@@ -321,9 +334,22 @@ def test_scenario(
         # due to a similar implementation detail, we need to run auto-tick twice
         # for changes to be picked up
         with mitmproxy_env():
+            invoke_bot_command(["--debug", "prep-auto-tick"])
+        invoke_bot_command(
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-deploy=pr_json,version_pr_info,pr_info",
+            ]
+        )
+        with mitmproxy_env():
             invoke_bot_command(["--debug", "auto-tick"])
         invoke_bot_command(
-            ["--debug", "deploy-to-github", "--git-only", "--dirs-to-ignore=pr_json"]
+            [
+                "--debug",
+                "deploy-to-github",
+                "--dirs-to-ignore=pr_json,version_pr_info,pr_info",
+            ]
         )
 
     run_all_validate_functions(scenario)

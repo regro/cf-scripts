@@ -13,7 +13,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Protocol
 
-from github import Github
+from github import Auth, Github
 from github.Repository import Repository
 
 from ._definitions import TEST_CASE_MAPPING, GitHubAccount
@@ -144,7 +144,7 @@ def prepare_accounts(setup_infos: Iterable[GitHubAccountSetup]):
     """
     for setup_info in setup_infos:
         # for each account, we need to create a separate GitHub instance because different tokens are needed
-        github = Github(get_github_token(setup_info.account))
+        github = Github(auth=Auth.Token(get_github_token(setup_info.account)))
 
         owner: RepositoryOwner
         existing_repos: Iterable[Repository]

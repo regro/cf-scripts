@@ -107,8 +107,9 @@ def _deploy_batch(
     batch,
     n_added,
     max_per_batch=200,
-    exp_backoff_base: float = 1.4,
+    exp_backoff_base: float = 1.1,
     exp_backoff_rfrac: float = 0.5,
+    max_tries: int = 30,
 ):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
@@ -137,7 +138,7 @@ def _deploy_batch(
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 20:
+        while status != 0 and num_try < max_tries:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
                     # pull twice right away to reduce chance of changes between
@@ -274,6 +275,7 @@ def deploy(
     dirs_to_deploy: list[str] | None = None,
     git_only: bool = False,
     dirs_to_ignore: list[str] | None = None,
+    no_pull: bool = False,
 ):
     if dry_run:
         print("(dry run) deploying", flush=True)
@@ -290,7 +292,7 @@ def deploy(
         clean_disk_space()
 
     files_to_add: set[str] = set()
-    if dirs_to_deploy is None:
+    if not dirs_to_deploy:
         drs_to_deploy = [
             "status",
             "mappings",
@@ -303,7 +305,7 @@ def deploy(
             drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
             drs_to_deploy += ["graph.json"]
     else:
-        if dirs_to_ignore is not None:
+        if dirs_to_ignore:
             raise RuntimeError(
                 "You cannot specify both `dirs_to_deploy` "
                 "and `dirs_to_ignore` when deploying the graph!"
@@ -343,7 +345,7 @@ def deploy(
 
     files_to_delete = _get_files_to_delete()
 
-    if dirs_to_ignore is not None:
+    if dirs_to_ignore:
         print("ignoring dirs:", dirs_to_ignore, flush=True)
         new_files_to_add = set()
         for fn in files_to_add:
@@ -388,5 +390,5 @@ def deploy(
 
         print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
     else:
-        if files_done:
+        if files_done and not no_pull:
             _pull_changes(batch)
