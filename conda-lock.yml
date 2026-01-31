@@ -11679,45 +11679,45 @@ package:
   category: main
   optional: false
 - name: pip
-  version: '25.3'
+  version: '26.0'
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10,<3.13.0a0'
     setuptools: ''
     wheel: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pip-25.3-pyh8b19718_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pip-26.0-pyh8b19718_0.conda
   hash:
-    md5: c55515ca43c6444d2572e0f0d93cb6b9
-    sha256: b67692da1c0084516ac1c9ada4d55eaf3c5891b54980f30f3f444541c2706f1e
+    md5: 50663f09ee2931b84e5726ba1384c87b
+    sha256: 1c54649ea52f22f0e78a83749a82bddcb1e13e8dc7164bc3f46e2c219fbb5b05
   category: main
   optional: false
 - name: pip
-  version: '25.3'
+  version: '26.0'
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10,<3.13.0a0'
     setuptools: ''
     wheel: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pip-25.3-pyh8b19718_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pip-26.0-pyh8b19718_0.conda
   hash:
-    md5: c55515ca43c6444d2572e0f0d93cb6b9
-    sha256: b67692da1c0084516ac1c9ada4d55eaf3c5891b54980f30f3f444541c2706f1e
+    md5: 50663f09ee2931b84e5726ba1384c87b
+    sha256: 1c54649ea52f22f0e78a83749a82bddcb1e13e8dc7164bc3f46e2c219fbb5b05
   category: main
   optional: false
 - name: pip
-  version: '25.3'
+  version: '26.0'
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10,<3.13.0a0'
     setuptools: ''
     wheel: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pip-25.3-pyh8b19718_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pip-26.0-pyh8b19718_0.conda
   hash:
-    md5: c55515ca43c6444d2572e0f0d93cb6b9
-    sha256: b67692da1c0084516ac1c9ada4d55eaf3c5891b54980f30f3f444541c2706f1e
+    md5: 50663f09ee2931b84e5726ba1384c87b
+    sha256: 1c54649ea52f22f0e78a83749a82bddcb1e13e8dc7164bc3f46e2c219fbb5b05
   category: main
   optional: false
 - name: pixi
@@ -16336,10 +16336,10 @@ package:
   dependencies:
     colorama: ''
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_1.conda
   hash:
-    md5: cfec3be798438197f4688689287ff1a1
-    sha256: 3243a0c32fafa17feaf2c7ec980f514708f2f540d843df0b45b2198080074dce
+    md5: 8adffc92276ccdc960b08a387d3189e0
+    sha256: 3cc46ca3d5e64ab82f68a9bebf0a3c0f300adb38ad0ca936b8edd563b5b85136
   category: main
   optional: false
 - name: tqdm
@@ -16349,10 +16349,10 @@ package:
   dependencies:
     colorama: ''
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_1.conda
   hash:
-    md5: cfec3be798438197f4688689287ff1a1
-    sha256: 3243a0c32fafa17feaf2c7ec980f514708f2f540d843df0b45b2198080074dce
+    md5: 8adffc92276ccdc960b08a387d3189e0
+    sha256: 3cc46ca3d5e64ab82f68a9bebf0a3c0f300adb38ad0ca936b8edd563b5b85136
   category: main
   optional: false
 - name: tqdm
@@ -16362,10 +16362,10 @@ package:
   dependencies:
     colorama: ''
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.2-pyhd8ed1ab_1.conda
   hash:
-    md5: cfec3be798438197f4688689287ff1a1
-    sha256: 3243a0c32fafa17feaf2c7ec980f514708f2f540d843df0b45b2198080074dce
+    md5: 8adffc92276ccdc960b08a387d3189e0
+    sha256: 3cc46ca3d5e64ab82f68a9bebf0a3c0f300adb38ad0ca936b8edd563b5b85136
   category: main
   optional: false
 - name: trove-classifiers
