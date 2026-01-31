@@ -4,7 +4,6 @@ channels:
 platforms:
   - osx-arm64
   - linux-64
-  - osx-64
 dependencies:
   - attrs
   - backoff
