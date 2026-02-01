@@ -384,36 +384,6 @@ def _parse_recipe_yaml(
     )
 
 
-def _check_solvable(
-    *,
-    timeout,
-    verbosity,
-    additional_channels,
-    build_platform,
-):
-    from conda_forge_tick.solver_checks import is_recipe_solvable
-
-    logger = logging.getLogger("conda_forge_tick.container")
-
-    logger.debug(
-        "input container feedstock dir /cf_feedstock_ops_dir: %s",
-        os.listdir("/cf_feedstock_ops_dir"),
-    )
-
-    data = {}
-    data["solvable"], data["errors"], data["solvable_by_variant"] = is_recipe_solvable(
-        "/cf_feedstock_ops_dir",
-        use_container=False,
-        timeout=timeout,
-        verbosity=verbosity,
-        additional_channels=(
-            additional_channels.split(",") if additional_channels else None
-        ),
-        build_platform=orjson.loads(build_platform) if build_platform else None,
-    )
-    return data
-
-
 @click.group()
 def cli():
     pass
@@ -590,44 +560,6 @@ def provide_source_code(log_level):
         _provide_source_code,
         log_level=log_level,
         existing_feedstock_node_attrs=None,
-    )
-
-
-@cli.command(name="check-solvable")
-@log_level_option
-@click.option(
-    "--timeout",
-    type=int,
-    default=600,
-    help="The timeout for the solver check in seconds.",
-)
-@click.option(
-    "--verbosity",
-    type=int,
-    default=1,
-    help="The verbosity of the solver check. 0 is no output, 3 is a lot of output.",
-)
-@click.option(
-    "--additional-channels",
-    type=str,
-    default=None,
-    help="Additional channels to use for the solver check as a comma separated list.",
-)
-@click.option(
-    "--build-platform",
-    type=str,
-    default=None,
-    help="The conda-forge.yml build_platform section as a JSON string.",
-)
-def check_solvable(log_level, timeout, verbosity, additional_channels, build_platform):
-    return _run_bot_task(
-        _check_solvable,
-        log_level=log_level,
-        existing_feedstock_node_attrs=None,
-        timeout=timeout,
-        verbosity=verbosity,
-        additional_channels=additional_channels,
-        build_platform=build_platform,
     )
 
 
