@@ -4,7 +4,6 @@ channels:
 platforms:
   - osx-arm64
   - linux-64
-  - osx-64
 dependencies:
   - attrs
   - backoff
@@ -15,13 +14,13 @@ dependencies:
   - conda >=25
   - conda-build >=25
   - conda-lock
-  - conda-forge-feedstock-check-solvable >=0.8.0
+  - conda-forge-feedstock-check-solvable >=0.12.0
   - conda-forge-feedstock-ops >=0.14.0
   - conda-forge-pinning
   - conda-libmamba-solver
   - conda-forge-metadata >=0.12.0
   - conda-package-handling
-  - conda-smithy >=3.34.1
+  - conda-smithy >=3.54.2
   - conda-build >=3.24.0
   - conda-recipe-manager >=0.6.1
   - curl
