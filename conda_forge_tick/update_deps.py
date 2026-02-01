@@ -462,7 +462,7 @@ def _make_grayskull_recipe_v1(
 
     # Grayskull generates `match(python, ...)` for noarch recipes, but v1 recipes
     # use `python_min` in their variant configs (CFEP-25). Replace to make the
-    # recipe renderable. See: https://github.com/conda/grayskull/issues/644
+    # recipe renderable. See: https://github.com/conda/conda-recipe-manager/issues/479
     if package_is_noarch:
         recipe_str = recipe_str.replace("match(python,", "match(python_min,")
 
