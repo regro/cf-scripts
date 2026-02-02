@@ -17,10 +17,23 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _munge_if_value_to_string(value: Any) -> str:
+    if value is None:
+        value = "null"
+
+    if value in [True, False]:
+        value = str(value).lower()
+
+    if not isinstance(value, str):
+        value = str(value)
+
+    return value
+
+
 def get_condition(node: Any) -> Node | None:
     if isinstance(node, dict) and "if" in node:
         return Parser(
-            Environment(), node["if"].strip(), state="variable"
+            Environment(), _munge_if_value_to_string(node["if"]).strip(), state="variable"
         ).parse_expression()
     return None
 
