@@ -33,7 +33,9 @@ def _munge_if_value_to_string(value: Any) -> str:
 def get_condition(node: Any) -> Node | None:
     if isinstance(node, dict) and "if" in node:
         return Parser(
-            Environment(), _munge_if_value_to_string(node["if"]).strip(), state="variable"
+            Environment(),
+            _munge_if_value_to_string(node["if"]).strip(),
+            state="variable",
         ).parse_expression()
     return None
 
