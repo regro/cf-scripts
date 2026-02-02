@@ -1594,25 +1594,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.01.15.58.59
+  version: 2026.02.01.23.20.06
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.01.15.58.59-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.01.23.20.06-hd8ed1ab_0.conda
   hash:
-    md5: 449917f87c2391fb4325e8de79707983
-    sha256: 77755bec8e5fd9edec1aa3dd07913169979095824e2465b8fc4a59e50e5fe716
+    md5: feacaf3ce41ded32b8b669e1dcdeb49f
+    sha256: 500f5acf5416952ae0feb1e1c55298e9e59ee4268974a2fa4a71e4cc85e3160e
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.01.15.58.59
+  version: 2026.02.01.23.20.06
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.01.15.58.59-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.01.23.20.06-hd8ed1ab_0.conda
   hash:
-    md5: 449917f87c2391fb4325e8de79707983
-    sha256: 77755bec8e5fd9edec1aa3dd07913169979095824e2465b8fc4a59e50e5fe716
+    md5: feacaf3ce41ded32b8b669e1dcdeb49f
+    sha256: 500f5acf5416952ae0feb1e1c55298e9e59ee4268974a2fa4a71e4cc85e3160e
   category: main
   optional: false
 - name: conda-index
@@ -11640,7 +11640,7 @@ package:
   category: main
   optional: false
 - name: wrapt
-  version: 2.0.1
+  version: 2.1.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -11648,24 +11648,24 @@ package:
     libgcc: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/wrapt-2.0.1-py312h4c3975b_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/wrapt-2.1.0-py312h4c3975b_0.conda
   hash:
-    md5: b6ee834617873da8a2196c109275b38b
-    sha256: d1d352da699a642be0fd7a5cc894c37b1e8ddfda37c723cacfa9b1986824f80d
+    md5: 48866a003206e931ae841281389e8a33
+    sha256: 4325a5427210cb47aee87397afeeaa248c765ec586b149500e32bdc72bc70ab7
   category: main
   optional: false
 - name: wrapt
-  version: 2.0.1
+  version: 2.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-2.0.1-py312h4409184_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-2.1.0-py312h2bbb03f_0.conda
   hash:
-    md5: 2b3afb010681e2dcfbf27366d373f5c8
-    sha256: 53b97d650332321e67e046de2c29ff60bc742a17d5e4c48a15c704933843e156
+    md5: f30305e2ce4b7c247b57e48e4df654a5
+    sha256: e2b769a151854c16a8e31d5d422d893040feda5dbf4a5f5e7a0b8aedeb3dce2d
   category: main
   optional: false
 - name: wsproto
