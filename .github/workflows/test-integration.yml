@@ -32,24 +32,38 @@ jobs:
 
       - name: Get PR number
         id: pr-number
+        # this appears to be busted now so using my own code based on the merge_group
+        # parts
         # uses: bcgov/action-get-pr@35514fa1d4765547da319e967b509363598e8b46 # v0.1.0
         run: |
-          pr_num=$(echo "${MGHR}" | sed -n 's|.*/pr-\([0-9]\+\)-.*|\1|p')
+          if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
+            pr_num=$(echo "${MGHR}" | sed -n 's|.*/pr-\([0-9]\+\)-.*|\1|p')
+          else
+            pr_num=${PR_NUMBER_FOR_PR}
+          fi
           echo ${pr_num}
           echo "pr=${pr_num}" >> "$GITHUB_OUTPUT"
         env:
-          MGHR: "refs/heads/gh-readonly-queue/main/pr-5494-9172bb7f75684b852fa35ecde81bb23c5b70e068"
+          MGHR: ${{ github.event.merge_group.head_ref }}
+          PR_NUMBER_FOR_PR: ${{ github.event.number }}
 
       - name: Check if we should run rest of tests
         id: should-run
         run: |
-          pr_is_fork=$(gh pr view ${PR_NUMBER} --json headRepositoryOwner | jq '.headRepositoryOwner.login != "regro"')
+          if [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            pr_is_fork=false
+          else
+            pr_is_fork=$(gh pr view ${PR_NUMBER} --json headRepositoryOwner | jq '.headRepositoryOwner.login != "regro"')
+          fi
+
           if [[ ${pr_is_fork} == "true" ]]; then
             if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
               final_should_run=true
             else
               final_should_run=false
             fi
+          elif [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            final_should_run=true
           else
             final_should_run=${MQ_CI_SKIP}
           fi
