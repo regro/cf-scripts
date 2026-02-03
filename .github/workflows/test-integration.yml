@@ -34,7 +34,7 @@ jobs:
 
       - name: Check if we should run rest of tests
         id: should-run
-        run:
+        run: |
           if [[ ${SHOULD_RUN} == "true" ]]; then
             echo "should-run=true" >> "$GITHUB_OUTPUT"
           else
