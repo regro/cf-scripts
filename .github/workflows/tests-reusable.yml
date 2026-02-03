@@ -57,7 +57,7 @@ jobs:
           remove_haskell: true
           rm_cmd: "rmz"
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -132,7 +132,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb  # v5.0.1
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -220,7 +220,7 @@ jobs:
           remove_haskell: true
           rm_cmd: "rmz"
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -295,7 +295,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: restore test durations
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb  # v5.0.1
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -369,7 +369,7 @@ jobs:
           remove_haskell: true
           rm_cmd: "rmz"
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ inputs.skip != 'true' }}
         with:
           repository: "regro/cf-scripts"
@@ -419,7 +419,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
