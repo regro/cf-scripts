@@ -24,10 +24,27 @@ jobs:
     name: Run Integration Tests
     # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
     # Nevertheless, this check is always run in the merge queue.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
+      - name: Check if we can skip the merge queue
+        id: merge-queue-ci-skipper
+        uses: cariad-tech/merge-queue-ci-skipper@cf80db21fc70244e36487acc531b3f1118889b0a
+        with:
+          secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: Check if we should run rest of tests
+        id: should-run
+        run: |
+          if [[ ${SHOULD_RUN} == "true" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SHOULD_RUN: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+
       - name: free disk space
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
         with:
           remove_android: true
@@ -35,26 +52,20 @@ jobs:
           remove_haskell: true
           rm_cmd: "rmz"
 
-      - name: Check if we can skip the merge queue
-        id: merge-queue-ci-skipper
-        uses: cariad-tech/merge-queue-ci-skipper@cf80db21fc70244e36487acc531b3f1118889b0a
-        with:
-            secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         with:
           path: cf-scripts
           submodules: 'true'
 
       - name: Build Docker Image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         with:
           context: cf-scripts
           push: false
@@ -63,14 +74,14 @@ jobs:
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Run pip install
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         working-directory: cf-scripts
         run: |
           # put pinnings at old version for testing
@@ -78,7 +89,7 @@ jobs:
           pip install --no-deps --no-build-isolation -e .
 
       - name: Run mitmproxy certificate setup wizard
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         working-directory: cf-scripts
         run: |
           # place a script in the mitmproxy directory that will be run by the setup wizard
@@ -96,13 +107,13 @@ jobs:
           MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: mitmproxy_trust_script.sh
 
       - name: Set up git identity
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         run: |
           git config --global user.name "regro-cf-autotick-bot-staging"
           git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
 
       - name: Run Integration Tests with pytest
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
         working-directory: cf-scripts
         run: |
           pytest -s -v \
@@ -114,4 +125,4 @@ jobs:
 
       - name: Print Proxy Logs
         run: cat /tmp/mitmproxy.log
-        if: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' && ! cancelled() }}
+        if: ${{ steps.should-run.outputs.should-run == 'true' && ! cancelled() }}
