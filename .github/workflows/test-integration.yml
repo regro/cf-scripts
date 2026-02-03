@@ -51,7 +51,7 @@ jobs:
 
           echo "pr number: ${PR_NUMBER}"
           echo "pr is fork: ${pr_is_fork}"
-          echo "merge queue CI skip: ${MQ_CI_SKIP}"
+          echo "merge queue CI needs to run: ${MQ_CI_SKIP}"
           echo "should run: ${final_should_run}"
         env:
           MQ_CI_SKIP: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
