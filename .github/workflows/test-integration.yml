@@ -56,6 +56,7 @@ jobs:
         env:
           MQ_CI_SKIP: ${{ steps.merge-queue-ci-skipper.outputs.skip-check == 'true' }}
           PR_NUMBER: ${{ steps.pr-number.outputs.pr }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: free disk space
         if: ${{ steps.should-run.outputs.should-run == 'true' }}
