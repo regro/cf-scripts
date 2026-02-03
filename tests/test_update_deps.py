@@ -1144,3 +1144,56 @@ def test_jsii_package_name_resolution():
     resolved_name = _modify_package_name_from_github(feedstock_package_name, src)
 
     assert resolved_name == "jsii"
+
+
+def test_get_grayskull_comparison_v1_python_min_mismatch():
+    """Test that get_grayskull_comparison works for v1 recipes using python_min.
+
+    This test reproduces the issue where grayskull generates a recipe with
+    `skip: match(python, "<3.10")` but the feedstock's variant config only has
+    `python_min` (not `python`). When rattler-build tries to render the recipe,
+    it skips all variants because the `python` variable is not set.
+
+    See: https://github.com/conda-forge/dominodatalab-feedstock/pull/21
+    """
+    attrs = {
+        "meta_yaml": {
+            "schema_version": 1,
+            "package": {
+                "name": "dominodatalab",
+                "version": "1.4.7",
+            },
+            "source": {
+                "url": "https://pypi.org/packages/source/d/dominodatalab/dominodatalab-1.4.7.tar.gz",
+            },
+            "build": {"noarch": "python"},
+        },
+        "feedstock_name": "dominodatalab",
+        "version_pr_info": {"version": "2.0.0"},
+        "total_requirements": {
+            "build": set(),
+            "host": {"pip", "python"},
+            "run": {
+                "python",
+                "packaging",
+                "requests >=2.4.2",
+                "beautifulsoup4 >=4.11,<4.12",
+                "polling2 >=0.5.0,<0.6",
+                "urllib3 >=1.26.12,<1.27",
+                "typing-extensions >=4.5.0",
+                "frozendict >=2.3.4,<2.4",
+                "python-dateutil >=2.8.2,<2.9",
+                "retry ==0.9.2",
+            },
+            "test": set(),
+        },
+    }
+
+    # This should not raise an exception, but currently it does because
+    # grayskull generates `skip: match(python, "<3.10")` and the variant
+    # config only has `python_min`, causing rattler-build to skip all variants.
+    dep_comparison, recipe = get_grayskull_comparison(attrs=attrs)
+
+    # If we get here, the comparison should have valid results
+    assert "run" in dep_comparison
+    assert recipe != ""
