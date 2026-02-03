@@ -24,6 +24,7 @@ jobs:
     name: Run Integration Tests
     # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
     # Nevertheless, this check is always run in the merge queue.
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if we can skip the merge queue
@@ -32,6 +33,9 @@ jobs:
         with:
           secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
+      # TODO: detect if PR in merge queue branch name is from a fork and always run tests if so
+      # TODO: add back (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      #       to the SHOULD_TEST env var
       - name: Check if we should run rest of tests
         id: should-run
         run: |
@@ -41,7 +45,7 @@ jobs:
             echo "should-run=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          SHOULD_RUN: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+          SHOULD_RUN: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
 
       - name: free disk space
         if: ${{ steps.should-run.outputs.should-run == 'true' }}
