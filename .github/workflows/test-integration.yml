@@ -22,9 +22,6 @@ defaults:
 jobs:
   integration-tests:
     name: Run Integration Tests
-    # if triggered by pull_request, only run on non-fork PRs (secrets access needed)
-    # Nevertheless, this check is always run in the merge queue.
-    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if we can skip the merge queue
@@ -33,19 +30,53 @@ jobs:
         with:
           secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      # TODO: detect if PR in merge queue branch name is from a fork and always run tests if so
-      # TODO: add back (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-      #       to the SHOULD_TEST env var
+      - name: Get PR number
+        id: pr-number
+        # this appears to be busted now so using my own code based on the merge_group
+        # parts
+        # uses: bcgov/action-get-pr@35514fa1d4765547da319e967b509363598e8b46 # v0.1.0
+        run: |
+          if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
+            pr_num=$(echo "${MGHR}" | sed -n 's|.*/pr-\([0-9]\+\)-.*|\1|p')
+          else
+            pr_num=${PR_NUMBER_FOR_PR}
+          fi
+          echo ${pr_num}
+          echo "pr=${pr_num}" >> "$GITHUB_OUTPUT"
+        env:
+          MGHR: ${{ github.event.merge_group.head_ref }}
+          PR_NUMBER_FOR_PR: ${{ github.event.number }}
+
       - name: Check if we should run rest of tests
         id: should-run
         run: |
-          if [[ ${SHOULD_RUN} == "true" ]]; then
-            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          if [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            pr_is_fork=false
           else
-            echo "should-run=false" >> "$GITHUB_OUTPUT"
+            pr_is_fork=$(gh pr view ${PR_NUMBER} --json headRepositoryOwner | jq '.headRepositoryOwner.login != "regro"')
           fi
+
+          if [[ ${pr_is_fork} == "true" ]]; then
+            if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
+              final_should_run=true
+            else
+              final_should_run=false
+            fi
+          elif [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            final_should_run=true
+          else
+            final_should_run=${MQ_CI_SKIP}
+          fi
+          echo "should-run=${final_should_run}" >> "$GITHUB_OUTPUT"
+
+          echo "pr number: ${PR_NUMBER}"
+          echo "pr is fork: ${pr_is_fork}"
+          echo "merge queue CI needs to run: ${MQ_CI_SKIP}"
+          echo "should run: ${final_should_run}"
         env:
-          SHOULD_RUN: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+          MQ_CI_SKIP: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+          PR_NUMBER: ${{ steps.pr-number.outputs.pr }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: free disk space
         if: ${{ steps.should-run.outputs.should-run == 'true' }}
