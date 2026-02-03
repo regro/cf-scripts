@@ -33,6 +33,10 @@ jobs:
         with:
           secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
+      - name: Get PR number
+        id: pr-number
+        uses: bcgov/action-get-pr@35514fa1d4765547da319e967b509363598e8b46 # v0.1.0
+
       # TODO: detect if PR in merge queue branch name is from a fork and always run tests if so
       # TODO: add back (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       #       to the SHOULD_TEST env var
