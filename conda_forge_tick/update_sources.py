@@ -717,7 +717,11 @@ class GitTags(AbstractSource):
     name = "GitTags"
 
     def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
-        return node_attrs.get("meta_yaml", {}).get("source", {}).get("git_url", None)  # type: ignore[return-value]
+        src = node_attrs.get("meta_yaml", {}).get("source", {})
+        if hasattr(src, "get"):
+            return src.get("git_url", None)  # type: ignore[return-value]
+        else:
+            return src[0].get("git_url", None)  # type: ignore[return-value]
 
     def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
         try:
