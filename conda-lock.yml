@@ -1594,25 +1594,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.04.18.05.23
+  version: 2026.02.04.21.10.28
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.18.05.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.21.10.28-hd8ed1ab_0.conda
   hash:
-    md5: 564e8d5e7b96e01fac0eda1216738c8e
-    sha256: 9dd9540485d72ce8e465f7c6cce7941f74f77999918782b5310d58c07f3c8975
+    md5: a7f9a1a3e301325655089f99a3cd14f2
+    sha256: e52f4a1a6dcd4dbeba084fdddbe62ae8c2a75a76e7d1cfe77e6ca725fb05e9e5
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.04.18.05.23
+  version: 2026.02.04.21.10.28
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.18.05.23-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.21.10.28-hd8ed1ab_0.conda
   hash:
-    md5: 564e8d5e7b96e01fac0eda1216738c8e
-    sha256: 9dd9540485d72ce8e465f7c6cce7941f74f77999918782b5310d58c07f3c8975
+    md5: a7f9a1a3e301325655089f99a3cd14f2
+    sha256: e52f4a1a6dcd4dbeba084fdddbe62ae8c2a75a76e7d1cfe77e6ca725fb05e9e5
   category: main
   optional: false
 - name: conda-index
@@ -2335,35 +2335,35 @@ package:
   category: main
   optional: false
 - name: dateparser
-  version: 1.2.2
+  version: 1.3.0
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     python-dateutil: '>=2.7.0'
     pytz: '>=2024.2'
     regex: '>=2024.9.11'
     tzlocal: '>=0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/dateparser-1.2.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/dateparser-1.3.0-pyhd8ed1ab_0.conda
   hash:
-    md5: f7a7636abc623e0ef6128dcb153f4fe2
-    sha256: 1af8502859dab5c953a7c248e83479619eba9a3385f5281c4a64f42fbfc861d8
+    md5: c6b52555e1c8976713d1bc46d18bb52c
+    sha256: b63361ea4bf1f960ebd562f719e8970491b30bb2c9101c216240a03b01081c8d
   category: main
   optional: false
 - name: dateparser
-  version: 1.2.2
+  version: 1.3.0
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     python-dateutil: '>=2.7.0'
     pytz: '>=2024.2'
     regex: '>=2024.9.11'
     tzlocal: '>=0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/dateparser-1.2.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/dateparser-1.3.0-pyhd8ed1ab_0.conda
   hash:
-    md5: f7a7636abc623e0ef6128dcb153f4fe2
-    sha256: 1af8502859dab5c953a7c248e83479619eba9a3385f5281c4a64f42fbfc861d8
+    md5: c6b52555e1c8976713d1bc46d18bb52c
+    sha256: b63361ea4bf1f960ebd562f719e8970491b30bb2c9101c216240a03b01081c8d
   category: main
   optional: false
 - name: dbus
@@ -2388,14 +2388,13 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
+    python: ''
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/depfinder-2.10.0-py312h7900ff3_2.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/depfinder-2.10.0-pyhcf101f3_3.conda
   hash:
-    md5: b74b3c029d3b89d657c2e8f6c1330b38
-    sha256: 7933bc1e4f824177a803521958800f95ee0cc3c07d0eb71704ef0f24297d63ac
+    md5: 9fdb2a90932105e1a3af5def7e3da606
+    sha256: 6d086f7358dc062d29b3c481a058049306e0c3a2cd90285d98030157927f2d89
   category: main
   optional: false
 - name: depfinder
@@ -2403,14 +2402,13 @@ package:
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
+    python: ''
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/depfinder-2.10.0-py312h81bd7bf_2.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/depfinder-2.10.0-pyhcf101f3_3.conda
   hash:
-    md5: d070314a2109485475e83b9a3cf548ca
-    sha256: f05231551bae8f55c8797e7dee25451619d4945fb7844ff0bf0943de1f52c018
+    md5: 9fdb2a90932105e1a3af5def7e3da606
+    sha256: 6d086f7358dc062d29b3c481a058049306e0c3a2cd90285d98030157927f2d89
   category: main
   optional: false
 - name: deprecated
@@ -5123,10 +5121,10 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-21.1.8-hf598326_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-21.1.8-h55c6f16_2.conda
   hash:
-    md5: cd7367d0c0f49853f8f3560bfb4456ab
-    sha256: 3a924cbce92b0dceb5d392036e692bac1e60ae90d85c7c78264c672a205c007b
+    md5: 4cb5878bdb9ebfa65b7cdff5445087c5
+    sha256: 5fbeb2fc2673f0455af6079abf93faaf27f11a92574ad51565fa1ecac9a4e2aa
   category: main
   optional: false
 - name: libdeflate
