@@ -1594,25 +1594,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.04.13.18.26
+  version: 2026.02.04.17.05.25
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.13.18.26-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.17.05.25-hd8ed1ab_0.conda
   hash:
-    md5: b58fbaf7c84b296e8c6b52da0b452854
-    sha256: 28592d29be88aa03f8d43c49603ef5e257cd9d7681a8a68abf484354f2f1ddd2
+    md5: 9dc2db0bf2c9c614527fb6cbb2aa1abf
+    sha256: ca6c9b3a6f1a548267a960d08759fe9d0e5bb2e5cf568ff2f443e0913d5426d2
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.04.13.18.26
+  version: 2026.02.04.17.05.25
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.13.18.26-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.04.17.05.25-hd8ed1ab_0.conda
   hash:
-    md5: b58fbaf7c84b296e8c6b52da0b452854
-    sha256: 28592d29be88aa03f8d43c49603ef5e257cd9d7681a8a68abf484354f2f1ddd2
+    md5: 9dc2db0bf2c9c614527fb6cbb2aa1abf
+    sha256: ca6c9b3a6f1a548267a960d08759fe9d0e5bb2e5cf568ff2f443e0913d5426d2
   category: main
   optional: false
 - name: conda-index
@@ -9440,10 +9440,10 @@ package:
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     yaml: '>=0.2.5,<0.3.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pyyaml-6.0.3-py312h8a5da7c_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pyyaml-6.0.3-py312h8a5da7c_1.conda
   hash:
-    md5: fba10c2007c8b06f77c5a23ce3a635ad
-    sha256: 1b3dc4c25c83093fff08b86a3574bc6b94ba355c8eba1f35d805c5e256455fc7
+    md5: 15878599a87992e44c059731771591cb
+    sha256: cb142bfd92f6e55749365ddc244294fa7b64db6d08c45b018ff1c658907bfcbf
   category: main
   optional: false
 - name: pyyaml
@@ -9455,10 +9455,10 @@ package:
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     yaml: '>=0.2.5,<0.3.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pyyaml-6.0.3-py312h5748b74_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pyyaml-6.0.3-py312h04c11ed_1.conda
   hash:
-    md5: 6a2d7f8a026223c2fa1027c96c615752
-    sha256: 690943c979a5bf014348933a68cd39e3bb9114d94371c4c5d846d2daaa82c7d9
+    md5: 95a5f0831b5e0b1075bbd80fcffc52ac
+    sha256: 737959262d03c9c305618f2d48c7f1691fb996f14ae420bfd05932635c99f873
   category: main
   optional: false
 - name: qhull
