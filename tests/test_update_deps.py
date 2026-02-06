@@ -893,11 +893,11 @@ def test_apply_dep_update_v1(
             },
             {
                 "host": {
-                    "cf_minus_df": set(),
-                    "df_minus_cf": set(),
+                    "cf_minus_df": {"python <3.9"},
+                    "df_minus_cf": {"python {{ python_min }}.*"},
                 },
                 "run": {
-                    "cf_minus_df": {"python >={{ python_min }}", "stdlib-list"},
+                    "cf_minus_df": {"python <3.9", "stdlib-list"},
                     "df_minus_cf": {"python >={{ python_min }}"},
                 },
             },

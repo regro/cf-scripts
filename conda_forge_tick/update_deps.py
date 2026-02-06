@@ -555,10 +555,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
             {c for c in new_attrs.get("total_requirements").get(section, set())},
             section,
         )
-        cf_minus_df = _replace_python_min(
-            {c for c in attrs.get("total_requirements").get(section, set())},
-            section,
-        )
+        cf_minus_df = {c for c in attrs.get("total_requirements").get(section, set())}
 
         df_minus_cf = set()
         for req in gs_run:
