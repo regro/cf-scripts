@@ -1157,6 +1157,65 @@ def test_get_grayskull_comparison_v1_python_min_mismatch():
     See: https://github.com/conda-forge/dominodatalab-feedstock/pull/21
     """
     attrs = {
+        "raw_meta_yaml": {
+            """\
+schema_version: 1
+
+context:
+  name: dominodatalab
+  version: 2.0.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/dominodatalab-${{ version }}.tar.gz
+  sha256: 05d0f44a89bf0562413018f638839e31bdc108d6ed67869d5ccaceacf41ee237
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+  run:
+    - python >=${{ python_min }}
+    - packaging ==23.2
+    - requests >=2.4.2
+    - beautifulsoup4 >=4.11,<5.dev0
+    - polling2 >=0.5.0,<0.6.dev0
+    - urllib3 >=1.26.19,<3
+    - frozendict >=2.3,<3.dev0
+    - python-dateutil >=2.8.2,<2.9.dev0
+    - retry ==0.9.2
+    - typing_extensions >=4.13.0,<4.14.dev0
+tests:
+  - python:
+      imports:
+        - domino
+      python_version: ${{ python_min }}.*
+  - requirements:
+      run:
+        - pip
+        - python ${{ python_min }}.*
+    script:
+      - pip check
+
+about:
+  summary: Python bindings for the Domino API
+  license: Apache-2.0
+  license_file: LICENSE.txt
+  homepage: https://github.com/dominodatalab/python-domino
+
+extra:
+  recipe-maintainers:
+    - janjagusch
+"""
+        },
         "meta_yaml": {
             "schema_version": 1,
             "package": {

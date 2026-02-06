@@ -532,7 +532,10 @@ def get_grayskull_comparison(attrs, version_key="version"):
         "python {{ python_min }}.*",
         "python >={{ python_min }}",
     ]
-    has_python_min = any(slug in grayskull_recipe for slug in python_min_slugs)
+    has_python_min = any(slug in grayskull_recipe for slug in python_min_slugs) and (
+        any(slug in attrs["raw_meta_yaml"] for slug in python_min_slugs)
+        or "noarch: python" in attrs["raw_meta_yaml"]
+    )
 
     for section in SECTIONS_TO_PARSE:
         for sec in ["cf_minus_df", "df_minus_cf"]:
