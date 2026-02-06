@@ -1157,8 +1157,7 @@ def test_get_grayskull_comparison_v1_python_min_mismatch():
     See: https://github.com/conda-forge/dominodatalab-feedstock/pull/21
     """
     attrs = {
-        "raw_meta_yaml": {
-            """\
+        "raw_meta_yaml": """\
 schema_version: 1
 
 context:
@@ -1214,8 +1213,7 @@ about:
 extra:
   recipe-maintainers:
     - janjagusch
-"""
-        },
+""",
         "meta_yaml": {
             "schema_version": 1,
             "package": {
