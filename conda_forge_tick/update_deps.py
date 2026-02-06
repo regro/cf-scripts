@@ -526,6 +526,8 @@ def get_grayskull_comparison(attrs, version_key="version"):
         d[section]["cf_minus_df"] = cf_minus_df
         d[section]["df_minus_cf"] = df_minus_cf
 
+    # we put back python_min by hand since we render the recipe above before
+    # computing the dep comparison
     python_min_slugs = [
         "python ${{ python_min }}.*",
         "python >=${{ python_min }}",
