@@ -10,7 +10,7 @@ concurrency: bot-keepalive
 jobs:
   bot-keepalive:
     name: bot-keepalive
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-slim"
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -25,14 +25,6 @@ jobs:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           workflow-name: bot-bot
         continue-on-error: true
-
-      - name: free disk space
-        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
-        with:
-          remove_android: true
-          remove_dotnet: true
-          remove_haskell: true
-          rm_cmd: "rmz"
 
       - name: debug outcome
         run: echo "outcome - ""${{ steps.turnstyle.outcome }}"
