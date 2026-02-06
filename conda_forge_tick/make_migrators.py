@@ -20,6 +20,7 @@ from typing import (
 )
 
 import networkx as nx
+import numpy as np
 import tqdm
 from conda.models.version import VersionOrder
 from conda_build.config import Config
@@ -395,6 +396,7 @@ def migration_factory(
     gx: nx.DiGraph,
     pr_limit: int = PR_LIMIT,
     only_keep=None,
+    _testing_frac=None,
 ) -> None:
     migration_yamls = []
     migrations_loc = os.path.join(
@@ -415,7 +417,13 @@ def migration_factory(
             for yaml_file, _ in migration_yamls
         ]
 
+    if _testing_frac is not None:
+        rng = np.random.default_rng(seed=10)
+
     for yaml_file, yaml_contents in migration_yamls:
+        if _testing_frac is not None and rng.uniform() >= _testing_frac:
+            continue
+
         loaded_yaml = yaml_safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
 
@@ -666,7 +674,10 @@ def _compute_approximate_pinning_migration_sizes(
 
 
 def create_migration_yaml_creator(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pin_to_debug=None
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+    pin_to_debug=None,
+    _testing_frac=None,
 ):
     cfp_gx = copy.deepcopy(gx)
     for node in list(cfp_gx.nodes):
@@ -694,6 +705,11 @@ def create_migration_yaml_creator(
             packages_to_migrate_together_mapping[pkg] = top
 
     pinning_names = sorted(list(pinnings.keys()))
+    if _testing_frac is not None:
+        rng = np.random.default_rng(seed=10)
+        pinning_names = sorted(
+            [on for on in pinning_names if rng.uniform() < _testing_frac]
+        )
 
     pinning_migration_sizes = _compute_approximate_pinning_migration_sizes(
         gx,
@@ -932,6 +948,7 @@ def _make_version_migrator(
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
+    _testing_frac=None,
 ) -> MutableSequence[Migrator]:
     migrators: List[Migrator] = []
 
@@ -962,8 +979,10 @@ def initialize_migrators(
     add_nvtools_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
-    migration_factory(pinning_migrators, gx)
-    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
+    migration_factory(pinning_migrators, gx, _testing_frac=_testing_frac)
+    create_migration_yaml_creator(
+        migrators=pinning_migrators, gx=gx, _testing_frac=_testing_frac
+    )
 
     version_migrator = _make_version_migrator(gx, dry_run=dry_run)
 

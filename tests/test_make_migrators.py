@@ -181,7 +181,7 @@ def test_make_migrators_initialize_migrators():
                 flush=True,
             )
 
-            migrators = initialize_migrators(gx)
+            migrators = initialize_migrators(gx, _testing_frac=0.05)
 
             assert len(migrators) > 0, "No migrators found!"
             for migrator in migrators:
