@@ -27,6 +27,7 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
+GIT_CMD_TIMEOUT = 300
 
 
 def _flush_io():
@@ -35,7 +36,7 @@ def _flush_io():
 
 
 def _run_git_cmd(cmd, **kwargs):
-    r = subprocess.run(["git"] + cmd, check=True, **kwargs)
+    r = subprocess.run(["git"] + cmd, check=True, timeout=GIT_CMD_TIMEOUT, **kwargs)
     _flush_io()
     return r
 
@@ -86,6 +87,7 @@ def _pull_changes(batch):
         ["git", "pull", "-s", "recursive", "-X", "theirs"],
         text=True,
         capture_output=True,
+        timeout=GIT_CMD_TIMEOUT,
     )
     n_added = 0
     if r.returncode != 0:
@@ -204,6 +206,7 @@ def _get_files_to_delete() -> set[str]:
         text=True,
         capture_output=True,
         check=True,
+        timeout=GIT_CMD_TIMEOUT,
     )
     files_to_delete = set()
     for line in r.stdout.splitlines():
