@@ -136,7 +136,7 @@ def test_get_grayskull_comparison():
         attrs = load(f)
     d, rs = get_grayskull_comparison(attrs)
     assert rs != ""
-    assert d["run"]["cf_minus_df"] == {"python <3.9", "stdlib-list"}
+    assert d["run"]["cf_minus_df"] == {"python >={{ python_min }}", "stdlib-list"}
     assert any(_d.startswith("python") for _d in d["run"]["df_minus_cf"])
 
 
@@ -893,11 +893,11 @@ def test_apply_dep_update_v1(
             },
             {
                 "host": {
-                    "cf_minus_df": {"python <3.9"},
+                    "cf_minus_df": {"python {{ python_min }}.*"},
                     "df_minus_cf": {"python {{ python_min }}.*"},
                 },
                 "run": {
-                    "cf_minus_df": {"python <3.9", "stdlib-list"},
+                    "cf_minus_df": {"python >={{ python_min }}", "stdlib-list"},
                     "df_minus_cf": {"python >={{ python_min }}"},
                 },
             },
