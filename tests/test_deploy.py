@@ -20,8 +20,10 @@ Aborting
 Merge with strategy recursive failed.
 CONFLICT (modify/delete): pr_json/0/9/7/a/1/3254711106.json deleted in 930a956604b17c5fd7cada5c011eb77f4eeebe52 and modified in HEAD. Version HEAD of pr_json/0/9/7/a/1/3254711106.json left in tree.
 """,
-            {"pr_info/8/1/0/1/f/devtools.json"},
-            {"pr_json/0/9/7/a/1/3254711106.json"},
+            (
+                {"pr_info/8/1/0/1/f/devtools.json"},
+                {"pr_json/0/9/7/a/1/3254711106.json"},
+            ),
         ),
     ],
 )
