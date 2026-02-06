@@ -10,7 +10,7 @@ from conda_forge_tick.os_utils import pushd
 @pytest.mark.parametrize(
     "output,fnames",
     [
-        ("", []),
+        ("", (set(), set())),
         (
             """\
 error: The following untracked working tree files would be overwritten by merge:
@@ -29,8 +29,9 @@ CONFLICT (modify/delete): pr_json/0/9/7/a/1/3254711106.json deleted in 930a95660
 )
 def test_deploy_parse_gh_conflicts(output, fnames):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(str(tmpdir)):
-        for fname in fnames:
-            os.makedirs(os.path.dirname(fname), exist_ok=True)
-            with open(fname, "w") as f:
-                f.write("")
+        for st in fnames:
+            for fname in st:
+                os.makedirs(os.path.dirname(fname), exist_ok=True)
+                with open(fname, "w") as f:
+                    f.write("")
         assert _parse_gh_conflicts(output) == fnames
