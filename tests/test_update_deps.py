@@ -893,8 +893,8 @@ def test_apply_dep_update_v1(
             },
             {
                 "host": {
-                    "cf_minus_df": {"python {{ python_min }}.*"},
-                    "df_minus_cf": {"python {{ python_min }}.*"},
+                    "cf_minus_df": set(),
+                    "df_minus_cf": set(),
                 },
                 "run": {
                     "cf_minus_df": {"python >={{ python_min }}", "stdlib-list"},
@@ -935,6 +935,7 @@ def test_apply_dep_update_v1(
             },
         ),
     ],
+    ids=["depfinder", "azure-mgmt-synapse"],
 )
 def test_get_grayskull_comparison_full(
     attrs: dict, expected_dep_comparison: DepComparison

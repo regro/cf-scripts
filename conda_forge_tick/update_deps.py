@@ -510,22 +510,6 @@ def get_grayskull_comparison(attrs, version_key="version"):
     else:
         raise ValueError(f"Unknown recipe schema version: '{recipe_schema_version}'.")
 
-    d: dict[str, dict[str, set[str]]] = {}
-    for section in SECTIONS_TO_PARSE:
-        gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
-
-        d[section] = {}
-        cf_minus_df = {c for c in attrs.get("total_requirements").get(section, set())}
-        df_minus_cf = set()
-        for req in gs_run:
-            if req in cf_minus_df:
-                cf_minus_df = cf_minus_df - {req}
-            else:
-                df_minus_cf.add(req)
-
-        d[section]["cf_minus_df"] = cf_minus_df
-        d[section]["df_minus_cf"] = df_minus_cf
-
     # we put back python_min by hand since we render the recipe above before
     # computing the dep comparison
     python_min_slugs = [
@@ -542,29 +526,50 @@ def get_grayskull_comparison(attrs, version_key="version"):
         )
     )
 
-    for section in SECTIONS_TO_PARSE:
-        for sec in ["cf_minus_df", "df_minus_cf"]:
-            new_set = set()
-            for req in d[section][sec]:
-                if req.split()[0] == "python" and has_python_min:
-                    if recipe_schema_version == 1:
-                        if section == "host":
-                            new_set.add("python ${{ python_min }}.*")
-                        elif section == "run":
-                            new_set.add("python >=${{ python_min }}")
-                        else:
-                            new_set.add(req)
+    def _replace_python_min(orig_set, section):
+        new_set = set()
+        for req in orig_set:
+            if req.split()[0] == "python" and has_python_min:
+                if recipe_schema_version == 1:
+                    if section == "host":
+                        new_set.add("python ${{ python_min }}.*")
+                    elif section == "run":
+                        new_set.add("python >=${{ python_min }}")
                     else:
-                        if section == "host":
-                            new_set.add("python {{ python_min }}.*")
-                        elif section == "run":
-                            new_set.add("python >={{ python_min }}")
-                        else:
-                            new_set.add(req)
+                        new_set.add(req)
                 else:
-                    new_set.add(req)
+                    if section == "host":
+                        new_set.add("python {{ python_min }}.*")
+                    elif section == "run":
+                        new_set.add("python >={{ python_min }}")
+                    else:
+                        new_set.add(req)
+            else:
+                new_set.add(req)
 
-            d[section][sec] = new_set
+        return new_set
+
+    d: dict[str, dict[str, set[str]]] = {}
+    for section in SECTIONS_TO_PARSE:
+        gs_run = _replace_python_min(
+            {c for c in new_attrs.get("total_requirements").get(section, set())},
+            section,
+        )
+        cf_minus_df = _replace_python_min(
+            {c for c in attrs.get("total_requirements").get(section, set())},
+            section,
+        )
+
+        df_minus_cf = set()
+        for req in gs_run:
+            if req in cf_minus_df:
+                cf_minus_df = cf_minus_df - {req}
+            else:
+                df_minus_cf.add(req)
+
+        d[section] = {}
+        d[section]["cf_minus_df"] = cf_minus_df
+        d[section]["df_minus_cf"] = df_minus_cf
 
     return d, grayskull_recipe
 
