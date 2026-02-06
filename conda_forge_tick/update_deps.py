@@ -526,14 +526,41 @@ def get_grayskull_comparison(attrs, version_key="version"):
         d[section]["cf_minus_df"] = cf_minus_df
         d[section]["df_minus_cf"] = df_minus_cf
 
+    # we put back python_min by hand since we render the recipe above before
+    # computing the dep comparison
+    python_min_slugs = [
+        "python ${{ python_min }}.*",
+        "python >=${{ python_min }}",
+        "python {{ python_min }}.*",
+        "python >={{ python_min }}",
+    ]
+    has_python_min = any(slug in grayskull_recipe for slug in python_min_slugs) and (
+        any(slug in attrs["raw_meta_yaml"] for slug in python_min_slugs)
+        or any(
+            line.strip().startswith("noarch: python")
+            for line in attrs["raw_meta_yaml"].splitlines()
+        )
+    )
+
     for section in SECTIONS_TO_PARSE:
         for sec in ["cf_minus_df", "df_minus_cf"]:
             new_set = set()
             for req in d[section][sec]:
-                if req == "python .*":
-                    new_set.add("python {{ python_min }}.*")
-                elif req == "python >=":
-                    new_set.add("python >={{ python_min }}")
+                if req.split()[0] == "python" and has_python_min:
+                    if recipe_schema_version == 1:
+                        if section == "host":
+                            new_set.add("python ${{ python_min }}.*")
+                        elif section == "run":
+                            new_set.add("python >=${{ python_min }}")
+                        else:
+                            new_set.add(req)
+                    else:
+                        if section == "host":
+                            new_set.add("python {{ python_min }}.*")
+                        elif section == "run":
+                            new_set.add("python >={{ python_min }}")
+                        else:
+                            new_set.add(req)
                 else:
                     new_set.add(req)
 
