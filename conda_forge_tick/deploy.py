@@ -41,13 +41,25 @@ def _run_git_cmd(cmd, **kwargs):
 
 
 def _parse_gh_conflicts(output):
-    files_to_commit = []
+    files_to_commit = set()
+    files_to_delete = set()
     in_section = False
     indent = None
     for line in output.splitlines():
         print(line, flush=True)
         if not line.strip():
             continue
+
+        # CONFLICT (modify/delete): pr_json/0/9/7/a/1/3254711106.json deleted
+        # in 930a956604b17c5fd7cada5c011eb77f4eeebe52 and modified in HEAD.
+        # Version HEAD of pr_json/0/9/7/a/1/3254711106.json left in tree.
+        if (
+            line.startswith("CONFLICT (modify/delete):")
+            and "modified in HEAD" in line
+            and "deleted in" in line
+        ):
+            fname = line.split("CONFLICT (modify/delete):")[1].strip().split()[0]
+            files_to_delete.add(fname)
 
         if line.startswith("error:"):
             in_section = True
@@ -63,10 +75,10 @@ def _parse_gh_conflicts(output):
                 indent = line[: len(line) - len(line.lstrip())]
             fname = line.strip()
             if os.path.exists(fname):
-                files_to_commit.append(fname)
+                files_to_commit.add(fname)
             continue
 
-    return files_to_commit
+    return files_to_commit, files_to_delete
 
 
 def _pull_changes(batch):
@@ -77,14 +89,21 @@ def _pull_changes(batch):
     )
     n_added = 0
     if r.returncode != 0:
-        files_to_commit = _parse_gh_conflicts(r.stderr + "\n" + r.stdout)
+        files_to_commit, files_to_delete = _parse_gh_conflicts(
+            r.stderr + "\n" + r.stdout
+        )
 
         for fname in files_to_commit:
             n_added += 1
             print(f"committing for conflicts {n_added: >5d}: {fname}", flush=True)
             _run_git_cmd(["add", fname])
 
-        if files_to_commit:
+        for fname in files_to_delete:
+            n_added += 1
+            print(f"deleting for conflicts {n_added: >5d}: {fname}", flush=True)
+            _run_git_cmd(["rm", "-f", fname])
+
+        if files_to_commit or files_to_delete:
             _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
             _run_git_cmd(
                 [
