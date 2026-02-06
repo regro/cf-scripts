@@ -10,7 +10,7 @@ concurrency: bot-keepalive
 jobs:
   bot-keepalive:
     name: bot-keepalive
-    runs-on: "ubuntu-slim"
+    runs-on: "ubuntu-latest"
     defaults:
       run:
         shell: bash -leo pipefail {0}
