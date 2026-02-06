@@ -534,7 +534,10 @@ def get_grayskull_comparison(attrs, version_key="version"):
     ]
     has_python_min = any(slug in grayskull_recipe for slug in python_min_slugs) and (
         any(slug in attrs["raw_meta_yaml"] for slug in python_min_slugs)
-        or "noarch: python" in attrs["raw_meta_yaml"]
+        or any(
+            line.strip().startswith("noarch: python")
+            for line in attrs["raw_meta_yaml"].splitlines()
+        )
     )
 
     for section in SECTIONS_TO_PARSE:
