@@ -6946,17 +6946,17 @@ package:
   category: main
   optional: false
 - name: mitmproxy-macos
-  version: 0.12.9
+  version: 0.12.8
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.12.*
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/mitmproxy-macos-0.12.9-py312he51c475_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/mitmproxy-macos-0.12.8-py312he51c475_0.conda
   hash:
-    md5: 9dbc5ad48f165407bf55fd352d2dbf1f
-    sha256: 989ebaf5b61dd462243ef8fbfd5888df8f7bf879956ba26658fb28eb0835039c
+    md5: 6bd2e3e38447e519c6b5b2fa159345bb
+    sha256: 96e6c8ac9f1ea2a02d9d5b814e3f6d765991e63727c26d9249a6cebc9c86882b
   category: main
   optional: false
 - name: mitmproxy-rs
@@ -6976,18 +6976,18 @@ package:
   category: main
   optional: false
 - name: mitmproxy-rs
-  version: 0.12.9
+  version: 0.12.8
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    mitmproxy-macos: ==0.12.9
+    mitmproxy-macos: ==0.12.8
     python: 3.12.*
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/mitmproxy-rs-0.12.9-py312hb0610d2_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/mitmproxy-rs-0.12.8-py312h455090d_0.conda
   hash:
-    md5: 0db0e75810095b9b72f1354f6a5cdd82
-    sha256: b738952eafabfdce3049fa90c74815bca42838886033ad77dfee79f819204ea2
+    md5: 412ab2132b222f9b2ed2a8d6227eeee1
+    sha256: 166bb4f2fae9802633636601c7bb19b4af94d8a894db8327b1d444a9c40ea31a
   category: main
   optional: false
 - name: more-itertools
@@ -9537,15 +9537,15 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.57.2
+  version: 0.57.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.57.2-h6fdd925_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.57.0-h6fdd925_1.conda
   hash:
-    md5: 34db6ea06fa1724ac48c840cd03dcca2
-    sha256: d726db5a450fe88f2724064a858129712bc3b3d1c434ec0fcf70fd6daa7e2943
+    md5: 4391759abcf4f6099913df2c471d7a23
+    sha256: b1ce482a76762b0d26243c5385dd0ba0cd5dc8543e7483734bc6b91638bdb7c7
   category: main
   optional: false
 - name: rattler-build-conda-compat
