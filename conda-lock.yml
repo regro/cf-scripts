@@ -1594,25 +1594,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.07.04.59.48
+  version: 2026.02.07.07.08.18
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.07.04.59.48-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.07.07.08.18-hd8ed1ab_0.conda
   hash:
-    md5: 914eba14c9bcfb4443ea429294401ee9
-    sha256: 031d2132929108e326cd2c048aadc8c09c7bd3367439e7ae0260eb133d31075a
+    md5: 7104d4f78594e967a5d6243a7f427b68
+    sha256: 1d63c87d2fbcf4132f62ecc205dde6e086ab5a40b07eff829cf2ce10f2cc048d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.07.04.59.48
+  version: 2026.02.07.07.08.18
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.07.04.59.48-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.07.07.08.18-hd8ed1ab_0.conda
   hash:
-    md5: 914eba14c9bcfb4443ea429294401ee9
-    sha256: 031d2132929108e326cd2c048aadc8c09c7bd3367439e7ae0260eb133d31075a
+    md5: 7104d4f78594e967a5d6243a7f427b68
+    sha256: 1d63c87d2fbcf4132f62ecc205dde6e086ab5a40b07eff829cf2ce10f2cc048d
   category: main
   optional: false
 - name: conda-index
