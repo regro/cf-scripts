@@ -10185,27 +10185,27 @@ package:
   category: main
   optional: false
 - name: setuptools
-  version: 81.0.0
+  version: 82.0.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-81.0.0-pyh332efcf_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-82.0.0-pyh332efcf_0.conda
   hash:
-    md5: d629a398d7bf872f9ed7b27ab959de15
-    sha256: 6ecf738d5590bf228f09c4ecd1ea91d811f8e0bd9acdef341bc4d6c36beb13a3
+    md5: 1d00d46c634177fc8ede8b99d6089239
+    sha256: fd7201e38e38bf7f25818d624ca8da97b8998957ca9ae3fb7fdc9c17e6b25fcd
   category: main
   optional: false
 - name: setuptools
-  version: 81.0.0
+  version: 82.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-81.0.0-pyh332efcf_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/setuptools-82.0.0-pyh332efcf_0.conda
   hash:
-    md5: d629a398d7bf872f9ed7b27ab959de15
-    sha256: 6ecf738d5590bf228f09c4ecd1ea91d811f8e0bd9acdef341bc4d6c36beb13a3
+    md5: 1d00d46c634177fc8ede8b99d6089239
+    sha256: fd7201e38e38bf7f25818d624ca8da97b8998957ca9ae3fb7fdc9c17e6b25fcd
   category: main
   optional: false
 - name: setuptools-scm
@@ -11496,27 +11496,27 @@ package:
   category: main
   optional: false
 - name: wcwidth
-  version: 0.5.3
+  version: 0.6.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.5.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.6.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 36432484e9ce3b073a51bf138767a593
-    sha256: 2395599ec9e37e6f21838bb26e7f2336fa03a4b1460ba10897ec856b21ac7d59
+    md5: c3197f8c0d5b955c904616b716aca093
+    sha256: e298b508b2473c4227206800dfb14c39e4b14fd79d4636132e9e1e4244cdf4aa
   category: main
   optional: false
 - name: wcwidth
-  version: 0.5.3
+  version: 0.6.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.5.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.6.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 36432484e9ce3b073a51bf138767a593
-    sha256: 2395599ec9e37e6f21838bb26e7f2336fa03a4b1460ba10897ec856b21ac7d59
+    md5: c3197f8c0d5b955c904616b716aca093
+    sha256: e298b508b2473c4227206800dfb14c39e4b14fd79d4636132e9e1e4244cdf4aa
   category: main
   optional: false
 - name: websockets
