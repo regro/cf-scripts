@@ -713,7 +713,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.44
+  version: 1.42.45
   manager: conda
   platform: linux-64
   dependencies:
@@ -721,14 +721,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.44-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.45-pyhd8ed1ab_0.conda
   hash:
-    md5: 2c505be1765317f853a694501b188041
-    sha256: d5ae52be3443b9bc7cd6dc72adaf66973dd1ee36d46bdfd264d66584d594cfb0
+    md5: 04b586054cddcc44b550a919d5589c7d
+    sha256: d6dc060e3ce02d5071bee1aea70a7ed320187ae401cdeb5b072d7dfdbcf66090
   category: main
   optional: false
 - name: botocore
-  version: 1.42.44
+  version: 1.42.45
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -736,10 +736,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.44-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.45-pyhd8ed1ab_0.conda
   hash:
-    md5: 2c505be1765317f853a694501b188041
-    sha256: d5ae52be3443b9bc7cd6dc72adaf66973dd1ee36d46bdfd264d66584d594cfb0
+    md5: 04b586054cddcc44b550a919d5589c7d
+    sha256: d6dc060e3ce02d5071bee1aea70a7ed320187ae401cdeb5b072d7dfdbcf66090
   category: main
   optional: false
 - name: brotli
@@ -2062,7 +2062,7 @@ package:
   category: main
   optional: false
 - name: coverage
-  version: 7.13.3
+  version: 7.13.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -2071,14 +2071,14 @@ package:
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.13.3-py312h8a5da7c_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.13.4-py312h8a5da7c_0.conda
   hash:
-    md5: f3c0bc6e23bd3653d74390aa644b0a95
-    sha256: 16eb04124851ca631cf2bbb793fb609aefae8dd8b35d16e29ce8dcb6b7cbf250
+    md5: a8df7f0812ac4fa6bbc7135556d3e2c4
+    sha256: 2c785feaf79c31981ef4a87e41ea1161e1ce6b740ce3f1fb9cf44245cae5cf29
   category: main
   optional: false
 - name: coverage
-  version: 7.13.3
+  version: 7.13.4
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2086,10 +2086,10 @@ package:
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     tomli: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.13.3-py312h04c11ed_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.13.4-py312h04c11ed_0.conda
   hash:
-    md5: 563cecdbc563724b472ca543009fa8b6
-    sha256: e48e19e5bbb70f0071f19350cd5ca2dac4d901da3f5d9b86418aa1bb85005377
+    md5: 8857ec2579297861a95ac913f5b2d97f
+    sha256: 711f0fdda04d834b16de0d60b518ff57fe8ac25000678d6d31445f1301827c62
   category: main
   optional: false
 - name: cpp-expected
@@ -2824,43 +2824,43 @@ package:
   category: main
   optional: false
 - name: fastapi
-  version: 0.128.5
+  version: 0.128.7
   manager: conda
   platform: linux-64
   dependencies:
     email_validator: ''
     fastapi-cli: ''
-    fastapi-core: ==0.128.5
+    fastapi-core: ==0.128.7
     httpx: ''
     jinja2: ''
     pydantic-extra-types: ''
     pydantic-settings: ''
     python-multipart: ''
     uvicorn-standard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.128.5-h5d6b188_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.128.7-h877c79a_0.conda
   hash:
-    md5: cc1aafa7fa01d5ff115be33e4f5e390d
-    sha256: ff58b2ecb163b91851a4b5a49bc834ec95b8a73c6c3d3fc057f489e50ab8585e
+    md5: 8c8063e927dc11eed2aea9235efb8b25
+    sha256: ca3ce00175862e453cf7d0c2149ddadf6487337f9dcb47c379975f495ea7cbe1
   category: main
   optional: false
 - name: fastapi
-  version: 0.128.5
+  version: 0.128.7
   manager: conda
   platform: osx-arm64
   dependencies:
     email_validator: ''
     fastapi-cli: ''
-    fastapi-core: ==0.128.5
+    fastapi-core: ==0.128.7
     httpx: ''
     jinja2: ''
     pydantic-extra-types: ''
     pydantic-settings: ''
     python-multipart: ''
     uvicorn-standard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.128.5-h5d6b188_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.128.7-h877c79a_0.conda
   hash:
-    md5: cc1aafa7fa01d5ff115be33e4f5e390d
-    sha256: ff58b2ecb163b91851a4b5a49bc834ec95b8a73c6c3d3fc057f489e50ab8585e
+    md5: 8c8063e927dc11eed2aea9235efb8b25
+    sha256: ca3ce00175862e453cf7d0c2149ddadf6487337f9dcb47c379975f495ea7cbe1
   category: main
   optional: false
 - name: fastapi-cli
@@ -2896,7 +2896,7 @@ package:
   category: main
   optional: false
 - name: fastapi-core
-  version: 0.128.5
+  version: 0.128.7
   manager: conda
   platform: linux-64
   dependencies:
@@ -2906,14 +2906,14 @@ package:
     starlette: '>=0.40.0,<1.0.0'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.8.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.128.5-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.128.7-pyhcf101f3_0.conda
   hash:
-    md5: 7a367f3f1af105498762f37259a19628
-    sha256: a1bba3e75689627fa771caf1d018fd7a51f6e8b43076eab5e378738f470f7b2b
+    md5: cd8b98c3d18a587917a57c4ed2fdab85
+    sha256: 75cf99807518ddcf8b0d9e83d79f0449e477963d2425666c8015110f754a7869
   category: main
   optional: false
 - name: fastapi-core
-  version: 0.128.5
+  version: 0.128.7
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2923,10 +2923,10 @@ package:
     starlette: '>=0.40.0,<1.0.0'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.8.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.128.5-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.128.7-pyhcf101f3_0.conda
   hash:
-    md5: 7a367f3f1af105498762f37259a19628
-    sha256: a1bba3e75689627fa771caf1d018fd7a51f6e8b43076eab5e378738f470f7b2b
+    md5: cd8b98c3d18a587917a57c4ed2fdab85
+    sha256: 75cf99807518ddcf8b0d9e83d79f0449e477963d2425666c8015110f754a7869
   category: main
   optional: false
 - name: feedparser
@@ -6005,30 +6005,30 @@ package:
   category: main
   optional: false
 - name: libpng
-  version: 1.6.54
+  version: 1.6.55
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.54-h421ea60_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.55-h421ea60_0.conda
   hash:
-    md5: d361fa2a59e53b61c2675bfa073e5b7e
-    sha256: 5de60d34aac848a9991a09fcdea7c0e783d00024aefec279d55e87c0c44742cd
+    md5: 5f13ffc7d30ffec87864e678df9957b4
+    sha256: 36ade759122cdf0f16e2a2562a19746d96cf9c863ffaa812f2f5071ebbe9c03c
   category: main
   optional: false
 - name: libpng
-  version: 1.6.54
+  version: 1.6.55
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.54-h132b30e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.55-h132b30e_0.conda
   hash:
-    md5: 1b80fd1eecb98f1cb7de4239f5d7dc15
-    sha256: 1c271c0ec73b69f7570c5da67d0e47ddf7ff079bc1ca2dfaccd267ea39314b06
+    md5: 871dc88b0192ac49b6a5509932c31377
+    sha256: 7a4fd29a6ee2d7f7a6e610754dfdf7410ed08f40d8d8b488a27bc0f9981d5abb
   category: main
   optional: false
 - name: librsvg
@@ -11427,7 +11427,7 @@ package:
   dependencies:
     msrest: '>=0.6.0,<0.7.0'
     python: '>=3.9'
-    setuptools: ''
+    setuptools: <82.0a0
   url: https://conda.anaconda.org/conda-forge/noarch/vsts-python-api-0.1.25-pyhd8ed1ab_2.conda
   hash:
     md5: a7c7e216c4cdf58e847fe4caa8364d82
@@ -11441,7 +11441,7 @@ package:
   dependencies:
     msrest: '>=0.6.0,<0.7.0'
     python: '>=3.9'
-    setuptools: ''
+    setuptools: <82.0a0
   url: https://conda.anaconda.org/conda-forge/noarch/vsts-python-api-0.1.25-pyhd8ed1ab_2.conda
   hash:
     md5: a7c7e216c4cdf58e847fe4caa8364d82
