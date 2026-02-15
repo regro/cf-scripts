@@ -1583,25 +1583,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.14.20.20.01
+  version: 2026.02.14.23.29.17
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.14.20.20.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.14.23.29.17-hd8ed1ab_0.conda
   hash:
-    md5: 7fdf852d02309d7ca7d1052e69e01f15
-    sha256: b396e7b8110db441ff188899eed44f81eb6592ca43350481381b48adb83a33bc
+    md5: abf630f166b8fcd6023111ab8b2eeb03
+    sha256: 162f545c2f54d157ef0c7f28d3dc1ae74b130e80cab3e78f45eb3ecd10b73078
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.14.20.20.01
+  version: 2026.02.14.23.29.17
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.14.20.20.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.14.23.29.17-hd8ed1ab_0.conda
   hash:
-    md5: 7fdf852d02309d7ca7d1052e69e01f15
-    sha256: b396e7b8110db441ff188899eed44f81eb6592ca43350481381b48adb83a33bc
+    md5: abf630f166b8fcd6023111ab8b2eeb03
+    sha256: 162f545c2f54d157ef0c7f28d3dc1ae74b130e80cab3e78f45eb3ecd10b73078
   category: main
   optional: false
 - name: conda-index
@@ -7832,27 +7832,27 @@ package:
   category: main
   optional: false
 - name: platformdirs
-  version: 4.8.0
+  version: 4.9.1
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.1-pyhcf101f3_0.conda
   hash:
-    md5: 8afb83f9f16ace9092cb025ed30711ce
-    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
+    md5: 9402ece5651f956de34cf0dc20dfc3a5
+    sha256: 40326e409d73630a7c4122e618885dfe5f53d22693884b59af31b9ebd9d1d41c
   category: main
   optional: false
 - name: platformdirs
-  version: 4.8.0
+  version: 4.9.1
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.1-pyhcf101f3_0.conda
   hash:
-    md5: 8afb83f9f16ace9092cb025ed30711ce
-    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
+    md5: 9402ece5651f956de34cf0dc20dfc3a5
+    sha256: 40326e409d73630a7c4122e618885dfe5f53d22693884b59af31b9ebd9d1d41c
   category: main
   optional: false
 - name: pluggy
