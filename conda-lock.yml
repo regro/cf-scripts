@@ -8355,7 +8355,7 @@ package:
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.12.0
+  version: 2.13.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -8363,14 +8363,14 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.12.0-pyh3cfb1c2_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 0a3042ce18b785982c64a8567cc3e512
-    sha256: 17d552dd19501909d626ff50cd23753d56e03ab670ce9096f1c4068e1eb90f2a
+    md5: 1d0e8956f53609763400c61e61c3e5e5
+    sha256: 2cbe45fe1b0f140837361bc930ba502e63cb6eb75e02239caee80d5967da8f3f
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.12.0
+  version: 2.13.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -8378,10 +8378,10 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.12.0-pyh3cfb1c2_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 0a3042ce18b785982c64a8567cc3e512
-    sha256: 17d552dd19501909d626ff50cd23753d56e03ab670ce9096f1c4068e1eb90f2a
+    md5: 1d0e8956f53609763400c61e61c3e5e5
+    sha256: 2cbe45fe1b0f140837361bc930ba502e63cb6eb75e02239caee80d5967da8f3f
   category: main
   optional: false
 - name: pygit2
