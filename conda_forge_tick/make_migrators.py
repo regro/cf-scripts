@@ -65,6 +65,7 @@ from conda_forge_tick.migrators import (
     PyPIOrgMigrator,
     Replacement,
     RUCRTCleanup,
+    CDTMigrator,
     StaticLibMigrator,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
