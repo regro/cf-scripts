@@ -1583,25 +1583,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.19.10.04.03
+  version: 2026.02.19.14.04.59
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.10.04.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.14.04.59-hd8ed1ab_0.conda
   hash:
-    md5: 9a3c4c466e7c55fe10e1172a3b5dbd58
-    sha256: 1d2c0211964667c2cd7eb4dd43bb0fc206fe6d235a430719cc7d76804e0fe4c4
+    md5: fa5a62fe2174c819aa26b7179bbece0a
+    sha256: 41eb22db3e8edb5fc4c507b7c4b82b8a98d254e0600acd01cb5767050a91024e
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.19.10.04.03
+  version: 2026.02.19.14.04.59
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.10.04.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.14.04.59-hd8ed1ab_0.conda
   hash:
-    md5: 9a3c4c466e7c55fe10e1172a3b5dbd58
-    sha256: 1d2c0211964667c2cd7eb4dd43bb0fc206fe6d235a430719cc7d76804e0fe4c4
+    md5: fa5a62fe2174c819aa26b7179bbece0a
+    sha256: 41eb22db3e8edb5fc4c507b7c4b82b8a98d254e0600acd01cb5767050a91024e
   category: main
   optional: false
 - name: conda-index
@@ -11331,35 +11331,37 @@ package:
   category: main
   optional: false
 - name: virtualenv
-  version: 20.37.0
+  version: 20.38.0
   manager: conda
   platform: linux-64
   dependencies:
     distlib: '>=0.3.7,<1'
     filelock: '>=3.24.2,<4'
+    importlib-metadata: '>=6.6'
     platformdirs: '>=3.9.1,<5'
     python: ''
     typing_extensions: '>=4.13.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.37.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.38.0-pyhcf101f3_0.conda
   hash:
-    md5: c4c4f99faba7174b3d99b79baf60697d
-    sha256: 4ce2e967925a30f65d5f63f811766ca53a6024b65f37e396ffd24d6d4d4d29cb
+    md5: eaf8f08a04ab2d8612e45aa4f4c33357
+    sha256: 5676ca6e53df7353955a716716e60359b5777b2216613420dd1b546224dd2648
   category: main
   optional: false
 - name: virtualenv
-  version: 20.37.0
+  version: 20.38.0
   manager: conda
   platform: osx-arm64
   dependencies:
     distlib: '>=0.3.7,<1'
     filelock: '>=3.24.2,<4'
+    importlib-metadata: '>=6.6'
     platformdirs: '>=3.9.1,<5'
     python: ''
     typing_extensions: '>=4.13.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.37.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.38.0-pyhcf101f3_0.conda
   hash:
-    md5: c4c4f99faba7174b3d99b79baf60697d
-    sha256: 4ce2e967925a30f65d5f63f811766ca53a6024b65f37e396ffd24d6d4d4d29cb
+    md5: eaf8f08a04ab2d8612e45aa4f4c33357
+    sha256: 5676ca6e53df7353955a716716e60359b5777b2216613420dd1b546224dd2648
   category: main
   optional: false
 - name: vsts-python-api
