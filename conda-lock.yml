@@ -8357,7 +8357,7 @@ package:
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.13.0
+  version: 2.13.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -8365,14 +8365,14 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 1d0e8956f53609763400c61e61c3e5e5
-    sha256: 2cbe45fe1b0f140837361bc930ba502e63cb6eb75e02239caee80d5967da8f3f
+    md5: cc0da73801948100ae97383b8da12993
+    sha256: 343988d65c08477a87268d4fbeba59d0295514143965d2755ac4519b73155479
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.13.0
+  version: 2.13.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -8380,10 +8380,10 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 1d0e8956f53609763400c61e61c3e5e5
-    sha256: 2cbe45fe1b0f140837361bc930ba502e63cb6eb75e02239caee80d5967da8f3f
+    md5: cc0da73801948100ae97383b8da12993
+    sha256: 343988d65c08477a87268d4fbeba59d0295514143965d2755ac4519b73155479
   category: main
   optional: false
 - name: pygit2
@@ -11493,29 +11493,29 @@ package:
   category: main
   optional: false
 - name: werkzeug
-  version: 3.1.5
+  version: 3.1.6
   manager: conda
   platform: linux-64
   dependencies:
     markupsafe: '>=2.1.1'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.5-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.6-pyhcf101f3_0.conda
   hash:
-    md5: 784e86b857b809955635175881a9a418
-    sha256: 3ef418943ef14939a4bbc5157f31db2d6a7a025a3bfd7b4aa5a29034ba96e42e
+    md5: 2d9bfc6055e55ff58b2c359323a753d2
+    sha256: 06e3d5bec9d2730a23ecf023b7cba329c0772c51f2704714c17b3080b0385113
   category: main
   optional: false
 - name: werkzeug
-  version: 3.1.5
+  version: 3.1.6
   manager: conda
   platform: osx-arm64
   dependencies:
     markupsafe: '>=2.1.1'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.5-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.6-pyhcf101f3_0.conda
   hash:
-    md5: 784e86b857b809955635175881a9a418
-    sha256: 3ef418943ef14939a4bbc5157f31db2d6a7a025a3bfd7b4aa5a29034ba96e42e
+    md5: 2d9bfc6055e55ff58b2c359323a753d2
+    sha256: 06e3d5bec9d2730a23ecf023b7cba329c0772c51f2704714c17b3080b0385113
   category: main
   optional: false
 - name: wget
