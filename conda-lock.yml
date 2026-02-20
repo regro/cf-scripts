@@ -1583,25 +1583,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.20.09.39.25
+  version: 2026.02.20.18.04.36
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.20.09.39.25-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.20.18.04.36-hd8ed1ab_0.conda
   hash:
-    md5: 1a2bd04b53165df5425a1f88d086c9bd
-    sha256: 3a6cc07a529e489d65f99a34499c3d72cb2188cc5ea0f4eae98e20d4aec41e68
+    md5: bd5f2c009ad8d253e488c32d6585bdf3
+    sha256: abf8b729b69d0f0ff87b9eefcc54c12336caf41bd10b9b2ed82af51f2fca9a45
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.20.09.39.25
+  version: 2026.02.20.18.04.36
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.20.09.39.25-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.20.18.04.36-hd8ed1ab_0.conda
   hash:
-    md5: 1a2bd04b53165df5425a1f88d086c9bd
-    sha256: 3a6cc07a529e489d65f99a34499c3d72cb2188cc5ea0f4eae98e20d4aec41e68
+    md5: bd5f2c009ad8d253e488c32d6585bdf3
+    sha256: abf8b729b69d0f0ff87b9eefcc54c12336caf41bd10b9b2ed82af51f2fca9a45
   category: main
   optional: false
 - name: conda-index
@@ -9634,7 +9634,7 @@ package:
   category: main
   optional: false
 - name: regex
-  version: 2026.1.15
+  version: 2026.2.19
   manager: conda
   platform: linux-64
   dependencies:
@@ -9642,24 +9642,24 @@ package:
     libgcc: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/regex-2026.1.15-py312h4c3975b_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/regex-2026.2.19-py312h4c3975b_0.conda
   hash:
-    md5: 1e502ae660e9aead08a90b533161daaf
-    sha256: 385ed5c0d79aefaf2b23d65a1274392bc64203dcbd10ed6e850d4e4c238977f9
+    md5: 5ee0078e0cffbae6d85794ae2a10a0e0
+    sha256: d43e94e53cf39e734cef46a67a1aa00a3421b72865cc1b1cdafd3f7fab3183e2
   category: main
   optional: false
 - name: regex
-  version: 2026.1.15
+  version: 2026.2.19
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/regex-2026.1.15-py312h2bbb03f_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/regex-2026.2.19-py312h2bbb03f_0.conda
   hash:
-    md5: 98867cdc9154076eaffd7e674f3e7f02
-    sha256: 2fc2df10e4213461d82f6b6198b1ad695dbd312867ee9babcf8f67d35b213c6c
+    md5: 9a8cb22bb5389215862d247bb1bcd319
+    sha256: 92fc1c77ee6644e324b5e6bd2ecbe8b3a940ad32f4a314ea9693a1d8a96c15b2
   category: main
   optional: false
 - name: reproc
