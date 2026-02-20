@@ -1583,25 +1583,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.19.21.05.53
+  version: 2026.02.19.22.43.42
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.21.05.53-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.22.43.42-hd8ed1ab_0.conda
   hash:
-    md5: d74554eb733c373a3d9f4470a27da1e1
-    sha256: 635c55cdc9939adda07c0c724925e43527b2d11af1550f93db04d4d2498893e8
+    md5: 7c2b3c11377600a6784fa341c5422c4d
+    sha256: 53cc0af91026f2dc5f3c86cbe8288bf17cafe03a21779340e2076772af4833de
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.19.21.05.53
+  version: 2026.02.19.22.43.42
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.21.05.53-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.19.22.43.42-hd8ed1ab_0.conda
   hash:
-    md5: d74554eb733c373a3d9f4470a27da1e1
-    sha256: 635c55cdc9939adda07c0c724925e43527b2d11af1550f93db04d4d2498893e8
+    md5: 7c2b3c11377600a6784fa341c5422c4d
+    sha256: 53cc0af91026f2dc5f3c86cbe8288bf17cafe03a21779340e2076772af4833de
   category: main
   optional: false
 - name: conda-index
@@ -3991,10 +3991,10 @@ package:
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/linux-64/hicolor-icon-theme-0.17-ha770c72_2.tar.bz2
+  url: https://conda.anaconda.org/conda-forge/linux-64/hicolor-icon-theme-0.17-ha770c72_3.conda
   hash:
-    md5: bbf6f174dcd3254e19a2f5d2295ce808
-    sha256: 336f29ceea9594f15cc8ec4c45fdc29e10796573c697ee0d57ebb7edd7e92043
+    md5: 129e404c5b001f3ef5581316971e3ea0
+    sha256: 6d7e6e1286cb521059fe69696705100a03b006efb914ffe82a2ae97ecbae66b7
   category: main
   optional: false
 - name: hicolor-icon-theme
@@ -4002,10 +4002,10 @@ package:
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/hicolor-icon-theme-0.17-hce30654_2.tar.bz2
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/hicolor-icon-theme-0.17-hce30654_3.conda
   hash:
-    md5: 237b05b7eb284d7eebc3c5d93f5e4bca
-    sha256: 286e33fb452f61133a3a61d002890235d1d1378554218ab063d6870416440281
+    md5: cfb39109ac5fa8601eb595d66d5bf156
+    sha256: 46a4958f2f916c5938f2a6dc0709f78b175ece42f601d79a04e0276d55d25d07
   category: main
   optional: false
 - name: hpack
