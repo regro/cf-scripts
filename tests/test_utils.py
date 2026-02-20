@@ -18,6 +18,7 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     load_graph,
     parse_munged_run_export,
+    replace_compiler_with_stub,
     run_command_hiding_token,
 )
 
@@ -445,3 +446,24 @@ def test_extract_section_from_yaml_text(
         meta_yaml, section_name, exclude_requirements=exclude_requirements
     )
     assert extracted_sections == result
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("${{ compiler('c') }}", "${{ 'c_compiler_stub' }}"),
+        ('${{   compiler("fortran")  }}', '${{   "fortran_compiler_stub"  }}'),
+        ('${{stdlib("cxx")}}', '${{"cxx_stdlib_stub"}}'),
+        (
+            '${{ variable | default(compiler("c")) }}',
+            '${{ variable | default("c_compiler_stub") }}',
+        ),
+        (
+            '${{ compiler("fortran") | replace("x", "y") }}',
+            '${{ "fortran_compiler_stub" | replace("x", "y") }}',
+        ),
+        ('# compiler("fortran")', '# compiler("fortran")'),
+    ],
+)
+def test_replace_compiler_stub(text, expected):
+    assert replace_compiler_with_stub(text) == expected
