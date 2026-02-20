@@ -451,16 +451,16 @@ def test_extract_section_from_yaml_text(
 @pytest.mark.parametrize(
     "text, expected",
     [
-        ("${{ compiler('c') }}", "${{ 'c_compiler_stub' }}"),
-        ('${{   compiler("fortran")  }}', '${{   "fortran_compiler_stub"  }}'),
-        ('${{stdlib("cxx")}}', '${{"cxx_stdlib_stub"}}'),
+        ("${{ compiler('c') }}", "c_compiler_stub"),
+        ('${{   compiler( "fortran" )  }}', "fortran_compiler_stub"),
+        ('${{stdlib("cxx")}}', "cxx_stdlib_stub"),
         (
             '${{ variable | default(compiler("c")) }}',
-            '${{ variable | default("c_compiler_stub") }}',
+            "c_compiler_stub",
         ),
         (
             '${{ compiler("fortran") | replace("x", "y") }}',
-            '${{ "fortran_compiler_stub" | replace("x", "y") }}',
+            "fortran_compiler_stub",
         ),
         ('# compiler("fortran")', '# compiler("fortran")'),
     ],
