@@ -673,6 +673,25 @@ def _compute_approximate_pinning_migration_sizes(
     return pinning_migration_sizes
 
 
+def _get_output_version(package_name: str, feedstock_attrs: Mapping) -> str:
+    """
+    Get the version of a specific output from a recipe.
+
+    some multi-output recipes can produce outputs with different versions
+    from the recipe, so check for version on a specific output
+    before using the version from the feedstock itself
+
+    e.g. intel_repack
+    """
+    # look for matching output
+    outputs = feedstock_attrs["meta_yaml"].get("outputs", [])
+    for output in outputs:
+        if output["name"] == package_name and output.get("version"):
+            return str(output["version"])
+    # fallback on feedstock version
+    return str(feedstock_attrs["version"])
+
+
 def create_migration_yaml_creator(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
@@ -766,7 +785,7 @@ def create_migration_yaml_creator(
             continue
 
         current_pins = list(map(str, package_pin_list))
-        current_version = str(feedstock_attrs["version"])
+        current_version = _get_output_version(package_name, feedstock_attrs)
 
         try:
             pin_spec, possible_p_dicts = _extract_most_stringent_pin_from_recipe(
