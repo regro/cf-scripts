@@ -9,6 +9,8 @@ import secrets
 import sys
 import time
 from concurrent.futures import as_completed
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import (
     Any,
     List,
@@ -566,18 +568,34 @@ def _extract_most_stringent_pin_from_recipe(
     """
     schema_version = get_recipe_schema_version(feedstock_attrs)
     # we need a special parsing for pinning stuff
-    if schema_version == 0:
-        meta_yaml = parse_meta_yaml(
-            feedstock_attrs["raw_meta_yaml"],
-            for_pinning=True,
-        )
-    elif schema_version == 1:
-        meta_yaml = parse_recipe_yaml(
-            feedstock_attrs["raw_meta_yaml"],
-            for_pinning=True,
-        )
-    else:
-        raise ValueError(f"Unsupported schema version: {schema_version}")
+    with TemporaryDirectory() as td:
+        # get the first ci_support field for conda_build_config
+        # v1 recipes often can't parse without one
+        ci_support_yaml = ""
+        for key in feedstock_attrs:
+            if key.startswith("ci_support"):
+                ci_support_yaml = feedstock_attrs[key]
+        if ci_support_yaml:
+            cbc_path = Path(td) / "conda_build_config.yaml"
+            with cbc_path.open("w") as f:
+                f.write(ci_support_yaml)
+        else:
+            # parse errors are likely if cbc is not found, warn?
+            cbc_path = None
+        if schema_version == 0:
+            meta_yaml = parse_meta_yaml(
+                feedstock_attrs["raw_meta_yaml"],
+                for_pinning=True,
+                cbc_path=cbc_path,
+            )
+        elif schema_version == 1:
+            meta_yaml = parse_recipe_yaml(
+                feedstock_attrs["raw_meta_yaml"],
+                for_pinning=True,
+                cbc_path=cbc_path,
+            )
+        else:
+            raise ValueError(f"Unsupported schema version: {schema_version}")
     # find the most stringent max pin for this feedstock if any
     pin_spec = ""
     possible_p_dicts = []
