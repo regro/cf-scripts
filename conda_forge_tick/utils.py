@@ -472,10 +472,13 @@ def replace_compiler_with_stub(text: str) -> str:
     -------
     str
     """
-    pattern = r'\$\{\{\s*compiler\((["\'])(.*?)\1\)\s*\}\}'
+    # replaces ${{ compiler('c') | any | other filters }} with 'c_compiler_stub'
+    # should work even with jinja filters like ${{ compiler('c') | replace('==', '>=') }}
+    # the whole template string is replaced with the stub
+    pattern = r"""\$\{\{.*compiler\(\s*(["'])([^["']+)\1\s*\).*\}\}"""
     text = re.sub(pattern, lambda m: f"{m.group(2)}_compiler_stub", text)
 
-    pattern = r'\$\{\{\s*stdlib\((["\'])(.*?)\1\)\s*\}\}'
+    pattern = r"""\$\{\{.*stdlib\(\s*(["'])([^["']+)\1\s*\).*\}\}"""
     text = re.sub(pattern, lambda m: f"{m.group(2)}_stdlib_stub", text)
 
     return text
