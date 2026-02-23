@@ -1583,25 +1583,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.23.18.37.16
+  version: 2026.02.23.21.20.04
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.23.18.37.16-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.23.21.20.04-hd8ed1ab_0.conda
   hash:
-    md5: 7f080be8da4fc5b0071efe5805793df5
-    sha256: 51dbdc60505ebe15b95f7fa172e4c0cd3c79c6a60df006d3f8ad20ae7db4f0ac
+    md5: 1823a429ce2dfb0ea9e7828bf96f2762
+    sha256: e1078c7a258fda8aaa6d65ea3cffc57308e1805a8152181d1cbd3306c241d3da
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.23.18.37.16
+  version: 2026.02.23.21.20.04
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.23.18.37.16-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.23.21.20.04-hd8ed1ab_0.conda
   hash:
-    md5: 7f080be8da4fc5b0071efe5805793df5
-    sha256: 51dbdc60505ebe15b95f7fa172e4c0cd3c79c6a60df006d3f8ad20ae7db4f0ac
+    md5: 1823a429ce2dfb0ea9e7828bf96f2762
+    sha256: e1078c7a258fda8aaa6d65ea3cffc57308e1805a8152181d1cbd3306c241d3da
   category: main
   optional: false
 - name: conda-index
@@ -10029,7 +10029,7 @@ package:
   category: main
   optional: false
 - name: scipy
-  version: 1.17.0
+  version: 1.17.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -10044,14 +10044,14 @@ package:
     numpy: '>=1.25.2'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.17.0-py312h54fa4ab_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.17.1-py312h54fa4ab_0.conda
   hash:
-    md5: 828eb07c4c87c38ed8c6560c25893280
-    sha256: 5b296faf6f5ff90d9ea3f6b16ff38fe2b8fe81c7c45b5e3a78b48887cca881d1
+    md5: 3e38daeb1fb05a95656ff5af089d2e4c
+    sha256: e3ad577361d67f6c078a6a7a3898bf0617b937d44dc4ccd57aa3336f2b5778dd
   category: main
   optional: false
 - name: scipy
-  version: 1.17.0
+  version: 1.17.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -10065,10 +10065,10 @@ package:
     numpy: '>=1.25.2'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.17.0-py312h0f234b1_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.17.1-py312h0f234b1_0.conda
   hash:
-    md5: 1f5a9253e1c3484a5c1df0b8145a9ce3
-    sha256: a204b9b3a59a88a320d9da772eecda58242cfaaf785119927eb59c4bdc6fa66f
+    md5: fd035cd01bb171090a990ae4f4143090
+    sha256: 7082a8c87ae32b6090681a1376e3335cf23c95608c68a3f96f3581c847f8b840
   category: main
   optional: false
 - name: scrypt
