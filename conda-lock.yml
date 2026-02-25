@@ -2813,43 +2813,43 @@ package:
   category: main
   optional: false
 - name: fastapi
-  version: 0.131.0
+  version: 0.133.0
   manager: conda
   platform: linux-64
   dependencies:
     email_validator: ''
     fastapi-cli: ''
-    fastapi-core: ==0.131.0
+    fastapi-core: ==0.133.0
     httpx: ''
     jinja2: ''
     pydantic-extra-types: ''
     pydantic-settings: ''
     python-multipart: ''
     uvicorn-standard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.131.0-hb6d04c1_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.133.0-h50e23bb_0.conda
   hash:
-    md5: e03af0647bcd5ac037a016d098e7bed4
-    sha256: 7658249d6346095f0b2491b65ef1de18c7452d51bb197535ec5cfa290519245e
+    md5: 2038d9d130711bfd7fabce2b8a22d6dc
+    sha256: 5c20c6d194ba2779298cd66815e6766ac09e9459682f9779c2d2ad5c233e55c8
   category: main
   optional: false
 - name: fastapi
-  version: 0.131.0
+  version: 0.133.0
   manager: conda
   platform: osx-arm64
   dependencies:
     email_validator: ''
     fastapi-cli: ''
-    fastapi-core: ==0.131.0
+    fastapi-core: ==0.133.0
     httpx: ''
     jinja2: ''
     pydantic-extra-types: ''
     pydantic-settings: ''
     python-multipart: ''
     uvicorn-standard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.131.0-hb6d04c1_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-0.133.0-h50e23bb_0.conda
   hash:
-    md5: e03af0647bcd5ac037a016d098e7bed4
-    sha256: 7658249d6346095f0b2491b65ef1de18c7452d51bb197535ec5cfa290519245e
+    md5: 2038d9d130711bfd7fabce2b8a22d6dc
+    sha256: 5c20c6d194ba2779298cd66815e6766ac09e9459682f9779c2d2ad5c233e55c8
   category: main
   optional: false
 - name: fastapi-cli
@@ -2885,37 +2885,37 @@ package:
   category: main
   optional: false
 - name: fastapi-core
-  version: 0.131.0
+  version: 0.133.0
   manager: conda
   platform: linux-64
   dependencies:
     annotated-doc: '>=0.0.2'
     pydantic: '>=2.7.0'
     python: ''
-    starlette: '>=0.40.0,<1.0.0'
+    starlette: '>=0.40.0'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.8.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.131.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.133.0-pyhcf101f3_0.conda
   hash:
-    md5: f83974f0c1332159df486e1f03ef0776
-    sha256: 2c5462b2744eff19ee16736e99f2f7b5b2f66eb5a723c24279173dde41e1f082
+    md5: 00729c9d550d1cb19c5c110d50dd9542
+    sha256: 1660c27bebc4cb41d61c6f476136ae9df0552f1dde9092c3d1a3a7314e08e2d5
   category: main
   optional: false
 - name: fastapi-core
-  version: 0.131.0
+  version: 0.133.0
   manager: conda
   platform: osx-arm64
   dependencies:
     annotated-doc: '>=0.0.2'
     pydantic: '>=2.7.0'
     python: ''
-    starlette: '>=0.40.0,<1.0.0'
+    starlette: '>=0.40.0'
     typing-inspection: '>=0.4.2'
     typing_extensions: '>=4.8.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.131.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fastapi-core-0.133.0-pyhcf101f3_0.conda
   hash:
-    md5: f83974f0c1332159df486e1f03ef0776
-    sha256: 2c5462b2744eff19ee16736e99f2f7b5b2f66eb5a723c24279173dde41e1f082
+    md5: 00729c9d550d1cb19c5c110d50dd9542
+    sha256: 1660c27bebc4cb41d61c6f476136ae9df0552f1dde9092c3d1a3a7314e08e2d5
   category: main
   optional: false
 - name: feedparser
@@ -6480,15 +6480,15 @@ package:
   category: main
   optional: false
 - name: llvm-openmp
-  version: 21.1.8
+  version: 22.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-21.1.8-h4a912ad_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-22.1.0-hc7d1edf_0.conda
   hash:
-    md5: 206ad2df1b5550526e386087bef543c7
-    sha256: 56bcd20a0a44ddd143b6ce605700fdf876bcf5c509adc50bf27e76673407a070
+    md5: ff0820b5588b20be3b858552ecf8ffae
+    sha256: 0daeedb3872ad0fdd6f0d7e7165c63488e8a315d7057907434145fba0c1e7b3d
   category: main
   optional: false
 - name: llvm-tools
@@ -11217,16 +11217,16 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.10.5
+  version: 0.10.6
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.5-h9b11cc2_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.6-h9b11cc2_0.conda
   hash:
-    md5: 87d89d922197be92f1c75aedd05658fc
-    sha256: 96bfb176b6b577fab6611417982c8a9df94c09f269ed97b7529370d129820f49
+    md5: d7cc643e353f29db6150d0b54ea94112
+    sha256: 0a9efd91dcd31dd6bfa09d282b1d513a762fdb25b5867c26c983d5520b315637
   category: main
   optional: false
 - name: uvicorn
