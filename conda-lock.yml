@@ -1523,25 +1523,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.26.19.31.03
+  version: 2026.02.27.08.13.09
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.26.19.31.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.08.13.09-hd8ed1ab_0.conda
   hash:
-    md5: dc73976e162a43f6e46c6b0c4e2c849c
-    sha256: fd14d6c546afd9e5d44c9c7d60fe90c632cf61ca941800bb61f8473053488898
+    md5: b17d8af1de2b26f50f169e4d97596e50
+    sha256: d1edef47d331ae52d516dbefec04dfa32176d714a175ed193057f4233b5fee48
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.26.19.31.03
+  version: 2026.02.27.08.13.09
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.26.19.31.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.08.13.09-hd8ed1ab_0.conda
   hash:
-    md5: dc73976e162a43f6e46c6b0c4e2c849c
-    sha256: fd14d6c546afd9e5d44c9c7d60fe90c632cf61ca941800bb61f8473053488898
+    md5: b17d8af1de2b26f50f169e4d97596e50
+    sha256: d1edef47d331ae52d516dbefec04dfa32176d714a175ed193057f4233b5fee48
   category: main
   optional: false
 - name: conda-index
@@ -5778,27 +5778,28 @@ package:
   category: main
   optional: false
 - name: libsodium
-  version: 1.0.20
+  version: 1.0.21
   manager: conda
   platform: linux-64
   dependencies:
-    libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libsodium-1.0.20-h4ab18f5_0.conda
+    __glibc: '>=2.17,<3.0.a0'
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libsodium-1.0.21-h280c20c_2.conda
   hash:
-    md5: a587892d3c13b6621a6091be690dbca2
-    sha256: 0105bd108f19ea8e6a78d2d994a6d4a8db16d19a41212070d2d1d48a63c34161
+    md5: ef0b79f6a6f4893d4faccbcedc606d3c
+    sha256: 0c890710173a98befb5ecc0f84475f1351c39cba4b52ba2f76f47aaf3c08a819
   category: main
   optional: false
 - name: libsodium
-  version: 1.0.20
+  version: 1.0.21
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsodium-1.0.20-h99b78c6_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsodium-1.0.21-h1a92334_2.conda
   hash:
-    md5: a7ce36e284c5faaf93c220dfc39e3abd
-    sha256: fade8223e1e1004367d7101dd17261003b60aa576df6d7802191f8972f7470b1
+    md5: 00ade92230bc329783057db16a2e4ab1
+    sha256: 214c2db705eaba7417f66c546b23b62c82aaa4c647725f15631b8ba78d974a4c
   category: main
   optional: false
 - name: libsolv
@@ -8091,14 +8092,14 @@ package:
     __glibc: '>=2.17,<3.0.a0'
     cffi: '>=1.4.1'
     libgcc: '>=14'
-    libsodium: '>=1.0.20,<1.0.21.0a0'
+    libsodium: '>=1.0.21,<1.0.22.0a0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.2-py312h4c3975b_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.6.2-py312h587e1b2_1.conda
   hash:
-    md5: c6ceb8fd432a834aab008cb63749b02c
-    sha256: 68b2796fa9210ffbb169976bed2fe26b0481463cdca3e08cc8440a4c8ed8fd89
+    md5: 6e4d8ed581cc576435d366372054ac71
+    sha256: cc84dd07811861c800fb3f0df3fb64ea579adcb518a5daac6e1089baabd697d1
   category: main
   optional: false
 - name: pynacl
@@ -8108,14 +8109,14 @@ package:
   dependencies:
     __osx: '>=11.0'
     cffi: '>=1.4.1'
-    libsodium: '>=1.0.20,<1.0.21.0a0'
+    libsodium: '>=1.0.21,<1.0.22.0a0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     six: ''
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.2-py312h2bbb03f_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pynacl-1.6.2-py312h6831925_1.conda
   hash:
-    md5: 4198cc5aea76e9fb9dee70ae8592b1b7
-    sha256: 5c27150bdf0d281d12a14ade3e73d912ac2a0749c29110817a6364717be4924c
+    md5: e0e4cac5a7ccebc36a3945cd8f39c489
+    sha256: cd8574cb3843e5da683df861e7f0a819f37d10ea15a0a9867ea10fbda77a86aa
   category: main
   optional: false
 - name: pynamodb
