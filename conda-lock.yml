@@ -1291,7 +1291,7 @@ package:
   category: main
   optional: false
 - name: conda
-  version: 26.1.0
+  version: 26.1.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1315,15 +1315,15 @@ package:
     setuptools: '>=60.0.0'
     tqdm: '>=4'
     truststore: '>=0.8.0'
-    zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-26.1.0-py312h7900ff3_0.conda
+    zstandard: '>=0.19.0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-26.1.1-py312h7900ff3_0.conda
   hash:
-    md5: f1a3d2e2fed0b4401f28a91bab36eeb7
-    sha256: 3e15224c730a5c185da8ed20a21216b4a41fd2c269d933770c87fdf069ca0f33
+    md5: 32e3a7c6278d6f3993241ea4e4689ba8
+    sha256: 375f17f645dfb7e995acaf0bfadd9ad0e591d8b63f8c2e6875d7a8c7b84ce1bf
   category: main
   optional: false
 - name: conda
-  version: 26.1.0
+  version: 26.1.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1347,11 +1347,11 @@ package:
     setuptools: '>=60.0.0'
     tqdm: '>=4'
     truststore: '>=0.8.0'
-    zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-26.1.0-py312h81bd7bf_0.conda
+    zstandard: '>=0.19.0'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-26.1.1-py312h81bd7bf_0.conda
   hash:
-    md5: 9ef3e394c51812edc6879217240ac208
-    sha256: f9f4864bb41caad915438ed35818639abfb033b3acce71debb660cbe0c9c7bde
+    md5: 4430f18fc39b16357e65fd831800936a
+    sha256: 8cc73b42dbc9f3526aee3b9fe63f43898761d1b3425fe6f4e2c7c91bb1123a68
   category: main
   optional: false
 - name: conda-build
