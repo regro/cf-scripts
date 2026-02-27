@@ -1255,3 +1255,208 @@ extra:
     # If we get here, the comparison should have valid results
     assert "run" in dep_comparison
     assert recipe != ""
+
+
+# Tests for run_constrained support
+class TestRunConstrainedUpdates:
+    """Tests for run_constrained dependency updates.
+
+    These tests verify that the grayskull inspection feature correctly handles
+    run_constrained dependencies:
+    - Updates version constraints for packages that exist in both recipe and grayskull
+    - Does NOT add new packages to run_constrained
+    - Does NOT remove packages from run_constrained
+    """
+
+    def test_sections_constants_include_run_constrained(self):
+        """Test that run_constrained is in SECTIONS_TO_PARSE."""
+        from conda_forge_tick.update_deps import (
+            SECTIONS_TO_PARSE,
+            SECTIONS_TO_UPDATE,
+            SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY,
+        )
+
+        assert "run_constrained" in SECTIONS_TO_PARSE
+        assert "host" in SECTIONS_TO_PARSE
+        assert "run" in SECTIONS_TO_PARSE
+
+        # run_constrained should NOT be in SECTIONS_TO_UPDATE (prevents add/remove)
+        assert "run_constrained" not in SECTIONS_TO_UPDATE
+        assert "run" in SECTIONS_TO_UPDATE
+
+        # run_constrained should be in SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY
+        assert "run_constrained" in SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY
+
+
+class TestApplyEnvDepComparisonConstraintsOnly:
+    """Test _apply_env_dep_comparison with constraints_only=True."""
+
+    def test_updates_existing_package_version(self):
+        """Should update version constraint when package exists in both."""
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = ["uvicorn >=0.31.1,<0.32.0", "rich =13.7.1"]
+        env_dep_comparison = {
+            "df_minus_cf": {"uvicorn >=0.32.1,<1.0.0"},  # New constraint from grayskull
+            "cf_minus_df": {"uvicorn >=0.31.1,<0.32.0"},  # Old constraint in recipe
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=True
+        )
+
+        assert "uvicorn >=0.32.1,<1.0.0" in result
+        assert "uvicorn >=0.31.1,<0.32.0" not in result
+        assert "rich =13.7.1" in result  # Unchanged
+
+    def test_does_not_add_new_packages(self):
+        """Should NOT add packages that only exist in grayskull."""
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = ["uvicorn >=0.31.1,<0.32.0"]
+        env_dep_comparison = {
+            "df_minus_cf": {"new-package >=1.0.0"},  # New package from grayskull
+            "cf_minus_df": set(),
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=True
+        )
+
+        assert "new-package >=1.0.0" not in result
+        assert result == deps  # Unchanged
+
+    def test_does_not_remove_packages(self):
+        """Should NOT remove packages that only exist in recipe."""
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = ["uvicorn >=0.31.1,<0.32.0", "custom-dep >=1.0.0"]
+        env_dep_comparison = {
+            "df_minus_cf": set(),
+            "cf_minus_df": {
+                "custom-dep >=1.0.0"
+            },  # Package in recipe but not grayskull
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=True
+        )
+
+        assert "custom-dep >=1.0.0" in result  # Should still be there
+        assert result == deps  # Unchanged
+
+
+class TestApplyEnvDepComparisonNormal:
+    """Test _apply_env_dep_comparison with constraints_only=False (default)."""
+
+    def test_adds_new_packages(self):
+        """Should add packages that only exist in grayskull."""
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = ["existing-pkg >=1.0.0"]
+        env_dep_comparison = {
+            "df_minus_cf": {"new-package >=1.0.0"},
+            "cf_minus_df": set(),
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=False
+        )
+
+        assert "new-package >=1.0.0" in result
+        assert "existing-pkg >=1.0.0" in result
+
+    def test_removes_packages(self):
+        """Should remove packages that only exist in recipe."""
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = ["keep-pkg >=1.0.0", "remove-pkg >=1.0.0"]
+        env_dep_comparison = {
+            "df_minus_cf": set(),
+            "cf_minus_df": {"remove-pkg >=1.0.0"},
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=False
+        )
+
+        assert "remove-pkg >=1.0.0" not in result
+        assert "keep-pkg >=1.0.0" in result
+
+
+class TestGenerateDepHintRunConstrained:
+    """Test that generate_dep_hint shows run_constrained updates correctly."""
+
+    def test_shows_run_constrained_version_updates(self):
+        """Should show version constraint updates for run_constrained."""
+        dep_comparison = {
+            "host": {"df_minus_cf": set(), "cf_minus_df": set()},
+            "run": {"df_minus_cf": set(), "cf_minus_df": set()},
+            "run_constrained": {
+                "df_minus_cf": {"uvicorn >=0.32.1,<1.0.0"},
+                "cf_minus_df": {"uvicorn >=0.31.1,<0.32.0"},
+            },
+        }
+
+        hint = generate_dep_hint(dep_comparison, "grayskull")
+
+        # Should show the version update
+        assert "run_constrained" in hint
+        assert "uvicorn" in hint
+
+    def test_no_run_constrained_add_remove_suggestions(self):
+        """Should NOT show add/remove suggestions for run_constrained."""
+        dep_comparison = {
+            "host": {"df_minus_cf": set(), "cf_minus_df": set()},
+            "run": {"df_minus_cf": set(), "cf_minus_df": set()},
+            "run_constrained": {
+                "df_minus_cf": {"new-pkg >=1.0.0"},  # Only in grayskull
+                "cf_minus_df": {"old-pkg >=1.0.0"},  # Only in recipe
+            },
+        }
+
+        hint = generate_dep_hint(dep_comparison, "grayskull")
+
+        # Should NOT suggest adding new-pkg or removing old-pkg
+        # (they don't share the same package name, so no constraint update)
+        assert (
+            "new-pkg" not in hint or "run_constrained" not in hint.split("new-pkg")[0]
+        )
+
+
+class TestLitellmScenario:
+    """Test the specific litellm/uvicorn scenario that motivated this change."""
+
+    def test_litellm_uvicorn_update(self):
+        """
+        Simulates the litellm feedstock scenario where upstream changed uvicorn
+        from ^0.31.1 (Poetry caret) to >=0.32.1,<1.0.0 (explicit range).
+
+        The conda-forge recipe has the old constraint, and grayskull generates
+        the new constraint. The bot should update the version constraint.
+        """
+        from conda_forge_tick.update_deps import _apply_env_dep_comparison
+
+        deps = [
+            "uvicorn >=0.31.1,<0.32.0",  # Old Poetry caret translation
+            "rich =13.7.1",
+            "websockets >=15.0.1,<16.0.0",
+            "mcp >=1.25.0,<2.0.0",
+        ]
+        env_dep_comparison = {
+            "df_minus_cf": {"uvicorn >=0.32.1,<1.0.0"},  # New constraint
+            "cf_minus_df": {"uvicorn >=0.31.1,<0.32.0"},  # Old constraint
+        }
+
+        result = _apply_env_dep_comparison(
+            deps, env_dep_comparison, constraints_only=True
+        )
+
+        # uvicorn should be updated to the new constraint
+        assert "uvicorn >=0.32.1,<1.0.0" in result
+        assert "uvicorn >=0.31.1,<0.32.0" not in result
+
+        # Other deps should be unchanged
+        assert "rich =13.7.1" in result
+        assert "websockets >=15.0.1,<16.0.0" in result
+        assert "mcp >=1.25.0,<2.0.0" in result
