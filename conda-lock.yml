@@ -1523,25 +1523,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.27.08.13.09
+  version: 2026.02.27.15.53.00
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.08.13.09-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.15.53.00-hd8ed1ab_0.conda
   hash:
-    md5: b17d8af1de2b26f50f169e4d97596e50
-    sha256: d1edef47d331ae52d516dbefec04dfa32176d714a175ed193057f4233b5fee48
+    md5: 339e658dd26e87726acdba4717f8e41a
+    sha256: 437247ad0a2e71b0dc95b87bdfef9da130ed054fd9f558ca4d6e1356e5d9b73e
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.27.08.13.09
+  version: 2026.02.27.15.53.00
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.08.13.09-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.27.15.53.00-hd8ed1ab_0.conda
   hash:
-    md5: b17d8af1de2b26f50f169e4d97596e50
-    sha256: d1edef47d331ae52d516dbefec04dfa32176d714a175ed193057f4233b5fee48
+    md5: 339e658dd26e87726acdba4717f8e41a
+    sha256: 437247ad0a2e71b0dc95b87bdfef9da130ed054fd9f558ca4d6e1356e5d9b73e
   category: main
   optional: false
 - name: conda-index
@@ -7280,7 +7280,7 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.64.0
+  version: 0.65.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7288,23 +7288,23 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     openssl: '>=3.5.5,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.64.0-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.65.0-ha759004_0.conda
   hash:
-    md5: 70c34141b01b1f88f2a67a66eeeecb37
-    sha256: 589f33af0171a5de24075bbe31666b7c1ec3bda7380bf9e8a7143fbde277ee41
+    md5: acd539326b309b03e2e788b3c0d39c97
+    sha256: 996d02467e1b5311eeb81afa0003bb7a5657f78982ba54cd98d884342ca5b142
   category: main
   optional: false
 - name: pixi
-  version: 0.64.0
+  version: 0.65.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.64.0-ha7e4b49_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.65.0-ha7e4b49_0.conda
   hash:
-    md5: 7e99369f6795d1356451b9765f71eadc
-    sha256: 1f4053355505ca22c3707efac001e5ee4dbd7b5f72bb2c1154b85294cc936c01
+    md5: cde8d8d9a1bfeaae95aceb9388db75a8
+    sha256: 85df3fe8997accaf0bf9c4711d862cfa320902873a1fede6dc34bba790a1a1ce
   category: main
   optional: false
 - name: pixman
@@ -10629,30 +10629,30 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.10.6
+  version: 0.10.7
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.10.6-h6dd6661_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.10.7-h6dd6661_0.conda
   hash:
-    md5: 716ef148de4db18db2035ce58a87d412
-    sha256: 3ef72cf85c42b06c7bd0fcdc02d49286f44e505630d6d2a7f476a42a7e02fdfd
+    md5: 288d83534bc284e480229b7c8f02d61a
+    sha256: 033aac3879d772ee496f383099c9e33240ee20956db86655beb23f295a21ade8
   category: main
   optional: false
 - name: uv
-  version: 0.10.6
+  version: 0.10.7
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.6-h9b11cc2_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.7-h9b11cc2_0.conda
   hash:
-    md5: d7cc643e353f29db6150d0b54ea94112
-    sha256: 0a9efd91dcd31dd6bfa09d282b1d513a762fdb25b5867c26c983d5520b315637
+    md5: 97485afbd040c0afec82954b0ea58b44
+    sha256: 6d78aadca92de4c1c994b58b2e58c97675ba8a4937d754b5c8473ce375051c48
   category: main
   optional: false
 - name: uvicorn
