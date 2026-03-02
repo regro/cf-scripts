@@ -1523,25 +1523,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.28.12.58.43
+  version: 2026.03.02.10.21.23
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.28.12.58.43-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.02.10.21.23-hd8ed1ab_0.conda
   hash:
-    md5: b57f73ad78bb4d544281121cceca28ac
-    sha256: 7c118dc712561a7c7c67a96102b90592807cb1f70658b0f14c0156754f6a9955
+    md5: fb02aebc01ad7344244e4b955ee8e0ea
+    sha256: 82654c1f9b2ff4cca5780436229c163faf9132ca7034cf5ab7b8be903dd9061a
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.02.28.12.58.43
+  version: 2026.03.02.10.21.23
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.02.28.12.58.43-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.02.10.21.23-hd8ed1ab_0.conda
   hash:
-    md5: b57f73ad78bb4d544281121cceca28ac
-    sha256: 7c118dc712561a7c7c67a96102b90592807cb1f70658b0f14c0156754f6a9955
+    md5: fb02aebc01ad7344244e4b955ee8e0ea
+    sha256: 82654c1f9b2ff4cca5780436229c163faf9132ca7034cf5ab7b8be903dd9061a
   category: main
   optional: false
 - name: conda-index
@@ -6378,10 +6378,10 @@ package:
     libgcc: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/markupsafe-3.0.3-py312h8a5da7c_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/markupsafe-3.0.3-py312h8a5da7c_1.conda
   hash:
-    md5: f775a43412f7f3d7ed218113ad233869
-    sha256: f77f9f1a4da45cbc8792d16b41b6f169f649651a68afdc10b2da9da12b9aa42b
+    md5: 93a4752d42b12943a355b682ee43285b
+    sha256: 5f3aad1f3a685ed0b591faad335957dbdb1b73abfd6fc731a0d42718e0653b33
   category: main
   optional: false
 - name: markupsafe
@@ -6392,10 +6392,10 @@ package:
     __osx: '>=11.0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/markupsafe-3.0.3-py312h5748b74_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/markupsafe-3.0.3-py312h04c11ed_1.conda
   hash:
-    md5: 82221456841d3014a175199e4792465b
-    sha256: b6aadcee6a0b814a0cb721e90575cbbe911b17ec46542460a9416ed2ec1a568e
+    md5: 11d95ab83ef0a82cc2de12c1e0b47fe4
+    sha256: 330394fb9140995b29ae215a19fad46fcc6691bdd1b7654513d55a19aaa091c1
   category: main
   optional: false
 - name: mbedtls
