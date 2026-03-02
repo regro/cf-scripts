@@ -581,7 +581,7 @@ class Version(Migrator):
         return sorted(
             sorted(
                 sorted(nodes_to_sort, key=lambda x: RNG.random()),
-                key=lambda x: (0 if _attempt_pr(x) else 1),
+                key=lambda x: 0 if _attempt_pr(x) else 1,
             ),
             key=functools.cmp_to_key(_desc_cmp),
         )
