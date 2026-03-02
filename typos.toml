@@ -4,6 +4,7 @@ extend-exclude = [
     ".pixi/**",
     "**/*.yaml",
     "tests/test_parse_munged_run_export.py",
+    "conda-lock.yml",
 ]
 ignore-hidden = false
 
