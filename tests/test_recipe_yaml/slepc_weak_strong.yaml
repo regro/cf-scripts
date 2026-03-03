@@ -4,6 +4,7 @@ context:
   version: 3.19.1
   sha256: 280737e9ef762d7f0079ad3ad29913215c799ebf124651c723c1972f71fbc0db
   build: 0
+  PKG_HASH: '42gjh12'
 
 package:
   name: slepc
