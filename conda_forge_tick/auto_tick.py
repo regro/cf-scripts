@@ -1411,5 +1411,7 @@ def main(ctx: CliContext) -> None:
             migrator, mctx, temp, time_per_migrator[mg_ind], git_backend, start_time
         )
 
-    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left() or -1)
+    logger.info(
+        "API Calls Remaining: %d", github_backend().get_api_requests_left() or -1
+    )
     logger.info("Done")
