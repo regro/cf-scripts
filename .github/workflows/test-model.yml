@@ -64,4 +64,4 @@ jobs:
           # this is a hack around the absence of https://github.com/orgs/community/discussions/15452
           pytest \
             --durations 10 \
-            ../tests/model ${{ github.event_name == 'pull_request' && '|| [ $? = 1 ]' || '' }}
+            ../tests_model ${{ github.event_name == 'pull_request' && '|| [ $? = 1 ]' || '' }}
