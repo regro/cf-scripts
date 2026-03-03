@@ -1,4 +1,7 @@
+import json
 import os
+import shutil
+import subprocess
 import tempfile
 from types import TracebackType
 from typing import Self
@@ -8,6 +11,37 @@ import pytest
 
 from conda_forge_tick import global_sensitive_env
 from conda_forge_tick.lazy_json_backends import LazyJson
+
+_HAVE_CONTAINERS = (
+    shutil.which("docker") is not None
+    and subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
+)
+
+if _HAVE_CONTAINERS:
+    _HAVE_TEST_IMAGE = False
+    try:
+        for line in subprocess.run(
+            [
+                "docker",
+                "images",
+                "--format",
+                "json",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines():
+            image = json.loads(line)
+            if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
+                HAVE_TEST_IMAGE = True
+                break
+    except subprocess.CalledProcessError as e:
+        print(
+            f"Could not list local docker images due "
+            f"to error {e}. Skipping container tests!"
+        )
+
+HAVE_CONTAINERS_AND_TEST_IMAGE = _HAVE_CONTAINERS and _HAVE_TEST_IMAGE
 
 
 @pytest.fixture

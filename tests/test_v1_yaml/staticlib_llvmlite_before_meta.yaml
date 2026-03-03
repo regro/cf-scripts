@@ -36,9 +36,9 @@ requirements:
       then: llvmdev ==15.0.7 h2621b3d_4
     - if: osx and arm64
       then: llvm ==15.0.7 *_4
-    - if: ox and x86
+    - if: osx and x86
       then: llvmdev ==15.0.7 *_4
-    - if: ox and x86
+    - if: osx and x86
       then: llvm ==15.0.7 hed0f868_4
     - zlib
   run:

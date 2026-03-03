@@ -6,6 +6,7 @@ from pathlib import Path
 
 import networkx as nx
 import pytest
+from conftest import HAVE_CONTAINERS_AND_TEST_IMAGE
 from pytest import FixtureRequest
 
 from conda_forge_tick.lazy_json_backends import (
@@ -30,7 +31,7 @@ CONDA_FORGE_PINNINGS_ATTRS_FILE = TEST_FILES_DIR / "conda-forge-pinning_node_att
 NUMPY_NODE_ATTRS_FILE = TEST_FILES_DIR / "numpy_node_attrs.json"
 
 
-@pytest.mark.parametrize("enable_containers", [True, False])
+@pytest.mark.parametrize("enable_containers", [HAVE_CONTAINERS_AND_TEST_IMAGE, False])
 class TestCreateMigrationYamlCreator:
     @pytest.fixture
     def inject_conda_build_config(self):

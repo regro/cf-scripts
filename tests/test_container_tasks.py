@@ -1,10 +1,8 @@
 import copy
 import glob
-import json
 import logging
 import os
 import pprint
-import shutil
 import subprocess
 import tempfile
 from typing import Any
@@ -18,6 +16,7 @@ from conda_forge_feedstock_ops.container_utils import (
     run_container_operation,
 )
 from conda_forge_feedstock_ops.os_utils import get_user_execute_permissions
+from conftest import HAVE_CONTAINERS_AND_TEST_IMAGE
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
 from conda_forge_tick.feedstock_parser import (
@@ -55,38 +54,9 @@ VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
-HAVE_CONTAINERS = (
-    shutil.which("docker") is not None
-    and subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
-)
-
-if HAVE_CONTAINERS:
-    HAVE_TEST_IMAGE = False
-    try:
-        for line in subprocess.run(
-            [
-                "docker",
-                "images",
-                "--format",
-                "json",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines():
-            image = json.loads(line)
-            if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
-                HAVE_TEST_IMAGE = True
-                break
-    except subprocess.CalledProcessError as e:
-        print(
-            f"Could not list local docker images due "
-            f"to error {e}. Skipping container tests!"
-        )
-
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version(use_containers):
     data = run_container_operation(
@@ -102,7 +72,7 @@ def test_container_tasks_get_latest_version(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_json(use_containers):
     with (
@@ -128,7 +98,7 @@ def test_container_tasks_get_latest_version_json(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_containerized(use_containers):
     with (
@@ -148,7 +118,7 @@ def test_container_tasks_get_latest_version_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_containerized_mpas_tools(use_containers):
     with (
@@ -166,7 +136,7 @@ def test_container_tasks_get_latest_version_containerized_mpas_tools(use_contain
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_feedstock(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
@@ -191,7 +161,7 @@ def test_container_tasks_parse_feedstock(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_feedstock_json(use_containers):
     with (
@@ -217,7 +187,7 @@ def test_container_tasks_parse_feedstock_json(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_load_feedstock_containerized(use_containers):
     with (
@@ -234,7 +204,7 @@ def test_container_tasks_load_feedstock_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_load_feedstock_containerized_mpas_tools(use_containers):
     with (
@@ -252,7 +222,7 @@ def test_container_tasks_load_feedstock_containerized_mpas_tools(use_containers)
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_meta_yaml_containerized(use_containers):
     with (
@@ -270,7 +240,7 @@ def test_container_tasks_parse_meta_yaml_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_same_as_local(
     use_containers, capfd
@@ -390,7 +360,7 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
@@ -444,7 +414,7 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -517,7 +487,7 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_provide_source_code_containerized(use_containers):
     with (
@@ -542,7 +512,7 @@ def test_container_tasks_provide_source_code_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_provide_source_code_containerized_patches(use_containers):
     with (
@@ -573,7 +543,7 @@ def test_container_tasks_provide_source_code_containerized_patches(use_container
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -606,7 +576,7 @@ yaml_rebuild.cycles = set()
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     fs_dir = os.path.join(tmpdir, "scipy-feedstock")
@@ -666,7 +636,7 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 @pytest.mark.parametrize(
     "case,new_ver",
@@ -745,7 +715,7 @@ def test_migration_runner_run_migration_containerized_version(
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_update_version_feedstock_dir():
     with tempfile.TemporaryDirectory() as tmpdir:

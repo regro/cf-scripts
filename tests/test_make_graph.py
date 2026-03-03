@@ -1,11 +1,11 @@
 import pytest
-from conftest import FakeLazyJson
+from conftest import HAVE_CONTAINERS_AND_TEST_IMAGE, FakeLazyJson
 
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import try_load_feedstock
 
 
-@pytest.mark.parametrize("container_enabled", [True, False])
+@pytest.mark.parametrize("container_enabled", [HAVE_CONTAINERS_AND_TEST_IMAGE, False])
 @pytest.mark.parametrize("existing_archived", [True, False, None])
 @pytest.mark.parametrize("mark_not_archived", [True, False])
 def test_try_load_feedstock(

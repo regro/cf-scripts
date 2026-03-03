@@ -1,8 +1,7 @@
 context:
   name: oneDNN
-  version: "3.6.2"
+  version: "3.11"
   build: 0
-  variant_build: ${{ variant_build_base | int + 100 if dnnl_cpu_runtime == "omp" else build_base }}
   desc_omp: In this package oneDNN is built with the OpenMP CPU runtime.
   desc_tbb: In this package oneDNN is built with the TBB CPU runtime.
   desc_threadpool: |
@@ -17,17 +16,19 @@ recipe:
 
 source:
   url: https://github.com/oneapi-src/${{ name }}/archive/v${{ version }}.tar.gz
-  sha256: e79db0484dcefe2c7ff6604c295d1de2830c828941898878c80dfb062eb344d1
+  sha256: 04df98b18300daf6c3aa7cc2d5e7ce8a8f430fed1787151daed0254d8dd4e64e
 
 build:
-  number: ${{ variant_build }}
+  number: ${{ build }}
+  variant:
+    down_prioritize_variant: ${{ 1 if dnnl_cpu_runtime != "omp" else 0 }}
 
 outputs:
   - package:
       name: onednn
       version: ${{ version }}
     build:
-      string: ${{ dnnl_cpu_runtime }}_h${{ hash }}_${{ variant_build }}
+      string: ${{ dnnl_cpu_runtime }}_h${{ hash }}_${{ build }}
       script: build-onednn
     requirements:
       build:
@@ -86,7 +87,7 @@ outputs:
       name: onednn-${{ dnnl_cpu_runtime_name }}
       version: ${{ version }}
     build:
-      string: ${{ dnnl_cpu_runtime }}_h${{ hash }}_${{ variant_build }}
+      string: ${{ dnnl_cpu_runtime }}_h${{ hash }}_${{ build }}
     requirements:
       host:
         - ${{ pin_subpackage('onednn', exact=True) }}

@@ -36,9 +36,9 @@ requirements:
       then: SUB@@LLVMDEV_OSX_ARM64@@
     - if: osx and arm64
       then: SUB@@LLVM_OSX_ARM64@@
-    - if: ox and x86
+    - if: osx and x86
       then: SUB@@LLVMDEV_OSX_64@@
-    - if: ox and x86
+    - if: osx and x86
       then: SUB@@LLVM_OSX_64@@
     - zlib
   run:
