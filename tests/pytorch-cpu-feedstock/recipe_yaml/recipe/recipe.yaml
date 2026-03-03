@@ -107,8 +107,6 @@ outputs:
         # if future isn't installed on python 3, `pip check` can give
         # the user an error
         - future
-        - if: py2k
-          then: typing
         # Need ninja to load C++ extensions
         - ninja
     tests:
