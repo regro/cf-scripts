@@ -1,6 +1,7 @@
 context:
   version: 0.20.0
   build_number: 3
+  cuda_compiler_version: 'None'
   # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
   # torchvision requires that CUDA major and minor versions match with pytorch
   # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
@@ -8,7 +9,6 @@ context:
   # Upstream has specific compatability ranges for pytorch and python which are
   # updated every 0.x release. https://github.com/pytorch/vision#installation
   compatible_pytorch: 2.5
-  cuda_compiler_version: 'None'
 
   tests_to_skip: >
     ${{ 'skip test_url_is_accessible instead of hitting 20+ servers per run, since' if 0 }}
