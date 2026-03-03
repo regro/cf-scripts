@@ -8,6 +8,7 @@ context:
   # Upstream has specific compatability ranges for pytorch and python which are
   # updated every 0.x release. https://github.com/pytorch/vision#installation
   compatible_pytorch: 2.5
+  cuda_compiler_version: 'None'
 
   tests_to_skip: >
     ${{ 'skip test_url_is_accessible instead of hitting 20+ servers per run, since' if 0 }}
