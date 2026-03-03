@@ -15,7 +15,7 @@ source:
 
 build:
   number: ${{ build }}
-  string: real_h${{ PKG_HASH }}_${{ build }}
+  string: real_h${{ hash }}_${{ build }}
   skip:
     - win
 
