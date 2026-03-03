@@ -10,6 +10,10 @@ context:
   build: 1
   triton: 3.2.0
   mkl: <2025
+  cuda_compiler_version: 'None'
+  megabuild: false
+  blas_impl: "mkl"
+  python: "3.11"
 
 recipe:
   name: libtorch
