@@ -8969,7 +8969,7 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.58.3
+  version: 0.58.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -8978,23 +8978,23 @@ package:
     libstdcxx: '>=14'
     openssl: '>=3.5.5,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.58.3-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.58.4-ha759004_0.conda
   hash:
-    md5: 1326cfd0a63ddaf797eb7c0934c428b8
-    sha256: 910a720b93fc39077ad5678d4fdf7a93224654456f819e4b420fb3c9452db7b6
+    md5: a86117655f8de127354d7dfac12cbead
+    sha256: adc03d867529425bd36f16b0a1c6a6a6a8a5a8efb53dd15742878e9b32629af3
   category: main
   optional: false
 - name: rattler-build
-  version: 0.58.3
+  version: 0.58.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.58.3-h2307240_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.58.4-h2307240_0.conda
   hash:
-    md5: 9f095cf7e4c5f7ac948ab5b9fb228a0f
-    sha256: a1a021d6a2196416fa2ef1d0c880904d38e3a67a9387fe254c23582d3e326835
+    md5: 9669fca489a3d813afa55c30075fcd5b
+    sha256: 183a355834a3b3c393602a92383a91b8ecc657ecdfc15fd184f527dfe6c3d040
   category: main
   optional: false
 - name: rattler-build-conda-compat
