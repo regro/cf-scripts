@@ -95,5 +95,5 @@ jobs:
         if: github.ref == 'refs/heads/main' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-make-graph
-          ref: ${{ github.event.ref }}
+          ref: ${{ github.event.ref || github.head_ref || github.ref }}
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
