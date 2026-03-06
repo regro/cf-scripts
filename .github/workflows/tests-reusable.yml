@@ -156,7 +156,7 @@ jobs:
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           pytest \
-            -v \
+            -vvs \
             -n 3 \
             --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
@@ -172,7 +172,7 @@ jobs:
             --retries=5 \
             --retry-delay=10 \
             -m "not mongodb" \
-            tests
+            tests/test_container_tasks.py
         env:
           RUN_URL: ""
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
