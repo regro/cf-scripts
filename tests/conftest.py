@@ -31,6 +31,7 @@ if _HAVE_CONTAINERS:
             capture_output=True,
             text=True,
         ).stdout.splitlines():
+            print("docker image json:", line, flush=True)
             image = json.loads(line)
             if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
                 HAVE_TEST_IMAGE = True
@@ -42,6 +43,8 @@ if _HAVE_CONTAINERS:
         )
 
 HAVE_CONTAINERS_AND_TEST_IMAGE = _HAVE_CONTAINERS and _HAVE_TEST_IMAGE
+
+print(f"have containers|image: {_HAVE_CONTAINERS}|{_HAVE_TEST_IMAGE}", flush=True)
 
 
 @pytest.fixture
