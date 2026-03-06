@@ -33,7 +33,7 @@ if _HAVE_CONTAINERS:
         ).stdout.splitlines():
             image = json.loads(line)
             if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
-                HAVE_TEST_IMAGE = True
+                _HAVE_TEST_IMAGE = True
                 break
     except subprocess.CalledProcessError as e:
         print(
