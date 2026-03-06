@@ -156,7 +156,7 @@ jobs:
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           pytest \
-            -vvs \
+            -v \
             -n 3 \
             --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
             --store-durations \
