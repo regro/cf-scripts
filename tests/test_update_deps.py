@@ -802,7 +802,91 @@ extra:
     - andreyz4k
     - janjagusch
 """,
-        )
+        ),
+        # Test case for run_constrained updates in v1 recipes
+        (
+            """schema_version: 1
+
+context:
+  name: litellm
+  version: "1.55.8"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  sha256: abc123
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+  run:
+    - python >=${{ python_min }}
+    - httpx >=0.23.0
+  run_constrained:
+    - uvicorn >=0.31.1,<0.32.0
+
+about:
+  license: MIT
+  summary: Test package
+
+extra:
+  recipe-maintainers:
+    - test-maintainer
+""",
+            {
+                "host": {"cf_minus_df": set(), "df_minus_cf": set()},
+                "run": {"cf_minus_df": set(), "df_minus_cf": set()},
+                "run_constrained": {
+                    "cf_minus_df": {"uvicorn >=0.31.1,<0.32.0"},
+                    "df_minus_cf": {"uvicorn >=0.32.1,<1.0.0"},
+                },
+            },
+            """schema_version: 1
+
+context:
+  name: litellm
+  version: 1.55.8
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  sha256: abc123
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+  run:
+    - python >=${{ python_min }}
+    - httpx >=0.23.0
+  run_constrained:
+    - uvicorn >=0.32.1,<1.0.0
+about:
+  license: MIT
+  summary: Test package
+
+extra:
+  recipe-maintainers:
+    - test-maintainer
+""",
+        ),
     ],
 )
 def test_apply_dep_update_v1(
