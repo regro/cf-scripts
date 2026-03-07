@@ -50,6 +50,9 @@ SECTIONS_TO_UPDATE = ["run"]
 # packages (maintainer may have specific reasons for including them).
 # This prevents breaking changes while still keeping version constraints in sync.
 SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY = ["run_constrained"]
+# Sections to show add/remove suggestions in hints (excludes run_constrained
+# since we only update constraints there, not add/remove packages)
+SECTIONS_TO_HINT = ["host", "run"]
 
 IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
@@ -639,11 +642,11 @@ def generate_dep_hint(dep_comparison, kind):
 
     # For host/run sections: show add/remove suggestions
     df_cf = ""
-    for sec in ["host", "run"]:  # Exclude run_constrained from add suggestions
+    for sec in SECTIONS_TO_HINT:
         for k in dep_comparison.get(sec, {}).get("df_minus_cf", set()):
             df_cf += f"- {k}" + "\n"
     cf_df = ""
-    for sec in ["host", "run"]:  # Exclude run_constrained from remove suggestions
+    for sec in SECTIONS_TO_HINT:
         for k in dep_comparison.get(sec, {}).get("cf_minus_df", set()):
             cf_df += f"- {k}" + "\n"
 
