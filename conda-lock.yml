@@ -1848,7 +1848,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.55.1
+  version: 3.56.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1856,7 +1856,7 @@ package:
     backports.strenum: ''
     cirun: '>=0.30'
     conda: '>=4.2'
-    conda-build: '>=24.3'
+    conda-build: '>=25.3.1'
     conda-forge-pinning: ''
     conda-package-handling: '>=1.9.0'
     exceptiongroup: ''
@@ -1879,14 +1879,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.55.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 451cf4c2168f91dddaf3c35c5d2c01eb
-    sha256: 4a6e40cd91713a1c3074e914863b1369079101b50dc97f30e6fe07bef6789050
+    md5: 98b8483d37e7910568589a47b3dd3366
+    sha256: 0b8ca769defd6ca834e6c6490f99e7cb23ab00d3df11093961e3403ed4399186
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.55.1
+  version: 3.56.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1894,7 +1894,7 @@ package:
     backports.strenum: ''
     cirun: '>=0.30'
     conda: '>=4.2'
-    conda-build: '>=24.3'
+    conda-build: '>=25.3.1'
     conda-forge-pinning: ''
     conda-package-handling: '>=1.9.0'
     exceptiongroup: ''
@@ -1917,10 +1917,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.55.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 451cf4c2168f91dddaf3c35c5d2c01eb
-    sha256: 4a6e40cd91713a1c3074e914863b1369079101b50dc97f30e6fe07bef6789050
+    md5: 98b8483d37e7910568589a47b3dd3366
+    sha256: 0b8ca769defd6ca834e6c6490f99e7cb23ab00d3df11093961e3403ed4399186
   category: main
   optional: false
 - name: conda-souschef
