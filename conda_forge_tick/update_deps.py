@@ -885,15 +885,15 @@ def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
                 constraints_only=False,
             )
 
-    # Update run_constrained section (constraints only - no add/remove)
-    for section in SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY:
-        if section in requirements and section in dep_comparison:
-            section_key = cast(Literal["host", "run", "run_constrained"], section)
-            new_recipe["requirements"][section] = _apply_env_dep_comparison(
-                requirements[section],
-                dep_comparison[section_key],
-                constraints_only=True,
-            )
+    # Update run_constraints section (v1 name for run_constrained)
+    # constraints only - no add/remove
+    # Note: v0 uses "run_constrained", v1 uses "run_constraints"
+    if "run_constraints" in requirements and "run_constrained" in dep_comparison:
+        new_recipe["requirements"]["run_constraints"] = _apply_env_dep_comparison(
+            requirements["run_constraints"],
+            dep_comparison["run_constrained"],
+            constraints_only=True,
+        )
 
     return new_recipe
 

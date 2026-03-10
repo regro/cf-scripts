@@ -803,7 +803,8 @@ extra:
     - janjagusch
 """,
         ),
-        # Test case for run_constrained updates in v1 recipes
+        # Test case for run_constraints updates in v1 recipes
+        # Note: v1 recipes use "run_constraints", v0 uses "run_constrained"
         (
             """schema_version: 1
 
@@ -831,7 +832,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     - httpx >=0.23.0
-  run_constrained:
+  run_constraints:
     - uvicorn >=0.31.1,<0.32.0
 
 about:
@@ -876,7 +877,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     - httpx >=0.23.0
-  run_constrained:
+  run_constraints:
     - uvicorn >=0.32.1,<1.0.0
 about:
   license: MIT
