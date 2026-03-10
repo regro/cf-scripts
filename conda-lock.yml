@@ -702,7 +702,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.63
+  version: 1.42.64
   manager: conda
   platform: linux-64
   dependencies:
@@ -710,14 +710,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.63-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.64-pyhd8ed1ab_0.conda
   hash:
-    md5: 5406560f802f993c97b932f49e08bdd2
-    sha256: bb2718c1f99515bca3d184d38903a2b384d932bf66393c619fe4f42312fd81a1
+    md5: 5f3410b0f49dc28e7d604bf9c80cc5c0
+    sha256: 91ce89255d080720ab48ff4c4b23c76cd50c65335bc8b955767db76b08418c1a
   category: main
   optional: false
 - name: botocore
-  version: 1.42.63
+  version: 1.42.64
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -725,10 +725,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.63-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.64-pyhd8ed1ab_0.conda
   hash:
-    md5: 5406560f802f993c97b932f49e08bdd2
-    sha256: bb2718c1f99515bca3d184d38903a2b384d932bf66393c619fe4f42312fd81a1
+    md5: 5f3410b0f49dc28e7d604bf9c80cc5c0
+    sha256: 91ce89255d080720ab48ff4c4b23c76cd50c65335bc8b955767db76b08418c1a
   category: main
   optional: false
 - name: brotli-python
@@ -1848,7 +1848,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.56.1
+  version: 3.56.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -1879,14 +1879,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 98b8483d37e7910568589a47b3dd3366
-    sha256: 0b8ca769defd6ca834e6c6490f99e7cb23ab00d3df11093961e3403ed4399186
+    md5: ca3d761984247e464bc0ae9fd0cf7450
+    sha256: 22eed38961a8a4b73352ca060e38783b9dd372cb957bf5122b998d148c50b576
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.56.1
+  version: 3.56.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1917,10 +1917,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.56.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 98b8483d37e7910568589a47b3dd3366
-    sha256: 0b8ca769defd6ca834e6c6490f99e7cb23ab00d3df11093961e3403ed4399186
+    md5: ca3d761984247e464bc0ae9fd0cf7450
+    sha256: 22eed38961a8a4b73352ca060e38783b9dd372cb957bf5122b998d148c50b576
   category: main
   optional: false
 - name: conda-souschef
@@ -4246,29 +4246,29 @@ package:
   category: main
   optional: false
 - name: jaraco.context
-  version: 6.1.0
+  version: 6.1.1
   manager: conda
   platform: linux-64
   dependencies:
     backports.tarfile: ''
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.1-pyhcf101f3_0.conda
   hash:
-    md5: f34ec3aa0ea911a038d973d97603faf3
-    sha256: 04c9f919dcc9edd18f748c47d809479812429af27c43c5562a861df22d5bda6a
+    md5: 5ed60de12f1673398943262371667f79
+    sha256: 49c3e2e9aa4930734badfcbb31543406ed1b5531cb833f595cf57baf628dea7d
   category: main
   optional: false
 - name: jaraco.context
-  version: 6.1.0
+  version: 6.1.1
   manager: conda
   platform: osx-arm64
   dependencies:
     backports.tarfile: ''
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.1-pyhcf101f3_0.conda
   hash:
-    md5: f34ec3aa0ea911a038d973d97603faf3
-    sha256: 04c9f919dcc9edd18f748c47d809479812429af27c43c5562a861df22d5bda6a
+    md5: 5ed60de12f1673398943262371667f79
+    sha256: 49c3e2e9aa4930734badfcbb31543406ed1b5531cb833f595cf57baf628dea7d
   category: main
   optional: false
 - name: jaraco.functools
