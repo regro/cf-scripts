@@ -893,27 +893,27 @@ package:
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.4
+  version: 7.0.5
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.5-pyhd8ed1ab_0.conda
   hash:
-    md5: a7fef730ccbb250f134bd78c3bccd202
-    sha256: d2ff85604d13c73fed4b70abe7d54e589277cb7ba146bf4fbb1197e2f9737ff2
+    md5: a66a1542c3ed584ca4fdb23955d81e91
+    sha256: edfecb626da69607f926f51ad0d24942bfe9f7a29391d55d4ac62403e878605b
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.4
+  version: 7.0.5
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.4-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.5-pyhd8ed1ab_0.conda
   hash:
-    md5: a7fef730ccbb250f134bd78c3bccd202
-    sha256: d2ff85604d13c73fed4b70abe7d54e589277cb7ba146bf4fbb1197e2f9737ff2
+    md5: a66a1542c3ed584ca4fdb23955d81e91
+    sha256: edfecb626da69607f926f51ad0d24942bfe9f7a29391d55d4ac62403e878605b
   category: main
   optional: false
 - name: cairo
@@ -2822,27 +2822,27 @@ package:
   category: main
   optional: false
 - name: filelock
-  version: 3.25.0
+  version: 3.25.1
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 49a92015e912176999ae81bea11ea778
-    sha256: 55162ec0ff4e22d8f762b3e774f08f79f234ba37ab5e64d7a1421ed9216a222c
+    md5: e1301f0b6a104ca461697f394be2bd25
+    sha256: 3e9c0c2e956be0b6495e5102378cebbd666b4a58fe1c114bee41fd9078f9bf82
   category: main
   optional: false
 - name: filelock
-  version: 3.25.0
+  version: 3.25.1
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 49a92015e912176999ae81bea11ea778
-    sha256: 55162ec0ff4e22d8f762b3e774f08f79f234ba37ab5e64d7a1421ed9216a222c
+    md5: e1301f0b6a104ca461697f394be2bd25
+    sha256: 3e9c0c2e956be0b6495e5102378cebbd666b4a58fe1c114bee41fd9078f9bf82
   category: main
   optional: false
 - name: flask
