@@ -1523,25 +1523,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.09.07.50.11
+  version: 2026.03.10.04.02.21
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.09.07.50.11-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.10.04.02.21-hd8ed1ab_0.conda
   hash:
-    md5: 9476c0c84d8877077c9b9bce935dbf0b
-    sha256: df2ea5f1dc9dd7f04291ae76c3118515aab4eda26a9b11a70f38dade4867a273
+    md5: bae5ae0bf2834118966cd7e268f5cb23
+    sha256: 3eccadad3ee037e892c27783a255752ad611d2cdac535e6914948596a88b2101
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.09.07.50.11
+  version: 2026.03.10.04.02.21
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.09.07.50.11-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.10.04.02.21-hd8ed1ab_0.conda
   hash:
-    md5: 9476c0c84d8877077c9b9bce935dbf0b
-    sha256: df2ea5f1dc9dd7f04291ae76c3118515aab4eda26a9b11a70f38dade4867a273
+    md5: bae5ae0bf2834118966cd7e268f5cb23
+    sha256: 3eccadad3ee037e892c27783a255752ad611d2cdac535e6914948596a88b2101
   category: main
   optional: false
 - name: conda-index
@@ -4643,30 +4643,30 @@ package:
   category: main
   optional: false
 - name: lerc
-  version: 4.0.0
+  version: 4.1.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-    libstdcxx: '>=13'
-  url: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
+    libgcc: '>=14'
+    libstdcxx: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.1.0-hdb68285_0.conda
   hash:
-    md5: 9344155d33912347b37f0ae6c410a835
-    sha256: 412381a43d5ff9bbed82cd52a0bbca5b90623f62e41007c9c42d3870c60945ff
+    md5: a752488c68f2e7c456bcbd8f16eec275
+    sha256: f84cb54782f7e9cea95e810ea8fef186e0652d0fa73d3009914fa2c1262594e1
   category: main
   optional: false
 - name: lerc
-  version: 4.0.0
+  version: 4.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    libcxx: '>=18'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.0.0-hd64df32_1.conda
+    libcxx: '>=19'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.1.0-h1eee2c3_0.conda
   hash:
-    md5: a74332d9b60b62905e3d30709df08bf1
-    sha256: 12361697f8ffc9968907d1a7b5830e34c670e4a59b638117a2cdfed8f63a38f8
+    md5: 095e5749868adab9cae42d4b460e5443
+    sha256: 66e5ffd301a44da696f3efc2f25d6d94f42a9adc0db06c44ad753ab844148c51
   category: main
   optional: false
 - name: libarchive
