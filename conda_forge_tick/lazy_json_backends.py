@@ -1013,6 +1013,8 @@ class LazyJson(MutableMapping):
 
     def _load(self) -> None:
         if self._data is None:
+            lzj_is_new = False
+
             file_backend = LAZY_JSON_BACKENDS["file"]()
 
             # check if we have it in the cache first
@@ -1027,6 +1029,7 @@ class LazyJson(MutableMapping):
                     data_str = backend.hget(self.hashmap, self.node)
                 else:
                     data_str = dumps({})
+                    lzj_is_new = True
                     if not self._in_context:
                         # need to push file to backend since will not get
                         # done at end of context manager
@@ -1042,9 +1045,11 @@ class LazyJson(MutableMapping):
                 ):
                     file_backend.hset(self.hashmap, self.node, data_str)
 
-            self._data_hash_at_load = hashlib.sha256(
-                data_str.encode("utf-8"),
-            ).hexdigest()
+            self._data_hash_at_load = (
+                hashlib.sha256(
+                    data_str.encode("utf-8"),
+                ).hexdigest() if not lzj_is_new else ""
+            )
             self._data = loads(data_str)
 
     def _dump(self, purge=False) -> None:
