@@ -8,7 +8,7 @@ TOTAL_GRAPH = nx.DiGraph()
 TOTAL_GRAPH.graph["outputs_lut"] = {}
 cdt_migrator = CDTMigrator(total_graph = TOTAL_GRAPH)
 
-freecad_recipe = """\
+freecad_recipe_correct = """\
 {% set name = "freecad" %}
 {% set version = "1.0.0" %}
 {% set build_number = 4 %}
@@ -122,7 +122,7 @@ extra:
         - looooo
 """  # noqa
 
-freecad_recipe_correct = """\
+freecad_recipe = """\
 {% set name = "freecad" %}
 {% set version = "1.0.0" %}
 {% set build_number = 4 %}
