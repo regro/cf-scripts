@@ -1203,7 +1203,7 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
 
     Raises
     ------
-    `KeyError`
+    KeyError
         Raised if the required attributes `pr_info` or
         `version_pr_info` are missing.
     """
