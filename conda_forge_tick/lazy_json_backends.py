@@ -1048,7 +1048,9 @@ class LazyJson(MutableMapping):
             self._data_hash_at_load = (
                 hashlib.sha256(
                     data_str.encode("utf-8"),
-                ).hexdigest() if not lzj_is_new else ""
+                ).hexdigest()
+                if not lzj_is_new
+                else ""
             )
             self._data = loads(data_str)
 
