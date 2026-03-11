@@ -111,7 +111,7 @@ def _add_required_lazy_json_refs(attrs, name):
 
     for sub_lzj in ["version_pr_info", "pr_info"]:
         if sub_lzj not in attrs:
-            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")        
+            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
 
 
 def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:

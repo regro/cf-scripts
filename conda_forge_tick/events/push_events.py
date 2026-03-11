@@ -9,7 +9,7 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.make_graph import (
     _add_run_exports_per_node,
-    make_feedstock_required_lazy_json_refs,    
+    make_feedstock_required_lazy_json_refs,
     try_load_feedstock,
 )
 
@@ -44,7 +44,7 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
     with lazy_json_override_backends(["github_api"], use_file_cache=False):
         # next make the required references to other llazy json objects
         make_feedstock_required_lazy_json_refs(name)
-        
+
         with LazyJson("graph.json") as graph_json:
             gx = nx.node_link_graph(copy.deepcopy(graph_json.data), edges="links")
 
