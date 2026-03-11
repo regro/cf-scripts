@@ -328,14 +328,20 @@ def make_migrators(
     ),
     type=str,
 )
+@click.option("--debug/--no-debug", default=False)
 @pass_context
 def react_to_event(
     ctx: CliContext,
     event: str,
     uid: str,
+    debug: bool,
 ) -> None:
     """React to an event."""
     from .events import react_to_event
+
+    log_level = "debug" if debug else "info"
+    setup_logging(log_level)
+    ctx.debug = debug
 
     react_to_event(ctx, event, uid)
 
