@@ -74,15 +74,8 @@ class CDTMigrator(Migrator):
             | requirements.get("run", set())
             | requirements.get("test", set())
         )
-        needed = False
 
-        for k in cdt_mapping.keys():
-            if k in rq:
-                needed = True
-                break
-
-        return not needed
-        # return len(rq & self.packages) == 0
+        return "cdt_stub" not in rq
 
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
