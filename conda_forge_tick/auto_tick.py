@@ -1211,47 +1211,55 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
             if payload.get("archived", False):
                 continue
 
-            with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
-                # reset bad
-                pri["bad"] = False
-                vpri["bad"] = False
-
-                for __pri in [pri, vpri]:
-                    for migration in __pri.get("PRed", []):
-                        try:
-                            pr_json = migration.get("PR", {})
-                            # maybe add a pass check info here ? (if using DEBUG)
-                        except Exception as e:
-                            logger.error(
-                                "BOT-RERUN : could not proceed check with %s",
-                                node,
-                                exc_info=e,
-                            )
-                            raise e
-                        # if there is a valid PR and it isn't currently listed as rerun
-                        # but the PR needs a rerun
-                        if (
-                            pr_json
-                            and not migration["data"]["bot_rerun"]
-                            and "bot-rerun"
-                            in [lb["name"] for lb in pr_json.get("labels", [])]
-                        ):
-                            migration["data"]["bot_rerun"] = time.time()
-                            logger.info(
-                                "BOT-RERUN %s: processing bot rerun label "
-                                "for migration %s",
-                                name,
-                                migration["data"],
-                            )
-
-                            __name = get_migrator_report_name_from_pr_data(migration)
-                            if __name is not None:
-                                if __pri is pri:
-                                    _reset_migrator_pre_pr_migrator_fields(pri, __name)
-                                else:
-                                    _reset_version_pre_pr_migrator_fields(
-                                        vpri, version=__name
-                                    )
+            try:
+                with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
+                    # reset bad
+                    pri["bad"] = False
+                    vpri["bad"] = False
+    
+                    for __pri in [pri, vpri]:
+                        for migration in __pri.get("PRed", []):
+                            try:
+                                pr_json = migration.get("PR", {})
+                                # maybe add a pass check info here ? (if using DEBUG)
+                            except Exception as e:
+                                logger.error(
+                                    "BOT-RERUN : could not proceed check with %s",
+                                    node,
+                                    exc_info=e,
+                                )
+                                raise e
+                            # if there is a valid PR and it isn't currently listed as rerun
+                            # but the PR needs a rerun
+                            if (
+                                pr_json
+                                and not migration["data"]["bot_rerun"]
+                                and "bot-rerun"
+                                in [lb["name"] for lb in pr_json.get("labels", [])]
+                            ):
+                                migration["data"]["bot_rerun"] = time.time()
+                                logger.info(
+                                    "BOT-RERUN %s: processing bot rerun label "
+                                    "for migration %s",
+                                    name,
+                                    migration["data"],
+                                )
+    
+                                __name = get_migrator_report_name_from_pr_data(migration)
+                                if __name is not None:
+                                    if __pri is pri:
+                                        _reset_migrator_pre_pr_migrator_fields(pri, __name)
+                                    else:
+                                        _reset_version_pre_pr_migrator_fields(
+                                            vpri, version=__name
+                                        )
+            except KeyError as e:
+                logger.error(
+                    "BOT-RERUN : missing key for node %s",
+                    node,
+                    exc_info=e,
+                )
+                raise e
 
 
 def _update_nodes_with_new_versions(gx):
