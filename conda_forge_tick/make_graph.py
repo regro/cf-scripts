@@ -96,7 +96,7 @@ def make_feedstock_required_lazy_json_refs(name):
             if key not in vpri:
                 vpri[key] = {}
 
-    with LazyJson(f"pr_info/{name}.json") as vpri:
+    with LazyJson(f"pr_info/{name}.json") as pri:
         for key in [
             "pre_pr_migrator_status",
             "pre_pr_migrator_attempts",
