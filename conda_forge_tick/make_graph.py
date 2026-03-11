@@ -87,7 +87,9 @@ def make_outputs_lut_from_graph(gx):
 
 
 def make_feedstock_required_lazy_json_refs(name, _in_vpri=None, _in_pri=None):
-    lzj_vpri = _in_vpri if _in_vpri is not None else LazyJson(f"version_pr_info/{name}.json")
+    lzj_vpri = (
+        _in_vpri if _in_vpri is not None else LazyJson(f"version_pr_info/{name}.json")
+    )
     with lzj_vpri as vpri:
         for key in [
             "new_version_attempts",
