@@ -96,9 +96,6 @@ test:
     commands:
         - freecadcmd -t 0  # [unix and build_platform == target_platform]
 
-outputs:
-  - name: asdd
-
 about:
     home: https://www.freecad.org/
     license: LGPL-2.1-or-later

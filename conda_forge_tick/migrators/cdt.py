@@ -1,5 +1,6 @@
 import re
 import textwrap
+from itertools import chain
 from typing import Any
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
@@ -80,11 +81,54 @@ class CDTMigrator(Migrator):
             self.set_build_number("meta.yaml")
 
             with open("meta.yaml") as fp:
-                yaml = fp.read()
+                yaml = fp.readlines()
+
+            # Locate all requirement sections.
+            # (start, end, indent)
+            requirement_ranges: list[tuple[int, int, str]] = []
+            yaml_iter = enumerate(yaml)
+            for start_lineno, line in yaml_iter:
+                line_lstrip = line.lstrip()
+                if line_lstrip.rstrip() == "requirements:":
+                    indent = (len(line) - len(line_lstrip) + 1) * " "
+                    for end_lineno, end_line in yaml_iter:
+                        if end_line.strip() and not end_line.startswith(indent):
+                            requirement_ranges.append(
+                                (start_lineno + 1, end_lineno - 1, indent)
+                            )
+                            break
+
+            # Process requirement sections in reverse order, to avoid changing linenos.
+            for req_start, req_end, req_indent in reversed(requirement_ranges):
+                req_section = yaml[req_start:req_end]
+
+                # Locate subsections.
+                subsections: dict[str, list[str]] = {}
+                req_iter = iter(req_section)
+                current_section: str | None = None
+                current_section_start: int | None = None
+                for lineno, line in enumerate(req_iter):
+                    if not line.strip():
+                        continue
+                    first_word = line.split(maxsplit=1)[0]
+                    if first_word.endswith(":"):
+                        if current_section is not None:
+                            subsections[current_section] = req_section[
+                                current_section_start:lineno
+                            ]
+                        current_section = first_word
+                        current_section_start = lineno
+                if current_section is not None:
+                    subsections[current_section] = req_section[
+                        current_section_start : lineno + 1
+                    ]
+
+                # Reconstruct the requirement section.
+                yaml[req_start:req_end] = chain.from_iterable(subsections.values())
 
             # Rewrite the recipe file
             with open("meta.yaml", "w") as fp:
-                fp.write(yaml)
+                fp.write("".join(yaml))
 
         # TODO: remove duplicate libgl entries
 
