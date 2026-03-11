@@ -86,12 +86,8 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
-def _add_required_lazy_json_refs(attrs, name):
-    for sub_lzj in ["version_pr_info", "pr_info"]:
-        if sub_lzj not in attrs:
-            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
-
-    with attrs["version_pr_info"] as vpri:
+def make_feedstock_required_lazy_json_refs(name):
+    with LazyJson(f"version_pr_info/{name}.json") as vpri:
         for key in [
             "new_version_attempts",
             "new_version_errors",
@@ -100,7 +96,7 @@ def _add_required_lazy_json_refs(attrs, name):
             if key not in vpri:
                 vpri[key] = {}
 
-    with attrs["pr_info"] as pri:
+    with LazyJson(f"pr_info/{name}.json") as vpri:
         for key in [
             "pre_pr_migrator_status",
             "pre_pr_migrator_attempts",
@@ -108,6 +104,14 @@ def _add_required_lazy_json_refs(attrs, name):
         ]:
             if key not in pri:
                 pri[key] = {}
+
+
+def _add_required_lazy_json_refs(attrs, name):
+    for sub_lzj in ["version_pr_info", "pr_info"]:
+        if sub_lzj not in attrs:
+            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
+    
+    make_feedstock_required_lazy_json_refs(name)
 
 
 def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:
