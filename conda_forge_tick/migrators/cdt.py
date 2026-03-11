@@ -76,7 +76,7 @@ class CDTMigrator(Migrator):
         )
         needed = False
 
-        for k in ctd_mapping.keys():
+        for k in cdt_mapping.keys():
             if k in requirements:
                 needed = True
                 break
