@@ -1199,7 +1199,11 @@ def _setup_limits():
 
 
 def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
-    """Go through all the open PRs and check if they are rerun."""
+    """Go through all the open PRs and check if they are rerun.
+
+    Raises a KeyError if the required attributes `pr_info` or
+    `version_pr_info` are missing.
+    """
     print("processing bot-rerun labels", flush=True)
 
     for i, (name, node) in enumerate(gx.nodes.items()):
