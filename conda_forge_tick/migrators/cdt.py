@@ -123,6 +123,12 @@ class CDTMigrator(Migrator):
                         current_section_start : lineno + 1
                     ]
 
+                # If there is no "host" section, create one.
+                # TODO: create only when we need it.
+                if "host:" not in subsections:
+                    key, lines = next(iter(subsections.items()))
+                    subsections["host:"] = [lines[0].replace(key, "host:")]
+
                 # Reconstruct the requirement section.
                 yaml[req_start:req_end] = chain.from_iterable(subsections.values())
 
