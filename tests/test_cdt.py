@@ -1,7 +1,7 @@
 import networkx as nx
 from test_migrators import run_test_migration
 
-from conda_forge_tick.migrators import CDTMigrator, Version
+from conda_forge_tick.migrators import CDTMigrator
 
 TOTAL_GRAPH = nx.DiGraph()
 TOTAL_GRAPH.graph["outputs_lut"] = {}
@@ -246,9 +246,9 @@ def test_cdt(tmp_path):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.0.0"},
         mr_out={
-            "migrator_name": Version.name,
-            "migrator_version": Version.migrator_version,
-            "version": "1.0.0",
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
         },
         tmp_path=tmp_path,
     )
