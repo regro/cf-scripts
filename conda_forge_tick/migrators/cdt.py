@@ -30,16 +30,12 @@ cdt_mapping = {
     "mesa-libegl-devel": "libgl-devel",
     "libselinux": "libselinux",
     "libglvnd-opengl": "libglvnd-opengl",
-    "libxcb": "libxcb",
-    "libxau": "xorg-libxau",
     "systemd-devel": "systemd-devel",
-    "libudev": "libudev",
     "libudev-devel": "libudev-devel",
     "numactl-devel": "numactl-devel",
     "pciutils-devel": "pciutils-devel",
     "libxi-devel": "xorg-libxi",
     "libxrandr-devel": "xorg-librandr",
-    "libuuid": "libuuid",
     "alsa-lib-devel": "alsa-lib-devel",
     "gtk2-devel": "gtk2-devel",
 }
@@ -48,10 +44,15 @@ cdt_mapping = {
 def _replace_cdts(yaml):
 
     def replacer(match):
+        print(match)
         package = match.group(1).strip()
-        return cdt_mapping.get(package, package)
+        return cdt_mapping[package]
 
-    pattern = re.compile(r"\{\{\s*cdt\('([^']+)'\)\s*\}\}")
+    pattern = re.compile(
+        r"\{\{ \s* cdt\( ['\"] (?P<cdt> .+?) ['\"] \) \s* \}\}"
+        r"(?P<post_package> .*?) (?P<selector> \#.*)? $",
+        re.VERBOSE | re.MULTILINE,
+    )
     replaced_yaml = pattern.sub(replacer, yaml)
     return replaced_yaml
 
@@ -68,12 +69,7 @@ class CDTMigrator(Migrator):
         # we need to check if there is any cdt package as dependency
         requirements = attrs.get("requirements", {})
 
-        rq = (
-            requirements.get("build", set())
-            | requirements.get("host", set())
-            | requirements.get("run", set())
-            | requirements.get("test", set())
-        )
+        rq = requirements.get("build", set()) | requirements.get("host", set())
 
         return "cdt_stub" not in rq
 
@@ -81,10 +77,10 @@ class CDTMigrator(Migrator):
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
     ) -> MigrationUidTypedDict:
         with pushd(recipe_dir):
+            self.set_build_number("meta.yaml")
+
             with open("meta.yaml") as fp:
                 yaml = fp.read()
-
-            yaml = _replace_cdts(yaml)
 
             # Rewrite the recipe file
             with open("meta.yaml", "w") as fp:
