@@ -109,19 +109,20 @@ package:
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
+    _python_abi3_support: 1.*
     certifi: ''
+    cpython: '>=3.10'
     cryptography: '>=42.0.0'
-    libgcc-ng: '>=12'
+    libgcc: '>=14'
     openssl: ''
     pylsqpack: '>=0.3.3,<0.4.0'
     pyopenssl: ''
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
+    python: ''
     service-identity: '>=24.1.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/aioquic-1.2.0-py312h41a817b_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/aioquic-1.2.0-py310h11f3345_2.conda
   hash:
-    md5: 3f4800a1d36e382527e44e08ca8641bb
-    sha256: badf56fc2c2e7236e28145f807889da5745b50d8764cf2a063c4b7e5f6edae17
+    md5: a300e3e5669a7fe948a0838e7416258f
+    sha256: b237c8f3398e260a3c1c828febce8ad49d3b6d9c8235fc7855b74b5207f8ffc9
   category: main
   optional: false
 - name: aioquic
@@ -130,18 +131,19 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
+    _python_abi3_support: 1.*
     certifi: ''
+    cpython: '>=3.10'
     cryptography: '>=42.0.0'
     openssl: ''
     pylsqpack: '>=0.3.3,<0.4.0'
     pyopenssl: ''
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
+    python: ''
     service-identity: '>=24.1.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/aioquic-1.2.0-py312h7e5086c_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/aioquic-1.2.0-py310h1fed13b_2.conda
   hash:
-    md5: e69b4f7bc1f313fecb0dc812ee0c35ba
-    sha256: 40f9ff68f19bf6665af8e94a45f473219417c7280af0f026eb3c02b1f1629cc1
+    md5: 5c8604303c8f493b804d36907043ca37
+    sha256: 6938754f66eabc9f613da1d923aaeab696d205b780487f9bb310d42ec6689ce9
   category: main
   optional: false
 - name: annotated-doc
@@ -1523,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.10.04.02.21
+  version: 2026.03.11.13.22.06
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.10.04.02.21-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.11.13.22.06-hd8ed1ab_0.conda
   hash:
-    md5: bae5ae0bf2834118966cd7e268f5cb23
-    sha256: 3eccadad3ee037e892c27783a255752ad611d2cdac535e6914948596a88b2101
+    md5: d73ec34bcaf6b3ba7e1c60b910031f68
+    sha256: 7330a8e321afa103607ca8b6b3c7da811eafa6900ab807accc8206da5f08a76a
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.10.04.02.21
+  version: 2026.03.11.13.22.06
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.10.04.02.21-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.11.13.22.06-hd8ed1ab_0.conda
   hash:
-    md5: bae5ae0bf2834118966cd7e268f5cb23
-    sha256: 3eccadad3ee037e892c27783a255752ad611d2cdac535e6914948596a88b2101
+    md5: d73ec34bcaf6b3ba7e1c60b910031f68
+    sha256: 7330a8e321afa103607ca8b6b3c7da811eafa6900ab807accc8206da5f08a76a
   category: main
   optional: false
 - name: conda-index
