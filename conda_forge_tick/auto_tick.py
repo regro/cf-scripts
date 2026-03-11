@@ -1216,7 +1216,7 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                     # reset bad
                     pri["bad"] = False
                     vpri["bad"] = False
-    
+
                     for __pri in [pri, vpri]:
                         for migration in __pri.get("PRed", []):
                             try:
@@ -1244,11 +1244,15 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                     name,
                                     migration["data"],
                                 )
-    
-                                __name = get_migrator_report_name_from_pr_data(migration)
+
+                                __name = get_migrator_report_name_from_pr_data(
+                                    migration
+                                )
                                 if __name is not None:
                                     if __pri is pri:
-                                        _reset_migrator_pre_pr_migrator_fields(pri, __name)
+                                        _reset_migrator_pre_pr_migrator_fields(
+                                            pri, __name
+                                        )
                                     else:
                                         _reset_version_pre_pr_migrator_fields(
                                             vpri, version=__name
