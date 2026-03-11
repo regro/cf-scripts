@@ -1,12 +1,11 @@
 import networkx as nx
-
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import CDTMigrator, Version
 
 TOTAL_GRAPH = nx.DiGraph()
 TOTAL_GRAPH.graph["outputs_lut"] = {}
-cdt_migrator = CDTMigrator(total_graph = TOTAL_GRAPH)
+cdt_migrator = CDTMigrator(total_graph=TOTAL_GRAPH)
 
 freecad_recipe_correct = """\
 {% set name = "freecad" %}
