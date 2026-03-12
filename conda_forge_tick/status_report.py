@@ -69,7 +69,16 @@ def _sorted_set_json(obj: Any) -> Any:
 
 
 def _ok_version(ver):
-    return ver is not None and ver and isinstance(ver, str)
+    ver_ok = ver is not None and ver and isinstance(ver, str)
+
+    ver_parses = True
+    if ver_ok:
+        try:
+            VersionOrder(ver.replace("-", "."))
+        except Exception:
+            ver_parses = False
+
+    return ver_ok and ver_parses
 
 
 def write_version_migrator_status(migrator, mctx):
