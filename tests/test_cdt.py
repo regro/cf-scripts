@@ -184,16 +184,8 @@ requirements:
         - xorg-xproto   # [linux]
         - yaml-cpp
         - zlib
-        - libgl-devel                # [linux]
-        - xorg-libselinux            # [linux]
-        - xorg-libxdamage            # [linux]
-        - xorg-libxfixes             # [linux]
-        - xorg-libxxf86vm            # [linux]
-        - xorg-libxcb                # [linux]
-        - xorg-libxext               # [linux]
-        - xorg-x11-server-xvfb       # [linux]
-        - xorg-libxau                # [linux]
-        - xorg-libxi                 # [linux]
+        - libgl-devel                        # [linux]
+        - xorg-libxi                         # [linux]
     run:
         - graphviz
         - gmsh
