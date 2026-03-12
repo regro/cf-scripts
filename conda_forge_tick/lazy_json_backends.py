@@ -347,6 +347,10 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
 
     def hexists(self, name: str, key: str) -> bool:
         pth = get_sharded_path(f"{name}/{key}.json")
+
+        logger.debug(
+            "GithubAPILazyJsonBackend EXISTS: (%s, %s) w/ path %s", name, key, pth
+        )
         try:
             self._repo.get_contents(pth)
         except github.GithubException as e:
@@ -365,6 +369,10 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
             fn = fn[:-5]
         pth = get_sharded_path(filename)
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
+
+        logger.debug(
+            "GithubAPILazyJsonBackend SET: (%s, %s) w/ path %s", name, key, pth
+        )
 
         # exponential backoff will be self._exp_backoff_base**tr
         for tr in range(self._exp_backoff_ntries):
@@ -441,6 +449,10 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         pth = get_sharded_path(filename)
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
+        logger.debug(
+            "GithubAPILazyJsonBackend DEL: (%s, %s) w/ path %s", name, key, pth
+        )
+
         # exponential backoff will be self._exp_backoff_base**tr
         for tr in range(self._exp_backoff_ntries):
             try:
@@ -498,6 +510,10 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
             "Accept": "application/vnd.github.raw+json",
             "Authorization": f"Bearer {get_bot_token()}",
         }
+
+        logger.debug(
+            "GithubAPILazyJsonBackend GET: (%s, %s) w/ path %s", name, key, pth
+        )
 
         # exponential backoff will be self._exp_backoff_base**tr
         for tr in range(self._exp_backoff_ntries):
