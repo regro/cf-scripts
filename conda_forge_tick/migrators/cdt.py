@@ -167,17 +167,18 @@ class CDTMigrator(Migrator):
         body = body.format(
             textwrap.dedent(
                 """\
-
+The [Core Dependency Tree (CDT) packages are being phased out](https://github.com/conda-forge/cdt-builds/issues/89).
+This migrator will attempt to replace the CDT dependencies with regular conda-forge packages.
 """,
             )
         )
         return body
 
     def commit_message(self, feedstock_ctx) -> str:
-        return "Migrate CDT dependencies to regular feedstocks"
+        return "Migrate CDT dependencies to regular packages"
 
     def pr_title(self, feedstock_ctx) -> str:
-        return "Migrate CDT dependencies to regular feedstocks"
+        return "Migrate CDT dependencies to regular packages"
 
     def remote_branch(self, feedstock_ctx) -> str:
         return f"{self.name}-migration-{self.migrator_version}"
