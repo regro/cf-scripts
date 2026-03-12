@@ -304,7 +304,7 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
     return deps
 
 
-def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
+def _create_edges(gx: nx.DiGraph, new_names: set[str]) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
     # This drops all the edge data and only keeps the node data
@@ -321,7 +321,12 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
-                lzj = LazyJson(f"node_attrs/{dep}.json")
+                if dep in new_names:
+                    # we use the stub here to ensure we do not create a new node
+                    # for an actual feedstock by leaving a file on disk or syncing the json
+                    lzj = LazyJsonStub(f"node_attrs/{dep}.json")  # type: ignore[assignment]
+                else:
+                    lzj = LazyJson(f"node_attrs/{dep}.json")  # type: ignore[assignment]
                 with lzj as _attrs:
                     _attrs.update(
                         feedstock_name=dep,
@@ -434,7 +439,7 @@ def main(
 
         _add_graph_metadata(gx)
 
-        gx = _create_edges(gx)
+        gx = _create_edges(gx, new_names)
 
         dump_graph(gx)
     else:
