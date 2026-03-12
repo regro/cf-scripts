@@ -1,6 +1,5 @@
 import hashlib
 import logging
-import os
 import re
 import secrets
 import time
@@ -17,8 +16,8 @@ from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
+    LazyJsonStub,
     get_lazy_json_backends,
-    get_sharded_path,
     lazy_json_override_backends,
     lazy_json_transaction,
 )
@@ -420,12 +419,17 @@ def main(
     if update_nodes_and_edges:
         new_names = {name for name in names if name not in gx.nodes}
         for name in names:
-            sub_graph = {
-                "payload": LazyJson(f"node_attrs/{name}.json"),
-            }
             if name in new_names:
+                # we use the stub here to ensure we do not create a new node
+                # by leaving a file on disk or syncing the json
+                sub_graph = {
+                    "payload": LazyJsonStub(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
+                }
                 gx.add_node(name, **sub_graph)
             else:
+                sub_graph = {
+                    "payload": LazyJson(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
+                }
                 gx.nodes[name].update(**sub_graph)
 
         _add_graph_metadata(gx)
@@ -433,14 +437,6 @@ def main(
         gx = _create_edges(gx)
 
         dump_graph(gx)
-
-        # we remove new node's attributes file since those
-        # should only be written by push events or the
-        # update nodes jobs
-        for name in new_names:
-            pth = get_sharded_path(f"node_attrs/{name}.json")
-            if os.path.exists(pth):
-                os.remove(pth)
     else:
         new_names = {name for name in names if name not in gx.nodes}
 
