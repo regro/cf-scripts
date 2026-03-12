@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.65
+  version: 1.42.66
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.65-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.66-pyhd8ed1ab_0.conda
   hash:
-    md5: 1d160a4ec14de5c7a907a033a33af580
-    sha256: 9b1420f4bf4b7137f4f5d9f778368f398a00a97fede06bd760e06473b4849f6b
+    md5: 9c030aa570a74ead776e134cf20a0ff8
+    sha256: 25a847366f334d8e6830208874e14058bbd999232bd09b5a7131449eba8d25b3
   category: main
   optional: false
 - name: botocore
-  version: 1.42.65
+  version: 1.42.66
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.65-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.66-pyhd8ed1ab_0.conda
   hash:
-    md5: 1d160a4ec14de5c7a907a033a33af580
-    sha256: 9b1420f4bf4b7137f4f5d9f778368f398a00a97fede06bd760e06473b4849f6b
+    md5: 9c030aa570a74ead776e134cf20a0ff8
+    sha256: 25a847366f334d8e6830208874e14058bbd999232bd09b5a7131449eba8d25b3
   category: main
   optional: false
 - name: brotli-python
@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.11.21.47.01
+  version: 2026.03.12.05.02.12
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.11.21.47.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.05.02.12-hd8ed1ab_0.conda
   hash:
-    md5: df982c2174bda8a95bf8675d89b40a99
-    sha256: aeb95ce547d62f3c23fa16736917ce2e11973a00e924ff8d5e96bfd976b72841
+    md5: 2afc04d30f707e5f8c8399514c687bd0
+    sha256: 5c7d2048f9774a3475e0cf078e9503f7d37d0bc03d61208f0ee9f654b80be5d3
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.11.21.47.01
+  version: 2026.03.12.05.02.12
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.11.21.47.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.05.02.12-hd8ed1ab_0.conda
   hash:
-    md5: df982c2174bda8a95bf8675d89b40a99
-    sha256: aeb95ce547d62f3c23fa16736917ce2e11973a00e924ff8d5e96bfd976b72841
+    md5: 2afc04d30f707e5f8c8399514c687bd0
+    sha256: 5c7d2048f9774a3475e0cf078e9503f7d37d0bc03d61208f0ee9f654b80be5d3
   category: main
   optional: false
 - name: conda-index
