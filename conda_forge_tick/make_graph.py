@@ -16,6 +16,7 @@ from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
+    LazyJsonStub,
     get_lazy_json_backends,
     lazy_json_override_backends,
     lazy_json_transaction,
@@ -29,7 +30,6 @@ from .utils import (
     as_iterable,
     dump_graph,
     load_existing_graph,
-    load_graph,
     sanitize_string,
 )
 
@@ -304,7 +304,7 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
     return deps
 
 
-def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
+def _create_edges(gx: nx.DiGraph, new_names: set[str]) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
     # This drops all the edge data and only keeps the node data
@@ -321,9 +321,19 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
-                lzj = LazyJson(f"node_attrs/{dep}.json")
+                if dep in new_names:
+                    # we use the stub here to ensure we do not create a new node
+                    # for an actual feedstock by leaving a file on disk or syncing the json
+                    lzj = LazyJsonStub(f"node_attrs/{dep}.json")  # type: ignore[assignment]
+                else:
+                    lzj = LazyJson(f"node_attrs/{dep}.json")  # type: ignore[assignment]
                 with lzj as _attrs:
-                    _attrs.update(feedstock_name=dep, bad=False, archived=True)
+                    _attrs.update(
+                        feedstock_name=dep,
+                        bad=False,
+                        archived=True,
+                        parsing_error=False,
+                    )
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
@@ -409,27 +419,31 @@ def main(
     logger.info("active nodes: %d", len(names))
     logger.info("archived nodes: %d", len(archived_names))
 
-    if update_nodes_and_edges:
-        gx = load_existing_graph()
+    gx = load_existing_graph()
 
-        new_names = [name for name in names if name not in gx.nodes]
+    if update_nodes_and_edges:
+        new_names = {name for name in names if name not in gx.nodes}
         for name in names:
-            sub_graph = {
-                "payload": LazyJson(f"node_attrs/{name}.json"),
-            }
             if name in new_names:
+                # we use the stub here to ensure we do not create a new node
+                # by leaving a file on disk or syncing the json
+                sub_graph = {
+                    "payload": LazyJsonStub(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
+                }
                 gx.add_node(name, **sub_graph)
             else:
+                sub_graph = {
+                    "payload": LazyJson(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
+                }
                 gx.nodes[name].update(**sub_graph)
 
         _add_graph_metadata(gx)
 
-        gx = _create_edges(gx)
+        gx = _create_edges(gx, new_names)
 
         dump_graph(gx)
-
     else:
-        gx = load_graph()
+        new_names = {name for name in names if name not in gx.nodes}
 
         with lazy_json_override_backends(
             ["file"],
@@ -437,7 +451,11 @@ def main(
             keys_to_sync=set(tot_names_for_this_job),
         ):
             if schema_migration_only:
-                _migrate_schemas(tot_names_for_this_job)
+                # we skip new nodes since their data may not be pulled down locally
+                # we will get them eventually once the make graph job has run
+                _migrate_schemas(
+                    [nm for nm in tot_names_for_this_job if nm not in new_names]
+                )
             else:
                 _update_graph_nodes(
                     names_for_this_job,

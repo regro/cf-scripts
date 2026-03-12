@@ -975,6 +975,8 @@ def sync_lazy_json_object(
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated."""
 
+    _no_sync = False
+
     def __init__(self, file_name: str):
         self.file_name = file_name
         self._data: dict | None = None
@@ -993,7 +995,7 @@ class LazyJson(MutableMapping):
         self.sharded_path = get_sharded_path(f"{self.hashmap}/{self.node}.json")
 
         # make this backwards compatible with old behavior
-        if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
+        if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file" and not self._no_sync:
             LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
                 self.hashmap,
                 self.node,
@@ -1046,7 +1048,7 @@ class LazyJson(MutableMapping):
                 else:
                     data_str = dumps({})
                     lzj_is_new = True
-                    if not self._in_context:
+                    if not self._in_context and not self._no_sync:
                         # need to push file to backend since will not get
                         # done at end of context manager
                         backend.hset(self.hashmap, self.node, data_str)
@@ -1058,6 +1060,7 @@ class LazyJson(MutableMapping):
                 if (
                     CF_TICK_GRAPH_DATA_USE_FILE_CACHE
                     and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file"
+                    and not self._no_sync
                 ):
                     file_backend.hset(self.hashmap, self.node, data_str)
 
@@ -1077,21 +1080,23 @@ class LazyJson(MutableMapping):
         if curr_hash != self._data_hash_at_load:
             self._data_hash_at_load = curr_hash
 
-            # cache it locally
-            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
-                file_backend = LAZY_JSON_BACKENDS["file"]()
-                file_backend.hset(self.hashmap, self.node, data_str)
+            if not self._no_sync:
+                # cache it locally
+                if CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
+                    file_backend = LAZY_JSON_BACKENDS["file"]()
+                    file_backend.hset(self.hashmap, self.node, data_str)
 
-            # sync changes to all backends
-            for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
-                if backend_name == "file" and CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
-                    continue
-                backend = LAZY_JSON_BACKENDS[backend_name]()
-                backend.hset(self.hashmap, self.node, data_str)
+                # sync changes to all backends
+                for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
+                    if backend_name == "file" and CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
+                        continue
+                    backend = LAZY_JSON_BACKENDS[backend_name]()
+                    backend.hset(self.hashmap, self.node, data_str)
 
-        if purge:
+        if purge and not self._no_sync:
             # this evicts the json from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this
+            # we never purge if we don't sync to disk or elsewhere
             self._data = None
             self._data_hash_at_load = None
 
@@ -1127,6 +1132,12 @@ class LazyJson(MutableMapping):
             return self.data == other
         else:
             return super().__eq__(other)
+
+
+class LazyJsonStub(LazyJson):
+    """A stub LazyJson object that does not create files on disk or sync to backends."""
+
+    _no_sync = True
 
 
 def default(obj: Any) -> Any:

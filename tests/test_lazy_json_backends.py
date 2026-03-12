@@ -18,6 +18,7 @@ from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     GithubLazyJsonBackend,
     LazyJson,
+    LazyJsonStub,
     MongoDBLazyJsonBackend,
     dump,
     dumps,
@@ -604,6 +605,81 @@ def test_lazy_json_default(tmpdir):
             attrs.clear()
         with open(fpth) as ff:
             assert ff.read() == dumps({})
+
+
+def test_lazy_json_stub_default(tmpdir):
+    with pushd(str(tmpdir)):
+        f = "hi.json"
+        fpth = get_sharded_path(f)
+        assert fpth == f
+        assert not os.path.exists(fpth)
+        lj = LazyJsonStub(f)
+        assert not os.path.exists(lj.file_name)
+        assert not os.path.exists(fpth)
+        assert lj.json_ref == {"__lazy_json__": lj.file_name}
+        assert lj.sharded_path == get_sharded_path(f"{lj.hashmap}/{lj.node}.json")
+
+        with pytest.raises(AssertionError):
+            lj.update({"hi": "globe"})
+
+        p = pickle.dumps(lj)
+        lj2 = pickle.loads(p)
+        assert not getattr(lj2, "_data", None)
+
+        with lj as attrs:
+            attrs.setdefault("lst", []).append("universe")
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps({"lst": ["universe"]})
+
+        with lj as attrs:
+            attrs.setdefault("lst", []).append("universe")
+            with lj as attrs_again:
+                attrs_again.setdefault("lst", []).append("universe")
+                attrs.setdefault("lst", []).append("universe")
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps({"lst": ["universe"] * 4})
+
+        with lj as attrs:
+            with lj as attrs_again:
+                attrs_again.setdefault("lst2", []).append("universe")
+                attrs.setdefault("lst2", []).append("universe")
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps(
+            {"lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+        )
+
+        with lj as attrs:
+            del attrs["lst"]
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps(
+            {"lst2": ["universe"] * 2},
+        )
+
+        with lj as attrs:
+            attrs.pop("lst2")
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps({})
+
+        with lj as attrs:
+            attrs["hi"] = "world"
+        assert not os.path.exists(lj.sharded_path)
+
+        with pytest.raises(AssertionError):
+            lj["hi"] = "worldz"
+
+        assert lj.data == {"hi": "world"}
+        assert lj["hi"] == "world"
+
+        assert len(lj) == 1
+        assert {k for k in lj} == {"hi"}
+
+        with pytest.raises(AssertionError):
+            lj.clear()
+        assert not os.path.exists(lj.sharded_path)
+        with lj as attrs:
+            attrs.clear()
+        assert not os.path.exists(lj.sharded_path)
+        assert dumps(lj.data) == dumps({})
 
 
 def test_lazy_json_backends_hashmap(tmpdir):
