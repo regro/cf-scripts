@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.12.05.02.12
+  version: 2026.03.12.11.42.55
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.05.02.12-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.11.42.55-hd8ed1ab_0.conda
   hash:
-    md5: 2afc04d30f707e5f8c8399514c687bd0
-    sha256: 5c7d2048f9774a3475e0cf078e9503f7d37d0bc03d61208f0ee9f654b80be5d3
+    md5: 12ea09cf6e696cbe5346b4926e729d5e
+    sha256: 7f3b3232bccdeb85acdbeb856abfd29fbf73af8c4d68b9459e83da5964411160
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.12.05.02.12
+  version: 2026.03.12.11.42.55
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.05.02.12-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.12.11.42.55-hd8ed1ab_0.conda
   hash:
-    md5: 2afc04d30f707e5f8c8399514c687bd0
-    sha256: 5c7d2048f9774a3475e0cf078e9503f7d37d0bc03d61208f0ee9f654b80be5d3
+    md5: 12ea09cf6e696cbe5346b4926e729d5e
+    sha256: 7f3b3232bccdeb85acdbeb856abfd29fbf73af8c4d68b9459e83da5964411160
   category: main
   optional: false
 - name: conda-index
@@ -2824,27 +2824,27 @@ package:
   category: main
   optional: false
 - name: filelock
-  version: 3.25.1
+  version: 3.25.2
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.1-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.2-pyhd8ed1ab_0.conda
   hash:
-    md5: e1301f0b6a104ca461697f394be2bd25
-    sha256: 3e9c0c2e956be0b6495e5102378cebbd666b4a58fe1c114bee41fd9078f9bf82
+    md5: f58064cec97b12a7136ebb8a6f8a129b
+    sha256: dddea9ec53d5e179de82c24569d41198f98db93314f0adae6b15195085d5567f
   category: main
   optional: false
 - name: filelock
-  version: 3.25.1
+  version: 3.25.2
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.1-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.2-pyhd8ed1ab_0.conda
   hash:
-    md5: e1301f0b6a104ca461697f394be2bd25
-    sha256: 3e9c0c2e956be0b6495e5102378cebbd666b4a58fe1c114bee41fd9078f9bf82
+    md5: f58064cec97b12a7136ebb8a6f8a129b
+    sha256: dddea9ec53d5e179de82c24569d41198f98db93314f0adae6b15195085d5567f
   category: main
   optional: false
 - name: flask
