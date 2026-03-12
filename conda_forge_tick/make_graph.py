@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import os
 import re
 import secrets
 import time
@@ -17,6 +18,7 @@ from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
     get_lazy_json_backends,
+    get_sharded_path,
     lazy_json_override_backends,
     lazy_json_transaction,
 )
@@ -29,7 +31,6 @@ from .utils import (
     as_iterable,
     dump_graph,
     load_existing_graph,
-    load_graph,
     sanitize_string,
 )
 
@@ -323,7 +324,12 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                 # usually these are stubs
                 lzj = LazyJson(f"node_attrs/{dep}.json")
                 with lzj as _attrs:
-                    _attrs.update(feedstock_name=dep, bad=False, archived=True)
+                    _attrs.update(
+                        feedstock_name=dep,
+                        bad=False,
+                        archived=True,
+                        parsing_error=False,
+                    )
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
@@ -409,10 +415,10 @@ def main(
     logger.info("active nodes: %d", len(names))
     logger.info("archived nodes: %d", len(archived_names))
 
-    if update_nodes_and_edges:
-        gx = load_existing_graph()
+    gx = load_existing_graph()
 
-        new_names = [name for name in names if name not in gx.nodes]
+    if update_nodes_and_edges:
+        new_names = {name for name in names if name not in gx.nodes}
         for name in names:
             sub_graph = {
                 "payload": LazyJson(f"node_attrs/{name}.json"),
@@ -428,8 +434,15 @@ def main(
 
         dump_graph(gx)
 
+        # we remove new node's attributes file since those
+        # should only be written by push events or the
+        # update nodes jobs
+        for name in new_names:
+            pth = get_sharded_path(f"node_attrs/{name}.json")
+            if os.path.exists(pth):
+                os.remove(pth)
     else:
-        gx = load_graph()
+        new_names = {name for name in names if name not in gx.nodes}
 
         with lazy_json_override_backends(
             ["file"],
@@ -437,7 +450,11 @@ def main(
             keys_to_sync=set(tot_names_for_this_job),
         ):
             if schema_migration_only:
-                _migrate_schemas(tot_names_for_this_job)
+                # we skip new nodes since their data may not be pulled down locally
+                # we will get them eventually once the make graph job has run
+                _migrate_schemas(
+                    [nm for nm in tot_names_for_this_job if nm not in new_names]
+                )
             else:
                 _update_graph_nodes(
                     names_for_this_job,
