@@ -126,6 +126,7 @@ class CDTMigrator(Migrator):
 
                 for key, subsection in subsections.items():
                     new = []
+                    seen = set()
                     # Perform CDT replacement.
                     for line in subsection:
                         if (match := cdt_pattern.match(line)) is None:
@@ -133,6 +134,10 @@ class CDTMigrator(Migrator):
                             continue
 
                         if replacement := cdt_mapping.get(match.group("cdt")):
+                            # Do not include the same package twice.
+                            if replacement in seen:
+                                continue
+                            seen.add(replacement)
                             extra_ws_len = len(match.group("full_cdt")) - len(
                                 replacement
                             )
