@@ -9,13 +9,13 @@ from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDi
 from conda_forge_tick.os_utils import pushd
 
 cdt_mapping = {
-    "alsa-lib-devel": "alsa-lib-devel",
-    "gtk2-devel": "gtk2-devel",
+    "alsa-lib-devel": "alsa-lib",
+    "gtk2-devel": "gtk2",
     "libdrm-devel": "libdrm",
-    "libselinux-devel": "libselinux-devel",
     "libsm-devel": "xorg-libsm",
-    "libudev-devel": "libudev-devel",
+    "libudev-devel": "libudev",
     "libx11-devel": "xorg-libx11",
+    "libxau-devel": "xorg-libxau",
     "libxcomposite-devel": "xorg-libxcomposite",
     "libxcursor-devel": "xorg-libxcursor",
     "libxdamage-devel": "xorg-libxdamage",
@@ -30,9 +30,7 @@ cdt_mapping = {
     "mesa-libegl-devel": "libgl-devel",
     "mesa-libgbm-devel": "libgl-devel",
     "mesa-libgl-devel": "libgl-devel",
-    "numactl-devel": "numactl-devel",
-    "pciutils-devel": "pciutils-devel",
-    "systemd-devel": "systemd-devel",
+    "systemd-devel": "libsystemd",
     "xorg-x11-proto-devel": "xorgproto",
 }
 

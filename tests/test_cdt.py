@@ -229,12 +229,243 @@ extra:
         - looooo
 """  # noqa
 
+r_rgl_recipe = """\
+{% set version = "1.3.36" %}
+{% set posix = 'm2-' if win else '' %}
+
+package:
+  name: r-rgl
+  version: {{ version|replace("-", "_") }}
+
+source:
+  url:
+    - {{ cran_mirror }}/src/contrib/rgl_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/rgl/rgl_{{ version }}.tar.gz
+  sha256: 15570af26b4c3c62cc66d05dced8e7d6b7c363ded97450ae4eba97c6d7491547
+  patches:
+    - 0001-remove-unneeded-LDFLAGS.patch
+
+build:
+  skip: true  # [ppc64le]
+  number: 0
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - cross-r-base {{ r_base }}          # [build_platform != target_platform]
+    - r-htmltools                        # [build_platform != target_platform]
+    - r-htmlwidgets                      # [build_platform != target_platform]
+    - r-jsonlite                         # [build_platform != target_platform]
+    - r-knitr                            # [build_platform != target_platform]
+    - r-magrittr                         # [build_platform != target_platform]
+    - {{ compiler('c') }}                # [not win]
+    - {{ stdlib("c") }}                  # [not win]
+    - {{ compiler('m2w64_c') }}          # [win]
+    - {{ stdlib("m2w64_c") }}            # [win]
+    - {{ compiler('cxx') }}              # [not win]
+    - {{ compiler('m2w64_cxx') }}        # [win]
+    - {{ posix }}filesystem              # [win]
+    - {{ posix }}sed                     # [win]
+    - {{ posix }}grep                    # [win]
+    - {{ posix }}autoconf
+    - {{ posix }}automake                # [not win]
+    - {{ posix }}automake-wrapper        # [win]
+    - pkg-config
+    - {{ posix }}make
+    - {{ posix }}coreutils               # [win]
+    - {{ posix }}zip                     # [win]
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('libx11-devel') }}          # [linux]
+    - {{ cdt('libxext-devel') }}         # [linux]
+    - {{ cdt('libxrender-devel') }}      # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('mesa-libegl-devel') }}     # [linux]
+    - {{ cdt('mesa-dri-drivers') }}      # [linux]
+    - {{ cdt('libxau-devel') }}          # [linux]
+    - {{ cdt('libdrm-devel') }}          # [linux]
+    - {{ cdt('libxcomposite-devel') }}   # [linux]
+    - {{ cdt('libxcursor-devel') }}      # [linux]
+    - {{ cdt('libxi-devel') }}           # [linux]
+    - {{ cdt('libxrandr-devel') }}       # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
+    - {{ cdt('libxtst-devel') }}         # [linux]
+    - {{ cdt('libselinux-devel') }}      # [linux]
+    - {{ cdt('libselinux') }}            # [linux]
+    - {{ cdt('libxdamage') }}            # [linux]
+    - {{ cdt('libxfixes') }}             # [linux]
+    - {{ cdt('libxxf86vm') }}            # [linux]
+    - {{ cdt('libxcb') }}                # [linux]
+    - {{ cdt('libxext') }}               # [linux]
+    - {{ cdt('expat') }}                 # [linux]
+  host:
+    - r-base
+    - r-htmltools
+    - r-htmlwidgets >=1.6.0
+    - r-jsonlite >=0.9.20
+    - r-knitr >=1.33
+    - r-magrittr
+    - expat                              # [linux]
+    - freetype
+    - libglu                             # [linux]
+    - libpng
+    - xorg-libxfixes                     # [linux]
+    - zlib                               # [win]
+  run:
+    - r-base
+    - r-htmltools
+    - r-htmlwidgets >=1.6.0
+    - r-jsonlite >=0.9.20
+    - r-knitr >=1.33
+    - r-magrittr
+    - expat                              # [linux]
+    - libglu                             # [linux]
+
+test:
+  commands:
+    - $R -e "library('rgl')"           # [not win]
+
+about:
+  home: https://r-forge.r-project.org/projects/rgl/
+  license: GPL-2.0-or-later
+  summary: Provides medium to high level functions for 3D interactive graphics, including functions modelled on base graphics (plot3d(), etc.) as well as functions for constructing representations of geometric objects (cube3d(), etc.).  Output may be on screen using OpenGL, or to various standard 3D file formats
+    including WebGL, PLY, OBJ, STL as well as 2D image formats, including PNG, Postscript, SVG, PGF.
+  license_family: GPL
+  license_file:
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+"""  # noqa
+
+r_rgl_recipe_correct = """\
+{% set version = "1.3.36" %}
+{% set posix = 'm2-' if win else '' %}
+
+package:
+  name: r-rgl
+  version: {{ version|replace("-", "_") }}
+
+source:
+  url:
+    - {{ cran_mirror }}/src/contrib/rgl_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/rgl/rgl_{{ version }}.tar.gz
+  sha256: 15570af26b4c3c62cc66d05dced8e7d6b7c363ded97450ae4eba97c6d7491547
+  patches:
+    - 0001-remove-unneeded-LDFLAGS.patch
+
+build:
+  skip: true  # [ppc64le]
+  number: 1
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - cross-r-base {{ r_base }}          # [build_platform != target_platform]
+    - r-htmltools                        # [build_platform != target_platform]
+    - r-htmlwidgets                      # [build_platform != target_platform]
+    - r-jsonlite                         # [build_platform != target_platform]
+    - r-knitr                            # [build_platform != target_platform]
+    - r-magrittr                         # [build_platform != target_platform]
+    - {{ compiler('c') }}                # [not win]
+    - {{ stdlib("c") }}                  # [not win]
+    - {{ compiler('m2w64_c') }}          # [win]
+    - {{ stdlib("m2w64_c") }}            # [win]
+    - {{ compiler('cxx') }}              # [not win]
+    - {{ compiler('m2w64_cxx') }}        # [win]
+    - {{ posix }}filesystem              # [win]
+    - {{ posix }}sed                     # [win]
+    - {{ posix }}grep                    # [win]
+    - {{ posix }}autoconf
+    - {{ posix }}automake                # [not win]
+    - {{ posix }}automake-wrapper        # [win]
+    - pkg-config
+    - {{ posix }}make
+    - {{ posix }}coreutils               # [win]
+    - {{ posix }}zip                     # [win]
+  host:
+    - r-base
+    - r-htmltools
+    - r-htmlwidgets >=1.6.0
+    - r-jsonlite >=0.9.20
+    - r-knitr >=1.33
+    - r-magrittr
+    - expat                              # [linux]
+    - freetype
+    - libglu                             # [linux]
+    - libpng
+    - xorg-libxfixes                     # [linux]
+    - zlib                               # [win]
+    - xorgproto                          # [linux]
+    - libgl-devel                        # [linux]
+    - xorg-libx11                        # [linux]
+    - xorg-libxext                       # [linux]
+    - xorg-libxrender                    # [linux]
+    - xorg-libxau                        # [linux]
+    - libdrm                             # [linux]
+    - xorg-libxcomposite                 # [linux]
+    - xorg-libxcursor                    # [linux]
+    - xorg-libxi                         # [linux]
+    - xorg-librandr                      # [linux]
+    - xorg-libxscrnsaver                 # [linux]
+    - xorg-libxtst                       # [linux]
+  run:
+    - r-base
+    - r-htmltools
+    - r-htmlwidgets >=1.6.0
+    - r-jsonlite >=0.9.20
+    - r-knitr >=1.33
+    - r-magrittr
+    - expat                              # [linux]
+    - libglu                             # [linux]
+
+test:
+  commands:
+    - $R -e "library('rgl')"           # [not win]
+
+about:
+  home: https://r-forge.r-project.org/projects/rgl/
+  license: GPL-2.0-or-later
+  summary: Provides medium to high level functions for 3D interactive graphics, including functions modelled on base graphics (plot3d(), etc.) as well as functions for constructing representations of geometric objects (cube3d(), etc.).  Output may be on screen using OpenGL, or to various standard 3D file formats
+    including WebGL, PLY, OBJ, STL as well as 2D image formats, including PNG, Postscript, SVG, PGF.
+  license_family: GPL
+  license_file:
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+"""  # noqa
+
 
 def test_cdt(tmp_path):
     run_test_migration(
         m=cdt_migrator,
         inp=freecad_recipe,
         output=freecad_recipe_correct,
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
+        kwargs={"new_version": "1.0.0"},
+        mr_out={
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
+        },
+        tmp_path=tmp_path,
+    )
+
+
+def test_cdt_r_rgl(tmp_path):
+    run_test_migration(
+        m=cdt_migrator,
+        inp=r_rgl_recipe,
+        output=r_rgl_recipe_correct,
         prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={
