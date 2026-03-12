@@ -42,22 +42,6 @@ cdt_mapping = {
 }
 
 
-def _replace_cdts(yaml):
-
-    def replacer(match):
-        print(match)
-        package = match.group(1).strip()
-        return cdt_mapping[package]
-
-    pattern = re.compile(
-        r"\{\{ \s* cdt\( ['\"] (?P<cdt> .+?) ['\"] \) \s* \}\}"
-        r"(?P<post_package> .*?) (?P<selector> \#.*)? $",
-        re.VERBOSE | re.MULTILINE,
-    )
-    replaced_yaml = pattern.sub(replacer, yaml)
-    return replaced_yaml
-
-
 class CDTMigrator(Migrator):
     name = "CDT Migrator"
     rerender = True
@@ -77,6 +61,13 @@ class CDTMigrator(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
     ) -> MigrationUidTypedDict:
+        cdt_pattern = re.compile(
+            r"^ (?P<pre_cdt> .*)"
+            r"(?P<full_cdt> \{\{ \s* cdt\( ['\"] (?P<cdt> .+?) ['\"] \) \s* \}\})"
+            r"(?P<post_cdt> .*?) (?P<selector> \#.*)? $",
+            re.VERBOSE,
+        )
+
         with pushd(recipe_dir):
             self.set_build_number("meta.yaml")
 
@@ -132,6 +123,29 @@ class CDTMigrator(Migrator):
                 if "host:" not in subsections:
                     key, lines = next(iter(subsections.items()))
                     subsections["host:"] = [lines[0].replace(key, "host:")]
+
+                for key, subsection in subsections.items():
+                    new = []
+                    # Perform CDT replacement.
+                    for line in subsection:
+                        if (match := cdt_pattern.match(line)) is None:
+                            new.append(line)
+                            continue
+
+                        if replacement := cdt_mapping.get(match.group("cdt")):
+                            extra_ws_len = len(match.group("full_cdt")) - len(
+                                replacement
+                            )
+                            extra_ws = "" if extra_ws_len <= 0 else extra_ws_len * " "
+                            new.append(
+                                f"{match.group('pre_cdt')}"
+                                f"{replacement}"
+                                f"{extra_ws}"
+                                f"{match.group('post_cdt')}"
+                                f"{match.group('selector')}"
+                                "\n"
+                            )
+                    subsections[key] = new
 
                 # Reconstruct the requirement section.
                 yaml[req_start:req_end] = chain.from_iterable(subsections.values())
