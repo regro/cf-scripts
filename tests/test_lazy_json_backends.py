@@ -628,7 +628,7 @@ def test_lazy_json_stub_default(tmpdir):
 
         with lj as attrs:
             attrs.setdefault("lst", []).append("universe")
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps({"lst": ["universe"]})
 
         with lj as attrs:
@@ -636,33 +636,33 @@ def test_lazy_json_stub_default(tmpdir):
             with lj as attrs_again:
                 attrs_again.setdefault("lst", []).append("universe")
                 attrs.setdefault("lst", []).append("universe")
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps({"lst": ["universe"] * 4})
 
         with lj as attrs:
             with lj as attrs_again:
                 attrs_again.setdefault("lst2", []).append("universe")
                 attrs.setdefault("lst2", []).append("universe")
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps(
             {"lst": ["universe"] * 4, "lst2": ["universe"] * 2},
         )
 
         with lj as attrs:
             del attrs["lst"]
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps(
             {"lst2": ["universe"] * 2},
         )
 
         with lj as attrs:
             attrs.pop("lst2")
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps({})
 
         with lj as attrs:
             attrs["hi"] = "world"
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
 
         with pytest.raises(AssertionError):
             lj["hi"] = "worldz"
@@ -675,10 +675,10 @@ def test_lazy_json_stub_default(tmpdir):
 
         with pytest.raises(AssertionError):
             lj.clear()
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         with lj as attrs:
             attrs.clear()
-        assert not os.path.exists(fpth)
+        assert not os.path.exists(lj.sharded_path)
         assert dumps(lj.data) == dumps({})
 
 
