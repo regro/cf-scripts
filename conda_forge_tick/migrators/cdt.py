@@ -118,12 +118,6 @@ class CDTMigrator(Migrator):
                         current_section_start : lineno + 1
                     ]
 
-                # If there is no "host" section, create one.
-                # TODO: create only when we need it.
-                if "host:" not in subsections:
-                    key, lines = next(iter(subsections.items()))
-                    subsections["host:"] = [lines[0].replace(key, "host:")]
-
                 for key, subsection in subsections.items():
                     new = []
                     seen = set()
@@ -142,7 +136,15 @@ class CDTMigrator(Migrator):
                                 replacement
                             )
                             extra_ws = "" if extra_ws_len <= 0 else extra_ws_len * " "
-                            new.append(
+                            # Move build: CDTs to host:. If there is no "host" section, create one.
+                            target = (
+                                subsections.setdefault(
+                                    "host:", [subsection[0].replace(key, "host:")]
+                                )
+                                if key == "build:"
+                                else new
+                            )
+                            target.append(
                                 f"{match.group('pre_cdt')}"
                                 f"{replacement}"
                                 f"{extra_ws}"
