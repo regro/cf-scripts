@@ -185,6 +185,7 @@ requirements:
         - yaml-cpp
         - zlib
         - libgl-devel                        # [linux]
+        - libegl-devel                       # [linux]
         - xorg-libxi                         # [linux]
     run:
         - graphviz
@@ -407,6 +408,7 @@ requirements:
     - xorg-libx11                        # [linux]
     - xorg-libxext                       # [linux]
     - xorg-libxrender                    # [linux]
+    - libegl-devel                       # [linux]
     - xorg-libxau                        # [linux]
     - libdrm                             # [linux]
     - xorg-libxcomposite                 # [linux]
