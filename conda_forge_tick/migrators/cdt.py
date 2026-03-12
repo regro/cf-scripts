@@ -84,8 +84,8 @@ class CDTMigrator(Migrator):
                 yaml = fp.readlines()
 
             # Locate all requirement sections.
-            # (start, end, indent)
-            requirement_ranges: list[tuple[int, int, str]] = []
+            # (start, end)
+            requirement_ranges: list[tuple[int, int]] = []
             yaml_iter = enumerate(yaml)
             for start_lineno, line in yaml_iter:
                 line_lstrip = line.lstrip()
@@ -94,12 +94,12 @@ class CDTMigrator(Migrator):
                     for end_lineno, end_line in yaml_iter:
                         if end_line.strip() and not end_line.startswith(indent):
                             requirement_ranges.append(
-                                (start_lineno + 1, end_lineno - 1, indent)
+                                (start_lineno + 1, end_lineno - 1)
                             )
                             break
 
             # Process requirement sections in reverse order, to avoid changing linenos.
-            for req_start, req_end, req_indent in reversed(requirement_ranges):
+            for req_start, req_end in reversed(requirement_ranges):
                 req_section = yaml[req_start:req_end]
 
                 # Locate subsections.
