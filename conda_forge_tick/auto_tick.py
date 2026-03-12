@@ -1231,8 +1231,8 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                 # maybe add a pass check info here ? (if using DEBUG)
                             except Exception as e:
                                 logger.error(
-                                    "BOT-RERUN : could not proceed check with %s",
-                                    node,
+                                    "BOT-RERUN: could not proceed check with %s",
+                                    name,
                                     exc_info=e,
                                 )
                                 raise e
@@ -1266,15 +1266,21 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
                                         )
             except KeyError as e:
                 logger.error(
-                    "BOT-RERUN : missing key for node %s",
-                    node,
+                    "BOT-RERUN: missing key for node %s",
+                    name,
                     exc_info=e,
                 )
-                raise e
+                raise
 
 
 def _update_nodes_with_new_versions(gx):
-    """Update every node with it's new version (when available)."""
+    """Update every node with it's new version (when available).
+
+    Raises
+    ------
+    KeyError
+        Raised if the required attribute `version_pr_info` is missing.
+    """
     print("updating nodes with new versions", flush=True)
 
     version_nodes = get_all_keys_for_hashmap("versions")
@@ -1309,8 +1315,16 @@ def _update_nodes_with_new_versions(gx):
                         )
 
             if new_version is not None:
-                with attrs["version_pr_info"] as vpri:
-                    vpri["new_version"] = new_version
+                try:
+                    with attrs["version_pr_info"] as vpri:
+                        vpri["new_version"] = new_version
+                except KeyError as e:
+                    logger.error(
+                        "VERSIONS: missing `version_pr_info` key for node %s",
+                        node,
+                        exc_info=e,
+                    )
+                    raise
 
 
 def _remove_closed_pr_json():
