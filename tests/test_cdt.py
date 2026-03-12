@@ -235,7 +235,7 @@ def test_cdt(tmp_path):
         m=cdt_migrator,
         inp=freecad_recipe,
         output=freecad_recipe_correct,
-        prb="Dependencies have been updated if changed",
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={
             "migrator_name": "CDTMigrator",
