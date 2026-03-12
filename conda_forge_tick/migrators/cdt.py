@@ -86,17 +86,21 @@ class CDTMigrator(Migrator):
             # Locate all requirement sections.
             # (start, end)
             requirement_ranges: list[tuple[int, int]] = []
-            yaml_iter = enumerate(yaml)
-            for start_lineno, line in yaml_iter:
+            req_start: int | None = None
+            req_indent: str | None = None
+            for lineno, line in enumerate(yaml):
+                if req_start is not None:
+                    assert req_indent is not None
+                    if line.strip() and not line.startswith(req_indent):
+                        requirement_ranges.append((req_start + 1, lineno - 1))
+                        req_start = None
+
                 line_lstrip = line.lstrip()
                 if line_lstrip.rstrip() == "requirements:":
-                    indent = (len(line) - len(line_lstrip) + 1) * " "
-                    for end_lineno, end_line in yaml_iter:
-                        if end_line.strip() and not end_line.startswith(indent):
-                            requirement_ranges.append(
-                                (start_lineno + 1, end_lineno - 1)
-                            )
-                            break
+                    req_start = lineno
+                    req_indent = (len(line) - len(line_lstrip) + 1) * " "
+            if req_start is not None:
+                requirement_ranges.append((req_start + 1, lineno + 1))
 
             # Process requirement sections in reverse order, to avoid changing linenos.
             for req_start, req_end in reversed(requirement_ranges):
