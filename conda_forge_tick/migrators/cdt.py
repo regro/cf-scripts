@@ -1,12 +1,12 @@
 import re
 import textwrap
 from itertools import chain
+from pathlib import Path
 from typing import Any
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
-from conda_forge_tick.os_utils import pushd
 
 cdt_mapping = {
     "alsa-lib-devel": "alsa-lib",
@@ -110,98 +110,95 @@ class CDTMigrator(Migrator):
             re.VERBOSE,
         )
 
-        with pushd(recipe_dir):
-            self.set_build_number("meta.yaml")
+        # Only v0 recipes are supported, the handful of v1 recipes is not worth the complexity.
+        recipe_file = Path(recipe_dir) / "meta.yaml"
+        self.set_build_number(recipe_file)
 
-            with open("meta.yaml") as fp:
-                yaml = fp.readlines()
+        with open(recipe_file) as fp:
+            yaml = fp.readlines()
 
-            # Locate all requirement sections.
-            # (start, end)
-            requirement_ranges: list[tuple[int, int]] = []
-            req_start: int | None = None
-            req_indent: str | None = None
-            for lineno, line in enumerate(yaml):
-                if req_start is not None:
-                    assert req_indent is not None
-                    if line.strip() and not line.startswith(req_indent):
-                        requirement_ranges.append((req_start + 1, lineno))
-                        req_start = None
-
-                line_lstrip = line.lstrip()
-                if line_lstrip.rstrip() in ("requirements:", "requires:"):
-                    req_start = lineno
-                    req_indent = (len(line) - len(line_lstrip) + 1) * " "
+        # Locate all requirement sections.
+        # (start, end)
+        requirement_ranges: list[tuple[int, int]] = []
+        req_start: int | None = None
+        req_indent: str | None = None
+        for lineno, line in enumerate(yaml):
             if req_start is not None:
-                requirement_ranges.append((req_start + 1, lineno + 1))
+                assert req_indent is not None
+                if line.strip() and not line.startswith(req_indent):
+                    requirement_ranges.append((req_start + 1, lineno))
+                    req_start = None
 
-            # Process requirement sections in reverse order, to avoid changing linenos.
-            for req_start, req_end in reversed(requirement_ranges):
-                req_section = yaml[req_start:req_end]
+            line_lstrip = line.lstrip()
+            if line_lstrip.rstrip() in ("requirements:", "requires:"):
+                req_start = lineno
+                req_indent = (len(line) - len(line_lstrip) + 1) * " "
+        if req_start is not None:
+            requirement_ranges.append((req_start + 1, lineno + 1))
 
-                # Locate subsections.
-                subsections: dict[str | None, list[str]] = {}
-                req_iter = iter(req_section)
-                current_section: str | None = None
-                current_section_start: int = 0
-                for lineno, line in enumerate(req_iter):
-                    if not line.strip():
+        # Process requirement sections in reverse order, to avoid changing linenos.
+        for req_start, req_end in reversed(requirement_ranges):
+            req_section = yaml[req_start:req_end]
+
+            # Locate subsections.
+            subsections: dict[str | None, list[str]] = {}
+            req_iter = iter(req_section)
+            current_section: str | None = None
+            current_section_start: int = 0
+            for lineno, line in enumerate(req_iter):
+                if not line.strip():
+                    continue
+                first_word = line.split(maxsplit=1)[0]
+                if first_word.endswith(":"):
+                    subsections[current_section] = req_section[
+                        current_section_start:lineno
+                    ]
+                    current_section = first_word
+                    current_section_start = lineno
+            subsections[current_section] = req_section[
+                current_section_start : lineno + 1
+            ]
+
+            for key, subsection in subsections.items():
+                new = []
+                seen = set()
+                # Perform CDT replacement.
+                for line in subsection:
+                    if (match := cdt_pattern.match(line)) is None:
+                        new.append(line)
                         continue
-                    first_word = line.split(maxsplit=1)[0]
-                    if first_word.endswith(":"):
-                        subsections[current_section] = req_section[
-                            current_section_start:lineno
-                        ]
-                        current_section = first_word
-                        current_section_start = lineno
-                subsections[current_section] = req_section[
-                    current_section_start : lineno + 1
-                ]
 
-                for key, subsection in subsections.items():
-                    new = []
-                    seen = set()
-                    # Perform CDT replacement.
-                    for line in subsection:
-                        if (match := cdt_pattern.match(line)) is None:
-                            new.append(line)
+                    if replacement := cdt_mapping.get(match.group("cdt").lower()):
+                        # Do not include the same package twice.
+                        if replacement in seen:
                             continue
-
-                        if replacement := cdt_mapping.get(match.group("cdt").lower()):
-                            # Do not include the same package twice.
-                            if replacement in seen:
-                                continue
-                            seen.add(replacement)
-                            extra_ws_len = len(match.group("full_cdt")) - len(
-                                replacement
+                        seen.add(replacement)
+                        extra_ws_len = len(match.group("full_cdt")) - len(replacement)
+                        extra_ws = "" if extra_ws_len <= 0 else extra_ws_len * " "
+                        # Move build: CDTs to host:. If there is no "host" section, create one.
+                        target = (
+                            subsections.setdefault(
+                                "host:", [subsection[0].replace(key, "host:")]
                             )
-                            extra_ws = "" if extra_ws_len <= 0 else extra_ws_len * " "
-                            # Move build: CDTs to host:. If there is no "host" section, create one.
-                            target = (
-                                subsections.setdefault(
-                                    "host:", [subsection[0].replace(key, "host:")]
-                                )
-                                if key == "build:"
-                                else new
-                            )
-                            target.append(
-                                f"{match.group('pre_cdt')}"
-                                f"{replacement}"
-                                f"{extra_ws}"
-                                f"{match.group('post_cdt')}"
-                                f"{match.group('selector')}"
-                                "\n"
-                            )
-                    subsections[key] = new
+                            if key == "build:"
+                            else new
+                        )
+                        target.append(
+                            f"{match.group('pre_cdt')}"
+                            f"{replacement}"
+                            f"{extra_ws}"
+                            f"{match.group('post_cdt')}"
+                            f"{match.group('selector')}"
+                            "\n"
+                        )
+                subsections[key] = new
 
-                # Reconstruct the requirement section.
-                yaml[req_start:req_end] = chain.from_iterable(subsections.values())
+            # Reconstruct the requirement section.
+            yaml[req_start:req_end] = chain.from_iterable(subsections.values())
 
-            # Rewrite the recipe file
-            with open("meta.yaml", "w") as fp:
-                fp.write("".join(yaml))
-
-        # TODO: remove duplicate libgl entries
+        # Rewrite the recipe file
+        with open(recipe_file, "w") as fp:
+            fp.write("".join(yaml))
 
         return self.migrator_uid(attrs)
 
