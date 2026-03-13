@@ -8003,11 +8003,11 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhd8ed1ab_0.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhcf101f3_1.conda
   hash:
-    md5: f9517d2fe1501919d7a236aba73409bb
-    sha256: ac605d7fa239f78c508b47f2a0763236eef8d52b53852b84d784b598f92a1573
+    md5: 924fc39e2be12b6b3aafe1097a55474a
+    sha256: 5894917a8c63ee1c1c54864ff684a207b2fdd8d4f7431558a9cfd5d8c2d5e2aa
   category: main
   optional: false
 - name: pyjwt
@@ -8015,11 +8015,11 @@ package:
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhd8ed1ab_0.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhcf101f3_1.conda
   hash:
-    md5: f9517d2fe1501919d7a236aba73409bb
-    sha256: ac605d7fa239f78c508b47f2a0763236eef8d52b53852b84d784b598f92a1573
+    md5: 924fc39e2be12b6b3aafe1097a55474a
+    sha256: 5894917a8c63ee1c1c54864ff684a207b2fdd8d4f7431558a9cfd5d8c2d5e2aa
   category: main
   optional: false
 - name: pylsqpack
@@ -8987,16 +8987,16 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.58.4
+  version: 0.59.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.58.4-h2307240_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.59.0-h2307240_0.conda
   hash:
-    md5: 43b5041445b82c4d2c4cb72f7895f62b
-    sha256: d00653bd954848b2b91abd0b302f5dc639b1ff7e6be3e531cc6bb4c309366e4c
+    md5: 974d30d8d6674bb912faac5a275c20f8
+    sha256: cab1c9d3ca7b6b9e642cf4e395e147395fab34befb0b840d9e0b63110d4a7c40
   category: main
   optional: false
 - name: rattler-build-conda-compat
