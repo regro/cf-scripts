@@ -630,6 +630,368 @@ extra:
     - conda-forge/qt-main
 """  # noqa
 
+connectome_recipe = """\
+{% set name = "connectome-workbench" %}
+{% set version = "2.0.1" %}
+{% set build = 4 %}
+
+{% set build = build + 100 %}  # [build_variant == "qt6"]
+
+package:
+  name: {{ name }}-split
+  version: {{ version }}
+
+source:
+  url: https://github.com/Washington-University/workbench/archive/v{{ version }}.tar.gz
+  sha256: c80bb248d1d25b36dd92112b9d3fb4585474e117c0c49dc8a222d859624f0376
+  patches:
+    - patches/0001-Import-cstdint-into-libCZI.h.patch
+    - patches/0001-Fix-unsafe-narrowing.patch
+    - patches/0001-chore-build-Find-QuaZip-library.patch
+
+build:
+  number: {{ build }}
+  string: "{{ build_variant }}_h{{ PKG_HASH }}_{{ build }}"
+  skip: true  # [osx or win]
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - {{ stdlib('c') }}
+    - cmake >=3.0
+    - ninja
+    - qwt
+    # OpenMP
+    - llvm-openmp  # [osx]
+    - libgomp      # [linux]
+    # libGL
+    - {{ cdt('mesa-libgl-devel') }}  # [linux]
+    - {{ cdt('mesa-dri-drivers') }}  # [linux]
+    - {{ cdt('libxdamage') }}        # [linux]
+    - {{ cdt('libxxf86vm') }}        # [linux]
+    - {{ cdt('libxext') }}           # [linux]
+  host:
+    - noqt6                          # [build_variant == "qt5"]
+    - noqt5                          # [build_variant == "qt6"]
+    - qt-main                        # [build_variant == "qt5"]
+    - qt6-main                       # [build_variant == "qt6"]
+    - openssl
+    # 1.2 is ABI compatible with 1.3, so this provides more flexibility
+    - libzlib =1.2                   # [build_variant == "qt5"]
+    # qt6 is build with 1.3
+    - libzlib =1.3                   # [build_variant == "qt6"]
+    - zlib
+    # No qt6 build yet, use vendored
+    - quazip                         # [build_variant == "qt5"]
+    - freetype
+    - libglu                         # [linux]
+    - glew                           # [windows]
+    - mesalib                        # [linux]
+
+test:
+  commands:
+    - wb_view -help
+    - wb_command -version
+    - wb_shortcuts -help
+
+outputs:
+  - name: {{ name }}-gui
+    # build/host requirements should exactly match the root requirements
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - {{ stdlib('c') }}
+        - cmake >=3.0
+        - ninja
+        - qwt
+        # OpenMP
+        - llvm-openmp  # [osx]
+        - libgomp      # [linux]
+        # libGL
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - {{ cdt('libxdamage') }}        # [linux]
+        - {{ cdt('libxxf86vm') }}        # [linux]
+        - {{ cdt('libxext') }}           # [linux]
+      host:
+        - noqt6                          # [build_variant == "qt5"]
+        - noqt5                          # [build_variant == "qt6"]
+        - qt-main                        # [build_variant == "qt5"]
+        - qt6-main                       # [build_variant == "qt6"]
+        - openssl
+        - libzlib =1.2                   # [build_variant == "qt5"]
+        - libzlib =1.3                   # [build_variant == "qt6"]
+        - zlib
+        - quazip                         # [build_variant == "qt5"]
+        - freetype
+        - libglu                         # [linux]
+        - glew                           # [windows]
+        - mesalib                        # [linux]
+      run:
+        - libgl                          # [linux]
+        - libglu                         # [linux]
+        - mesalib                        # [linux]
+    files:
+      include:
+        - bin/wb_view
+    test:
+      commands:
+        - wb_view -help
+  - name: {{ name }}-cli
+    # build/host requirements should exactly match the root requirements
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - {{ stdlib('c') }}
+        - cmake >=3.0
+        - ninja
+        - qwt
+        # OpenMP
+        - llvm-openmp  # [osx]
+        - libgomp      # [linux]
+        # libGL
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - {{ cdt('libxdamage') }}        # [linux]
+        - {{ cdt('libxxf86vm') }}        # [linux]
+        - {{ cdt('libxext') }}           # [linux]
+      host:
+        - noqt6                          # [build_variant == "qt5"]
+        - noqt5                          # [build_variant == "qt6"]
+        - qt-main                        # [build_variant == "qt5"]
+        - qt6-main                       # [build_variant == "qt6"]
+        - openssl
+        - libzlib =1.2                   # [build_variant == "qt5"]
+        - libzlib =1.3                   # [build_variant == "qt6"]
+        - zlib
+        - quazip                         # [build_variant == "qt5"]
+        - freetype
+        - libglu                         # [linux]
+        - glew                           # [windows]
+        - mesalib                        # [linux]
+      run:
+        - libgl                          # [linux]
+        - libglu                         # [linux]
+        - mesalib                        # [linux]
+    files:
+      include:
+        - bin/wb_command
+        - bin/wb_shortcuts
+        - share/bash-completion/completions/*
+    test:
+      commands:
+        - wb_command -version
+        - wb_shortcuts -help
+  - name: {{ name }}
+    requirements:
+      run:
+        - {{ pin_subpackage('connectome-workbench-cli', exact=True) }}
+        - {{ pin_subpackage('connectome-workbench-gui', exact=True) }}
+    test:
+      commands:
+        - wb_view -help
+        - wb_command -version
+        - wb_shortcuts -help
+
+about:
+  home: https://www.humanconnectome.org/software/connectome-workbench
+  summary: 'Neuroimaging utility for the Human Connectome Project'
+  description: |
+    Connectome Workbench is an open source, freely available visualization and discovery
+    tool used to map neuroimaging data, especially data generated by the Human
+    Connectome Project.
+  license: GPL-2.0-only
+  license_family: GPL
+  license_file:
+    - LICENSE
+    - src/CZIlib/LICENSE
+    - src/QxtCore/LICENSE_qxt
+    - src/kloewe/cpuinfo/LICENSE
+    - src/kloewe/dot/LICENSE
+  doc_url: https://humanconnectome.org/software/workbench-command
+  dev_url: https://github.com/Washington-University/workbench
+
+extra:
+  recipe-maintainers:
+    - coalsont
+    - effigies
+"""  # noqa
+
+connectome_recipe_correct = """\
+{% set name = "connectome-workbench" %}
+{% set version = "2.0.1" %}
+{% set build = 5 %}
+
+{% set build = build + 100 %}  # [build_variant == "qt6"]
+
+package:
+  name: {{ name }}-split
+  version: {{ version }}
+
+source:
+  url: https://github.com/Washington-University/workbench/archive/v{{ version }}.tar.gz
+  sha256: c80bb248d1d25b36dd92112b9d3fb4585474e117c0c49dc8a222d859624f0376
+  patches:
+    - patches/0001-Import-cstdint-into-libCZI.h.patch
+    - patches/0001-Fix-unsafe-narrowing.patch
+    - patches/0001-chore-build-Find-QuaZip-library.patch
+
+build:
+  number: {{ build }}
+  string: "{{ build_variant }}_h{{ PKG_HASH }}_{{ build }}"
+  skip: true  # [osx or win]
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - {{ stdlib('c') }}
+    - cmake >=3.0
+    - ninja
+    - qwt
+    # OpenMP
+    - llvm-openmp  # [osx]
+    - libgomp      # [linux]
+    # libGL
+  host:
+    - noqt6                          # [build_variant == "qt5"]
+    - noqt5                          # [build_variant == "qt6"]
+    - qt-main                        # [build_variant == "qt5"]
+    - qt6-main                       # [build_variant == "qt6"]
+    - openssl
+    # 1.2 is ABI compatible with 1.3, so this provides more flexibility
+    - libzlib =1.2                   # [build_variant == "qt5"]
+    # qt6 is build with 1.3
+    - libzlib =1.3                   # [build_variant == "qt6"]
+    - zlib
+    # No qt6 build yet, use vendored
+    - quazip                         # [build_variant == "qt5"]
+    - freetype
+    - libglu                         # [linux]
+    - glew                           # [windows]
+    - mesalib                        # [linux]
+    - libgl-devel                    # [linux]
+
+test:
+  commands:
+    - wb_view -help
+    - wb_command -version
+    - wb_shortcuts -help
+
+outputs:
+  - name: {{ name }}-gui
+    # build/host requirements should exactly match the root requirements
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - {{ stdlib('c') }}
+        - cmake >=3.0
+        - ninja
+        - qwt
+        # OpenMP
+        - llvm-openmp  # [osx]
+        - libgomp      # [linux]
+        # libGL
+      host:
+        - noqt6                          # [build_variant == "qt5"]
+        - noqt5                          # [build_variant == "qt6"]
+        - qt-main                        # [build_variant == "qt5"]
+        - qt6-main                       # [build_variant == "qt6"]
+        - openssl
+        - libzlib =1.2                   # [build_variant == "qt5"]
+        - libzlib =1.3                   # [build_variant == "qt6"]
+        - zlib
+        - quazip                         # [build_variant == "qt5"]
+        - freetype
+        - libglu                         # [linux]
+        - glew                           # [windows]
+        - mesalib                        # [linux]
+        - libgl-devel                    # [linux]
+      run:
+        - libgl                          # [linux]
+        - libglu                         # [linux]
+        - mesalib                        # [linux]
+    files:
+      include:
+        - bin/wb_view
+    test:
+      commands:
+        - wb_view -help
+  - name: {{ name }}-cli
+    # build/host requirements should exactly match the root requirements
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - {{ stdlib('c') }}
+        - cmake >=3.0
+        - ninja
+        - qwt
+        # OpenMP
+        - llvm-openmp  # [osx]
+        - libgomp      # [linux]
+        # libGL
+      host:
+        - noqt6                          # [build_variant == "qt5"]
+        - noqt5                          # [build_variant == "qt6"]
+        - qt-main                        # [build_variant == "qt5"]
+        - qt6-main                       # [build_variant == "qt6"]
+        - openssl
+        - libzlib =1.2                   # [build_variant == "qt5"]
+        - libzlib =1.3                   # [build_variant == "qt6"]
+        - zlib
+        - quazip                         # [build_variant == "qt5"]
+        - freetype
+        - libglu                         # [linux]
+        - glew                           # [windows]
+        - mesalib                        # [linux]
+        - libgl-devel                    # [linux]
+      run:
+        - libgl                          # [linux]
+        - libglu                         # [linux]
+        - mesalib                        # [linux]
+    files:
+      include:
+        - bin/wb_command
+        - bin/wb_shortcuts
+        - share/bash-completion/completions/*
+    test:
+      commands:
+        - wb_command -version
+        - wb_shortcuts -help
+  - name: {{ name }}
+    requirements:
+      run:
+        - {{ pin_subpackage('connectome-workbench-cli', exact=True) }}
+        - {{ pin_subpackage('connectome-workbench-gui', exact=True) }}
+    test:
+      commands:
+        - wb_view -help
+        - wb_command -version
+        - wb_shortcuts -help
+
+about:
+  home: https://www.humanconnectome.org/software/connectome-workbench
+  summary: 'Neuroimaging utility for the Human Connectome Project'
+  description: |
+    Connectome Workbench is an open source, freely available visualization and discovery
+    tool used to map neuroimaging data, especially data generated by the Human
+    Connectome Project.
+  license: GPL-2.0-only
+  license_family: GPL
+  license_file:
+    - LICENSE
+    - src/CZIlib/LICENSE
+    - src/QxtCore/LICENSE_qxt
+    - src/kloewe/cpuinfo/LICENSE
+    - src/kloewe/dot/LICENSE
+  doc_url: https://humanconnectome.org/software/workbench-command
+  dev_url: https://github.com/Washington-University/workbench
+
+extra:
+  recipe-maintainers:
+    - coalsont
+    - effigies
+"""  # noqa
+
 
 def test_cdt(tmp_path):
     run_test_migration(
@@ -668,6 +1030,22 @@ def test_cdt_qt(tmp_path):
         m=cdt_migrator,
         inp=qt_recipe,
         output=qt_recipe_correct,
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
+        kwargs={"new_version": "1.0.0"},
+        mr_out={
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
+        },
+        tmp_path=tmp_path,
+    )
+
+
+def test_cdt_connectome(tmp_path):
+    run_test_migration(
+        m=cdt_migrator,
+        inp=connectome_recipe,
+        output=connectome_recipe_correct,
         prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={

@@ -126,6 +126,8 @@ class CDTMigrator(Migrator):
             if req_start is not None:
                 assert req_indent is not None
                 if line.strip() and not line.startswith(req_indent):
+                    while not yaml[lineno - 1].strip() and lineno > req_start + 1:
+                        lineno -= 1
                     requirement_ranges.append((req_start + 1, lineno))
                     req_start = None
 
@@ -134,6 +136,8 @@ class CDTMigrator(Migrator):
                 req_start = lineno
                 req_indent = (len(line) - len(line_lstrip) + 1) * " "
         if req_start is not None:
+            while not yaml[lineno].strip() and lineno + 1 > req_start + 1:
+                lineno -= 1
             requirement_ranges.append((req_start + 1, lineno + 1))
 
         # Process requirement sections in reverse order, to avoid changing linenos.
