@@ -66,7 +66,7 @@ jobs:
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          conda-forge-tick make-graph --update-nodes-and-edges
+          conda-forge-tick make-graph --update-nodes-and-edges --debug
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
