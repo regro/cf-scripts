@@ -115,6 +115,7 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, only migrate the schema of the node attrs.",
 )
+@click.option("--debug/--no-debug", default=False)
 @pass_context
 def make_graph(
     ctx: CliContext,
@@ -122,8 +123,12 @@ def make_graph(
     n_jobs: int,
     update_nodes_and_edges: bool,
     schema_migration_only: bool,
+    debug: bool,
 ) -> None:
     from . import make_graph
+
+    log_level = "debug" if debug else "info"
+    setup_logging(log_level)
 
     check_job_param_relative(job, n_jobs)
 

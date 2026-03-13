@@ -348,10 +348,12 @@ def _create_edges(gx: nx.DiGraph, all_feedstocks: set[str]) -> nx.DiGraph:
 def _add_graph_metadata(gx: nx.DiGraph):
     logger.info("adding graph metadata")
 
+    logger.info("making outputs LUT")
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
     gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
+    logger.info("making strong run exports")
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
     # envs will have compiler-related packages in them
@@ -426,6 +428,8 @@ def main(
     gx = load_existing_graph()
 
     if update_nodes_and_edges:
+        logger.info("making graph payloads")
+
         new_names = {name for name in names if name not in gx.nodes}
         for name in names:
             if not os.path.exists(get_sharded_path(f"node_attrs/{name}.json")):
@@ -448,6 +452,7 @@ def main(
 
         gx = _create_edges(gx, tot_names)
 
+        logger.info("dumping graph")
         dump_graph(gx)
     else:
         new_names = {name for name in names if name not in gx.nodes}

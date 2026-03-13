@@ -143,6 +143,11 @@ class FileLazyJsonBackend(LazyJsonBackend):
         sharded_path = get_sharded_path(f"{name}/{key}.json")
         if os.path.split(sharded_path)[0]:
             os.makedirs(os.path.split(sharded_path)[0], exist_ok=True)
+
+        logger.debug(
+            "FileLazyJsonBackend SET: (%s, %s) w/ path %s", name, key, sharded_path
+        )
+
         with open(sharded_path, "w") as f:
             f.write(value)
 
