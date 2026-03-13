@@ -446,6 +446,190 @@ extra:
     - conda-forge/r
 """  # noqa
 
+qt_recipe = """\
+# This has become a metapacakge for qt-base and other related packages
+{% set version = "5.15.15" %}
+
+package:
+  name: qt
+  version: {{ version }}
+
+# Add a dummy source so that the bot helps us keep this up to date
+source:
+  url: https://download.qt.io/official_releases/qt/{{ version.rpartition('.')[0] }}/{{ version }}/submodules/qtbase-everywhere-opensource-src-{{ version }}.tar.xz
+  sha256: e5f941fecf694ecba97c550b45b0634e552166cc6c815bcfdc481edd62796ba1
+
+build:
+  number: 0
+  run_exports:
+    - {{ pin_subpackage('qt', max_pin='x.x') }}
+
+requirements:
+  run:
+    - qt-main      {{ version }}.*
+    # qt-webengine sometimes goes more out of sync due to
+    # the fact that they release open source releases more frequently
+    # qt-webengine does not support ppc64le
+    # (https://github.com/conda-forge/qt-webengine-feedstock/pull/21)
+    - qt-webengine {{ version }}.*  # [not ppc64le]
+
+test:
+  requires:
+    - make                               # [unix]
+    - {{ compiler('cxx') }}
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+    - {{ cdt('libx11-devel') }}          # [linux]
+    - {{ cdt('libxext-devel') }}         # [linux]
+    - {{ cdt('libxrender-devel') }}      # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('mesa-libegl-devel') }}     # [linux]
+    - {{ cdt('mesa-dri-drivers') }}      # [linux]
+    - {{ cdt('libxau-devel') }}          # [linux]
+    - {{ cdt('alsa-lib-devel') }}        # [linux]
+    - {{ cdt('gtk2-devel') }}            # [linux]
+    - {{ cdt('gtkmm24-devel') }}         # [linux]
+    - {{ cdt('libdrm-devel') }}          # [linux]
+    - {{ cdt('libxcomposite-devel') }}   # [linux]
+    - {{ cdt('libxcursor-devel') }}      # [linux]
+    - {{ cdt('libxi-devel') }}           # [linux]
+    - {{ cdt('libxrandr-devel') }}       # [linux]
+    - {{ cdt('pciutils-devel') }}        # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
+    - {{ cdt('libxtst-devel') }}         # [linux]
+    - {{ cdt('libselinux-devel') }}      # [linux]
+    - {{ cdt('libxdamage') }}            # [linux]
+    - {{ cdt('libxdamage-devel') }}      # [linux]
+    - {{ cdt('libxfixes') }}             # [linux]
+    - {{ cdt('libxfixes-devel') }}       # [linux]
+    - {{ cdt('libxxf86vm') }}            # [linux]
+    - {{ cdt('libxcb') }}                # [linux]
+    - {{ cdt('expat-devel') }}           # [linux]
+    - {{ cdt('pcre') }}                  # [linux and cdt_name != 'cos6']
+    - {{ cdt('libglvnd-glx') }}          # [linux and cdt_name != 'cos6']
+  files:
+    - test/hello.pro
+    - test/main-qtwebengine.cpp
+    - test/main.cpp
+    - test/main.qml
+    - test/qml.qrc
+    - test/qrc_qml.cpp
+    - test/qtwebengine.pro
+    - xcodebuild
+    - xcrun
+  commands:
+    - if not exist %LIBRARY_BIN%\\Qt5WebEngine_conda.dll exit 1                  # [win]
+    - if not exist %LIBRARY_BIN%\\Qt5Core_conda.dll exit 1                  # [win]
+    - if not exist %LIBRARY_BIN%\\Qt5Gui_conda.dll exit 1                  # [win]
+    - test -f $PREFIX/lib/libQt5WebEngine${SHLIB_EXT}                      # [unix and not ppc64le]
+    - test -f $PREFIX/lib/libQt5Core${SHLIB_EXT}                               # [unix]
+    - test -f $PREFIX/lib/libQt5Gui${SHLIB_EXT}                               # [unix]
+    # sql plugin
+    - test -f $PREFIX/plugins/sqldrivers/libqsqlite${SHLIB_EXT}            # [unix]
+    - if not exist %LIBRARY_PREFIX%\\plugins\\sqldrivers\\qsqlite.dll exit 1  # [win]
+
+about:
+  home: http://qt-project.org
+  license: LGPL-3.0-only
+  license_file: LICENSE.LGPLv3
+  summary: 'Qt is a cross-platform application and UI framework.'
+  description: |
+    Qt helps you create connected devices, UIs & applications that run
+    anywhere on any device, on any operating system at any time.
+  doc_url: http://doc.qt.io/
+  dev_url: https://github.com/qtproject
+
+extra:
+  recipe-maintainers:
+    - conda-forge/qt-main
+"""  # noqa
+
+qt_recipe_correct = """\
+# This has become a metapacakge for qt-base and other related packages
+{% set version = "5.15.15" %}
+
+package:
+  name: qt
+  version: {{ version }}
+
+# Add a dummy source so that the bot helps us keep this up to date
+source:
+  url: https://download.qt.io/official_releases/qt/{{ version.rpartition('.')[0] }}/{{ version }}/submodules/qtbase-everywhere-opensource-src-{{ version }}.tar.xz
+  sha256: e5f941fecf694ecba97c550b45b0634e552166cc6c815bcfdc481edd62796ba1
+
+build:
+  number: 1
+  run_exports:
+    - {{ pin_subpackage('qt', max_pin='x.x') }}
+
+requirements:
+  run:
+    - qt-main      {{ version }}.*
+    # qt-webengine sometimes goes more out of sync due to
+    # the fact that they release open source releases more frequently
+    # qt-webengine does not support ppc64le
+    # (https://github.com/conda-forge/qt-webengine-feedstock/pull/21)
+    - qt-webengine {{ version }}.*  # [not ppc64le]
+
+test:
+  requires:
+    - make                               # [unix]
+    - {{ compiler('cxx') }}
+    - xorgproto                          # [linux]
+    - xorg-libx11                        # [linux]
+    - xorg-libxext                       # [linux]
+    - xorg-libxrender                    # [linux]
+    - libgl-devel                        # [linux]
+    - libegl-devel                       # [linux]
+    - xorg-libxau                        # [linux]
+    - alsa-lib                           # [linux]
+    - gtk2                               # [linux]
+    - libdrm                             # [linux]
+    - xorg-libxcomposite                 # [linux]
+    - xorg-libxcursor                    # [linux]
+    - xorg-libxi                         # [linux]
+    - xorg-librandr                      # [linux]
+    - xorg-libxscrnsaver                 # [linux]
+    - xorg-libxtst                       # [linux]
+    - xorg-libxdamage                    # [linux]
+    - xorg-libxfixes                     # [linux]
+    - expat                              # [linux]
+  files:
+    - test/hello.pro
+    - test/main-qtwebengine.cpp
+    - test/main.cpp
+    - test/main.qml
+    - test/qml.qrc
+    - test/qrc_qml.cpp
+    - test/qtwebengine.pro
+    - xcodebuild
+    - xcrun
+  commands:
+    - if not exist %LIBRARY_BIN%\\Qt5WebEngine_conda.dll exit 1                  # [win]
+    - if not exist %LIBRARY_BIN%\\Qt5Core_conda.dll exit 1                  # [win]
+    - if not exist %LIBRARY_BIN%\\Qt5Gui_conda.dll exit 1                  # [win]
+    - test -f $PREFIX/lib/libQt5WebEngine${SHLIB_EXT}                      # [unix and not ppc64le]
+    - test -f $PREFIX/lib/libQt5Core${SHLIB_EXT}                               # [unix]
+    - test -f $PREFIX/lib/libQt5Gui${SHLIB_EXT}                               # [unix]
+    # sql plugin
+    - test -f $PREFIX/plugins/sqldrivers/libqsqlite${SHLIB_EXT}            # [unix]
+    - if not exist %LIBRARY_PREFIX%\\plugins\\sqldrivers\\qsqlite.dll exit 1  # [win]
+
+about:
+  home: http://qt-project.org
+  license: LGPL-3.0-only
+  license_file: LICENSE.LGPLv3
+  summary: 'Qt is a cross-platform application and UI framework.'
+  description: |
+    Qt helps you create connected devices, UIs & applications that run
+    anywhere on any device, on any operating system at any time.
+  doc_url: http://doc.qt.io/
+  dev_url: https://github.com/qtproject
+
+extra:
+  recipe-maintainers:
+    - conda-forge/qt-main
+"""  # noqa
+
 
 def test_cdt(tmp_path):
     run_test_migration(
@@ -468,6 +652,22 @@ def test_cdt_r_rgl(tmp_path):
         m=cdt_migrator,
         inp=r_rgl_recipe,
         output=r_rgl_recipe_correct,
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
+        kwargs={"new_version": "1.0.0"},
+        mr_out={
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
+        },
+        tmp_path=tmp_path,
+    )
+
+
+def test_cdt_qt(tmp_path):
+    run_test_migration(
+        m=cdt_migrator,
+        inp=qt_recipe,
+        output=qt_recipe_correct,
         prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={

@@ -94,11 +94,11 @@ class CDTMigrator(Migrator):
             return True
 
         # we need to check if there is any cdt package as dependency
-        requirements = attrs.get("requirements", {})
+        for key, reqs in attrs.get("requirements", {}).items():
+            if "cdt_stub" in reqs:
+                return False
 
-        rq = requirements.get("build", set()) | requirements.get("host", set())
-
-        return "cdt_stub" not in rq
+        return True
 
     def migrate(
         self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
@@ -125,11 +125,11 @@ class CDTMigrator(Migrator):
                 if req_start is not None:
                     assert req_indent is not None
                     if line.strip() and not line.startswith(req_indent):
-                        requirement_ranges.append((req_start + 1, lineno - 1))
+                        requirement_ranges.append((req_start + 1, lineno))
                         req_start = None
 
                 line_lstrip = line.lstrip()
-                if line_lstrip.rstrip() == "requirements:":
+                if line_lstrip.rstrip() in ("requirements:", "requires:"):
                     req_start = lineno
                     req_indent = (len(line) - len(line_lstrip) + 1) * " "
             if req_start is not None:
@@ -140,25 +140,23 @@ class CDTMigrator(Migrator):
                 req_section = yaml[req_start:req_end]
 
                 # Locate subsections.
-                subsections: dict[str, list[str]] = {}
+                subsections: dict[str | None, list[str]] = {}
                 req_iter = iter(req_section)
                 current_section: str | None = None
-                current_section_start: int | None = None
+                current_section_start: int = 0
                 for lineno, line in enumerate(req_iter):
                     if not line.strip():
                         continue
                     first_word = line.split(maxsplit=1)[0]
                     if first_word.endswith(":"):
-                        if current_section is not None:
-                            subsections[current_section] = req_section[
-                                current_section_start:lineno
-                            ]
+                        subsections[current_section] = req_section[
+                            current_section_start:lineno
+                        ]
                         current_section = first_word
                         current_section_start = lineno
-                if current_section is not None:
-                    subsections[current_section] = req_section[
-                        current_section_start : lineno + 1
-                    ]
+                subsections[current_section] = req_section[
+                    current_section_start : lineno + 1
+                ]
 
                 for key, subsection in subsections.items():
                     new = []
