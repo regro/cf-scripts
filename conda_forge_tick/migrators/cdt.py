@@ -117,8 +117,21 @@ class CDTMigrator(Migrator):
         with open(recipe_file) as fp:
             yaml = fp.readlines()
 
+        # The requirement processing algorithm aims to be simple rather than optimal.
+        # It works in three stages:
+        #
+        # 1. Locating all requirement sections. The sections are then processed in reverse order,
+        #    so that changes don't affect line numbers of sections yet to be processed.
+        #
+        # 2. Splitting the requirement sections into subsections. The requirements are processed
+        #    in subsections, then the requirement section is reconstructed by combining the updated
+        #    subsections.
+        #
+        # 3. Replacing CDTs inside individual requirement sections. CDTs with replacement are
+        #    replaced, with deduplication. CDTs from "build:" are moved into "host:". CDTs without
+        #    replacement are removed.
+
         # Locate all requirement sections.
-        # (start, end)
         requirement_ranges: list[tuple[int, int]] = []
         req_start: int | None = None
         req_indent: str | None = None
@@ -126,6 +139,7 @@ class CDTMigrator(Migrator):
             if req_start is not None:
                 assert req_indent is not None
                 if line.strip() and not line.startswith(req_indent):
+                    # We may have skipped a few empty lines, reverse that.
                     while not yaml[lineno - 1].strip() and lineno > req_start + 1:
                         lineno -= 1
                     requirement_ranges.append((req_start + 1, lineno))
@@ -135,6 +149,7 @@ class CDTMigrator(Migrator):
             if line_lstrip.rstrip() in ("requirements:", "requires:"):
                 req_start = lineno
                 req_indent = (len(line) - len(line_lstrip) + 1) * " "
+        # If we EOF-ed in middle of a requirement section, add it.
         if req_start is not None:
             while not yaml[lineno].strip() and lineno + 1 > req_start + 1:
                 lineno -= 1
