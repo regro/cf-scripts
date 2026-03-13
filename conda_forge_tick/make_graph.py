@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import os
 import re
 import secrets
 import time
@@ -18,6 +19,7 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     LazyJsonStub,
     get_lazy_json_backends,
+    get_sharded_path,
     lazy_json_override_backends,
     lazy_json_transaction,
 )
@@ -304,7 +306,7 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
     return deps
 
 
-def _create_edges(gx: nx.DiGraph, new_names: set[str]) -> nx.DiGraph:
+def _create_edges(gx: nx.DiGraph, all_feedstocks: set[str]) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
     # This drops all the edge data and only keeps the node data
@@ -321,7 +323,9 @@ def _create_edges(gx: nx.DiGraph, new_names: set[str]) -> nx.DiGraph:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
-                if dep in new_names:
+                if dep in all_feedstocks and not os.path.exists(
+                    get_sharded_path(f"node_attrs/{dep}.json")
+                ):
                     # we use the stub here to ensure we do not create a new node
                     # for an actual feedstock by leaving a file on disk or syncing the json
                     lzj = LazyJsonStub(f"node_attrs/{dep}.json")  # type: ignore[assignment]
@@ -424,22 +428,25 @@ def main(
     if update_nodes_and_edges:
         new_names = {name for name in names if name not in gx.nodes}
         for name in names:
-            if name in new_names:
-                # we use the stub here to ensure we do not create a new node
+            if not os.path.exists(get_sharded_path(f"node_attrs/{name}.json")):
+                # we use the stub here to ensure we do not create an empty node
                 # by leaving a file on disk or syncing the json
                 sub_graph = {
                     "payload": LazyJsonStub(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
                 }
-                gx.add_node(name, **sub_graph)
             else:
                 sub_graph = {
                     "payload": LazyJson(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
                 }
+
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
                 gx.nodes[name].update(**sub_graph)
 
         _add_graph_metadata(gx)
 
-        gx = _create_edges(gx, new_names)
+        gx = _create_edges(gx, tot_names)
 
         dump_graph(gx)
     else:
