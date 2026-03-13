@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.13.08.09.42
+  version: 2026.03.13.16.07.39
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.13.08.09.42-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.13.16.07.39-hd8ed1ab_0.conda
   hash:
-    md5: e0ef43fe2ba74ce09a65ac957527a8dc
-    sha256: 85216af5653d9cd482df7054fb63a97c4c4422f0c3f1782c316624e0b7bd65d2
+    md5: afbb409d1fa48ef82dec28ce45d05762
+    sha256: af44a9e85c4912950663e8b69b3a01f8ccb33a014881351932b191d199600dd8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.13.08.09.42
+  version: 2026.03.13.16.07.39
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.13.08.09.42-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.13.16.07.39-hd8ed1ab_0.conda
   hash:
-    md5: e0ef43fe2ba74ce09a65ac957527a8dc
-    sha256: 85216af5653d9cd482df7054fb63a97c4c4422f0c3f1782c316624e0b7bd65d2
+    md5: afbb409d1fa48ef82dec28ce45d05762
+    sha256: af44a9e85c4912950663e8b69b3a01f8ccb33a014881351932b191d199600dd8
   category: main
   optional: false
 - name: conda-index
@@ -8971,7 +8971,7 @@ package:
   category: main
   optional: false
 - name: rattler-build
-  version: 0.58.4
+  version: 0.59.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -8980,10 +8980,10 @@ package:
     libstdcxx: '>=14'
     openssl: '>=3.5.5,<4.0a0'
     patchelf: ''
-  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.58.4-ha759004_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.59.0-ha759004_0.conda
   hash:
-    md5: 248d44e596b6076c88526d89f148a917
-    sha256: 71dcd2ba16cdf9a29f1ee6ad3c1c33dbd71ff0026d894d08b2ec2a2914cec3ea
+    md5: dabce28424b57d65f97124827b548583
+    sha256: 411f403ec2102474d7772949ce90808fe76e288f247567569f4c081e5fc0e08a
   category: main
   optional: false
 - name: rattler-build
