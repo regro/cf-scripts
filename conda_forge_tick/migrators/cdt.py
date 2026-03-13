@@ -1,10 +1,9 @@
 import re
-import textwrap
 from itertools import chain
 from pathlib import Path
 from typing import Any
 
-from conda_forge_tick.contexts import ClonedFeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
@@ -89,12 +88,15 @@ class CDTMigrator(Migrator):
     rerender = True
     migrator_version = 1
 
-    def filter_not_in_migration(self, attrs, not_bad_str_start=""):
+    def filter_not_in_migration(
+        self, attrs: AttrsTypedDict, not_bad_str_start: str = ""
+    ) -> bool:
         if super().filter_not_in_migration(attrs, not_bad_str_start):
             return True
 
         # we need to check if there is any cdt package as dependency
         for key, reqs in attrs.get("requirements", {}).items():
+            assert isinstance(reqs, set)
             if "cdt_stub" in reqs:
                 return False
 
@@ -226,25 +228,23 @@ class CDTMigrator(Migrator):
     ) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
-            textwrap.dedent(
-                """\
+            """\
 The [Core Dependency Tree (CDT) packages are being phased out](https://github.com/conda-forge/cdt-builds/issues/89).
 This migrator will attempt to replace the CDT dependencies with regular conda-forge packages.
-""",
-            )
+"""
         )
         return body
 
-    def commit_message(self, feedstock_ctx) -> str:
+    def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         return "Migrate CDT dependencies to regular packages"
 
-    def pr_title(self, feedstock_ctx) -> str:
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Migrate CDT dependencies to regular packages"
 
-    def remote_branch(self, feedstock_ctx) -> str:
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return f"{self.name}-migration-{self.migrator_version}"
 
-    def migrator_uid(self, attrs):
+    def migrator_uid(self, attrs: AttrsTypedDict) -> MigrationUidTypedDict:
         if self.name is None:
             raise ValueError("name is None")
         n = super().migrator_uid(attrs)
