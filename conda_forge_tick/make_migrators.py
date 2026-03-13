@@ -39,6 +39,7 @@ from conda_forge_tick.lazy_json_backends import (
 from conda_forge_tick.migrators import (
     AddNVIDIATools,
     ArchRebuild,
+    CDTMigrator,
     CombineV1ConditionsMigrator,
     CondaForgeYAMLCleanup,
     CrossCompilationForARMAndPower,
@@ -949,6 +950,27 @@ def add_nvtools_migrator(
         migrators[-1].pr_limit = pr_limit
 
 
+def add_cdt_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+):
+    with fold_log_lines("making cdt migrator"):
+        migrators.append(
+            CDTMigrator(
+                total_graph=gx,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
+            )
+        )
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
+
 def _make_version_migrator(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -1014,6 +1036,8 @@ def initialize_migrators(
     add_static_lib_migrator(migrators, gx)
 
     add_nvtools_migrator(migrators, gx)
+
+    add_cdt_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx, _testing_frac=_testing_frac)

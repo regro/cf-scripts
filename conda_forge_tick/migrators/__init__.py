@@ -39,6 +39,7 @@ from .pip_check import PipCheckMigrator
 from .pip_wheel_dep import PipWheelMigrator
 from .pypi_org import PyPIOrgMigrator
 from .r_ucrt import RUCRTCleanup
+from .cdt import CDTMigrator
 from .recipe_v1 import CombineV1ConditionsMigrator
 from .replacement import Replacement, MiniReplacement
 from .use_pip import PipMigrator
