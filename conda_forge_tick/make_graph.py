@@ -323,7 +323,7 @@ def _create_edges(gx: nx.DiGraph, all_feedstocks: set[str]) -> nx.DiGraph:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
-                if dep in all_feedstocks and not os.path.exists(get_sharded_path(f"node_attrs/{dep}.json"))
+                if dep in all_feedstocks and not os.path.exists(get_sharded_path(f"node_attrs/{dep}.json")):
                     # we use the stub here to ensure we do not create a new node
                     # for an actual feedstock by leaving a file on disk or syncing the json
                     lzj = LazyJsonStub(f"node_attrs/{dep}.json")  # type: ignore[assignment]
