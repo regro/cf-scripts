@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.14.04.43.55
+  version: 2026.03.14.12.28.43
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.14.04.43.55-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.14.12.28.43-hd8ed1ab_0.conda
   hash:
-    md5: 94a4a29cd7c7aefcce2b38ababe33227
-    sha256: d0ca93345dabaf5260ace6759fd6d24a06f66c8b026073bb003dba5411bd2faa
+    md5: 4b0cd85e9bc14aef7ad4f662d82eda97
+    sha256: 6df06cd202bd8ffb06484b5f83482ddacabed66c561e3ea92668c8b72c35f3a9
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.14.04.43.55
+  version: 2026.03.14.12.28.43
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.14.04.43.55-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.14.12.28.43-hd8ed1ab_0.conda
   hash:
-    md5: 94a4a29cd7c7aefcce2b38ababe33227
-    sha256: d0ca93345dabaf5260ace6759fd6d24a06f66c8b026073bb003dba5411bd2faa
+    md5: 4b0cd85e9bc14aef7ad4f662d82eda97
+    sha256: 6df06cd202bd8ffb06484b5f83482ddacabed66c561e3ea92668c8b72c35f3a9
   category: main
   optional: false
 - name: conda-index
@@ -7999,27 +7999,29 @@ package:
   category: main
   optional: false
 - name: pyjwt
-  version: 2.11.0
+  version: 2.12.1
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhcf101f3_1.conda
+    typing_extensions: '>=4.0'
+  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.12.1-pyhcf101f3_0.conda
   hash:
-    md5: 924fc39e2be12b6b3aafe1097a55474a
-    sha256: 5894917a8c63ee1c1c54864ff684a207b2fdd8d4f7431558a9cfd5d8c2d5e2aa
+    md5: b27a9f4eca2925036e43542488d3a804
+    sha256: 4279ee4cf2533fd17910ae7373159d9bee2492d8c50932ddc74dd27a70b15de4
   category: main
   optional: false
 - name: pyjwt
-  version: 2.11.0
+  version: 2.12.1
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.11.0-pyhcf101f3_1.conda
+    typing_extensions: '>=4.0'
+  url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.12.1-pyhcf101f3_0.conda
   hash:
-    md5: 924fc39e2be12b6b3aafe1097a55474a
-    sha256: 5894917a8c63ee1c1c54864ff684a207b2fdd8d4f7431558a9cfd5d8c2d5e2aa
+    md5: b27a9f4eca2925036e43542488d3a804
+    sha256: 4279ee4cf2533fd17910ae7373159d9bee2492d8c50932ddc74dd27a70b15de4
   category: main
   optional: false
 - name: pylsqpack
