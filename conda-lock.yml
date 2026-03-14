@@ -13,8 +13,8 @@
 version: 1
 metadata:
   content_hash:
-    osx-arm64: a500d60df2d632d7683424e8d7f19942297f3e98d64bbdd6cba91ca9a3e17c1e
-    linux-64: 0fcaede9acaf3225eba08897531b0410bc3d96f29880fa2ed9498feece9b4c96
+    osx-arm64: 2cecc74e9f7be77e354eb42a754fab3570dc14be9b78842c495cb953cb7cb0a0
+    linux-64: e89bdad4b6998a0496fc2aa4cba08fb47e5716dc6d5914eb5534bfbf304d20bb
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.67
+  version: 1.42.68
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.67-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.68-pyhd8ed1ab_0.conda
   hash:
-    md5: d09f1048d62ebab8cab1ccbf7b1d36ee
-    sha256: 4c88b2200bfd953ee35e9be277334bbcd143f7029bf10ae3226d7103be72a77a
+    md5: c565cf223fec7a4aab9331841b5b74b0
+    sha256: 6fae79246725674bb8db5f6c9fe461c7ac04a38d415549eb6f583322ab224230
   category: main
   optional: false
 - name: botocore
-  version: 1.42.67
+  version: 1.42.68
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.67-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.68-pyhd8ed1ab_0.conda
   hash:
-    md5: d09f1048d62ebab8cab1ccbf7b1d36ee
-    sha256: 4c88b2200bfd953ee35e9be277334bbcd143f7029bf10ae3226d7103be72a77a
+    md5: c565cf223fec7a4aab9331841b5b74b0
+    sha256: 6fae79246725674bb8db5f6c9fe461c7ac04a38d415549eb6f583322ab224230
   category: main
   optional: false
 - name: brotli-python
@@ -8321,39 +8321,41 @@ package:
   category: main
   optional: false
 - name: pytest
-  version: 8.0.2
+  version: 9.0.2
   manager: conda
   platform: linux-64
   dependencies:
-    colorama: ''
-    exceptiongroup: '>=1.0.0rc8'
-    iniconfig: ''
-    packaging: ''
-    pluggy: <2.0,>=1.3.0
-    python: '>=3.8'
-    tomli: '>=1.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
+    colorama: '>=0.4'
+    exceptiongroup: '>=1'
+    iniconfig: '>=1.0.1'
+    packaging: '>=22'
+    pluggy: '>=1.5,<2'
+    pygments: '>=2.7.2'
+    python: ''
+    tomli: '>=1'
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-9.0.2-pyhcf101f3_0.conda
   hash:
-    md5: 40bd3ef942b9642a3eb20b0bbf92469b
-    sha256: ea81e7efe66cffab5c8316d3a7e125e29dff9cfb19fc3578b72f965e8a876539
+    md5: 2b694bad8a50dc2f712f5368de866480
+    sha256: 9e749fb465a8bedf0184d8b8996992a38de351f7c64e967031944978de03a520
   category: main
   optional: false
 - name: pytest
-  version: 8.0.2
+  version: 9.0.2
   manager: conda
   platform: osx-arm64
   dependencies:
-    colorama: ''
-    exceptiongroup: '>=1.0.0rc8'
-    iniconfig: ''
-    packaging: ''
-    pluggy: <2.0,>=1.3.0
-    python: '>=3.8'
-    tomli: '>=1.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-8.0.2-pyhd8ed1ab_0.conda
+    colorama: '>=0.4'
+    exceptiongroup: '>=1'
+    iniconfig: '>=1.0.1'
+    packaging: '>=22'
+    pluggy: '>=1.5,<2'
+    pygments: '>=2.7.2'
+    python: ''
+    tomli: '>=1'
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-9.0.2-pyhcf101f3_0.conda
   hash:
-    md5: 40bd3ef942b9642a3eb20b0bbf92469b
-    sha256: ea81e7efe66cffab5c8316d3a7e125e29dff9cfb19fc3578b72f965e8a876539
+    md5: 2b694bad8a50dc2f712f5368de866480
+    sha256: 9e749fb465a8bedf0184d8b8996992a38de351f7c64e967031944978de03a520
   category: main
   optional: false
 - name: pytest-cov
@@ -8387,31 +8389,33 @@ package:
   category: main
   optional: false
 - name: pytest-env
-  version: 1.1.4
+  version: 1.6.0
   manager: conda
   platform: linux-64
   dependencies:
-    pytest: '>=7.4.2'
-    python: '>=3.8'
-    tomli: '>=2.0.1'
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.1.4-pyhd8ed1ab_0.conda
+    pytest: '>=9.0.2'
+    python: '>=3.10'
+    python-dotenv: '>=1.2.1'
+    tomli: '>=2.4'
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.6.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 638cfd3bf6904125e868176d89c2ae0b
-    sha256: 332fa90c7c3a42807b5c684585df44713202c3050bb387f333a9497ebf7374cc
+    md5: 27f9775b96f64454633682cc6a0b0768
+    sha256: d288b55b224a1d6a7eca5ca0ac0e026169ffa6458e64dcb990f62f99e37b8010
   category: main
   optional: false
 - name: pytest-env
-  version: 1.1.4
+  version: 1.6.0
   manager: conda
   platform: osx-arm64
   dependencies:
-    pytest: '>=7.4.2'
-    python: '>=3.8'
-    tomli: '>=2.0.1'
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.1.4-pyhd8ed1ab_0.conda
+    pytest: '>=9.0.2'
+    python: '>=3.10'
+    python-dotenv: '>=1.2.1'
+    tomli: '>=2.4'
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.6.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 638cfd3bf6904125e868176d89c2ae0b
-    sha256: 332fa90c7c3a42807b5c684585df44713202c3050bb387f333a9497ebf7374cc
+    md5: 27f9775b96f64454633682cc6a0b0768
+    sha256: d288b55b224a1d6a7eca5ca0ac0e026169ffa6458e64dcb990f62f99e37b8010
   category: main
   optional: false
 - name: pytest-retry
