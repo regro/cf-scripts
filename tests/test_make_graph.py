@@ -1,8 +1,17 @@
+import json
+
+import networkx as nx
 import pytest
 from conftest import HAVE_CONTAINERS_AND_TEST_IMAGE, FakeLazyJson
 
 from conda_forge_tick.lazy_json_backends import LazyJson
-from conda_forge_tick.make_graph import try_load_feedstock
+from conda_forge_tick.make_graph import (
+    dump_graph,
+    load_existing_graph,
+    try_load_feedstock,
+)
+from conda_forge_tick.make_graph import main as make_graph_main
+from conda_forge_tick.os_utils import pushd
 
 
 @pytest.mark.parametrize("container_enabled", [HAVE_CONTAINERS_AND_TEST_IMAGE, False])
@@ -52,3 +61,60 @@ def test_try_load_feedstock(
     assert data["url"].startswith("https://github.com/tingerrr/typst-test")
     assert data["hash_type"] == "sha256"
     assert isinstance(data["version_pr_info"], LazyJson)
+
+
+@pytest.mark.parametrize(
+    "kwargs", [{"update_nodes_and_edges": True}, {"schema_migration_only": True}]
+)
+def test_make_graph_nowrite(tmp_path, kwargs):
+    with pushd(str(tmp_path)):
+        (tmp_path / "all_feedstocks.json").write_text(
+            json.dumps(
+                {
+                    "active": ["foo", "bar"],
+                    "archived": ["baz"],
+                }
+            )
+        )
+
+        with LazyJson("node_attrs/foo.json") as attrs:
+            attrs.update(
+                dict(
+                    feedstock_name="foo",
+                    bad=False,
+                    archived=False,
+                    parsing_error=False,
+                )
+            )
+
+        with LazyJson("node_attrs/baz.json") as attrs:
+            attrs.update(
+                dict(
+                    feedstock_name="baz",
+                    bad=False,
+                    archived=True,
+                    parsing_error=False,
+                )
+            )
+
+        gx = nx.DiGraph()
+        gx.add_node("foo", payload=LazyJson("node_attrs/foo.json"))
+        gx.add_node("baz", payload=LazyJson("node_attrs/baz.json"))
+        dump_graph(gx)
+
+        make_graph_main(
+            None,
+            **kwargs,
+        )
+
+        fnames = sorted(list(tmp_path.glob("**/*.json")))
+        assert not any(fname.name == "bar.json" for fname in fnames), sorted(
+            fname.relative_to(tmp_path) for fname in fnames
+        )
+
+        gx = load_existing_graph()
+        all_nodes = set(gx.nodes.keys())
+        if "update_nodes_and_edges" in kwargs:
+            assert "bar" in all_nodes, all_nodes
+        else:
+            assert "bar" not in all_nodes, all_nodes

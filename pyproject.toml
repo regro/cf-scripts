@@ -31,7 +31,7 @@ packages = {find = {exclude=["tests*", "scripts*", "docs*", "autotick-bot*", "pl
 package-data = {conda_forge_tick = ["*.xsh", "*.yaml", "*.json"]}
 package-dir = {conda_forge_tick = "conda_forge_tick"}
 
-[tool.setuptools_scm]
+[tool.setuptools-scm]
 write_to = "conda_forge_tick/_version.py"
 write_to_template = "__version__ = '{version}'\n"
 
@@ -46,3 +46,7 @@ preview = true
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 120
+
+[tool.pytest]
+tmp_path_retention_count = "0"
+tmp_path_retention_policy = "none"

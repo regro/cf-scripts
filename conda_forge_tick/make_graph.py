@@ -466,7 +466,11 @@ def main(
                 # we skip new nodes since their data may not be pulled down locally
                 # we will get them eventually once the make graph job has run
                 _migrate_schemas(
-                    [nm for nm in tot_names_for_this_job if nm not in new_names]
+                    [
+                        nm
+                        for nm in tot_names_for_this_job
+                        if os.path.exists(get_sharded_path(f"node_attrs/{nm}.json"))
+                    ]
                 )
             else:
                 _update_graph_nodes(
