@@ -1047,3 +1047,106 @@ def test_lazy_json_backends_contexts_double_write():
             # now the file exists at the end of the context block
             assert os.path.exists(lzj.sharded_path)
             assert lzj.data == {"hi": "world"}
+
+
+def test_lazy_json_file_read_only_backend(tmpdir):
+    with pushd(tmpdir):
+        old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+        old_cache = (
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_USE_FILE_CACHE
+        )
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                "file-read-only",
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                "file-read-only"
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_USE_FILE_CACHE = (
+                False
+            )
+
+            f = "hi.json"
+            sharded_path = get_sharded_path(f)
+            assert not os.path.exists(f)
+            lj = LazyJson(f)
+
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
+
+            with pytest.raises(AssertionError):
+                lj.update({"hi": "globe"})
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
+
+            p = pickle.dumps(lj)
+            lj2 = pickle.loads(p)
+            assert not getattr(lj2, "_data", None)
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
+
+            with lj as attrs:
+                attrs["hi"] = "world"
+            assert lj == {}
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
+
+            with open(sharded_path, "w") as ff:
+                assert ff.write(dumps({"hi": "world"}))
+            lj = LazyJson(f)
+            assert lj == {"hi": "world"}
+
+            with lj as attrs:
+                attrs.update({"hi": "globe"})
+                attrs.setdefault("lst", []).append("universe")
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with lj as attrs:
+                attrs.setdefault("lst", []).append("universe")
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst", []).append("universe")
+                    attrs.setdefault("lst", []).append("universe")
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with lj as attrs:
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst2", []).append("universe")
+                    attrs.setdefault("lst2", []).append("universe")
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with lj as attrs:
+                del attrs["hi"]
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            with lj as attrs:
+                attrs.pop("hi")
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+
+            assert len(lj) == 1
+            assert {k for k in lj} == {"hi"}
+
+            with lj as attrs:
+                attrs.clear()
+            assert lj == {"hi": "world"}
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
+        finally:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_USE_FILE_CACHE = (
+                old_cache
+            )

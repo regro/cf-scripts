@@ -200,6 +200,26 @@ class FileLazyJsonBackend(LazyJsonBackend):
         return data_str
 
 
+class ReadOnlyFileLazyJsonBackend(FileLazyJsonBackend):
+    _write_warned = False
+
+    @classmethod
+    def _ignore_write(cls) -> None:
+        if cls._write_warned:
+            return
+        logger.info("Note: Write operations to the read-only file backend are ignored.")
+        cls._write_warned = True
+
+    def hset(self, name: str, key: str, value: str) -> None:
+        self._ignore_write()
+
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
+        self._ignore_write()
+
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
+        self._ignore_write()
+
+
 class GithubLazyJsonBackend(LazyJsonBackend):
     """
     Read-only backend that makes live requests to https://raw.githubusercontent.com
@@ -709,6 +729,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
 
 LAZY_JSON_BACKENDS: dict[str, type[LazyJsonBackend]] = {
     "file": FileLazyJsonBackend,
+    "file-read-only": ReadOnlyFileLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
     "github": GithubLazyJsonBackend,
     "github_api": GithubAPILazyJsonBackend,
