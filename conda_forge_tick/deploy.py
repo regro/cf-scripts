@@ -14,6 +14,7 @@ from .git_utils import (
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
     get_lazy_json_backends,
+    lazy_json_override_backends,
 )
 from .os_utils import clean_disk_space
 from .settings import settings
@@ -304,11 +305,11 @@ def deploy(
         return
 
     # make sure the graph can load, if not it will error
-    gx = load_existing_graph()
-    # TODO: be more selective about which json to check
-    for node, attrs in gx.nodes.items():
-        with attrs["payload"]:
-            pass
+    with lazy_json_override_backends(["file-read-only"], use_file_cache=False):
+        gx = load_existing_graph()
+        for node, attrs in gx.nodes.items():
+            with attrs["payload"]:
+                pass
 
     with fold_log_lines("cleaning up disk space for deploy"):
         clean_disk_space()
