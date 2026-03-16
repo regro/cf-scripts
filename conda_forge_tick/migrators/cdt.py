@@ -79,7 +79,7 @@ cdt_mapping = {
     "xcb-util-keysyms-devel": "xcb-util-keysyms",
     "xcb-util-renderutil-devel": "xcb-util-renderutil",
     "xcb-util-wm-devel": "xcb-util-wm",
-    "xorg-x11-proto-devel": "xorg-xorgproto"
+    "xorg-x11-proto-devel": "xorg-xorgproto",
 }
 
 
