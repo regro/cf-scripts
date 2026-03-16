@@ -7,7 +7,7 @@ import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Literal, Union
+from typing import Dict, Literal, Union, cast
 
 import requests
 from grayskull.config import Configuration
@@ -40,11 +40,19 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.width = 4096
 
 EnvDepComparison = dict[Literal["df_minus_cf", "cf_minus_df"], set[str]]
-DepComparison = dict[Literal["host", "run"], EnvDepComparison]
+DepComparison = dict[Literal["host", "run", "run_constrained"], EnvDepComparison]
 
 
-SECTIONS_TO_PARSE = ["host", "run"]
+SECTIONS_TO_PARSE = ["host", "run", "run_constrained"]
 SECTIONS_TO_UPDATE = ["run"]
+# For run_constrained, we only update version constraints of existing packages.
+# We do NOT add new packages (they're optional, maintainer's choice) or remove
+# packages (maintainer may have specific reasons for including them).
+# This prevents breaking changes while still keeping version constraints in sync.
+SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY = ["run_constrained"]
+# Sections to show add/remove suggestions in hints (excludes run_constrained
+# since we only update constraints there, not add/remove packages)
+SECTIONS_TO_HINT = ["host", "run"]
 
 IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
@@ -632,14 +640,24 @@ def generate_dep_hint(dep_comparison, kind):
         "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
     )
 
+    # For host/run sections: show add/remove suggestions
     df_cf = ""
-    for sec in SECTIONS_TO_PARSE:
+    for sec in SECTIONS_TO_HINT:
         for k in dep_comparison.get(sec, {}).get("df_minus_cf", set()):
             df_cf += f"- {k}" + "\n"
     cf_df = ""
-    for sec in SECTIONS_TO_PARSE:
+    for sec in SECTIONS_TO_HINT:
         for k in dep_comparison.get(sec, {}).get("cf_minus_df", set()):
             cf_df += f"- {k}" + "\n"
+
+    # For run_constrained: only show version constraint updates (packages in both)
+    rc_updates = ""
+    rc_comp = dep_comparison.get("run_constrained", {})
+    rc_cf = {dep.split(" ")[0]: dep for dep in rc_comp.get("cf_minus_df", set())}
+    rc_df = {dep.split(" ")[0]: dep for dep in rc_comp.get("df_minus_cf", set())}
+    for pkg in sorted(rc_cf.keys()):
+        if pkg in rc_df:
+            rc_updates += f"- {pkg}: `{rc_cf[pkg]}` -> `{rc_df[pkg]}`\n"
 
     if len(df_cf) > 0 or len(cf_df) > 0:
         hint += (
@@ -658,6 +676,10 @@ def generate_dep_hint(dep_comparison, kind):
             )
     else:
         hint += f"Analysis by {kind} shows **no discrepancy** with the stated requirements in the meta.yaml."  # noqa: E501
+
+    if rc_updates:
+        hint += f"\n\n### Version constraint updates for run_constrained:\n{rc_updates}"
+
     return hint
 
 
@@ -666,7 +688,36 @@ def _ok_for_dep_updates(lines):
     return not is_multi_output
 
 
-def _update_sec_deps(recipe, dep_comparison, sections_to_update, update_python=False):
+def _update_sec_deps(
+    recipe,
+    dep_comparison,
+    sections_to_update,
+    update_python=False,
+    constraints_only=False,
+):
+    """Update recipe dependencies based on comparison.
+
+    Parameters
+    ----------
+    recipe : CondaMetaYAML
+        The recipe to update.
+    dep_comparison : dict
+        The dependency comparison.
+    sections_to_update : list
+        The sections to update (e.g., ["run"] or ["run_constrained"]).
+    update_python : bool, optional
+        Whether to update python itself. Default is False.
+    constraints_only : bool, optional
+        If True, only update version constraints for packages that already exist
+        in the recipe. Do not add new packages. This is used for run_constrained
+        where we want to update stale version constraints but not modify the list
+        of optional dependencies. Default is False.
+
+    Returns
+    -------
+    bool
+        True if any dependencies were updated, False otherwise.
+    """
     updated_deps = False
 
     rqkeys = list(_gen_key_selector(recipe.meta, "requirements"))
@@ -677,6 +728,9 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update, update_python=F
         for section in sections_to_update:
             seckeys = list(_gen_key_selector(recipe.meta[rqkey], section))
             if len(seckeys) == 0:
+                if constraints_only:
+                    # Don't create section if it doesn't exist in constraints_only mode
+                    continue
                 recipe.meta[rqkey][section] = []
 
             for seckey in _gen_key_selector(recipe.meta[rqkey], section):
@@ -708,11 +762,18 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update, update_python=F
                         if dep_pkg_nm == pkg_nm:
                             loc = i
                             break
-                    if loc is None:
-                        recipe.meta[rqkey][seckey].insert(0, dep)
+
+                    if constraints_only:
+                        # Only update existing packages, don't add new ones
+                        if loc is not None:
+                            recipe.meta[rqkey][seckey][loc] = dep
+                            updated_deps = True
                     else:
-                        recipe.meta[rqkey][seckey][loc] = dep
-                    updated_deps = True
+                        if loc is None:
+                            recipe.meta[rqkey][seckey].insert(0, dep)
+                        else:
+                            recipe.meta[rqkey][seckey][loc] = dep
+                        updated_deps = True
 
     return updated_deps
 
@@ -749,9 +810,29 @@ def is_expression_requirement(dep: str) -> bool:
 
 
 def _apply_env_dep_comparison(
-    deps: list[str], env_dep_comparison: EnvDepComparison
+    deps: list[str],
+    env_dep_comparison: EnvDepComparison,
+    constraints_only: bool = False,
 ) -> list[str]:
-    """Apply updates to dependency list while maintaining original package order."""
+    """Apply updates to dependency list while maintaining original package order.
+
+    Parameters
+    ----------
+    deps : list[str]
+        The current list of dependencies.
+    env_dep_comparison : EnvDepComparison
+        The comparison between grayskull and the recipe.
+    constraints_only : bool, optional
+        If True, only update version constraints for packages that exist in both
+        the recipe and grayskull. Do not add or remove packages. This is used for
+        run_constrained where we want to update stale version constraints but not
+        modify the list of optional dependencies. Default is False.
+
+    Returns
+    -------
+    list[str]
+        The updated list of dependencies.
+    """
     new_deps = copy.copy(deps)
     patches = _env_dep_comparison_to_patches(env_dep_comparison)
     for package, patch in patches.items():
@@ -761,15 +842,21 @@ def _apply_env_dep_comparison(
         # Do not try to replace expressions.
         if patch.before is not None and is_expression_requirement(patch.before):
             continue
-        # Add new package.
-        if patch.before is None:
-            new_deps.append(patch.after)  # type: ignore[arg-type]
-        # Remove old package.
-        elif patch.after is None:
-            new_deps.remove(patch.before)
-        # Update existing package.
+
+        if constraints_only:
+            # For run_constrained: only update existing packages, don't add/remove
+            if patch.before is not None and patch.after is not None:
+                new_deps[new_deps.index(patch.before)] = patch.after
         else:
-            new_deps[new_deps.index(patch.before)] = patch.after
+            # Add new package.
+            if patch.before is None:
+                new_deps.append(patch.after)  # type: ignore[arg-type]
+            # Remove old package.
+            elif patch.after is None:
+                new_deps.remove(patch.before)
+            # Update existing package.
+            else:
+                new_deps[new_deps.index(patch.before)] = patch.after
     return new_deps
 
 
@@ -786,10 +873,26 @@ def _apply_dep_update_v1(recipe: dict, dep_comparison: DepComparison) -> dict:
     if not _is_v1_recipe_okay_for_dep_updates(recipe):
         return new_recipe
 
+    requirements = recipe.get("requirements", {})
+
+    # Update run section (add/remove/update)
     for section in SECTIONS_TO_UPDATE:
-        new_recipe["requirements"][section] = _apply_env_dep_comparison(
-            recipe["requirements"][section],
-            dep_comparison[section],  # type: ignore[index]
+        if section in requirements and section in dep_comparison:
+            section_key = cast(Literal["host", "run", "run_constrained"], section)
+            new_recipe["requirements"][section] = _apply_env_dep_comparison(
+                requirements[section],
+                dep_comparison[section_key],
+                constraints_only=False,
+            )
+
+    # Update run_constraints section (v1 name for run_constrained)
+    # constraints only - no add/remove
+    # Note: v0 uses "run_constrained", v1 uses "run_constraints"
+    if "run_constraints" in requirements and "run_constrained" in dep_comparison:
+        new_recipe["requirements"]["run_constraints"] = _apply_env_dep_comparison(
+            requirements["run_constraints"],
+            dep_comparison["run_constrained"],
+            constraints_only=True,
         )
 
     return new_recipe
@@ -799,6 +902,19 @@ def _get_v1_recipe_file_if_exists(recipe_dir: Path) -> Path | None:
     if (recipe_file := Path(recipe_dir).joinpath("recipe.yaml")).is_file():
         return recipe_file
     return None
+
+
+def _has_run_constrained_updates(dep_comparison: dict) -> bool:
+    """Check if there are version constraint updates for run_constrained.
+
+    Only returns True if the same package exists in both cf_minus_df and df_minus_cf,
+    meaning there's a version constraint change (not an add or remove).
+    """
+    rc_comp = dep_comparison.get("run_constrained", {})
+    rc_cf = {dep.split(" ")[0] for dep in rc_comp.get("cf_minus_df", set())}
+    rc_df = {dep.split(" ")[0] for dep in rc_comp.get("df_minus_cf", set())}
+    # Only update if the same package exists in both (version constraint change)
+    return bool(rc_cf & rc_df)
 
 
 def apply_dep_update(recipe_dir, dep_comparison):
@@ -821,16 +937,34 @@ def apply_dep_update(recipe_dir, dep_comparison):
     with open(recipe_pth) as fp:
         lines = fp.readlines()
 
-    if _ok_for_dep_updates(lines) and any(
+    has_run_updates = any(
         len(dep_comparison.get(s, {}).get("df_minus_cf", set())) > 0
         for s in SECTIONS_TO_UPDATE
-    ):
+    )
+    has_rc_updates = _has_run_constrained_updates(dep_comparison)
+
+    if _ok_for_dep_updates(lines) and (has_run_updates or has_rc_updates):
         recipe = CondaMetaYAML("".join(lines))
-        updated_deps = _update_sec_deps(
-            recipe,
-            dep_comparison,
-            SECTIONS_TO_UPDATE,
-        )
+        updated_deps = False
+
+        # Update run section (add/remove/update)
+        if has_run_updates:
+            updated_deps |= _update_sec_deps(
+                recipe,
+                dep_comparison,
+                SECTIONS_TO_UPDATE,
+                constraints_only=False,
+            )
+
+        # Update run_constrained section (constraints only - no add/remove)
+        if has_rc_updates:
+            updated_deps |= _update_sec_deps(
+                recipe,
+                dep_comparison,
+                SECTIONS_TO_UPDATE_CONSTRAINTS_ONLY,
+                constraints_only=True,
+            )
+
         # updated_deps is True if deps were updated, False otherwise.
         if updated_deps:
             with open(recipe_pth, "w") as fp:
