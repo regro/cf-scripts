@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.16.07.26.15
+  version: 2026.03.16.13.44.37
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.16.07.26.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.16.13.44.37-hd8ed1ab_0.conda
   hash:
-    md5: d45a9c7869867d526a096b59eb555dbb
-    sha256: 0f3093a18dfaccc41c7cf522f241b2d3e28751e034adc1c3e90f20bb04b52fa9
+    md5: b198906d4aeb83997af324afe811934b
+    sha256: 4b42cf8c753c201b8ff5f8c73cc6baabe9166daa81f70c77a92ef450d9559edb
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.16.07.26.15
+  version: 2026.03.16.13.44.37
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.16.07.26.15-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.16.13.44.37-hd8ed1ab_0.conda
   hash:
-    md5: d45a9c7869867d526a096b59eb555dbb
-    sha256: 0f3093a18dfaccc41c7cf522f241b2d3e28751e034adc1c3e90f20bb04b52fa9
+    md5: b198906d4aeb83997af324afe811934b
+    sha256: 4b42cf8c753c201b8ff5f8c73cc6baabe9166daa81f70c77a92ef450d9559edb
   category: main
   optional: false
 - name: conda-index
@@ -5445,7 +5445,7 @@ package:
   category: main
   optional: false
 - name: liblief
-  version: 0.17.4
+  version: 0.17.5
   manager: conda
   platform: linux-64
   dependencies:
@@ -5453,24 +5453,24 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     mbedtls: '>=3.6.3.1,<3.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.17.4-hecca717_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.17.5-hecca717_0.conda
   hash:
-    md5: eed85bd89f2218c327961422cdfb9278
-    sha256: 9908541570cdc93f210bc1218143c837857ed3ddcac2e67f8cf1b21a21cf1876
+    md5: 1a1a04c22313df1145e83a9f841b7eed
+    sha256: 2fcec7e4adce5efd69420281df42a3848d231a936fe3a3a7cf1823acff99b22d
   category: main
   optional: false
 - name: liblief
-  version: 0.17.4
+  version: 0.17.5
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
     mbedtls: '>=3.6.3.1,<3.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.17.4-hf6b4638_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.17.5-hf6b4638_0.conda
   hash:
-    md5: 7afbe5d645bfd5a32dc98b80d1db474c
-    sha256: 458a1e1913b9162446953f598d34792e95605ea8cef14cc5e014f53e2f30d14f
+    md5: fb210ffd6a570a39d261801b98b127e0
+    sha256: e7fde98a3fc150b9f187cedc8e1538d3cdf911acd95cfed90481a51c964aeef9
   category: main
   optional: false
 - name: libllvm19
@@ -7559,36 +7559,36 @@ package:
   category: main
   optional: false
 - name: py-lief
-  version: 0.17.4
+  version: 0.17.5
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    liblief: 0.17.4
+    liblief: 0.17.5
     libstdcxx: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.17.4-py312h1289d80_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.17.5-py312h1289d80_0.conda
   hash:
-    md5: 040675536a47f53635fa2ce696076f17
-    sha256: 00de98613d6c31c31719a1f0359d9c2e2195536306a2064b63781033b8daff62
+    md5: 7e634f4bbe04a282e127bed02fe2b354
+    sha256: d56690e4a6738dcb57c4b955eafa9e06dad81245eb40e30678060f2f5496c848
   category: main
   optional: false
 - name: py-lief
-  version: 0.17.4
+  version: 0.17.5
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-    liblief: 0.17.4
+    liblief: 0.17.5
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.17.4-py312h6d95f44_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.17.5-py312h6d95f44_0.conda
   hash:
-    md5: 3be35d751a29a1d2e429c10577cd4a19
-    sha256: 3e4c3fa90305cc6908cdf6bd8d8f8c2d63c7202764ae7a0330ab83335db9fc92
+    md5: 8794af6740817ae5cf148951abc2a4b0
+    sha256: 983f0235c9be23a4d19eef6ebb58609b9b8f0c2756732d8ee711be0f7406f234
   category: main
   optional: false
 - name: py-rattler
