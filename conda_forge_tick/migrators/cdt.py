@@ -242,7 +242,7 @@ This migrator will attempt to replace the CDT dependencies with regular conda-fo
         return "Migrate CDT dependencies to regular packages"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        return f"{self.name}-migration-{self.migrator_version}"
+        return f"cdt-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs: AttrsTypedDict) -> MigrationUidTypedDict:
         if self.name is None:
