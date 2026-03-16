@@ -403,7 +403,7 @@ requirements:
     - libpng
     - xorg-libxfixes                     # [linux]
     - zlib                               # [win]
-    - xorgproto                          # [linux]
+    - xorg-xorgproto                     # [linux]
     - libgl-devel                        # [linux]
     - xorg-libx11                        # [linux]
     - xorg-libxext                       # [linux]
@@ -574,7 +574,7 @@ test:
   requires:
     - make                               # [unix]
     - {{ compiler('cxx') }}
-    - xorgproto                          # [linux]
+    - xorg-xorgproto                     # [linux]
     - xorg-libx11                        # [linux]
     - xorg-libxext                       # [linux]
     - xorg-libxrender                    # [linux]
