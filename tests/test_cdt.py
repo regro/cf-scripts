@@ -414,7 +414,7 @@ requirements:
     - xorg-libxcomposite                 # [linux]
     - xorg-libxcursor                    # [linux]
     - xorg-libxi                         # [linux]
-    - xorg-librandr                      # [linux]
+    - xorg-libxrandr                     # [linux]
     - xorg-libxscrnsaver                 # [linux]
     - xorg-libxtst                       # [linux]
   run:
@@ -587,7 +587,7 @@ test:
     - xorg-libxcomposite                 # [linux]
     - xorg-libxcursor                    # [linux]
     - xorg-libxi                         # [linux]
-    - xorg-librandr                      # [linux]
+    - xorg-libxrandr                     # [linux]
     - xorg-libxscrnsaver                 # [linux]
     - xorg-libxtst                       # [linux]
     - xorg-libxdamage                    # [linux]
