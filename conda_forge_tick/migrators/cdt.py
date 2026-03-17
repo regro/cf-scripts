@@ -53,7 +53,7 @@ cdt_mapping = {
     "libxinerama-devel": "xorg-libxinerama",
     "libxkbcommon-devel": "libxkbcommon",
     "libxml2-devel": "libxml2",
-    "libxrandr-devel": "xorg-librandr",
+    "libxrandr-devel": "xorg-libxrandr",
     "libxrender-devel": "xorg-libxrender",
     "libxscrnsaver-devel": "xorg-libxscrnsaver",
     "libxshmfence-devel": "xorg-libxshmfence",
