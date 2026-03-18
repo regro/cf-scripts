@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.18.09.56.33
+  version: 2026.03.18.17.42.56
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.18.09.56.33-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.18.17.42.56-hd8ed1ab_0.conda
   hash:
-    md5: 7f08a65225395ba1275c5d30bc96bd13
-    sha256: 124cdb4359f5f6f8cb4fa5f1b8f0d4046429be368e47816e623e4691678189a7
+    md5: 3ef71579fe4505318b3c4ec2630e2207
+    sha256: a24fe8b3f26e836b53d8757193dba161f6d5c526defc1c8d341e3587ee0cd4bf
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.18.09.56.33
+  version: 2026.03.18.17.42.56
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.18.09.56.33-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.18.17.42.56-hd8ed1ab_0.conda
   hash:
-    md5: 7f08a65225395ba1275c5d30bc96bd13
-    sha256: 124cdb4359f5f6f8cb4fa5f1b8f0d4046429be368e47816e623e4691678189a7
+    md5: 3ef71579fe4505318b3c4ec2630e2207
+    sha256: a24fe8b3f26e836b53d8757193dba161f6d5c526defc1c8d341e3587ee0cd4bf
   category: main
   optional: false
 - name: conda-index
@@ -2163,7 +2163,7 @@ package:
   category: main
   optional: false
 - name: dask-core
-  version: 2026.1.2
+  version: 2026.3.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -2176,14 +2176,14 @@ package:
     python: ''
     pyyaml: '>=5.3.1'
     toolz: '>=0.12.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/dask-core-2026.1.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/dask-core-2026.3.0-pyhc364b38_0.conda
   hash:
-    md5: b20e7ce9afd59036ab194f3d1e27edf5
-    sha256: c8500be32e2c75b10fd7a0664b0e5abc956dece18a54774a53f357aeabe9e1b6
+    md5: 809f4cde7c853f437becc43415a2ecdf
+    sha256: 5497e56b12b8a07921668f6469d725be9826ffe5ae8a2f6f71d26369400b41ca
   category: main
   optional: false
 - name: dask-core
-  version: 2026.1.2
+  version: 2026.3.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -2196,10 +2196,10 @@ package:
     python: ''
     pyyaml: '>=5.3.1'
     toolz: '>=0.12.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/dask-core-2026.1.2-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/dask-core-2026.3.0-pyhc364b38_0.conda
   hash:
-    md5: b20e7ce9afd59036ab194f3d1e27edf5
-    sha256: c8500be32e2c75b10fd7a0664b0e5abc956dece18a54774a53f357aeabe9e1b6
+    md5: 809f4cde7c853f437becc43415a2ecdf
+    sha256: 5497e56b12b8a07921668f6469d725be9826ffe5ae8a2f6f71d26369400b41ca
   category: main
   optional: false
 - name: dateparser
@@ -2330,14 +2330,14 @@ package:
   category: main
   optional: false
 - name: distributed
-  version: 2026.1.2
+  version: 2026.3.0
   manager: conda
   platform: linux-64
   dependencies:
     click: '>=8.0'
     cloudpickle: '>=3.0.0'
     cytoolz: '>=0.12.0'
-    dask-core: '>=2026.1.2,<2026.1.3.0a0'
+    dask-core: '>=2026.3.0,<2026.3.1.0a0'
     jinja2: '>=2.10.3'
     locket: '>=1.0.0'
     msgpack-python: '>=1.0.2'
@@ -2351,21 +2351,21 @@ package:
     tornado: '>=6.2.0'
     urllib3: '>=1.26.5'
     zict: '>=3.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2026.1.2-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2026.3.0-pyhc364b38_0.conda
   hash:
-    md5: 3c155e2914169b807ebb4027a8c0999c
-    sha256: 678869f02e4d01cb6ce6838d279ff43c161a7730a3a63fec0a85d3524961ab66
+    md5: 8efb90a27e3b948514a428cb99f3fc70
+    sha256: 49cbb318f7a1797b9f17c135c9b5c48ba2086570a58c99054d3b40bf13a5b815
   category: main
   optional: false
 - name: distributed
-  version: 2026.1.2
+  version: 2026.3.0
   manager: conda
   platform: osx-arm64
   dependencies:
     click: '>=8.0'
     cloudpickle: '>=3.0.0'
     cytoolz: '>=0.12.0'
-    dask-core: '>=2026.1.2,<2026.1.3.0a0'
+    dask-core: '>=2026.3.0,<2026.3.1.0a0'
     jinja2: '>=2.10.3'
     locket: '>=1.0.0'
     msgpack-python: '>=1.0.2'
@@ -2379,10 +2379,10 @@ package:
     tornado: '>=6.2.0'
     urllib3: '>=1.26.5'
     zict: '>=3.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2026.1.2-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/distributed-2026.3.0-pyhc364b38_0.conda
   hash:
-    md5: 3c155e2914169b807ebb4027a8c0999c
-    sha256: 678869f02e4d01cb6ce6838d279ff43c161a7730a3a63fec0a85d3524961ab66
+    md5: 8efb90a27e3b948514a428cb99f3fc70
+    sha256: 49cbb318f7a1797b9f17c135c9b5c48ba2086570a58c99054d3b40bf13a5b815
   category: main
   optional: false
 - name: distro
@@ -5611,38 +5611,38 @@ package:
   category: main
   optional: false
 - name: libnghttp2
-  version: 1.67.0
+  version: 1.68.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    c-ares: '>=1.34.5,<2.0a0'
+    c-ares: '>=1.34.6,<2.0a0'
     libev: '>=4.33,<5.0a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
     libzlib: '>=1.3.1,<2.0a0'
-    openssl: '>=3.5.2,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libnghttp2-1.67.0-had1ee68_0.conda
+    openssl: '>=3.5.5,<4.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libnghttp2-1.68.1-h877daf1_0.conda
   hash:
-    md5: b499ce4b026493a13774bcf0f4c33849
-    sha256: a4a7dab8db4dc81c736e9a9b42bdfd97b087816e029e221380511960ac46c690
+    md5: 2a45e7f8af083626f009645a6481f12d
+    sha256: 663444d77a42f2265f54fb8b48c5450bfff4388d9c0f8253dd7855f0d993153f
   category: main
   optional: false
 - name: libnghttp2
-  version: 1.67.0
+  version: 1.68.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    c-ares: '>=1.34.5,<2.0a0'
+    c-ares: '>=1.34.6,<2.0a0'
     libcxx: '>=19'
     libev: '>=4.33,<5.0a0'
     libzlib: '>=1.3.1,<2.0a0'
-    openssl: '>=3.5.2,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libnghttp2-1.67.0-hc438710_0.conda
+    openssl: '>=3.5.5,<4.0a0'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libnghttp2-1.68.1-h8f3e76b_0.conda
   hash:
-    md5: a4b4dd73c67df470d091312ab87bf6ae
-    sha256: a07cb53b5ffa2d5a18afc6fd5a526a5a53dd9523fbc022148bd2f9395697c46d
+    md5: 6ea18834adbc3b33df9bd9fb45eaf95b
+    sha256: 2bc7bc3978066f2c274ebcbf711850cc9ab92e023e433b9631958a098d11e10a
   category: main
   optional: false
 - name: libnsl
@@ -7282,7 +7282,7 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.65.0
+  version: 0.66.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7290,10 +7290,10 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     openssl: '>=3.5.5,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.65.0-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.66.0-ha759004_0.conda
   hash:
-    md5: acd539326b309b03e2e788b3c0d39c97
-    sha256: 996d02467e1b5311eeb81afa0003bb7a5657f78982ba54cd98d884342ca5b142
+    md5: 3b982a8cd2e028a81b3bf488ef1bbac0
+    sha256: d40b7791c4480ba7462db702fc7ff44d93b95b4a3f5a00a6b6208bc859849026
   category: main
   optional: false
 - name: pixi
