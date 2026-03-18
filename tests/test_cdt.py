@@ -992,6 +992,194 @@ extra:
     - effigies
 """  # noqa
 
+openmotif_recipe = """\
+{% set name = "openmotif" %}
+{% set version = "2.3.8" %}
+{% set sha256 = "859b723666eeac7df018209d66045c9853b50b4218cecadb794e2359619ebce7" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://downloads.sourceforge.net/project/motif/Motif%20{{ version }}%20Source%20Code/motif-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+  patches:
+    - 0003_fix_ftbfs_binutils-gold.patch  # [linux]
+
+build:
+  number: 5
+  skip: True  # [win or osx]
+
+requirements:
+  build:
+    - make
+    - pkg-config
+    - {{ stdlib('c') }}
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ cdt('xorg-x11-proto-devel') }}
+    - {{ cdt('libx11-devel') }}
+    - {{ cdt('libxext-devel') }}
+  host:
+    - flex
+    - freetype
+    - fontconfig
+    - libpng
+    - zlib
+    - libjpeg-turbo
+    - xorg-libxt
+    - xorg-libxext
+    - xorg-libxft
+    - xorg-xbitmaps
+    - xorg-libxp
+    - xorg-libxmu
+    - xorg-makedepend
+    - libiconv
+
+  run:
+    - freetype
+    - fontconfig
+    - libpng
+    - xorg-libxt
+    - xorg-libxext
+    - xorg-libxft
+    - xorg-libxp
+    - xorg-libxmu
+    - libiconv
+
+test:
+  commands:
+    - 'test "`uil 2>&1| tr -d ''\n''`" = "Severe: no source file specified"'
+
+outputs:
+  - name: openmotif-dev
+    script: install_dev.sh
+    build:
+      run_exports:
+        # clients need `openmotif` when using `openmotif-dev`
+        # ABI compatibility looks rather unchanging:
+        # https://abi-laboratory.pro/index.php?view=timeline&l=motif
+        - {{ pin_subpackage('openmotif') }}
+    requirements:
+      # `openmotiv-dev` headers are exactly for same version
+      - {{ pin_subpackage('openmotif', exact=True) }}
+  - name: openmotif
+    script: install_main.sh
+  - name: openmotif-doc
+    script: install_doc.sh
+    requirements:
+      - {{ pin_subpackage('openmotif', exact=True) }}
+
+about:
+  home: http://motif.ics.com
+  license: LGPL-2.1-only
+  license_family: LGPL
+  license_file: COPYING
+  summary: 'Motif user interface component toolkit.'
+
+extra:
+  recipe-maintainers:
+    - epruesse
+    - martin-g
+"""  # noqa
+
+openmotif_recipe_correct = """\
+{% set name = "openmotif" %}
+{% set version = "2.3.8" %}
+{% set sha256 = "859b723666eeac7df018209d66045c9853b50b4218cecadb794e2359619ebce7" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://downloads.sourceforge.net/project/motif/Motif%20{{ version }}%20Source%20Code/motif-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+  patches:
+    - 0003_fix_ftbfs_binutils-gold.patch  # [linux]
+
+build:
+  number: 6
+  skip: True  # [win or osx]
+
+requirements:
+  build:
+    - make
+    - pkg-config
+    - {{ stdlib('c') }}
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - flex
+    - freetype
+    - fontconfig
+    - libpng
+    - zlib
+    - libjpeg-turbo
+    - xorg-libxt
+    - xorg-libxext
+    - xorg-libxft
+    - xorg-xbitmaps
+    - xorg-libxp
+    - xorg-libxmu
+    - xorg-makedepend
+    - libiconv
+
+    - xorg-xorgproto
+    - xorg-libx11
+    - xorg-libxext
+  run:
+    - freetype
+    - fontconfig
+    - libpng
+    - xorg-libxt
+    - xorg-libxext
+    - xorg-libxft
+    - xorg-libxp
+    - xorg-libxmu
+    - libiconv
+
+test:
+  commands:
+    - 'test "`uil 2>&1| tr -d ''\n''`" = "Severe: no source file specified"'
+
+outputs:
+  - name: openmotif-dev
+    script: install_dev.sh
+    build:
+      run_exports:
+        # clients need `openmotif` when using `openmotif-dev`
+        # ABI compatibility looks rather unchanging:
+        # https://abi-laboratory.pro/index.php?view=timeline&l=motif
+        - {{ pin_subpackage('openmotif') }}
+    requirements:
+      # `openmotiv-dev` headers are exactly for same version
+      - {{ pin_subpackage('openmotif', exact=True) }}
+  - name: openmotif
+    script: install_main.sh
+  - name: openmotif-doc
+    script: install_doc.sh
+    requirements:
+      - {{ pin_subpackage('openmotif', exact=True) }}
+
+about:
+  home: http://motif.ics.com
+  license: LGPL-2.1-only
+  license_family: LGPL
+  license_file: COPYING
+  summary: 'Motif user interface component toolkit.'
+
+extra:
+  recipe-maintainers:
+    - epruesse
+    - martin-g
+"""  # noqa
+
 
 def test_cdt(tmp_path):
     run_test_migration(
@@ -1046,6 +1234,22 @@ def test_cdt_connectome(tmp_path):
         m=cdt_migrator,
         inp=connectome_recipe,
         output=connectome_recipe_correct,
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
+        kwargs={"new_version": "1.0.0"},
+        mr_out={
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
+        },
+        tmp_path=tmp_path,
+    )
+
+
+def test_cdt_openmotif(tmp_path):
+    run_test_migration(
+        m=cdt_migrator,
+        inp=openmotif_recipe,
+        output=openmotif_recipe_correct,
         prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={
