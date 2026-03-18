@@ -195,7 +195,11 @@ class CDTMigrator(Migrator):
                             continue
                         seen.add(replacement)
                         extra_ws_len = len(match.group("full_cdt")) - len(replacement)
-                        extra_ws = "" if extra_ws_len <= 0 else extra_ws_len * " "
+                        extra_ws = (
+                            ""
+                            if extra_ws_len <= 0 or match.group("selector") is None
+                            else extra_ws_len * " "
+                        )
                         # Move build: CDTs to host:. If there is no "host" section, create one.
                         target = (
                             subsections.setdefault(
@@ -207,9 +211,9 @@ class CDTMigrator(Migrator):
                         target.append(
                             f"{match.group('pre_cdt')}"
                             f"{replacement}"
-                            f"{extra_ws}"
                             f"{match.group('post_cdt')}"
-                            f"{match.group('selector')}"
+                            f"{extra_ws}"
+                            f"{match.group('selector') or ''}"
                             "\n"
                         )
                 subsections[key] = new
