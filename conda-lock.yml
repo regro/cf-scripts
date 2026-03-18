@@ -5445,7 +5445,7 @@ package:
   category: main
   optional: false
 - name: liblief
-  version: 0.17.5
+  version: 0.17.6
   manager: conda
   platform: linux-64
   dependencies:
@@ -5453,10 +5453,10 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     mbedtls: '>=3.6.3.1,<3.7.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.17.5-hecca717_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/liblief-0.17.6-hecca717_0.conda
   hash:
-    md5: 1a1a04c22313df1145e83a9f841b7eed
-    sha256: 2fcec7e4adce5efd69420281df42a3848d231a936fe3a3a7cf1823acff99b22d
+    md5: 787cf305cdb5aa4797b845062458742a
+    sha256: 7508b34b3748704978e2ef3527e042ff173775527d22b4fa1f6d611210a6841e
   category: main
   optional: false
 - name: liblief
@@ -6882,7 +6882,7 @@ package:
   category: main
   optional: false
 - name: numpy
-  version: 2.4.2
+  version: 2.4.3
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -6893,10 +6893,10 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: 3.12.*
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.2-py312he281c53_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.3-py312h84a4f5f_0.conda
   hash:
-    md5: 4afbe6ffff0335d25f3c5cc78b1350a4
-    sha256: 7fd2f1a33b244129dcc2163304d103a7062fc38f01fe13945c9ea95cef12b954
+    md5: 0a8a2049321d82aeaae02f07045d970e
+    sha256: 8116c570ca5b423b46d968be799eae7494b30fe7d65e4080fc891f35a01ea0d4
   category: main
   optional: false
 - name: oauthlib
@@ -7559,20 +7559,20 @@ package:
   category: main
   optional: false
 - name: py-lief
-  version: 0.17.5
+  version: 0.17.6
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    liblief: 0.17.5
+    liblief: 0.17.6
     libstdcxx: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.17.5-py312h1289d80_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/py-lief-0.17.6-py312h1289d80_0.conda
   hash:
-    md5: 7e634f4bbe04a282e127bed02fe2b354
-    sha256: d56690e4a6738dcb57c4b955eafa9e06dad81245eb40e30678060f2f5496c848
+    md5: cbdacc13ac5cd9a7335b776c69d560af
+    sha256: 18c4639e73c8d4aed55ccb8ab603b55c2dd1daa4cce70b4236af49eb95d17337
   category: main
   optional: false
 - name: py-lief
