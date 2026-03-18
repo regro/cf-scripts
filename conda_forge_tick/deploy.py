@@ -128,7 +128,7 @@ def _deploy_batch(
     files_to_add: set[str],
     batch,
     n_added,
-    max_per_batch=200,
+    max_per_batch=10,
     exp_backoff_base: float = 1.1,
     exp_backoff_rfrac: float = 0.5,
     max_tries: int = 30,
@@ -240,7 +240,7 @@ def _deploy_via_api(
     files_done: set[str],
     files_to_try_again: set[str],
 ) -> tuple[bool, set[str], set[str], set[str]]:
-    if len(files_to_add) + len(files_to_delete) <= 200:
+    if len(files_to_add) + len(files_to_delete) <= 1000:
         for pth in files_to_add:
             if do_git_ops:
                 break
