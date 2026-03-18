@@ -286,7 +286,7 @@ def _deploy_via_api(
             else:
                 files_done.add(pth)
 
-            time.sleep(1.0 + (RNG.uniform() - 0.5) * 2.0 * 0.1)
+            time.sleep(1.0 + RNG.uniform(-1, 1) * 0.1)
 
     else:
         do_git_ops = True
