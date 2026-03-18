@@ -262,6 +262,8 @@ def _deploy_via_api(
             else:
                 files_done.add(pth)
 
+            time.sleep(1.0 + (RNG.uniform() - 0.5) * 2.0 * 0.1)
+
         for pth in files_to_delete:
             if do_git_ops:
                 break
@@ -283,6 +285,8 @@ def _deploy_via_api(
                 do_git_ops = True
             else:
                 files_done.add(pth)
+
+            time.sleep(1.0 + (RNG.uniform() - 0.5) * 2.0 * 0.1)
 
     else:
         do_git_ops = True
