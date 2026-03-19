@@ -1129,9 +1129,9 @@ requirements:
     - xorg-libxmu
     - xorg-makedepend
     - libiconv
-
     - xorg-xorgproto
     - xorg-libx11
+
   run:
     - freetype
     - fontconfig

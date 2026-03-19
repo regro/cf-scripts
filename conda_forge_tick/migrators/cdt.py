@@ -141,9 +141,6 @@ class CDTMigrator(Migrator):
             if req_start is not None:
                 assert req_indent is not None
                 if line.strip() and not line.startswith(req_indent):
-                    # We may have skipped a few empty lines, reverse that.
-                    while not yaml[lineno - 1].strip() and lineno > req_start + 1:
-                        lineno -= 1
                     requirement_ranges.append((req_start + 1, lineno))
                     req_start = None
 
@@ -153,8 +150,6 @@ class CDTMigrator(Migrator):
                 req_indent = (len(line) - len(line_lstrip) + 1) * " "
         # If we EOF-ed in middle of a requirement section, add it.
         if req_start is not None:
-            while not yaml[lineno].strip() and lineno + 1 > req_start + 1:
-                lineno -= 1
             requirement_ranges.append((req_start + 1, lineno + 1))
 
         # Process requirement sections in reverse order, to avoid changing linenos.
@@ -217,14 +212,20 @@ class CDTMigrator(Migrator):
                             continue
                         reqs_seen[new_key].add(new_req_key)
 
-                        target = new
-                        if key != new_key:
+                        if key == new_key:
+                            new.append(new_line)
+                        else:
                             assert key is not None
                             assert new_key is not None
                             target = subsections.setdefault(
                                 new_key, [subsection[0].replace(key, new_key)]
                             )
-                        target.append(new_line)
+                            target_line = len(target)
+                            while (
+                                target_line > 0 and not target[target_line - 1].strip()
+                            ):
+                                target_line -= 1
+                            target.insert(target_line, new_line)
                 subsections[key] = new
 
             # Reconstruct the requirement section.
