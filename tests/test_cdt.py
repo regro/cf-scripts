@@ -1132,7 +1132,6 @@ requirements:
 
     - xorg-xorgproto
     - xorg-libx11
-    - xorg-libxext
   run:
     - freetype
     - fontconfig
