@@ -1179,6 +1179,43 @@ extra:
     - martin-g
 """  # noqa
 
+no_host_recipe = """\
+package:
+  name: test
+  version: 1.0.0
+
+requirements:
+  build:
+    - make
+    - pkg-config
+    - {{ stdlib('c') }}
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ cdt('xorg-x11-proto-devel') }}
+    - {{ cdt('libx11-devel') }}
+    - {{ cdt('libxext-devel') }}
+"""
+
+no_host_recipe_correct = """\
+package:
+  name: test
+  version: 1.0.0
+
+requirements:
+  build:
+    - make
+    - pkg-config
+    - {{ stdlib('c') }}
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - xorg-xorgproto
+    - xorg-libx11
+    - xorg-libxext
+"""
+
 
 def test_cdt(tmp_path):
     run_test_migration(
@@ -1249,6 +1286,22 @@ def test_cdt_openmotif(tmp_path):
         m=cdt_migrator,
         inp=openmotif_recipe,
         output=openmotif_recipe_correct,
+        prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
+        kwargs={"new_version": "1.0.0"},
+        mr_out={
+            "migrator_name": "CDTMigrator",
+            "migrator_version": 1,
+            "name": "CDT Migrator",
+        },
+        tmp_path=tmp_path,
+    )
+
+
+def test_cdt_no_host(tmp_path):
+    run_test_migration(
+        m=cdt_migrator,
+        inp=no_host_recipe,
+        output=no_host_recipe_correct,
         prb="This migrator will attempt to replace the CDT dependencies with regular conda-forge packages",
         kwargs={"new_version": "1.0.0"},
         mr_out={

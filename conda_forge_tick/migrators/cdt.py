@@ -180,7 +180,7 @@ class CDTMigrator(Migrator):
                 for key, subsection in subsections.items()
             }
 
-            for key, subsection in subsections.items():
+            for key, subsection in list(subsections.items()):
                 new = []
                 # Perform CDT replacement.
                 for line in subsection:
