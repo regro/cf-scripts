@@ -141,9 +141,6 @@ class CDTMigrator(Migrator):
             if req_start is not None:
                 assert req_indent is not None
                 if line.strip() and not line.startswith(req_indent):
-                    # We may have skipped a few empty lines, reverse that.
-                    while not yaml[lineno - 1].strip() and lineno > req_start + 1:
-                        lineno -= 1
                     requirement_ranges.append((req_start + 1, lineno))
                     req_start = None
 
@@ -153,8 +150,6 @@ class CDTMigrator(Migrator):
                 req_indent = (len(line) - len(line_lstrip) + 1) * " "
         # If we EOF-ed in middle of a requirement section, add it.
         if req_start is not None:
-            while not yaml[lineno].strip() and lineno + 1 > req_start + 1:
-                lineno -= 1
             requirement_ranges.append((req_start + 1, lineno + 1))
 
         # Process requirement sections in reverse order, to avoid changing linenos.
@@ -180,9 +175,13 @@ class CDTMigrator(Migrator):
                 current_section_start : lineno + 1
             ]
 
-            for key, subsection in subsections.items():
+            reqs_seen = {
+                key: {tuple(line.split()) for line in subsection}
+                for key, subsection in subsections.items()
+            }
+
+            for key, subsection in list(subsections.items()):
                 new = []
-                seen = set()
                 # Perform CDT replacement.
                 for line in subsection:
                     if (match := cdt_pattern.match(line)) is None:
@@ -190,10 +189,6 @@ class CDTMigrator(Migrator):
                         continue
 
                     if replacement := cdt_mapping.get(match.group("cdt").lower()):
-                        # Do not include the same package twice.
-                        if replacement in seen:
-                            continue
-                        seen.add(replacement)
                         extra_ws_len = len(match.group("full_cdt")) - len(replacement)
                         extra_ws = (
                             ""
@@ -201,14 +196,8 @@ class CDTMigrator(Migrator):
                             else extra_ws_len * " "
                         )
                         # Move build: CDTs to host:. If there is no "host" section, create one.
-                        target = (
-                            subsections.setdefault(
-                                "host:", [subsection[0].replace(key, "host:")]
-                            )
-                            if key == "build:"
-                            else new
-                        )
-                        target.append(
+                        new_key = "host:" if key == "build:" else key
+                        new_line = (
                             f"{match.group('pre_cdt')}"
                             f"{replacement}"
                             f"{match.group('post_cdt')}"
@@ -216,6 +205,27 @@ class CDTMigrator(Migrator):
                             f"{match.group('selector') or ''}"
                             "\n"
                         )
+
+                        # Deduplicate requirements.
+                        new_req_key = tuple(new_line.split())
+                        if new_req_key in reqs_seen.setdefault(new_key, set()):
+                            continue
+                        reqs_seen[new_key].add(new_req_key)
+
+                        if key == new_key:
+                            new.append(new_line)
+                        else:
+                            assert key is not None
+                            assert new_key is not None
+                            target = subsections.setdefault(
+                                new_key, [subsection[0].replace(key, new_key)]
+                            )
+                            target_line = len(target)
+                            while (
+                                target_line > 0 and not target[target_line - 1].strip()
+                            ):
+                                target_line -= 1
+                            target.insert(target_line, new_line)
                 subsections[key] = new
 
             # Reconstruct the requirement section.
