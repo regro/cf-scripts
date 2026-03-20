@@ -1810,7 +1810,7 @@ package:
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.10.0
+  version: 0.10.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1823,14 +1823,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 1ee25e9ab009b0e14bc902e4efad0100
-    sha256: 858aea84d3e1e1f7b606841181e38e075306dba4835c7b47dd3fdf06f867e2f8
+    md5: 8b21637b6bc1fa668959c0313edccc5e
+    sha256: b10142fdae95d30c39998ba68bb5d664744a1fa1679001af6f0182c1df4bf4cd
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.10.0
+  version: 0.10.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1843,10 +1843,10 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.1-pyhd8ed1ab_0.conda
   hash:
-    md5: 1ee25e9ab009b0e14bc902e4efad0100
-    sha256: 858aea84d3e1e1f7b606841181e38e075306dba4835c7b47dd3fdf06f867e2f8
+    md5: 8b21637b6bc1fa668959c0313edccc5e
+    sha256: b10142fdae95d30c39998ba68bb5d664744a1fa1679001af6f0182c1df4bf4cd
   category: main
   optional: false
 - name: conda-smithy
@@ -10639,30 +10639,30 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.10.11
+  version: 0.10.12
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.10.11-h0f56927_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.10.12-h0f56927_0.conda
   hash:
-    md5: 6cc4b5044e736ab13efa5c5b759edf21
-    sha256: f9b63d8b97bff153eb99568c1d65ebcbd180a857cf625b3c018ee775cfc64352
+    md5: a44fb5a7475ba92b19bbd5bc3536af21
+    sha256: 661365aa40ba423bfe2e6ab8e7b14190426d57f30097f3668f947a61c2a00c5c
   category: main
   optional: false
 - name: uv
-  version: 0.10.11
+  version: 0.10.12
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.11-h2a61971_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.10.12-h2a61971_0.conda
   hash:
-    md5: 2c3093ad3a62a7e2eed57d840ebeaa3d
-    sha256: c9d84ab2e76f266d59ed9259ad85074a282c834a5665e621763580208f249429
+    md5: 0a033f59f3d879371c557a5fe382906e
+    sha256: 86a8700cb7ea8a27461a18f72e89214fb0e7054263327d32d8c952bf0463a461
   category: main
   optional: false
 - name: uvicorn
