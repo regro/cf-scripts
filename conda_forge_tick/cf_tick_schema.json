@@ -235,7 +235,7 @@
           "type": "null"
         }
       ],
-      "default": "hint",
+      "default": "hint-grayskull",
       "description": "Method for generating hints or updating recipe"
     },
     "abi_migration_branches": {

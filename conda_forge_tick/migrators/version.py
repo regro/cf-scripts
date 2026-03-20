@@ -423,7 +423,7 @@ class Version(Migrator):
             feedstock_ctx.attrs,
             ["conda-forge.yml", "bot", "inspection"],
             {},
-            "disabled",
+            "hint-grayskull",
         )
         logger.info("bot.inspection: %s", update_deps)
 
