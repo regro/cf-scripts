@@ -4,8 +4,10 @@ import copy
 import functools
 import json
 import logging
+import os
 import re
 import subprocess
+import tempfile
 import typing
 import urllib.parse
 import urllib.request
@@ -616,7 +618,14 @@ class BaseRawURL(AbstractSource):
                 else:
                     new_content = content.replace(orig_ver, next_ver)
                 if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
-                    new_meta = parse_meta_yaml(new_content)
+                    if cbc_data is not None:
+                        with tempfile.TemporaryDirectory() as tmpdir:
+                            cbc_pth = os.path.join(tmpdir, "conda_build_config.yaml")
+                            with open(cbc_pth, "w") as fp:
+                                fp.write(cbc_data)
+                            new_meta = parse_meta_yaml(new_content, cbc_path=cbc_pth)
+                    else:
+                        new_meta = parse_meta_yaml(new_content)
                 else:
                     new_meta = parse_recipe_yaml(
                         new_content, platform_arch=platform_arch, cbc_path=cbc_data

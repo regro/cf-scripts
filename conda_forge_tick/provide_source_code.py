@@ -195,17 +195,29 @@ def provide_source_code_local(recipe_dir):
 
 
 def _provide_source_code_v1(recipe_dir, variant_config_file):
-    recipe_json = subprocess.check_output(
-        [
-            "rattler-build",
-            "build",
-            "--render-only",
-            "-r",
-            f"{recipe_dir}/recipe.yaml",
-            "-m",
-            variant_config_file,
-        ]
-    )
+
+    var_cfg_files = []
+    global_cbc_pth = os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
+
+    if os.path.exists(global_cbc_pth):
+        var_cfg_files.append(global_cbc_pth)
+
+    if os.path.exists(f"{recipe_dir}/conda_build_config.yaml"):
+        var_cfg_files.append(f"{recipe_dir}/conda_build_config.yaml")
+
+    var_cfg_files.append(variant_config_file)
+
+    cmd = [
+        "rattler-build",
+        "build",
+        "--render-only",
+        "-r",
+        f"{recipe_dir}/recipe.yaml",
+    ]
+    for cfg in var_cfg_files:
+        cmd += ["-m", cfg]
+
+    recipe_json = subprocess.check_output(cmd)
     recipe_meta = json.loads(recipe_json)[0]
     recipe = recipe_meta["recipe"]
     minimal_recipe = {
@@ -221,15 +233,17 @@ def _provide_source_code_v1(recipe_dir, variant_config_file):
     with open(f"{recipe_dir}/minimal_recipe.yaml", "w") as f:
         yaml.dump(minimal_recipe, f)
     try:
+        cmd = [
+            "rattler-build",
+            "build",
+            "-r",
+            f"{recipe_dir}/minimal_recipe.yaml",
+        ]
+        for cfg in var_cfg_files:
+            cmd += ["-m", cfg]
+
         out = subprocess.run(
-            [
-                "rattler-build",
-                "build",
-                "-r",
-                f"{recipe_dir}/minimal_recipe.yaml",
-                "-m",
-                variant_config_file,
-            ],
+            cmd,
             check=False,
             capture_output=True,
         )
