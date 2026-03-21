@@ -172,8 +172,6 @@ jobs:
             --retries=5 \
             --retry-delay=10 \
             -m "not mongodb" \
-            -k "test_latest_version_fenics_cbc_parse"
-            --log-cli-level=debug
             tests
         env:
           RUN_URL: ""
