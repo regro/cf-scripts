@@ -4,7 +4,7 @@ import logging
 import os
 import textwrap
 import typing
-from typing import Sequence
+from collections.abc import Sequence
 
 import networkx as nx
 from conda.models.version import VersionOrder

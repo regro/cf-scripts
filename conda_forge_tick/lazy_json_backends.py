@@ -12,15 +12,18 @@ import subprocess
 import time
 import urllib
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Collection, MutableMapping
-from typing import (
-    IO,
-    Any,
+from collections.abc import (
+    Callable,
+    Collection,
     Iterable,
     Iterator,
     Mapping,
+    MutableMapping,
+)
+from typing import (
+    IO,
+    Any,
     Self,
-    Set,
 )
 
 import github
@@ -1176,7 +1179,7 @@ def default(obj: Any) -> Any:
     """
     if isinstance(obj, LazyJson):
         return obj.json_ref
-    elif isinstance(obj, Set):
+    elif isinstance(obj, set):
         return {"__set__": True, "elements": sorted(obj)}
     elif isinstance(obj, nx.DiGraph):
         nld = nx.node_link_data(obj, edges="links")

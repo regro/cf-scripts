@@ -2,7 +2,6 @@ import json
 from enum import StrEnum
 from inspect import cleandoc
 from pathlib import Path
-from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,14 +45,14 @@ class BotConfigVersionUpdatesNVIDIA(BaseModel):
     updates using the NVIDIA source.
     """
 
-    compute_subdir: Optional[str] = Field(
+    compute_subdir: str | None = Field(
         default=None,
         description="For sources from `developer.download.nvidia.com/compute`, this string"
         "defines the subdirectory in which to find the JSON blob containing metadata"
         "about the latest releases of a package.",
     )
 
-    json_name: Optional[str] = Field(
+    json_name: str | None = Field(
         default=None,
         description="For sources from `developer.download.nvidia.com/compute`, this string"
         "defines the name of the package in the JSON blob containing metadata"
@@ -69,18 +68,18 @@ class BotConfigVersionUpdates(BaseModel):
 
     model_config: ConfigDict = ConfigDict(extra="forbid")
 
-    random_fraction_to_keep: Optional[float] = Field(
+    random_fraction_to_keep: float | None = Field(
         None,
         description="Fraction of versions to keep for frequently updated packages",
     )
 
-    exclude: Optional[list[str]] = Field(
+    exclude: list[str] | None = Field(
         default=[],
         description="List of versions to exclude. "
         "Make sure branch names are `str` by quoting the value.",
     )
 
-    sources: Optional[list[BotConfigVersionUpdatesSourcesChoice]] = Field(
+    sources: list[BotConfigVersionUpdatesSourcesChoice] | None = Field(
         None,
         description=cleandoc(
             """
@@ -111,14 +110,14 @@ class BotConfigVersionUpdates(BaseModel):
         ),
     )
 
-    skip: Optional[bool] = Field(
+    skip: bool | None = Field(
         default=False,
         description="Skip automatic version updates. "
         "Useful in cases where the source project's version numbers don't conform to "
         "PEP440.",
     )
 
-    even_odd_versions: Optional[bool] = Field(
+    even_odd_versions: bool | None = Field(
         default=None,
         description="For projects that follow even/odd versioning schemes (like GNOME), "
         "set to true to only accept stable versions (even minor numbers: 1.2.x, 1.4.x) "
@@ -126,7 +125,7 @@ class BotConfigVersionUpdates(BaseModel):
         "Leave unset for projects that don't follow this versioning scheme.",
     )
 
-    allowed_tag_globs: Optional[Union[str, list[str]]] = Field(
+    allowed_tag_globs: str | list[str] | None = Field(
         default=None,
         description="For version sources that parse repo/vcs tags (e.g., "
         "`gittags`, `github`, `githubreleases`), "
@@ -134,12 +133,12 @@ class BotConfigVersionUpdates(BaseModel):
         "filter the set of tags to only those relevant for the feedstock.",
     )
 
-    nvidia: Optional[BotConfigVersionUpdatesNVIDIA] = Field(
+    nvidia: BotConfigVersionUpdatesNVIDIA | None = Field(
         default_factory=BotConfigVersionUpdatesNVIDIA,
         description="Bot config for version update PRs using the NVIDIA updater.",
     )
 
-    use_curl: Optional[bool] = Field(
+    use_curl: bool | None = Field(
         None,
         description="If True, use `curl` to test if URLs exist, otherwise use `wget`.",
     )
@@ -199,38 +198,38 @@ class BotConfig(BaseModel):
 
     model_config: ConfigDict = ConfigDict(extra="forbid")
 
-    automerge: Optional[Union[bool, BotConfigAutoMergeChoice]] = Field(
+    automerge: bool | BotConfigAutoMergeChoice | None = Field(
         False,
         description="Automatically merge PRs if possible",
     )
 
-    check_solvable: Optional[bool] = Field(
+    check_solvable: bool | None = Field(
         default=True,
         description="Open PRs only if resulting environment is solvable.",
     )
 
-    inspection: Optional[BotConfigInspectionChoice] = Field(
+    inspection: BotConfigInspectionChoice | None = Field(
         default="hint",
         description="Method for generating hints or updating recipe",
     )
 
-    abi_migration_branches: Optional[list[str]] = Field(
+    abi_migration_branches: list[str] | None = Field(
         default=[],
         description="List of branches for additional bot migration PRs. "
         "Make sure branch names are `str` by quoting the value.",
     )
 
-    run_deps_from_wheel: Optional[bool] = Field(
+    run_deps_from_wheel: bool | None = Field(
         default=False,
         description="Update run dependencies from the pip wheel",
     )
 
-    version_updates: Optional[BotConfigVersionUpdates] = Field(
+    version_updates: BotConfigVersionUpdates | None = Field(
         default_factory=BotConfigVersionUpdates,
         description="Bot config for version update PRs",
     )
 
-    update_static_libs: Optional[bool] = Field(
+    update_static_libs: bool | None = Field(
         default=False,
         description="Update packages in `host` that are used for static "
         "linking. For bot to issue update PRs, you must have both an "
@@ -241,7 +240,7 @@ class BotConfig(BaseModel):
         "latest package.",
     )
 
-    remake_prs_with_conflicts: Optional[bool] = Field(
+    remake_prs_with_conflicts: bool | None = Field(
         default=True,
         description="Automatically remake untouched bot PRs with conflicts.",
     )

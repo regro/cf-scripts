@@ -9,7 +9,7 @@ import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set, Tuple, Union
+from typing import Union
 
 import requests
 import yaml
@@ -87,7 +87,7 @@ def _get_requirements(
     build: bool = True,
     host: bool = True,
     run: bool = True,
-    outputs_to_keep: Optional[Set["PackageName"]] = None,
+    outputs_to_keep: set["PackageName"] | None = None,
 ) -> set[PackageName]:
     """Get the list of recipe requirements from a meta.yaml dict.
 
@@ -124,7 +124,7 @@ def _get_requirements(
 
 
 def _parse_requirements(
-    req: Union[None, typing.List[str], "RequirementsTypedDict"],
+    req: Union[None, list[str], "RequirementsTypedDict"],
     build: bool = True,
     host: bool = True,
     run: bool = True,
@@ -541,7 +541,7 @@ def populate_feedstock_attributes(
     source = yaml_dict.get("source", [])
     if isinstance(source, collections.abc.Mapping):
         source = [source]
-    source_keys: Set[str] = set()
+    source_keys: set[str] = set()
     for s in source:
         if not node_attrs.get("url"):
             node_attrs["url"] = s.get("url")
@@ -556,7 +556,7 @@ def populate_feedstock_attributes(
 
 def _get_feedstock_commit_hash_and_timestamp(
     name: str,
-) -> Tuple[str | None, int | None]:
+) -> tuple[str | None, int | None]:
     git_url = f"https://github.com/{settings().conda_forge_org}/{name}-feedstock"
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         try:

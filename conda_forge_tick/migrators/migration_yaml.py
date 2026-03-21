@@ -5,7 +5,8 @@ import re
 import secrets
 import time
 from collections import defaultdict
-from typing import Any, Collection, Literal, Optional, Sequence, Set
+from collections.abc import Collection, Sequence
+from typing import Any, Literal
 
 import networkx as nx
 
@@ -176,11 +177,11 @@ class MigrationYaml(GraphMigrator):
         total_graph: nx.DiGraph | None = None,
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] | None = None,
-        cycles: Optional[Collection["PackageName"]] = None,
-        migration_number: Optional[int] = None,
+        top_level: set["PackageName"] | None = None,
+        cycles: Collection["PackageName"] | None = None,
+        migration_number: int | None = None,
         bump_number: int = 1,
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
         automerge: bool = False,
         check_solvable=True,
         conda_forge_yml_patches=None,
@@ -189,7 +190,7 @@ class MigrationYaml(GraphMigrator):
         force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
-        allowlist_file: Optional[str] = None,
+        allowlist_file: str | None = None,
         **kwargs: Any,
     ):
         if allowlist_file is not None:
@@ -630,7 +631,7 @@ class MigrationYamlCreator(Migrator):
         feedstock_name: str,
         total_graph: nx.DiGraph | None = None,
         graph: nx.DiGraph | None = None,
-        pin_impact: Optional[int] = None,
+        pin_impact: int | None = None,
         pr_limit: int = 0,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,

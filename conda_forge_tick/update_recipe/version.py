@@ -8,8 +8,9 @@ import re
 import shutil
 import tempfile
 import traceback
+from collections.abc import MutableMapping
 from pathlib import Path
-from typing import Any, MutableMapping
+from typing import Any
 
 import jinja2
 import jinja2.sandbox

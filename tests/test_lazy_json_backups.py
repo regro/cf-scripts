@@ -22,7 +22,7 @@ def test_prune_timestamps():
     def _to_ts(dt):
         return int(dt.timestamp())
 
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     timestamps = [
         now - ten_mins,
         now - 2 * ten_mins,

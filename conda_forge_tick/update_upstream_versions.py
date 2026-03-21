@@ -4,19 +4,11 @@ import logging
 import os
 import secrets
 import time
-from collections.abc import MutableMapping
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 from concurrent.futures import as_completed
 from typing import (
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 import networkx as nx
@@ -65,7 +57,7 @@ def get_latest_version_local(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[None, str]]:
+) -> dict[str, None | str]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -82,7 +74,7 @@ def get_latest_version_local(
     dict
         The new version information.
     """
-    version_data: Dict[str, Union[None, str]] = {"new_version": None}
+    version_data: dict[str, None | str] = {"new_version": None}
 
     if name == "ca-policy-lcg":
         logger.warning(
@@ -183,7 +175,7 @@ def get_latest_version_containerized(
     name: str,
     attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[None, str]]:
+) -> dict[str, None | str]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     **This function runs the version parsing in a container.**
@@ -234,7 +226,7 @@ def get_latest_version(
     attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
     use_container: bool | None = None,
-) -> Dict[str, Union[None, str]]:
+) -> dict[str, None | str]:
     """Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
@@ -281,10 +273,10 @@ def get_job_number_for_package(name: str, n_jobs: int):
 
 
 def filter_nodes_for_job(
-    all_nodes: Iterable[Tuple[str, T]],
+    all_nodes: Iterable[tuple[str, T]],
     job: int,
     n_jobs: int,
-) -> Iterator[Tuple[str, T]]:
+) -> Iterator[tuple[str, T]]:
     """Filter nodes for a specific job.
 
     Parameters
@@ -358,13 +350,13 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 
 def _update_upstream_versions_sequential(
-    to_update: Iterable[Tuple[str, MutableMapping]],
+    to_update: Iterable[tuple[str, MutableMapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0
     for node, attrs in to_update:
         # checking each node
-        version_data: Dict[str, Union[None, str]] = {}
+        version_data: dict[str, None | str] = {}
 
         # New version request
         try:
@@ -397,7 +389,7 @@ def _update_upstream_versions_sequential(
 
 
 def _update_upstream_versions_process_pool(
-    to_update: Iterable[Tuple[str, Mapping]],
+    to_update: Iterable[tuple[str, Mapping]],
     sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
@@ -506,11 +498,11 @@ def all_version_sources():
 
 def update_upstream_versions(
     gx: nx.DiGraph,
-    sources: Optional[Iterable[AbstractSource]] = None,
+    sources: Iterable[AbstractSource] | None = None,
     debug: bool = False,
     job=1,
     n_jobs=1,
-    package: Optional[str] = None,
+    package: str | None = None,
 ) -> None:
     """Update the upstream versions of packages.
 
@@ -534,7 +526,7 @@ def update_upstream_versions(
         return
 
     # In the future, we should have some sort of typed graph structure
-    all_nodes: Iterable[Tuple[str, Mapping[str, Mapping]]] = (
+    all_nodes: Iterable[tuple[str, Mapping[str, Mapping]]] = (
         [(package, gx.nodes.get(package))] if package else gx.nodes.items()
     )
 
@@ -544,13 +536,13 @@ def update_upstream_versions(
         logger.info("No packages to update for job %d", job)
         return
 
-    def extract_payload(node: Tuple[str, Mapping[str, Mapping]]) -> Tuple[str, Mapping]:
+    def extract_payload(node: tuple[str, Mapping[str, Mapping]]) -> tuple[str, Mapping]:
         name, attrs = node
         return name, attrs["payload"]
 
     payload_extracted = map(extract_payload, job_nodes)
 
-    to_update: List[Tuple[str, Mapping]] = list(
+    to_update: list[tuple[str, Mapping]] = list(
         filter(
             lambda node: include_node(node[0], node[1]),
             payload_extracted,
@@ -575,7 +567,7 @@ def main(
     ctx: CliContext,
     job: int = 1,
     n_jobs: int = 1,
-    package: Optional[str] = None,
+    package: str | None = None,
 ) -> None:
     """Update the upstream version of packages.
 

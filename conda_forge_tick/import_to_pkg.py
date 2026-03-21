@@ -7,7 +7,6 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import lru_cache
 from itertools import chain, groupby
-from typing import List
 
 import orjson
 import requests
@@ -283,7 +282,7 @@ def _get_imports_and_files(file):
     if data is None:
         return set(), []
 
-    pkg_files: List[str] = _extract_importable_files(data.get("files", []))
+    pkg_files: list[str] = _extract_importable_files(data.get("files", []))
     # TODO: handle top level things that are stand alone .py files
     return (
         {

@@ -1,3 +1,4 @@
+import collections.abc
 import copy
 import logging
 import os
@@ -7,7 +8,7 @@ import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Literal, Union
+from typing import Literal
 
 import requests
 from grayskull.config import Configuration
@@ -113,11 +114,11 @@ def extract_deps_from_source(recipe_dir):
 
 
 def compare_depfinder_audit(
-    deps: Dict,
-    attrs: Dict,
+    deps: dict,
+    attrs: dict,
     node: str,
     python_nodes,
-) -> Dict[str, set]:
+) -> dict[str, set]:
     d = extract_missing_packages(
         required_packages=deps.get("required", {}),
         questionable_packages=deps.get("questionable", {}),
@@ -187,7 +188,7 @@ def extract_missing_packages(
 
 
 def get_dep_updates_and_hints(
-    update_deps: Union[str | Literal[False]],
+    update_deps: str | Literal[False],
     recipe_dir: str,
     attrs,
     python_nodes,
@@ -317,44 +318,58 @@ def merge_dep_comparisons(dep1, dep2):
     return d
 
 
+def _is_list_like(obj):
+    # based on https://stackoverflow.com/a/37842328 w/ help from google's AI
+    return isinstance(obj, collections.abc.Sequence) and not isinstance(
+        obj, (str, bytes, bytearray, collections.abc.Buffer, memoryview)
+    )
+
+
 def _modify_package_name_from_github(orig_name, src):
     # if a package source comes from github, adjust the package name
     # for sending to create_python_recipe, so grayskull can find metadata
+    all_urls = set()
     if isinstance(src, dict):
         src = [src]
-    is_pypi = False
-    is_github = False
     for s in src:
         if "url" in s:
-            if any(
-                pypi_slug in s["url"]
-                for pypi_slug in [
-                    "/pypi.io/",
-                    "/pypi.org/",
-                    "/pypi.python.org/",
-                    "/files.pythonhosted.org/",
-                ]
-            ):
-                is_pypi = True
-                break
+            if _is_list_like(s):
+                for _s in s:
+                    all_urls.add(_s)
+            else:
+                all_urls.add(s["url"])
+
+    is_pypi = False
+    is_github = False
+    for url in all_urls:
+        if any(
+            pypi_slug in url
+            for pypi_slug in [
+                "/pypi.io/",
+                "/pypi.org/",
+                "/pypi.python.org/",
+                "/files.pythonhosted.org/",
+            ]
+        ):
+            is_pypi = True
+            break
 
     if not is_pypi:
-        for s in src:
-            if "url" in s:
-                if "github.com/" in s["url"]:
-                    is_github = True
-                    github_url = s["url"]
-                    break
+        for url in all_urls:
+            if "github.com/" in url:
+                is_github = True
+                github_url = url
+                break
+
     # we don't know so assume pypi
     if not is_pypi and not is_github:
         is_pypi = True
 
     if is_pypi:
-        for s in src:
-            if "url" in s:
-                match = re.search(r"/packages/source/[a-z0-9]/([^/]+)/", s["url"])
-                if match:
-                    return match.group(1)
+        for url in all_urls:
+            match = re.search(r"/packages/source/[a-z0-9]/([^/]+)/", url)
+            if match:
+                return match.group(1)
         return orig_name
     elif is_github:
         url_parts = github_url.split("/")

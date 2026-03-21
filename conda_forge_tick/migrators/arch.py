@@ -1,7 +1,8 @@
 import copy
 import os
+from collections.abc import Collection, Sequence
 from textwrap import dedent
-from typing import Any, Collection, Literal, Optional, Sequence
+from typing import Any, Literal
 
 import networkx as nx
 
@@ -91,8 +92,8 @@ class ArchRebuild(GraphMigrator):
         graph: nx.DiGraph | None = None,
         name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Collection[str]] = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
+        target_packages: Collection[str] | None = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):
@@ -234,8 +235,8 @@ class _CrossCompileRebuild(GraphMigrator):
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
         name: str = "",
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Collection[str]] = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
+        target_packages: Collection[str] | None = None,
         effective_graph: nx.DiGraph | None = None,
         total_graph: nx.DiGraph | None = None,
     ):

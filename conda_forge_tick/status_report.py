@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, Set, Tuple, cast
+from typing import Any, cast
 
 import dateutil.parser
 import networkx as nx
@@ -63,7 +63,7 @@ def _sorted_set_json(obj: Any) -> Any:
     TypeError
         If obj is not a set.
     """
-    if isinstance(obj, Set):
+    if isinstance(obj, set):
         return sorted(obj)
     raise TypeError(repr(obj) + " is not JSON serializable")
 
@@ -83,7 +83,7 @@ def _ok_version(ver):
 
 def write_version_migrator_status(migrator, mctx):
     """Write the status of the version migrator."""
-    out: Dict[str, Dict[str, str]] = {
+    out: dict[str, dict[str, str]] = {
         "queued": {},  # name -> pending version
         "errors": {},  # name -> error
     }
@@ -176,13 +176,13 @@ def write_version_migrator_status(migrator, mctx):
 def graph_migrator_status(
     migrator: Migrator,
     gx: nx.DiGraph,
-) -> Tuple[dict, list, nx.DiGraph]:
+) -> tuple[dict, list, nx.DiGraph]:
     """Get the migrator progress for a given migrator."""
     migrator_name = migrator.report_name
 
     num_viz = 0
 
-    out: Dict[str, Set[str]] = {
+    out: dict[str, set[str]] = {
         "done": set(),
         "in-pr": set(),
         "awaiting-pr": set(),
@@ -212,7 +212,7 @@ def graph_migrator_status(
         # remove archived from status
         if attrs.get("archived", False):
             continue
-        node_metadata: Dict = {}
+        node_metadata: dict = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         all_pr_jsons = []
@@ -358,10 +358,10 @@ def graph_migrator_status(
                 if timestamp is not None:
                     timestamp = dateutil.parser.parse(timestamp)
                     if timestamp.tzinfo is None:
-                        timestamp = timestamp.replace(tzinfo=datetime.timezone.utc)
+                        timestamp = timestamp.replace(tzinfo=datetime.UTC)
                     node_metadata[timestamp_field] = timestamp.isoformat()
 
-    out2: Dict = {}
+    out2: dict = {}
     for k in out.keys():
         out2[k] = list(
             sorted(
