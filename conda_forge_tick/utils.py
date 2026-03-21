@@ -510,11 +510,16 @@ def _render_recipe_yaml(
             with open(_cbc_path, "w") as fp:
                 fp.write(str(cbc_path))
 
-            variant_config_flags = ["--variant-config", _cbc_path]
+            variant_config_flags = ["-m", _cbc_path]
         else:
-            variant_config_flags = (
-                [] if cbc_path is None else ["--variant-config", str(cbc_path)]
-            )
+            variant_config_flags = [] if cbc_path is None else ["-m", str(cbc_path)]
+
+        global_cbc_pth = os.path.join(
+            os.environ["CONDA_PREFIX"], "conda_build_config.yaml"
+        )
+        if os.path.exists(global_cbc_pth):
+            variant_config_flags = ["-m", global_cbc_pth] + variant_config_flags
+
         target_platform_flags = (
             []
             if platform_arch is None or variant_config_flags
