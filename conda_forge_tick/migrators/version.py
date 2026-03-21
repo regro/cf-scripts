@@ -7,8 +7,9 @@ import random
 import secrets
 import time
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, List, Literal, Sequence
+from typing import Any, Literal
 
 import conda.exceptions
 import networkx as nx
@@ -419,6 +420,15 @@ class Version(Migrator):
         )
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
+        is_python = "python" in get_keys_default(
+            feedstock_ctx.attrs,
+            ["requirements", "run"],
+            {},
+            set(),
+        )
+        if not is_python:
+            return ""
+
         update_deps = get_keys_default(
             feedstock_ctx.attrs,
             ["conda-forge.yml", "bot", "inspection"],
@@ -426,6 +436,9 @@ class Version(Migrator):
             "disabled",
         )
         logger.info("bot.inspection: %s", update_deps)
+
+        if update_deps == "disabled":
+            return ""
 
         if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
             logger.info("Skipping dep update since node %s in rejectlist!")
@@ -436,6 +449,7 @@ class Version(Migrator):
                 "issues!"
             )
             return hint
+
         try:
             _, hint = get_dep_updates_and_hints(
                 update_deps,
@@ -586,7 +600,7 @@ class Version(Migrator):
             key=functools.cmp_to_key(_desc_cmp),
         )
 
-    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
+    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> list[str]:
         """Return the valid possible branches to which to apply this migration to
         for the given attrs.
 

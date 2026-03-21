@@ -1,5 +1,5 @@
 import typing
-from typing import List, Literal, TypedDict, Union
+from typing import Literal, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
@@ -40,8 +40,8 @@ class BlasRebuildMigrateTypedDict(TypedDict):
 
 
 class BuildRunExportsDict(TypedDict, total=False):
-    strong: List[PackageName]
-    weak: List[PackageName]
+    strong: list[PackageName]
+    weak: list[PackageName]
 
 
 class BuildTypedDict(TypedDict, total=False):
@@ -51,7 +51,7 @@ class BuildTypedDict(TypedDict, total=False):
     run_exports: list[PackageName] | BuildRunExportsDict
 
 
-ExtraTypedDict = TypedDict("ExtraTypedDict", {"recipe-maintainers": List[str]})
+ExtraTypedDict = TypedDict("ExtraTypedDict", {"recipe-maintainers": list[str]})
 
 
 # class HTypedDict(TypedDict):
@@ -75,7 +75,7 @@ class RecipeTypedDict(TypedDict, total=False):
     requirements: "RequirementsTypedDict"
     source: "SourceTypedDict"
     test: "TestTypedDict"
-    outputs: List[MetaYamlOutputs]
+    outputs: list[MetaYamlOutputs]
     schema_version: int
 
 
@@ -107,16 +107,16 @@ class RequirementsTypedDict(TypedDict, total=False):
 
 class SourceTypedDict(TypedDict, total=False):
     fn: str
-    patches: List[str]
+    patches: list[str]
     sha256: str
     url: str
 
 
 class TestTypedDict(TypedDict, total=False):
-    commands: List[str]
-    imports: List[str]
-    requires: List[str]
-    requirements: List[str]
+    commands: list[str]
+    imports: list[str]
+    requires: list[str]
+    requirements: list[str]
 
 
 class PRedElementTypedDict(TypedDict, total=False):
@@ -143,7 +143,7 @@ AttrsTypedDict = TypedDict(
         "raw_meta_yaml": str,
         "req": set[str],
         "name": str,
-        "platforms": List[str],
+        "platforms": list[str],
         "pr_info": typing.Any,
         "requirements": RequirementsTypedDict,
         "source": SourceTypedDict,

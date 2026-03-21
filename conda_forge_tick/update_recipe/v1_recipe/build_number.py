@@ -3,7 +3,8 @@ from __future__ import annotations
 import io
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal
 
 from conda_forge_tick.recipe_parser._parser import _get_yaml_parser
 

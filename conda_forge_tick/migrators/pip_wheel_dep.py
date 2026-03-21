@@ -3,7 +3,7 @@ import logging
 import os
 import tempfile
 import typing
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from packaging.requirements import Requirement
@@ -20,8 +20,8 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@functools.lru_cache()
-def pypi_conda_mapping() -> Dict[str, str]:
+@functools.lru_cache
+def pypi_conda_mapping() -> dict[str, str]:
     """Retrieve the most recent version of the pypi-conda name mapping dictionary.
 
     Returns

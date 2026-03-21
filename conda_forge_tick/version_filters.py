@@ -6,7 +6,8 @@ various criteria configured in conda-forge.yml files.
 
 import fnmatch
 import logging
-from typing import Any, Mapping, Union
+from collections.abc import Mapping
+from typing import Any
 
 from conda_forge_tick.utils import get_keys_default
 
@@ -94,7 +95,7 @@ def is_version_ignored(attrs: Mapping[str, Any], version: str) -> bool:
     return False
 
 
-def filter_version(attrs: Mapping[str, Any], version) -> Union[str, bool]:
+def filter_version(attrs: Mapping[str, Any], version) -> str | bool:
     """Filter a version, returning False if ignored, version otherwise.
 
     Parameters

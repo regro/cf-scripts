@@ -2,16 +2,12 @@
 
 from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Iterable, Sequence
 from copy import deepcopy
 from typing import (
     Any,
     DefaultDict,
-    Dict,
-    Iterable,
-    List,
     Protocol,
-    Sequence,
-    Set,
     TypeVar,
 )
 
@@ -51,13 +47,13 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[CT]) -> Sequence[C
 
     """
     g2 = deepcopy(graph)
-    order: List[CT] = []
+    order: list[CT] = []
     for source in sorted(sources):
         _visit(g2, source, order)
     return list(reversed(order))
 
 
-def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
+def _visit(graph: DiGraph, node: T, order: list[T]) -> None:
     if graph.nodes[node].get("visited", False):
         return
     graph.nodes[node]["visited"] = True
@@ -66,7 +62,7 @@ def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
     order.append(node)
 
 
-def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
+def get_longest_paths(graph: DiGraph, source: str) -> dict[str, float]:
     """Get the length of the longest path to each node from a source node.
 
     Parameters
@@ -97,7 +93,7 @@ def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
     return dist
 
 
-def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
+def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, set[str]]:
     """Get the nodes in each level of a topological sort of a graph starting
     from a specified source node.
 
@@ -122,7 +118,7 @@ def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)
-    levels: DefaultDict[float, Set[str]] = defaultdict(set)
+    levels: DefaultDict[float, set[str]] = defaultdict(set)
     for k, v in dist.items():
         levels[v].add(k)
     return levels

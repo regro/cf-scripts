@@ -9,9 +9,8 @@ import subprocess
 import typing
 import urllib.parse
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Iterator, List, Optional
 
 import feedparser
 import orjson
@@ -46,7 +45,7 @@ def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
         return set()
 
     source: "SourceTypedDict" = meta_yaml["source"]
-    sources: typing.List["SourceTypedDict"]
+    sources: list["SourceTypedDict"]
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
@@ -62,7 +61,7 @@ def urls_from_meta(meta_yaml: RecipeTypedDict) -> set[str]:
     return urls
 
 
-def _split_alpha_num(ver: str) -> List[str]:
+def _split_alpha_num(ver: str) -> list[str]:
     for i, c in enumerate(ver):
         if c.isalpha():
             return [ver[0:i], ver[i:]]
@@ -137,7 +136,7 @@ class AbstractSource(abc.ABC):
     name: str
 
     @abc.abstractmethod
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         """Get the version given a url.
 
         This method should catch all errors and return None if an
@@ -163,7 +162,7 @@ class AbstractSource(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         """Get a url from which to fetch the latest version given the feedstock's
         node attributes.
 
@@ -203,7 +202,7 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         "pc",
     ]
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         data = feedparser.parse(url)
         if data["bozo"] == 1:
             return None
@@ -244,7 +243,7 @@ class VersionFromFeed(AbstractSource, abc.ABC):
 class PyPI(AbstractSource):
     name = "PyPI"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io", "files.pythonhosted.org"]
         source_url = node_attrs.get("url", None)
         if source_url is None or (not any(s in source_url for s in url_names)):
@@ -255,7 +254,7 @@ class PyPI(AbstractSource):
             pkg = node_attrs["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
         if not r.ok:
@@ -284,7 +283,7 @@ class PyPI(AbstractSource):
 class NPM(AbstractSource):
     name = "NPM"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         source_url = node_attrs.get("url", None)
         if source_url is None or "registry.npmjs.org" not in source_url:
             return None
@@ -292,7 +291,7 @@ class NPM(AbstractSource):
         pkg = source_url.split("/")[3:-2]
         return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         r = requests.get(url)
         if not r.ok:
             return None
@@ -352,7 +351,7 @@ class CRAN(AbstractSource):
                 records.setdefault(p.lower(), (p, None))
         return records
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         self.init()
         urls: str | list[str] | None = node_attrs.get("url", None)
         if urls is None:
@@ -370,7 +369,7 @@ class CRAN(AbstractSource):
                 return None
         return None
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         if not url[1]:
             return None
 
@@ -429,7 +428,7 @@ class ROSDistro(AbstractSource):
                 logger.exception("ROS Distro initialization failed")
                 ROS_DISTRO_INDEX = {}
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         if not node_attrs["name"].startswith("ros-"):
             return None
 
@@ -464,7 +463,7 @@ class ROSDistro(AbstractSource):
         return ver
 
 
-def get_sha256(url: str) -> Optional[str]:
+def get_sha256(url: str) -> str | None:
     try:
         return hash_url(url, timeout=120, hash_type="sha256")
     except Exception as e:
@@ -548,7 +547,7 @@ class BaseRawURL(AbstractSource):
     name = "BaseRawURL"
     next_ver_func: Callable[[str], Iterator[str]]
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         if "feedstock_name" not in node_attrs:
             return None
         if "version" not in node_attrs:
@@ -703,7 +702,7 @@ class IncrementAlphaRawURL(BaseRawURL):
     next_ver_func = functools.partial(next_version, increment_alpha=True)
     feedstock_ok_list = ["openssl", "tzcode", "tzdata", "jpeg", "cddlib"]
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         if "feedstock_name" not in node_attrs:
             return None
 
@@ -716,14 +715,14 @@ class IncrementAlphaRawURL(BaseRawURL):
 class GitTags(AbstractSource):
     name = "GitTags"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         src = node_attrs.get("meta_yaml", {}).get("source", {})
         if hasattr(src, "get"):
             return src.get("git_url", None)  # type: ignore
         else:
             return src[0].get("git_url", None)  # type: ignore
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         try:
             output = subprocess.check_output(
                 ["git", "ls-remote", "--tags", url], text=True
@@ -789,7 +788,7 @@ class Github(VersionFromFeed):
 
         return None
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         source_url = node_attrs.get("url", None)
         if source_url is None or "github.com" not in source_url:
             return None
@@ -804,7 +803,7 @@ class Github(VersionFromFeed):
 class GithubReleases(AbstractSource):
     name = "GithubReleases"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         source_url = node_attrs.get("url", None)
         if source_url is None or "github.com" not in source_url:
             return None
@@ -812,7 +811,7 @@ class GithubReleases(AbstractSource):
         owner, repo = source_url.split("/")[3:5]
         return f"https://github.com/{owner}/{repo}/releases/latest"
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         r = requests.get(url)
         if not r.ok:
             return None
@@ -853,7 +852,7 @@ class NVIDIA(AbstractSource):
 
     name = "NVIDIA"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         """Generate metadata needed to get the latest version of an NVIDIA redist.
 
         We actually return a URL plus other information needed to fetch the latest package
@@ -933,7 +932,7 @@ class NVIDIA(AbstractSource):
         logger.debug("The NVIDIA redist URL should be %s", result)
         return result
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         """Get latest version of a package by scraping nvidia.com JSONs.
 
         url should be an address of the following form: "https://developer.download.
@@ -994,7 +993,7 @@ class NVIDIA(AbstractSource):
 class CratesIO(AbstractSource):
     name = "CratesIO"
 
-    def get_url(self, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_url(self, node_attrs: AttrsTypedDict) -> str | None:
         source_url = node_attrs.get("url", None)
         if source_url is None or "crates.io" not in source_url:
             return None
@@ -1004,7 +1003,7 @@ class CratesIO(AbstractSource):
 
         return f"https://index.crates.io/{tier}"
 
-    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> Optional[str]:
+    def get_version(self, url: str, node_attrs: AttrsTypedDict) -> str | None:
         r = requests.get(url)
 
         if not r.ok:

@@ -4,8 +4,9 @@ import os
 import re
 import secrets
 import time
+from collections.abc import Sequence
 from functools import lru_cache
-from typing import Any, Literal, Optional, Sequence
+from typing import Any, Literal
 
 import networkx as nx
 import orjson
@@ -411,7 +412,7 @@ class StaticLibMigrator(GraphMigrator):
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
         bump_number: int = 1,
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
         check_solvable=True,
         effective_graph: nx.DiGraph | None = None,
         force_pr_after_solver_attempts=10,

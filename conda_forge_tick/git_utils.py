@@ -11,12 +11,11 @@ import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from datetime import datetime
 from email import utils
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Iterator, Optional, Union
 
 import backoff
 import dateutil.parser
@@ -1551,9 +1550,9 @@ def delete_branch(pr_json: LazyJson | dict, dry_run: bool = False) -> None:
 
 
 def trim_pr_json_keys(
-    pr_json: Union[Dict, LazyJson],
-    src_pr_json: Optional[Union[Dict, LazyJson]] = None,
-) -> Union[Dict, LazyJson]:
+    pr_json: dict | LazyJson,
+    src_pr_json: dict | LazyJson | None = None,
+) -> dict | LazyJson:
     """Trim the set of keys in the PR json. The keys kept are defined by the global
     PR_KEYS_TO_KEEP.
 
@@ -1591,8 +1590,8 @@ def trim_pr_json_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson], force: bool = False
-) -> Union[Dict, LazyJson]:
+    pr_json: dict | LazyJson, force: bool = False
+) -> dict | LazyJson:
     """Lazily update a GitHub PR.
 
     This function will use the Last-Modified field in the GitHub API to update
@@ -1663,7 +1662,7 @@ def lazy_update_pr_json(
 def refresh_pr(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
-) -> Optional[dict]:
+) -> dict | None:
     from conda_forge_tick.settings import settings
 
     pr_refresh_age_days = settings().pr_refresh_age_days
@@ -1711,7 +1710,7 @@ def refresh_pr(
 
 
 def get_pr_obj_from_pr_json(
-    pr_json: Union[Dict, LazyJson],
+    pr_json: dict | LazyJson,
     gh: github3.GitHub,
 ) -> github3.pulls.PullRequest:
     """Produce a github3 pull request object from pr_json.
@@ -1741,7 +1740,7 @@ def get_pr_obj_from_pr_json(
 def close_out_labels(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
-) -> Optional[dict]:
+) -> dict | None:
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -1782,7 +1781,7 @@ def close_out_labels(
 def close_out_dirty_prs(
     pr_json: LazyJson | dict,
     dry_run: bool = False,
-) -> Optional[dict]:
+) -> dict | None:
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
         # update

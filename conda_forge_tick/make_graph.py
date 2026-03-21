@@ -4,10 +4,9 @@ import os
 import re
 import secrets
 import time
-import typing
 from collections import defaultdict
+from collections.abc import Iterable
 from concurrent.futures import as_completed
-from typing import Iterable, List
 
 import networkx as nx
 import psutil
@@ -66,7 +65,7 @@ def _get_names_for_job(names, job, n_jobs):
 
 def get_deps_from_outputs_lut(
     req_section: Iterable,
-    outputs_lut: typing.Dict[str, set],
+    outputs_lut: dict[str, set],
 ) -> set:
     deps = set()
     for req in req_section:
@@ -229,7 +228,7 @@ def _migrate_schema(name, sub_graph):
 
 
 def _build_graph_process_pool(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
 ) -> None:
     # we use threads here since all of the work is done in a container anyways
@@ -267,7 +266,7 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
 ) -> None:
     for name in names:
@@ -377,7 +376,7 @@ def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
 
 
 def _update_graph_nodes(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
     debug=False,
 ) -> nx.DiGraph:

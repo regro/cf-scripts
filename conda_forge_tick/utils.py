@@ -15,18 +15,11 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import (
     Any,
     ContextManager,
-    Dict,
-    Iterable,
-    MutableMapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
     cast,
 )
 
@@ -50,7 +43,7 @@ from .recipe_parser import CondaMetaYAML
 from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
 if typing.TYPE_CHECKING:
-    from mypy_extensions import TypedDict
+    from typing import TypedDict
 
 from conda_forge_tick.migrators_types import RecipeTypedDict
 
@@ -88,7 +81,7 @@ CB_CONFIG = dict(
 )
 
 
-def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
+def _munge_dict_repr(dct: dict[Any, Any]) -> str:
     from urllib.parse import quote_plus
 
     return "__quote_plus__" + quote_plus(repr(dct)) + "__quote_plus__"
@@ -118,7 +111,7 @@ DEFAULT_GRAPH_FILENAME = "graph.json"
 DEFAULT_CONTAINER_TMPFS_SIZE_MB = 6000
 
 
-def parse_munged_run_export(p: str) -> Dict:
+def parse_munged_run_export(p: str) -> dict:
     from urllib.parse import unquote_plus
 
     # get rid of comments
@@ -135,7 +128,7 @@ def parse_munged_run_export(p: str) -> Dict:
             p = p[: -len("__quote_plus__")]
         p = unquote_plus(p)
 
-    return cast(Dict, yaml_safe_load(p))
+    return cast(dict, yaml_safe_load(p))
 
 
 REPRINTED_LINES: dict[str, set[str]] = {}
@@ -534,8 +527,7 @@ def _render_recipe_yaml(
             ["rattler-build", "build", "--render-only"]
             + variant_config_flags
             + target_platform_flags,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             input=prepared_text,
             check=False,
@@ -1201,13 +1193,13 @@ def _parse_meta_yaml_impl(
         raise
 
 
-class UniversalSet(Set):
+class UniversalSet(set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other: Set) -> Set:  # type: ignore[override]
+    def __and__(self, other: set) -> set:  # type: ignore[override]
         return other
 
-    def __rand__(self, other: Set) -> Set:
+    def __rand__(self, other: set) -> set:
         return other
 
     def __contains__(self, item: Any) -> bool:
@@ -1310,7 +1302,7 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     return gx
 
 
-def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
+def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph | None:
     """Load the graph from a file using the lazy json backend.
     If the file does not exist, it is initialized with empty JSON.
     If you expect the graph to be non-empty JSON, use load_existing_graph.
@@ -1332,23 +1324,23 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
 if typing.TYPE_CHECKING:
 
     class JsonFriendly(TypedDict, total=False):
-        keys: typing.List[str]
+        keys: list[str]
         data: dict
         PR: dict
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
+def frozen_to_json_friendly(fz: None, pr: LazyJson | None = None) -> None:
     pass
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
+def frozen_to_json_friendly(fz: Any, pr: LazyJson | None = None) -> "JsonFriendly":
     pass
 
 
 @typing.no_type_check
-def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
+def frozen_to_json_friendly(fz, pr: LazyJson | None = None):
     if fz is None:
         return None
     d = {"data": dict(fz)}
@@ -1358,11 +1350,11 @@ def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
 
 
 @typing.overload
-def as_iterable(x: dict) -> Tuple[dict]: ...
+def as_iterable(x: dict) -> tuple[dict]: ...
 
 
 @typing.overload
-def as_iterable(x: str) -> Tuple[str]: ...
+def as_iterable(x: str) -> tuple[str]: ...
 
 
 @typing.overload
@@ -1527,9 +1519,7 @@ def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
     if kwargs.keys() & {"text", "stdout", "stderr"}:
         raise ValueError("text, stdout, and stderr are not allowed in kwargs")
 
-    p = subprocess.run(
-        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
-    )
+    p = subprocess.run(args, text=True, capture_output=True, **kwargs)
 
     out, err = p.stdout, p.stderr
 

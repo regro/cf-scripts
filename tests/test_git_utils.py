@@ -1324,7 +1324,7 @@ def test_github_backend_create_pull_request_mock(
     assert pr_data.closed_at is None
     assert pr_data.created_at is not None
     assert pr_data.created_at == datetime.datetime(
-        2024, 5, 3, 17, 4, 20, tzinfo=datetime.timezone.utc
+        2024, 5, 3, 17, 4, 20, tzinfo=datetime.UTC
     )
     assert pr_data.head is not None
     assert pr_data.head.ref == "HEAD_BRANCH"
@@ -1341,7 +1341,7 @@ def test_github_backend_create_pull_request_mock(
     assert pr_data.number == 1337
     assert pr_data.state == PullRequestState.OPEN
     assert pr_data.updated_at == datetime.datetime(
-        2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
+        2024, 5, 27, 13, 31, 50, tzinfo=datetime.UTC
     )
     assert pr_data.last_fetched is not None
 

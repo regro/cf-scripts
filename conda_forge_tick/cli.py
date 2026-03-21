@@ -1,6 +1,5 @@
 import logging
 import time
-from typing import Optional
 
 import click
 from click import Context, IntRange
@@ -150,7 +149,7 @@ def make_graph(
 )
 @pass_context
 def update_upstream_versions(
-    ctx: CliContext, job: int, n_jobs: int, package: Optional[str]
+    ctx: CliContext, job: int, n_jobs: int, package: str | None
 ) -> None:
     """
     Update the upstream versions of feedstocks in the graph.

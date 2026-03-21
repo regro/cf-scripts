@@ -10,9 +10,9 @@ import re
 import secrets
 import time
 import typing
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from pathlib import Path
-from typing import Any, List, Literal, Sequence, Set
+from typing import Any, Literal
 
 import networkx as nx
 
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 
-def load_target_packages(package_list_file: str) -> Set[str]:
+def load_target_packages(package_list_file: str) -> set[str]:
     # We are constraining the scope of this migrator
     fname = None
     for d in MIGRATION_SUPPORT_DIRS:
@@ -163,7 +163,7 @@ def _make_migrator_graph(graph, migrator, effective=False, pluck_nodes=True):
     return gx2
 
 
-def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
+def _sanitized_muids(pred: list[dict]) -> list["JsonFriendly"]:
     lst = []
     for pr in pred:
         d: "JsonFriendly" = {"data": pr["data"]}
@@ -451,7 +451,7 @@ class Migrator:
         self,
         feedstock_ctx: FeedstockContext,
         limit: int = 5,
-    ) -> List["PackageName"]:
+    ) -> list["PackageName"]:
         """Get a list of follow on packages."""
         return [
             a[1]
@@ -542,7 +542,7 @@ class Migrator:
 
         return already_pred
 
-    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
+    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> list[str]:
         """Return the valid possible branches to which to apply this migration to
         for the given attrs.
 
@@ -841,7 +841,7 @@ class GraphMigrator(Migrator):
         name: str | None = None,
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] | None = None,
+        top_level: set["PackageName"] | None = None,
         cycles: Sequence["PackageName"] | None = None,
         obj_version: int | None = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,

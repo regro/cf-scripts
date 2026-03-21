@@ -8,15 +8,12 @@ import re
 import secrets
 import sys
 import time
+from collections.abc import Mapping, MutableMapping, MutableSequence
 from concurrent.futures import as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import (
     Any,
-    List,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
     Never,
     cast,
 )
@@ -1009,7 +1006,7 @@ def initialize_migrators(
     dry_run: bool = False,
     _testing_frac=None,
 ) -> MutableSequence[Migrator]:
-    migrators: List[Migrator] = []
+    migrators: list[Migrator] = []
 
     add_arch_migrate(migrators, gx)
 
@@ -1039,7 +1036,7 @@ def initialize_migrators(
 
     add_cdt_migrator(migrators, gx)
 
-    pinning_migrators: List[Migrator] = []
+    pinning_migrators: list[Migrator] = []
     migration_factory(pinning_migrators, gx, _testing_frac=_testing_frac)
     create_migration_yaml_creator(
         migrators=pinning_migrators, gx=gx, _testing_frac=_testing_frac
@@ -1068,7 +1065,7 @@ def _load(name):
 
 
 def load_migrators(
-    skip_paused: bool = True, filter_name: List[str] | None = None
+    skip_paused: bool = True, filter_name: list[str] | None = None
 ) -> MutableSequence[Migrator]:
     """Load all current migrators.
 
@@ -1100,7 +1097,7 @@ def load_migrators(
 
 
 def _load_migrators(
-    all_names: List[str], skip_paused: bool = True
+    all_names: list[str], skip_paused: bool = True
 ) -> MutableSequence[Migrator]:
     """Load migrators from a list of names.
 

@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import tqdm
 
@@ -41,7 +40,7 @@ def get_all_feedstocks_from_github():
     }
 
 
-def get_all_feedstocks(cached: bool = False) -> List[str]:
+def get_all_feedstocks(cached: bool = False) -> list[str]:
     if cached:
         logger.info("reading cached feedstocks")
         with open("all_feedstocks.json") as f:
@@ -52,7 +51,7 @@ def get_all_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
-def get_archived_feedstocks(cached: bool = False) -> List[str]:
+def get_archived_feedstocks(cached: bool = False) -> list[str]:
     if cached:
         logger.info("reading cached archived feedstocks")
         with open("all_feedstocks.json") as f:

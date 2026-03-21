@@ -1,7 +1,7 @@
 import collections.abc
 import io
 import re
-from typing import Any, List, Union
+from typing import Any
 
 import jinja2
 import jinja2.meta
@@ -318,7 +318,7 @@ def _demunge_jinja2_vars(meta: dict | list | str, sentinel: str) -> dict | list 
     return meta  # type: ignore[unreachable]
 
 
-def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
+def _remunge_jinja2_vars(meta: dict | list, sentinel: str) -> dict | list:
     """Recursively iterate through dictionary / list and replace any instance
     in any string of `{{` with '<{'.
     """
@@ -346,7 +346,7 @@ def _is_simple_jinja2_set(line):
         return False
 
 
-def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
+def _replace_jinja2_vars(lines: list[str], jinja2_vars: dict) -> list[str]:
     """Find all instances of jinja2 variable assignment via `set` in a recipe
     and replace the values with those in `jinja2_vars`. Any extra key-value
     pairs in `jinja2_vars` will be added as new statements at the top.
