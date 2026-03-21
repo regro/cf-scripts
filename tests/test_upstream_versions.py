@@ -2200,3 +2200,296 @@ def test_latest_version_stackvana_v1(tmpdir):
 
     print("found:", attempt["new_version"])
     assert "new_version" in attempt and attempt["new_version"] is not None
+
+
+def test_latest_version_fenics_cbc_parse(tmpdir):
+    raw_meta_yaml = """\
+{% set version = "2019.0.0" %}
+
+
+package:
+  name: fenics-pkgs
+  version: {{ version }}
+
+source:
+  - url: https://bitbucket.org/fenics-project/dolfin/downloads/dolfin-{{ version }}.post0.tar.gz
+    sha256: 61abdcde13684ba2a3ba4afb7ea6c7907aa0896a46439d3af7e8848483d4392f
+    patches:
+      - boost.patch
+      - linuxboost.patch  # [linux]
+      - find-petsc-slepc.patch
+      - hdf5-1.12.patch
+      - fix-xdmf.patch
+      - python-cmake-args.patch
+      - boost-1.86.patch
+      - numpy-2.0.patch
+      - unpin-pybind.patch
+      - c++14.patch
+
+build:
+  number: 62
+  skip: true  # [win]
+  # this doesn't actually affect the build hashes
+  # so duplicate where the build hash should actually change
+  force_use_keys:
+    - python
+    - mpi
+
+outputs:
+  - name: fenics-libdolfin
+    build:
+      script: ${RECIPE_DIR}/build-libdolfin.sh
+      skip: true  # [win]
+      ignore_run_exports_from:
+        - python
+        - numpy
+        - cross-python_{{ target_platform }}
+      {% set mpi_prefix = "mpi_" + mpi %}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+        - cmake >=3.9
+        - make
+        - pkg-config
+        - {{ mpi }}  # [mpi == 'openmpi' and build_platform != target_platform]
+        # python needed for ufc discovery via ffc
+        - python                                 # [build_platform != target_platform]
+        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+        - numpy  # [build_platform != target_platform]
+        - fenics-ffc =={{ version }}  # [build_platform != target_platform]
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - eigen
+        - parmetis
+        - libptscotch  # [target_platform != "osx-arm64"]
+        - suitesparse
+        - zlib
+        - {{ mpi }}
+        - petsc
+        - slepc
+        - python
+        - numpy
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        # only need library dependencies that _lack_ run_exports here
+        - eigen
+        - parmetis
+    test:
+      commands:
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}
+        - test -f ${PREFIX}/lib/libdolfin.{{ version }}${SHLIB_EXT}  # [osx]
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}.{{ version }}  # [linux]
+
+  - name: fenics-dolfin
+    build:
+      script: ${RECIPE_DIR}/build-dolfin.sh
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+        - cmake >=3.9
+        - make
+        - pkg-config
+        - python                                 # [build_platform != target_platform]
+        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+        - pybind11                               # [build_platform != target_platform]
+        - {{ mpi }}  # [mpi == 'openmpi' and build_platform != target_platform]
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - python
+        - pip
+        - setuptools
+        - pkgconfig
+        - zlib
+        - {{ mpi }}
+        - mpi4py
+        - petsc4py
+        - slepc4py
+        - numpy
+        - pybind11
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        - {{ compiler('cxx') }}
+        # gxx provides default 'c++' executable on linux
+        - gxx  # [linux]
+        - python
+        # dolfin depends on the boost headers for its own headers, see
+        # https://bitbucket.org/fenics-project/dolfin/src/master/dolfin/parameter/Parameters.h#lines-24
+        - libboost-headers
+        - setuptools
+        - zlib
+        - {{ pin_compatible('mpi4py', max_pin='x') }}
+        - petsc4py
+        - slepc4py
+        - pkgconfig  # Python pkgconfig package
+        - pybind11
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+
+    test:
+      commands:
+        - pip check
+        - bash ${RECIPE_DIR}/parent/test-dolfin.sh
+      source_files:
+        - python/test
+
+      requires:
+        - pip
+        - nose
+        - pytest
+        - git
+        - decorator
+
+  - name: fenics
+    build:
+      skip: true  # [win]
+      script: "echo 1"
+      force_use_keys:
+        - mpi
+        - python
+    requirements:
+      build: []
+      host: []
+      run:
+        - python
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - {{ pin_subpackage("fenics-dolfin", exact=True) }}
+    test:
+      commands:
+        - bash ${RECIPE_DIR}/parent/test-fenics.sh
+
+about:
+  home: http://www.fenicsproject.org
+  license: LGPL-3.0-or-later
+  license_family: LGPL
+  license_file:
+    - COPYING
+    - COPYING.LESSER
+  summary: 'FEniCS is a collection of free software for automated, efficient solution of differential equations'
+
+  description: |
+    FEniCS is a collection of free software for automated, efficient solution of differential equations
+    (<http://fenicsproject.org>). It provides C++ and Python interfaces, and creates efficient solvers via
+    expression of finite variational statements in a domain-specific language that are transformed and
+    just-in-time compiled into efficient implementations.
+  doc_url: https://fenics.readthedocs.io/
+  dev_url: https://bitbucket.org/fenics-project/
+
+extra:
+  feedstock-name: fenics
+  recipe-maintainers:
+    - garth-wells
+    - johannesring
+    - mikaem
+    - minrk
+    - jan-janssen
+    - sblauth
+"""
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "conda-forge.yml": {"bot": {"version_updates": {"use_curl": True}}},
+                "feedstock_name": "fenics",
+                "version": "2019.0.0",
+                "raw_meta_yaml": raw_meta_yaml,
+                "meta_yaml": {"schema_version": 0},
+                "ci_support_linux_64_mpimpichpython3.10.____cpython.yaml": """\
+c_compiler:
+- gcc
+c_compiler_version:
+- '14'
+c_stdlib:
+- sysroot
+c_stdlib_version:
+- '2.17'
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- gxx
+cxx_compiler_version:
+- '14'
+docker_image:
+- quay.io/condaforge/linux-anvil-x86_64:alma9
+hdf5:
+- 1.14.6
+libblas:
+- 3.9.* *netlib
+libboost_devel:
+- '1.88'
+libboost_headers:
+- '1.88'
+libcblas:
+- 3.9.* *netlib
+libptscotch:
+- 7.0.11
+mpi:
+- mpich
+mpich:
+- '4'
+numpy:
+- '2'
+openmpi:
+- '5'
+petsc:
+- '3.24'
+petsc4py:
+- '3.24'
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.10.* *_cpython
+slepc:
+- '3.24'
+slepc4py:
+- '3.24'
+suitesparse:
+- '7'
+target_platform:
+- linux-64
+zip_keys:
+- - c_compiler_version
+  - cxx_compiler_version
+zlib:
+- '1'
+""",
+            },
+        )
+
+    attempt = get_latest_version("fenics", pmy, [RawURL()], use_container=False)
+
+    print("result:", attempt, flush=True)
+    assert "new_version" in attempt
+    assert attempt["new_version"] is not None
+    assert VersionOrder(attempt["new_version"]) > VersionOrder("2019.0.0")

@@ -4,8 +4,10 @@ import copy
 import functools
 import json
 import logging
+import os
 import re
 import subprocess
+import tempfile
 import typing
 import urllib.parse
 import urllib.request
@@ -480,12 +482,21 @@ def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bo
     url_exists = False
 
     if use_curl:
-        res = subprocess.run(
+        cmds = [
             ["curl", "-fsLI", url],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+            ["curl", "-fsI", url],
+        ]
+        for cmd in cmds:
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+            if res.returncode == 0:
+                url_exists = True
+                break
+
         if res.returncode != 0:
             try:
                 res.check_returncode()
@@ -496,9 +507,6 @@ def url_exists(url: str, timeout: int | float = 5, use_curl: bool = False) -> bo
                     res.stderr,
                     exc_info=e,
                 )
-            url_exists = False
-        else:
-            url_exists = True
     else:
         res = subprocess.run(
             ["wget", "--spider", url],
@@ -616,7 +624,16 @@ class BaseRawURL(AbstractSource):
                 else:
                     new_content = content.replace(orig_ver, next_ver)
                 if node_attrs["meta_yaml"].get("schema_version", 0) == 0:
-                    new_meta = parse_meta_yaml(new_content)
+                    if cbc_data is not None:
+                        with tempfile.TemporaryDirectory() as tmpdir:
+                            cbc_pth = os.path.join(tmpdir, "conda_build_config.yaml")
+                            with open(cbc_pth, "w") as fp:
+                                fp.write(cbc_data)
+                            new_meta = parse_meta_yaml(
+                                new_content, platform=plat, arch=arch, cbc_path=cbc_pth
+                            )
+                    else:
+                        new_meta = parse_meta_yaml(new_content)
                 else:
                     new_meta = parse_recipe_yaml(
                         new_content, platform_arch=platform_arch, cbc_path=cbc_data

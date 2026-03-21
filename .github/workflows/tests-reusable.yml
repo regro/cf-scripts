@@ -353,20 +353,11 @@ jobs:
     needs:
       - tests
       - tests-mongodb
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-slim
     defaults:
       run:
         shell: bash -leo pipefail {0}
     steps:
-      - name: free disk space
-        if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
-        with:
-          remove_android: true
-          remove_dotnet: true
-          remove_haskell: true
-          rm_cmd: "rmz"
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ inputs.skip != 'true' }}
         with:
@@ -454,7 +445,7 @@ jobs:
       - test-coverage-and-durations
     if: '!cancelled()'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: determine success
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
