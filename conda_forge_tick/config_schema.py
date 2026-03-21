@@ -210,7 +210,7 @@ class BotConfig(BaseModel):
     )
 
     inspection: Optional[BotConfigInspectionChoice] = Field(
-        default="hint-grayskull",
+        default="hint",
         description="Method for generating hints or updating recipe",
     )
 
