@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.72
+  version: 1.42.73
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.73-pyhd8ed1ab_0.conda
   hash:
-    md5: 0285be305806ccffc2a63125afb1637b
-    sha256: 3246babc8f4d22c6931eb394a7e00e92d4a5357b985699283de7e3908130c658
+    md5: a6e78dd40289febe3703dd9d333ff5f7
+    sha256: ea545178ae86e81347ec0c3e072582a6ae0b221af7d65f2e25ecbb483d816491
   category: main
   optional: false
 - name: botocore
-  version: 1.42.72
+  version: 1.42.73
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.72-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.73-pyhd8ed1ab_0.conda
   hash:
-    md5: 0285be305806ccffc2a63125afb1637b
-    sha256: 3246babc8f4d22c6931eb394a7e00e92d4a5357b985699283de7e3908130c658
+    md5: a6e78dd40289febe3703dd9d333ff5f7
+    sha256: ea545178ae86e81347ec0c3e072582a6ae0b221af7d65f2e25ecbb483d816491
   category: main
   optional: false
 - name: brotli-python
@@ -6120,28 +6120,27 @@ package:
   category: main
   optional: false
 - name: libzlib
-  version: 1.3.1
+  version: 1.3.2
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.2-h25fd6f3_2.conda
   hash:
-    md5: edb0dca6bc32e4f4789199455a1dbeb8
-    sha256: d4bfe88d7cb447768e31650f06257995601f89076080e76df55e3112d4e47dc4
+    md5: d87ff7921124eccd67248aa483c23fec
+    sha256: 55044c403570f0dc26e6364de4dc5368e5f3fc7ff103e867c487e2b5ab2bcda9
   category: main
   optional: false
 - name: libzlib
-  version: 1.3.1
+  version: 1.3.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.1-h8359307_2.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.2-h8088a28_2.conda
   hash:
-    md5: 369964e85dc26bfe78f41399b366c435
-    sha256: ce34669eadaba351cd54910743e6a2261b67009624dbc7daeeafdef93616711b
+    md5: bc5a5721b6439f2f62a84f2548136082
+    sha256: 361415a698514b19a852f5d1123c5da746d4642139904156ddfca7c922d23a05
   category: main
   optional: false
 - name: license-expression
@@ -8359,7 +8358,7 @@ package:
   category: main
   optional: false
 - name: pytest-cov
-  version: 7.0.0
+  version: 7.1.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -8367,14 +8366,14 @@ package:
     pluggy: '>=1.2'
     pytest: '>=7'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.1.0-pyhcf101f3_0.conda
   hash:
-    md5: 6891acad5e136cb62a8c2ed2679d6528
-    sha256: d0f45586aad48ef604590188c33c83d76e4fc6370ac569ba0900906b24fd6a26
+    md5: 67d1790eefa81ed305b89d8e314c7923
+    sha256: 44e42919397bd00bfaa47358a6ca93d4c21493a8c18600176212ec21a8d25ca5
   category: main
   optional: false
 - name: pytest-cov
-  version: 7.0.0
+  version: 7.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -8382,10 +8381,10 @@ package:
     pluggy: '>=1.2'
     pytest: '>=7'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.0.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-cov-7.1.0-pyhcf101f3_0.conda
   hash:
-    md5: 6891acad5e136cb62a8c2ed2679d6528
-    sha256: d0f45586aad48ef604590188c33c83d76e4fc6370ac569ba0900906b24fd6a26
+    md5: 67d1790eefa81ed305b89d8e314c7923
+    sha256: 44e42919397bd00bfaa47358a6ca93d4c21493a8c18600176212ec21a8d25ca5
   category: main
   optional: false
 - name: pytest-env
@@ -11536,30 +11535,29 @@ package:
   category: main
   optional: false
 - name: zlib
-  version: 1.3.1
+  version: 1.3.2
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-    libzlib: 1.3.1
-  url: https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
+    libzlib: 1.3.2
+  url: https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3.2-h25fd6f3_2.conda
   hash:
-    md5: c9f075ab2f33b3bbee9e62d4ad0a6cd8
-    sha256: 5d7c0e5f0005f74112a34a7425179f4eb6e73c92f5d109e6af4ddeca407c92ab
+    md5: c2a01a08fc991620a74b32420e97868a
+    sha256: 245c9ee8d688e23661b95e3c6dd7272ca936fabc03d423cdb3cdee1bbcf9f2f2
   category: main
   optional: false
 - name: zlib
-  version: 1.3.1
+  version: 1.3.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    libzlib: 1.3.1
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.1-h8359307_2.conda
+    libzlib: 1.3.2
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-1.3.2-h8088a28_2.conda
   hash:
-    md5: e3170d898ca6cb48f1bb567afb92f775
-    sha256: 58f8860756680a4831c1bf4f294e2354d187f2e999791d53b1941834c4b37430
+    md5: f1c0bce276210bed45a04949cfe8dc20
+    sha256: 8dd2ac25f0ba714263aac5832d46985648f4bfb9b305b5021d702079badc08d2
   category: main
   optional: false
 - name: zstandard
