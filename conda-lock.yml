@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.22.07.42.20
+  version: 2026.03.23.05.50.03
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.22.07.42.20-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.05.50.03-hd8ed1ab_0.conda
   hash:
-    md5: 54a72004b2f8551a6b33b84f1b95d3fc
-    sha256: f4b4a665ff8c9ff22c5544ec6207bcdea75dd53399c7470e548933314ee5503b
+    md5: 89247fbe8850997cc474c5ee45ad304f
+    sha256: 1913078368baf3e713b29a6e9dcf731a33d798104e547369669b17814295a6a7
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.22.07.42.20
+  version: 2026.03.23.05.50.03
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.22.07.42.20-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.05.50.03-hd8ed1ab_0.conda
   hash:
-    md5: 54a72004b2f8551a6b33b84f1b95d3fc
-    sha256: f4b4a665ff8c9ff22c5544ec6207bcdea75dd53399c7470e548933314ee5503b
+    md5: 89247fbe8850997cc474c5ee45ad304f
+    sha256: 1913078368baf3e713b29a6e9dcf731a33d798104e547369669b17814295a6a7
   category: main
   optional: false
 - name: conda-index
@@ -4048,29 +4048,29 @@ package:
   category: main
   optional: false
 - name: identify
-  version: 2.6.17
+  version: 2.6.18
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
     ukkonen: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.17-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.18-pyhd8ed1ab_0.conda
   hash:
-    md5: 5b7ae2ec4e0750e094f804a6cf1b2a37
-    sha256: 7cd5eccdb171a0adbf83a1ad8fc4e17822f4fc3f5518da9040de64e88bc07343
+    md5: 635d1a924e1c55416fce044ed96144a2
+    sha256: 3bae1b612ccc71e49c5795a369a82c4707ae6fd4e63360e8ecc129f9539f779b
   category: main
   optional: false
 - name: identify
-  version: 2.6.17
+  version: 2.6.18
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
     ukkonen: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.17-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.18-pyhd8ed1ab_0.conda
   hash:
-    md5: 5b7ae2ec4e0750e094f804a6cf1b2a37
-    sha256: 7cd5eccdb171a0adbf83a1ad8fc4e17822f4fc3f5518da9040de64e88bc07343
+    md5: 635d1a924e1c55416fce044ed96144a2
+    sha256: 3bae1b612ccc71e49c5795a369a82c4707ae6fd4e63360e8ecc129f9539f779b
   category: main
   optional: false
 - name: idna
