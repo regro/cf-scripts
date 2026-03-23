@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.23.05.50.03
+  version: 2026.03.23.08.57.16
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.05.50.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.08.57.16-hd8ed1ab_0.conda
   hash:
-    md5: 89247fbe8850997cc474c5ee45ad304f
-    sha256: 1913078368baf3e713b29a6e9dcf731a33d798104e547369669b17814295a6a7
+    md5: 90b81a08f6819eba901030eafc8214bf
+    sha256: 145174ba7238f51fac140f61da200256e6719b4f2012681e32491c8a6ebcefa8
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.23.05.50.03
+  version: 2026.03.23.08.57.16
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.05.50.03-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.08.57.16-hd8ed1ab_0.conda
   hash:
-    md5: 89247fbe8850997cc474c5ee45ad304f
-    sha256: 1913078368baf3e713b29a6e9dcf731a33d798104e547369669b17814295a6a7
+    md5: 90b81a08f6819eba901030eafc8214bf
+    sha256: 145174ba7238f51fac140f61da200256e6719b4f2012681e32491c8a6ebcefa8
   category: main
   optional: false
 - name: conda-index
@@ -4388,27 +4388,27 @@ package:
   category: main
   optional: false
 - name: jsonpointer
-  version: 3.0.0
+  version: 3.1.0
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jsonpointer-3.0.0-pyhcf101f3_3.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jsonpointer-3.1.0-pyhcf101f3_0.conda
   hash:
-    md5: cd2214824e36b0180141d422aba01938
-    sha256: 1a1328476d14dfa8b84dbacb7f7cd7051c175498406dc513ca6c679dc44f3981
+    md5: 1233c8a5c3656eb0e0bcd8382eb48424
+    sha256: 48de5f85a14439b4a7e63512d396930a6cf997831b85f960eca1b056f15bf479
   category: main
   optional: false
 - name: jsonpointer
-  version: 3.0.0
+  version: 3.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jsonpointer-3.0.0-pyhcf101f3_3.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jsonpointer-3.1.0-pyhcf101f3_0.conda
   hash:
-    md5: cd2214824e36b0180141d422aba01938
-    sha256: 1a1328476d14dfa8b84dbacb7f7cd7051c175498406dc513ca6c679dc44f3981
+    md5: 1233c8a5c3656eb0e0bcd8382eb48424
+    sha256: 48de5f85a14439b4a7e63512d396930a6cf997831b85f960eca1b056f15bf479
   category: main
   optional: false
 - name: jsonschema
