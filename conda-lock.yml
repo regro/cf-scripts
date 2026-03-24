@@ -197,7 +197,7 @@ package:
   category: main
   optional: false
 - name: anyio
-  version: 4.12.1
+  version: 4.13.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -205,14 +205,14 @@ package:
     idna: '>=2.8'
     python: ''
     typing_extensions: '>=4.5'
-  url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.12.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.13.0-pyhcf101f3_0.conda
   hash:
-    md5: 11a2b8c732d215d977998ccd69a9d5e8
-    sha256: eb0c4e2b24f1fbefaf96ce6c992c6bd64340bc3c06add4d7415ab69222b201da
+    md5: af2df4b9108808da3dc76710fe50eae2
+    sha256: f09aed24661cd45ba54a43772504f05c0698248734f9ae8cd289d314ac89707e
   category: main
   optional: false
 - name: anyio
-  version: 4.12.1
+  version: 4.13.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -220,10 +220,10 @@ package:
     idna: '>=2.8'
     python: ''
     typing_extensions: '>=4.5'
-  url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.12.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.13.0-pyhcf101f3_0.conda
   hash:
-    md5: 11a2b8c732d215d977998ccd69a9d5e8
-    sha256: eb0c4e2b24f1fbefaf96ce6c992c6bd64340bc3c06add4d7415ab69222b201da
+    md5: af2df4b9108808da3dc76710fe50eae2
+    sha256: f09aed24661cd45ba54a43772504f05c0698248734f9ae8cd289d314ac89707e
   category: main
   optional: false
 - name: appdirs
@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.23.21.59.18
+  version: 2026.03.24.20.15.08
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.21.59.18-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.24.20.15.08-hd8ed1ab_0.conda
   hash:
-    md5: 81d9825d44e6096f63591e3119cb91ef
-    sha256: 52275b31e026728dc94ff64c3855f3714c24b426a7bc0c7c0a770dbfc7c3f674
+    md5: 998f95f638a05dadeb265525fabab650
+    sha256: dd3a94af875cb30a38d4adef4f273c36b231c0c342f16039e596d364aa5e7187
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.03.23.21.59.18
+  version: 2026.03.24.20.15.08
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.23.21.59.18-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.03.24.20.15.08-hd8ed1ab_0.conda
   hash:
-    md5: 81d9825d44e6096f63591e3119cb91ef
-    sha256: 52275b31e026728dc94ff64c3855f3714c24b426a7bc0c7c0a770dbfc7c3f674
+    md5: 998f95f638a05dadeb265525fabab650
+    sha256: dd3a94af875cb30a38d4adef4f273c36b231c0c342f16039e596d364aa5e7187
   category: main
   optional: false
 - name: conda-index
@@ -10928,29 +10928,29 @@ package:
   category: main
   optional: false
 - name: werkzeug
-  version: 3.1.6
+  version: 3.1.7
   manager: conda
   platform: linux-64
   dependencies:
     markupsafe: '>=2.1.1'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.6-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.7-pyhcf101f3_0.conda
   hash:
-    md5: 2d9bfc6055e55ff58b2c359323a753d2
-    sha256: 06e3d5bec9d2730a23ecf023b7cba329c0772c51f2704714c17b3080b0385113
+    md5: 38cf6cde8cb2068fc896c7248e60f8ab
+    sha256: 09241e315a7c82eda22873770c0c919a01a1b1e5f14665fb191ab1d18be66eff
   category: main
   optional: false
 - name: werkzeug
-  version: 3.1.6
+  version: 3.1.7
   manager: conda
   platform: osx-arm64
   dependencies:
     markupsafe: '>=2.1.1'
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.6-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/werkzeug-3.1.7-pyhcf101f3_0.conda
   hash:
-    md5: 2d9bfc6055e55ff58b2c359323a753d2
-    sha256: 06e3d5bec9d2730a23ecf023b7cba329c0772c51f2704714c17b3080b0385113
+    md5: 38cf6cde8cb2068fc896c7248e60f8ab
+    sha256: 09241e315a7c82eda22873770c0c919a01a1b1e5f14665fb191ab1d18be66eff
   category: main
   optional: false
 - name: wget
