@@ -8577,37 +8577,37 @@ package:
   category: main
   optional: false
 - name: python-build
-  version: 1.4.0
+  version: 1.4.2
   manager: conda
   platform: linux-64
   dependencies:
     colorama: ''
     importlib-metadata: '>=4.6'
-    packaging: '>=19.0'
+    packaging: '>=24.0'
     pyproject_hooks: ''
-    python: '>=3.10'
+    python: ''
     tomli: '>=1.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.0-pyh332efcf_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.2-pyhc364b38_1.conda
   hash:
-    md5: dbbb75958b0b03842dcf9be2f200fc10
-    sha256: 195e483a12bcec40b817f4001d4d4b8ea1cb2de66a62aeabfff6e32e29b3f407
+    md5: 09971b38d49f16c47a8769aeb171ef3d
+    sha256: 3f76a55e524728cd4092d78dd01107c8c3e91a66842317b49c7c8209a332c4f1
   category: main
   optional: false
 - name: python-build
-  version: 1.4.0
+  version: 1.4.2
   manager: conda
   platform: osx-arm64
   dependencies:
     colorama: ''
     importlib-metadata: '>=4.6'
-    packaging: '>=19.0'
+    packaging: '>=24.0'
     pyproject_hooks: ''
-    python: '>=3.10'
+    python: ''
     tomli: '>=1.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.0-pyh332efcf_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-build-1.4.2-pyhc364b38_1.conda
   hash:
-    md5: dbbb75958b0b03842dcf9be2f200fc10
-    sha256: 195e483a12bcec40b817f4001d4d4b8ea1cb2de66a62aeabfff6e32e29b3f407
+    md5: 09971b38d49f16c47a8769aeb171ef3d
+    sha256: 3f76a55e524728cd4092d78dd01107c8c3e91a66842317b49c7c8209a332c4f1
   category: main
   optional: false
 - name: python-dateutil
