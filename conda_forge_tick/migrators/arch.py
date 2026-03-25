@@ -89,7 +89,8 @@ class ArchRebuild(GraphMigrator):
     def __init__(
         self,
         graph: nx.DiGraph | None = None,
-        name: str = "aarch64 addition",
+        # do not change the name, but this doesn't actually add ppc anymore
+        name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
         target_packages: Collection[str] | None = None,
