@@ -49,6 +49,7 @@ class MigratorName(StrEnum):
 
     VERSION = "Version"
     ARCH_REBUILD = "ArchRebuild"
+    LINUX_AARCH64 = "LinuxAarch64Rebuild"
     OSX_ARM = "OSXArm"
     WIN_ARM64 = "WinArm64"
     MIGRATION_YAML = "MigrationYaml"

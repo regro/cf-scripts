@@ -35,7 +35,6 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.migrators import (
     AddNVIDIATools,
-    ArchRebuild,
     CDTMigrator,
     CombineV1ConditionsMigrator,
     CondaForgeYAMLCleanup,
@@ -52,6 +51,7 @@ from conda_forge_tick.migrators import (
     Jinja2VarsCleanup,
     LibboostMigrator,
     LicenseMigrator,
+    LinuxAarch64,
     MigrationYaml,
     Migrator,
     MiniMigrator,
@@ -245,9 +245,9 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
         The list of migrators to run.
 
     """
-    with fold_log_lines("making aarch64+ppc64le migrator"):
+    with fold_log_lines("making aarch64 migrator"):
         migrators.append(
-            ArchRebuild(
+            LinuxAarch64(
                 total_graph=gx,
                 pr_limit=PR_LIMIT,
             ),

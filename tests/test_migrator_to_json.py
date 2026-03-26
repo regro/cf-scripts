@@ -222,12 +222,19 @@ def test_migrator_to_json_replacement():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-def test_migrator_to_json_arch():
+@pytest.parametrize(
+    "MigratorCls,name",
+    (
+        [conda_forge_tick.migrators.ArchRebuild, "aarch64andppc64leaddition"],
+        [conda_forge_tick.migrators.LinuxAarch64, "linuxaarch64addition"],
+    ),
+)
+def test_migrator_to_json_arch(MigratorCls, name):
     gx = nx.DiGraph()
     gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
     gx.graph["outputs_lut"] = {}
 
-    migrator = conda_forge_tick.migrators.ArchRebuild(
+    migrator = MigratorCls(
         target_packages=["python"],
         pr_limit=5,
         total_graph=gx,
@@ -238,14 +245,14 @@ def test_migrator_to_json_arch():
     lzj_data = dumps(data)
     print("lazy json data:\n", lzj_data)
     assert data["__migrator__"] is True
-    assert data["class"] == "ArchRebuild"
-    assert data["name"] == "aarch64andppc64leaddition"
+    assert data["class"] == MigratorCls.__name__
+    assert data["name"] == name
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
         pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
     ]
-    assert isinstance(migrator2, conda_forge_tick.migrators.ArchRebuild)
+    assert isinstance(migrator2, MigratorCls)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 

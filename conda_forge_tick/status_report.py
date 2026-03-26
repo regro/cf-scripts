@@ -21,8 +21,8 @@ from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 from conda_forge_tick.make_migrators import load_migrators
 from conda_forge_tick.migrators import (
-    ArchRebuild,
     GraphMigrator,
+    LinuxAarch64,
     MatplotlibBase,
     MigrationYamlCreator,
     Migrator,
@@ -505,7 +505,7 @@ def main(migrator_filter: str | list[str] | None = None) -> None:
                     paused_status[migrator_name] = f"{migrator.name} Migration Status"
                 elif (
                     mgconf.get("longterm", False)
-                    or isinstance(migrator, ArchRebuild)
+                    or isinstance(migrator, LinuxAarch64)
                     or isinstance(migrator, OSXArm)
                     or isinstance(migrator, WinArm64)
                 ):

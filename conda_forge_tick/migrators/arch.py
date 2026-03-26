@@ -68,7 +68,11 @@ def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
 
 
 class ArchRebuild(GraphMigrator):
-    """A Migrator that adds aarch64 and ppc64le builds to feedstocks."""
+    """
+    A Migrator that adds aarch64 and ppc64le builds to feedstocks.
+
+    Note: Superseded by subclass LinuxAarch64Rebuild to skip ppc64le.
+    """
 
     allowed_schema_versions = {0, 1}
     migrator_version = 1
@@ -86,6 +90,7 @@ class ArchRebuild(GraphMigrator):
         "linux_aarch64": "default",
         "linux_ppc64le": "default",
     }
+    list_filename = "arch_rebuild.txt"
 
     def __init__(
         self,
@@ -100,7 +105,7 @@ class ArchRebuild(GraphMigrator):
         if total_graph is not None:
             if target_packages is None:
                 # We are constraining the scope of this migrator
-                target_packages = load_target_packages("arch_rebuild.txt")
+                target_packages = load_target_packages(self.list_filename)
 
             outputs_lut = get_outputs_lut(total_graph, graph, effective_graph)
 
@@ -199,8 +204,8 @@ class ArchRebuild(GraphMigrator):
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
-                """\
-        This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
+                f"""\
+        This feedstock is being rebuilt as part of the {"/".join(list(self.arches))} migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM migrators first at <code>@</code>conda-forge/arm-arch.**
@@ -211,6 +216,23 @@ class ArchRebuild(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return super().remote_branch(feedstock_ctx) + "_arch"
+
+
+class LinuxAarch64(ArchRebuild):
+    """A migrator to add linux-aarch64 to a feedstock."""
+
+    arches = {"linux_aarch64": "default"}
+    list_filename = "linux-aarch64.txt"
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("name", "linux aarch64 addition")
+        super().__init__(*args, **kwargs)
+
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        return "Linux Aarch64 Migrator"
+
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        return super().remote_branch(feedstock_ctx) + "_linuxaarch64"
 
 
 class _CrossCompileRebuild(GraphMigrator):
