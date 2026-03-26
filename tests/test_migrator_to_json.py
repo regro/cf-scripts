@@ -222,7 +222,7 @@ def test_migrator_to_json_replacement():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-@pytest.parametrize(
+@pytest.mark.parametrize(
     "MigratorCls,name",
     (
         [conda_forge_tick.migrators.ArchRebuild, "aarch64andppc64leaddition"],
