@@ -186,7 +186,7 @@ class ArchRebuild(GraphMigrator):
         return muid
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        title = "Arch Migrator"
+        title = "Linux aarch64 Migrator"
         branch = feedstock_ctx.attrs.get("branch", "main")
         if branch not in ["main", "master"]:
             return f"[{branch}] " + title
