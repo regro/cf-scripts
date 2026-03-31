@@ -68,7 +68,7 @@ def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
 
 
 class ArchRebuild(GraphMigrator):
-    """A Migrator that adds aarch64 and ppc64le builds to feedstocks."""
+    """A Migrator that adds aarch64 builds to feedstocks."""
 
     allowed_schema_versions = {0, 1}
     migrator_version = 1
@@ -84,12 +84,12 @@ class ArchRebuild(GraphMigrator):
     }
     arches = {
         "linux_aarch64": "default",
-        "linux_ppc64le": "default",
     }
 
     def __init__(
         self,
         graph: nx.DiGraph | None = None,
+        # do not change the name, but this doesn't actually add ppc anymore
         name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
@@ -186,7 +186,7 @@ class ArchRebuild(GraphMigrator):
         return muid
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        title = "Arch Migrator"
+        title = "Linux aarch64 Migrator"
         branch = feedstock_ctx.attrs.get("branch", "main")
         if branch not in ["main", "master"]:
             return f"[{branch}] " + title
@@ -200,7 +200,7 @@ class ArchRebuild(GraphMigrator):
         body = body.format(
             dedent(
                 """\
-        This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
+        This feedstock is being rebuilt as part of the aarch64 migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM migrators first at <code>@</code>conda-forge/arm-arch.**
