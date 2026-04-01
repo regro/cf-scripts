@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: free disk space
         if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
         with:
           remove_android: true
           remove_dotnet: true
@@ -70,7 +70,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -81,7 +81,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
@@ -119,11 +119,11 @@ jobs:
           python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: set up docker buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
 
       - name: build docker image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           context: .
@@ -132,7 +132,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7  # v5.0.4
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -212,7 +212,7 @@ jobs:
     steps:
       - name: free disk space
         if: ${{ inputs.skip != 'true' }}
-        uses: endersonmenezes/free-disk-space@e6ed9b02e683a3b55ed0252f1ee469ce3b39a885 # v3
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
         with:
           remove_android: true
           remove_dotnet: true
@@ -232,7 +232,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -243,7 +243,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
@@ -294,7 +294,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: restore test durations
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7  # v5.0.4
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -371,7 +371,7 @@ jobs:
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
@@ -382,7 +382,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         if: ${{ inputs.skip != 'true' }}
         with:
           environment-file: conda-lock.yml
@@ -390,7 +390,7 @@ jobs:
           condarc-file: autotick-bot/condarc
 
       - name: download coverage artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: coverage-*
@@ -402,13 +402,13 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.1.8
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5.1.8
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -418,7 +418,7 @@ jobs:
             test-durations-
 
       - name: download test duration artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           pattern: test-durations-*
