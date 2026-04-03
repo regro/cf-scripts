@@ -1859,7 +1859,7 @@ package:
     __unix: ''
     backports.strenum: ''
     cirun: '>=0.30'
-    conda: '>=4.2'
+    conda: '>=4.2,<26.3.0a0'
     conda-build: '>=25.3.1'
     conda-forge-pinning: ''
     conda-package-handling: '>=1.9.0'
@@ -1897,7 +1897,7 @@ package:
     __unix: ''
     backports.strenum: ''
     cirun: '>=0.30'
-    conda: '>=4.2'
+    conda: '>=4.2,<26.3.0a0'
     conda-build: '>=25.3.1'
     conda-forge-pinning: ''
     conda-package-handling: '>=1.9.0'
@@ -6704,42 +6704,42 @@ package:
   category: main
   optional: false
 - name: mypy
-  version: 1.19.1
+  version: 1.20.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     mypy_extensions: '>=1.0.0'
-    pathspec: '>=0.9.0'
+    pathspec: '>=1.0.0'
     psutil: '>=4.0'
     python: '>=3.12,<3.13.0a0'
-    python-librt: '>=0.6.2'
+    python-librt: '>=0.8.0'
     python_abi: 3.12.*
     typing_extensions: '>=4.6.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.19.1-py312h4c3975b_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.0-py312h4c3975b_0.conda
   hash:
-    md5: c3ad8cc29400fe5ca1b6a6e5ae46538e
-    sha256: d0e0765e5ec08141b10da9e03ef620d2e3e571d81cc2bc14025c52a48bb01856
+    md5: a1f58c8babb356d64f70c380dde5df2b
+    sha256: bb9ab670f94099843167170b81b597921890ffb0f56cb2222c1e611213b09f7e
   category: main
   optional: false
 - name: mypy
-  version: 1.19.1
+  version: 1.20.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     mypy_extensions: '>=1.0.0'
-    pathspec: '>=0.9.0'
+    pathspec: '>=1.0.0'
     psutil: '>=4.0'
     python: '>=3.12,<3.13.0a0'
-    python-librt: '>=0.6.2'
+    python-librt: '>=0.8.0'
     python_abi: 3.12.*
     typing_extensions: '>=4.6.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.19.1-py312hefc2c51_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.0-py312hefc2c51_0.conda
   hash:
-    md5: 066e48f36dc3c70fa25b3228d781b57c
-    sha256: 6d3e7afb2c0d07c1cc18394749b33466103599024691ccd01a413b33e3ca7058
+    md5: 16e653b99c021b140cfe6f2cc23ee02a
+    sha256: 002e080ca7731b473e41eed2ab79357b070419ff8613b6ad531ef756aabbb649
   category: main
   optional: false
 - name: mypy_extensions
