@@ -13,8 +13,8 @@
 version: 1
 metadata:
   content_hash:
-    osx-arm64: c1dad533220ced266fd86b87b460e121156a8d2914d04d51b2216a2b3ce5084d
-    linux-64: 046ddfe1f37184c8c293ecec7512abaf784acdfdfb878354af5b683b0b85cce8
+    osx-arm64: ba40fb41c3c808fbe1a5a796c6655cb84bba74a5a4dbd8fca53aabf681247eb2
+    linux-64: 3dd7da9796ddcf471015a8f3ab27c48935e662f722369913bec1da7bd3fd31bb
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -1852,7 +1852,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.59.0
+  version: 3.59.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -1883,14 +1883,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 20fdaa1bc8e0ecdb380a15dca46c20c9
-    sha256: b6f634b368f0c17842cc76bc2e085c8c155be0902a1b14524bdb2d9b158c6762
+    md5: 099e532188b3b13b3cc048c4ead7eea8
+    sha256: 9a6b2742f6cde1b5440c38e520d7ee82254a2b7bf24619b3bbf673a0ca799ca5
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.59.0
+  version: 3.59.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1921,10 +1921,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.1-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 20fdaa1bc8e0ecdb380a15dca46c20c9
-    sha256: b6f634b368f0c17842cc76bc2e085c8c155be0902a1b14524bdb2d9b158c6762
+    md5: 099e532188b3b13b3cc048c4ead7eea8
+    sha256: 9a6b2742f6cde1b5440c38e520d7ee82254a2b7bf24619b3bbf673a0ca799ca5
   category: main
   optional: false
 - name: conda-souschef
@@ -10053,10 +10053,10 @@ package:
     __osx: '>=11.0'
     libcxx: '>=19.0.0.a0'
     ncurses: '>=6.5,<7.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/tapi-1600.0.11.8-h997e182_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/tapi-1600.0.11.8-h997e182_2.conda
   hash:
-    md5: ddd7d9cd7e3c3f184867e92ed1c7d394
-    sha256: 0072a50a204dc6a309ea61e01315caee86cf82879ce5254bb8feb04a3e0de762
+    md5: 555070ad1e18b72de36e9ee7ed3236b3
+    sha256: de6893e53664e769c1b1c4103a666d436e3d307c0eb6a09a164e749d116e80f7
   category: main
   optional: false
 - name: tar
