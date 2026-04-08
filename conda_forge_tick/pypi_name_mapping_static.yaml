@@ -135,3 +135,7 @@
 - pypi_name: symengine
   import_name: symengine
   conda_name: python-symengine
+
+- pypi_name: build
+  import_name: build
+  conda_name: python-build
