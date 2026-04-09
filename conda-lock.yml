@@ -1527,25 +1527,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.09.07.25.35
+  version: 2026.04.09.16.37.54
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.09.07.25.35-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.09.16.37.54-hd8ed1ab_0.conda
   hash:
-    md5: d4876f4db80c7abc006b3c68f64e023c
-    sha256: 62c5eebe2c4c8d464dd7257847093da7f6773d96dd7db4975026e3286b47fbbd
+    md5: 9f4b409f41754c5a9094e0a4f3f48e41
+    sha256: c41ea6c2ef47df8ae44e9b722d23a1fa2d9284f97256a1def26d9c927384cc03
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.09.07.25.35
+  version: 2026.04.09.16.37.54
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.09.07.25.35-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.09.16.37.54-hd8ed1ab_0.conda
   hash:
-    md5: d4876f4db80c7abc006b3c68f64e023c
-    sha256: 62c5eebe2c4c8d464dd7257847093da7f6773d96dd7db4975026e3286b47fbbd
+    md5: 9f4b409f41754c5a9094e0a4f3f48e41
+    sha256: c41ea6c2ef47df8ae44e9b722d23a1fa2d9284f97256a1def26d9c927384cc03
   category: main
   optional: false
 - name: conda-index
@@ -5836,17 +5836,17 @@ package:
   category: main
   optional: false
 - name: libsqlite
-  version: 3.52.0
+  version: 3.53.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-    libzlib: '>=1.3.1,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.52.0-h0c1763c_0.conda
+    libzlib: '>=1.3.2,<2.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.53.0-h0c1763c_0.conda
   hash:
-    md5: a7bda2babcbb004443cb1c0be9a8c353
-    sha256: 1daeb5187efcdbe3bdf2dc66f1161e09cb8dfd01618015d2106feae13cf3390d
+    md5: 393c8b31bd128e3d979e7ec17e9507c6
+    sha256: d1688f91c013f9be0ad46492d4ec976ccc1dff5705a0b42be957abb73bf853bf
   category: main
   optional: false
 - name: libsqlite
@@ -7362,27 +7362,27 @@ package:
   category: main
   optional: false
 - name: platformdirs
-  version: 4.9.4
+  version: 4.9.6
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.4-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.6-pyhcf101f3_0.conda
   hash:
-    md5: 82c1787f2a65c0155ef9652466ee98d6
-    sha256: 0289f0a38337ee201d984f8f31f11f6ef076cfbbfd0ab9181d12d9d1d099bf46
+    md5: 89c0b6d1793601a2a3a3f7d2d3d8b937
+    sha256: 8f29915c172f1f7f4f7c9391cd5dac3ebf5d13745c8b7c8006032615246345a5
   category: main
   optional: false
 - name: platformdirs
-  version: 4.9.4
+  version: 4.9.6
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.4-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.9.6-pyhcf101f3_0.conda
   hash:
-    md5: 82c1787f2a65c0155ef9652466ee98d6
-    sha256: 0289f0a38337ee201d984f8f31f11f6ef076cfbbfd0ab9181d12d9d1d099bf46
+    md5: 89c0b6d1793601a2a3a3f7d2d3d8b937
+    sha256: 8f29915c172f1f7f4f7c9391cd5dac3ebf5d13745c8b7c8006032615246345a5
   category: main
   optional: false
 - name: pluggy
@@ -10640,30 +10640,30 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.11.5
+  version: 0.11.6
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.11.5-h0f56927_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.11.6-h0f56927_0.conda
   hash:
-    md5: 7537ad82fca78c71c6841e370197aad1
-    sha256: 5c83003f06b256e26dfbd598f8fe14e3018469c0574ca0dc40949b457bf3c7ac
+    md5: f78bab5fcaf462a4309c88c18def5574
+    sha256: b4e119c6776d5f752f7f10a1e4810dcbcfe0a6b32cc23689b0009f93af76bf6c
   category: main
   optional: false
 - name: uv
-  version: 0.11.5
+  version: 0.11.6
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.11.5-h2a61971_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.11.6-h2a61971_0.conda
   hash:
-    md5: 427a1997c623255d3166ae3559ae6c5b
-    sha256: a396d4cc217e56f715359bdfec73093efeb07ac65ee3fd51f9b1896c7a7767ee
+    md5: 8113c6d9c8790242a21c8c7525bc1e8f
+    sha256: c16152d7ebd6d65f1438f242e423517c1f17b7ea5552c56538edd5347f034ed0
   category: main
   optional: false
 - name: uvicorn
