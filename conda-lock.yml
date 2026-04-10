@@ -1852,7 +1852,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.59.1
+  version: 3.60.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -1883,14 +1883,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.60.0-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 099e532188b3b13b3cc048c4ead7eea8
-    sha256: 9a6b2742f6cde1b5440c38e520d7ee82254a2b7bf24619b3bbf673a0ca799ca5
+    md5: 8472139add8602b1a8959cfffdb3faba
+    sha256: 74506643dfc5d47e4eb222e45e09a80591da46bddcba9f4c9b7e31d81c5ef8fb
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.59.1
+  version: 3.60.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1921,10 +1921,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.59.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.60.0-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 099e532188b3b13b3cc048c4ead7eea8
-    sha256: 9a6b2742f6cde1b5440c38e520d7ee82254a2b7bf24619b3bbf673a0ca799ca5
+    md5: 8472139add8602b1a8959cfffdb3faba
+    sha256: 74506643dfc5d47e4eb222e45e09a80591da46bddcba9f4c9b7e31d81c5ef8fb
   category: main
   optional: false
 - name: conda-souschef
