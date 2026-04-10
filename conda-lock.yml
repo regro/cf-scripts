@@ -1293,7 +1293,7 @@ package:
   category: main
   optional: false
 - name: conda
-  version: 26.3.1
+  version: 26.3.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -1318,14 +1318,14 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/conda-26.3.1-py312h7900ff3_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/conda-26.3.2-py312h7900ff3_0.conda
   hash:
-    md5: b81238b553666658b577b104f56e3a47
-    sha256: 18902d94c74b75b2df43722dc21858e5a914e79ba3c9f792521861527d3b69ba
+    md5: 6c565cc6497b70a868b6009463af3c2b
+    sha256: afce9dfb7e48bb0a41694c6fbb39f78551d514067a636fda0a39c0e2282813bd
   category: main
   optional: false
 - name: conda
-  version: 26.3.1
+  version: 26.3.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1350,10 +1350,10 @@ package:
     tqdm: '>=4'
     truststore: '>=0.8.0'
     zstandard: '>=0.19.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-26.3.1-py312h81bd7bf_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/conda-26.3.2-py312h81bd7bf_0.conda
   hash:
-    md5: 16ddf025b3d02e6e36055289ae81e509
-    sha256: 150c52178b3e6ae9f9356e225aa3397853d7b619e1a58d1982f1a647bcd473ab
+    md5: 7517ab730fe5f78f16ddc8953f341a23
+    sha256: 8a870a9c3a72823f583c73e29d810be9819c04d0d886e4d9b1463dfb5d925d5c
   category: main
   optional: false
 - name: conda-build
@@ -8818,27 +8818,27 @@ package:
   category: main
   optional: false
 - name: python-multipart
-  version: 0.0.24
+  version: 0.0.26
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/python-multipart-0.0.24-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-multipart-0.0.26-pyhcf101f3_0.conda
   hash:
-    md5: f319dd7ebed160df398fda1141fa263d
-    sha256: fabe7fa67ae117b2908fde1af3a15a3cf3e28fcfb0ea6e327712a21260b41406
+    md5: 8fe038d7eacf6aa4e0885f6ae9c560e5
+    sha256: 2c683f35fac0e6d5c314872bbe89f1ff9100e93a6ed3c2c249b5ba7f95baa139
   category: main
   optional: false
 - name: python-multipart
-  version: 0.0.24
+  version: 0.0.26
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/python-multipart-0.0.24-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/python-multipart-0.0.26-pyhcf101f3_0.conda
   hash:
-    md5: f319dd7ebed160df398fda1141fa263d
-    sha256: fabe7fa67ae117b2908fde1af3a15a3cf3e28fcfb0ea6e327712a21260b41406
+    md5: 8fe038d7eacf6aa4e0885f6ae9c560e5
+    sha256: 2c683f35fac0e6d5c314872bbe89f1ff9100e93a6ed3c2c249b5ba7f95baa139
   category: main
   optional: false
 - name: python-utils
