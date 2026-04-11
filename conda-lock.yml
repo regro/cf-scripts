@@ -1527,25 +1527,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.10.14.00.22
+  version: 2026.04.11.11.31.25
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.10.14.00.22-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.11.11.31.25-hd8ed1ab_0.conda
   hash:
-    md5: 3041d44290d48ec7f49b4de25c851bb8
-    sha256: ae96cba7a293e26d90cccdd67c940bf222dadcc687987a3b9bc6cc257a664e2a
+    md5: 0798f56f197526d42529786b486db070
+    sha256: 940551966d28bba7b0d3aaeeacd1a54d510ad2c06e06aa4901fa4ec35199e93d
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.10.14.00.22
+  version: 2026.04.11.11.31.25
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.10.14.00.22-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.11.11.31.25-hd8ed1ab_0.conda
   hash:
-    md5: 3041d44290d48ec7f49b4de25c851bb8
-    sha256: ae96cba7a293e26d90cccdd67c940bf222dadcc687987a3b9bc6cc257a664e2a
+    md5: 0798f56f197526d42529786b486db070
+    sha256: 940551966d28bba7b0d3aaeeacd1a54d510ad2c06e06aa4901fa4ec35199e93d
   category: main
   optional: false
 - name: conda-index
@@ -9295,7 +9295,7 @@ package:
   category: main
   optional: false
 - name: rich
-  version: 14.3.3
+  version: 14.3.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -9303,14 +9303,14 @@ package:
     pygments: '>=2.13.0,<3.0.0'
     python: ''
     typing_extensions: '>=4.0.0,<5.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.3-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.4-pyhcf101f3_0.conda
   hash:
-    md5: 7a6289c50631d620652f5045a63eb573
-    sha256: b06ce84d6a10c266811a7d3adbfa1c11f13393b91cc6f8a5b468277d90be9590
+    md5: 2e6a922d07244f514863b7e10bf5c923
+    sha256: a941b5e002504e1c9b02ea02180d40186b67d03e8e7d668bf746393c266b3951
   category: main
   optional: false
 - name: rich
-  version: 14.3.3
+  version: 14.3.4
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9318,10 +9318,10 @@ package:
     pygments: '>=2.13.0,<3.0.0'
     python: ''
     typing_extensions: '>=4.0.0,<5.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.3-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.4-pyhcf101f3_0.conda
   hash:
-    md5: 7a6289c50631d620652f5045a63eb573
-    sha256: b06ce84d6a10c266811a7d3adbfa1c11f13393b91cc6f8a5b468277d90be9590
+    md5: 2e6a922d07244f514863b7e10bf5c923
+    sha256: a941b5e002504e1c9b02ea02180d40186b67d03e8e7d668bf746393c266b3951
   category: main
   optional: false
 - name: rich-toolkit
