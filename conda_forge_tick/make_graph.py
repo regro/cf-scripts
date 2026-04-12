@@ -13,6 +13,7 @@ import psutil
 import tqdm
 
 from conda_forge_tick.feedstock_parser import load_feedstock
+from conda_forge_tick.git_utils import is_tracked_by_git
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
@@ -402,6 +403,25 @@ def _migrate_schemas(nodes):
             _migrate_schema(node, sub_graph)
 
 
+def _should_be_stub_node(name):
+    # a node is a stub if its json data does not exist or
+    # the json data is an empty dict and the file is not tracked by git
+    pth = get_sharded_path(f"node_attrs/{name}.json")
+
+    if not os.path.exists(pth):
+        return True
+
+    # is empty JSON blob and not tracked by git
+    with open(pth) as fp:
+        data = fp.read()
+    if data.strip() == "{}" and not is_tracked_by_git(pth):
+        # remove the file here so it is not pushed later
+        os.remove(pth)
+        return True
+
+    return False
+
+
 def main(
     ctx: CliContext,
     job: int = 1,
@@ -431,7 +451,7 @@ def main(
 
         new_names = {name for name in names if name not in gx.nodes}
         for name in names:
-            if not os.path.exists(get_sharded_path(f"node_attrs/{name}.json")):
+            if _should_be_stub_node(name):
                 # we use the stub here to ensure we do not create an empty node
                 # by leaving a file on disk or syncing the json
                 sub_graph = {
