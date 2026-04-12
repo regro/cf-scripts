@@ -1312,7 +1312,9 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph | None:
     nx.DiGraph or None
         The graph, or None if the file is empty JSON
     """
-    dta = copy.deepcopy(LazyJson(filename).data)
+    lzj = LazyJson(filename)
+    with lzj:
+        dta = copy.deepcopy(lzj.data)
     if dta:
         return nx.node_link_graph(dta, edges="links")
     else:

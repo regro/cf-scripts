@@ -96,7 +96,7 @@ jobs:
             react-to-event \
             --event='${{ inputs.event }}' \
             --uid='${{ inputs.uid }}'
-            
+
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}

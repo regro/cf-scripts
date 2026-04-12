@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 import networkx as nx
 import pytest
@@ -68,6 +69,8 @@ def test_try_load_feedstock(
 )
 def test_make_graph_nowrite(tmp_path, kwargs):
     with pushd(str(tmp_path)):
+        subprocess.run(["git", "init", "."], check=True, capture_output=True)
+
         (tmp_path / "all_feedstocks.json").write_text(
             json.dumps(
                 {
@@ -112,9 +115,27 @@ def test_make_graph_nowrite(tmp_path, kwargs):
             fname.relative_to(tmp_path) for fname in fnames
         )
 
+        # run again to ensure no empty files are made
+        if "update_nodes_and_edges" in kwargs:
+            make_graph_main(
+                None,
+                **kwargs,
+            )
+
+            fnames = sorted(list(tmp_path.glob("**/*.json")))
+            assert not any(fname.name == "bar.json" for fname in fnames), sorted(
+                fname.relative_to(tmp_path) for fname in fnames
+            )
+
         gx = load_existing_graph()
         all_nodes = set(gx.nodes.keys())
         if "update_nodes_and_edges" in kwargs:
             assert "bar" in all_nodes, all_nodes
+
+            # this load should not make a file
+            fnames = sorted(list(tmp_path.glob("**/*.json")))
+            assert not any(fname.name == "bar.json" for fname in fnames), sorted(
+                fname.relative_to(tmp_path) for fname in fnames
+            )
         else:
             assert "bar" not in all_nodes, all_nodes

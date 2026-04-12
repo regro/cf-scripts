@@ -450,23 +450,17 @@ def test_lazy_json(tmpdir, backend):
             assert not os.path.exists(f)
             lj = LazyJson(f)
 
-            if backend == "file":
-                assert os.path.exists(lj.file_name)
-                assert os.path.exists(sharded_path)
-                with open(sharded_path) as ff:
-                    assert ff.read() == json.dumps({})
-            else:
-                assert not os.path.exists(sharded_path)
-                assert not os.path.exists(lj.file_name)
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
 
             with pytest.raises(AssertionError):
                 lj.update({"hi": "globe"})
-            if backend == "file":
-                with open(sharded_path) as ff:
-                    assert ff.read() == dumps({})
             p = pickle.dumps(lj)
             lj2 = pickle.loads(p)
             assert not getattr(lj2, "_data", None)
+
+            assert not os.path.exists(sharded_path)
+            assert not os.path.exists(lj.file_name)
 
             with lj as attrs:
                 attrs["hi"] = "world"
@@ -538,13 +532,10 @@ def test_lazy_json_default(tmpdir):
         assert fpth == f
         assert not os.path.exists(fpth)
         lj = LazyJson(f)
-        assert os.path.exists(lj.file_name)
-        assert os.path.exists(fpth)
+        assert not os.path.exists(lj.file_name)
+        assert not os.path.exists(fpth)
         assert lj.json_ref == {"__lazy_json__": lj.file_name}
         assert lj.sharded_path == get_sharded_path(f"{lj.hashmap}/{lj.node}.json")
-
-        with open(fpth) as ff:
-            assert ff.read() == json.dumps({})
 
         with pytest.raises(AssertionError):
             lj.update({"hi": "globe"})
@@ -684,9 +675,12 @@ def test_lazy_json_stub_default(tmpdir):
 
 def test_lazy_json_backends_hashmap(tmpdir):
     with pushd(tmpdir):
-        LazyJson("blah.json")
-        LazyJson("node_attrs/blah.json")
-        LazyJson("node_attrs/blah_blah.json")
+        with LazyJson("blah.json"):
+            pass
+        with LazyJson("node_attrs/blah.json"):
+            pass
+        with LazyJson("node_attrs/blah_blah.json"):
+            pass
 
         assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
         assert sorted(get_all_keys_for_hashmap("node_attrs")) == sorted(
@@ -1027,10 +1021,7 @@ def test_lazy_json_backends_contexts_double_write():
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         with lazy_json_override_backends(["file"], use_file_cache=False):
             lzj = LazyJson("test.json")
-            # old behavior always makes a file on init
-            # we remove it here so that we can test
-            assert os.path.exists(lzj.sharded_path)
-            os.remove(lzj.sharded_path)
+            assert not os.path.exists(lzj.sharded_path)
 
             with lzj:
                 # file should not yet exist
