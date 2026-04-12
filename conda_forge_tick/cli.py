@@ -78,7 +78,7 @@ def main(
     dry_run: bool,
     online: bool,
     no_containers: bool,
-    log_level,
+    log_level: str,
 ) -> None:
     log_level = "debug" if debug else log_level
     setup_logging(log_level)
