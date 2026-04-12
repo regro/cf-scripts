@@ -1527,25 +1527,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.11.11.31.25
+  version: 2026.04.12.08.15.32
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.11.11.31.25-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.12.08.15.32-hd8ed1ab_0.conda
   hash:
-    md5: 0798f56f197526d42529786b486db070
-    sha256: 940551966d28bba7b0d3aaeeacd1a54d510ad2c06e06aa4901fa4ec35199e93d
+    md5: cc12d6d31bbcc8ae5a01babfd8c289a0
+    sha256: 253e94ec98a57bd033cc8e6bc93f5ad93b153644a2e9755fbe3831462a4fcf04
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.11.11.31.25
+  version: 2026.04.12.08.15.32
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.11.11.31.25-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.12.08.15.32-hd8ed1ab_0.conda
   hash:
-    md5: 0798f56f197526d42529786b486db070
-    sha256: 940551966d28bba7b0d3aaeeacd1a54d510ad2c06e06aa4901fa4ec35199e93d
+    md5: cc12d6d31bbcc8ae5a01babfd8c289a0
+    sha256: 253e94ec98a57bd033cc8e6bc93f5ad93b153644a2e9755fbe3831462a4fcf04
   category: main
   optional: false
 - name: conda-index
@@ -5398,28 +5398,28 @@ package:
   category: main
   optional: false
 - name: libjpeg-turbo
-  version: 3.1.2
+  version: 3.1.4.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.1.2-hb03c661_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libjpeg-turbo-3.1.4.1-hb03c661_0.conda
   hash:
-    md5: 8397539e3a0bbd1695584fb4f927485a
-    sha256: cc9aba923eea0af8e30e0f94f2ad7156e2984d80d1e8e7fe6be5a1f257f0eb32
+    md5: 6178c6f2fb254558238ef4e6c56fb782
+    sha256: 10056646c28115b174de81a44e23e3a0a3b95b5347d2e6c45cc6d49d35294256
   category: main
   optional: false
 - name: libjpeg-turbo
-  version: 3.1.2
+  version: 3.1.4.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.1.2-hc919400_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libjpeg-turbo-3.1.4.1-h84a0fba_0.conda
   hash:
-    md5: f0695fbecf1006f27f4395d64bd0c4b8
-    sha256: 6c061c56058bb10374daaef50e81b39cf43e8aee21f0037022c0c39c4f31872f
+    md5: b8a7544c83a67258b0e8592ec6a5d322
+    sha256: 17e035ae6a520ff6a6bb5dd93a4a7c3895891f4f9743bcb8c6ef607445a31cd0
   category: main
   optional: false
 - name: liblapack
