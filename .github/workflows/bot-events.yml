@@ -85,9 +85,9 @@ jobs:
         run: |
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           if [[ '${{ github.event.inputs.dry-run}}' == 'true' ]]; then
-            kwargs="--dry-run"
+            kwargs="--debug --dry-run"
           else
-            kwargs=""
+            kwargs="--debug"
           fi
 
           pushd cf-scripts
@@ -95,8 +95,8 @@ jobs:
           conda-forge-tick ${kwargs} \
             react-to-event \
             --event='${{ inputs.event }}' \
-            --uid='${{ inputs.uid }}' \
-            --debug
+            --uid='${{ inputs.uid }}'
+            
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
