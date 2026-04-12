@@ -1025,27 +1025,10 @@ class LazyJson(MutableMapping):
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file" and not self._no_sync:
-            if not LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hexists(
-                self.hashmap, self.node
-            ):
-                self._never_synced = True
-            else:
-                self._never_synced = False
-
-    def __del__(self):
-        if (
-            hasattr(self, "_never_synced")
-            and self._never_synced
-            and hasattr(self, "_no_sync")
-            and not self._no_sync
-        ):
-            hashmap = self.hashmap if hasattr(self, "hashmap") else "unknown"
-            node = self.node if hasattr(self, "node") else "unknown"
-            logger.warning(
-                "LazyJson object '%s/%s.json' has never been synced and is being garbage collected!",
-                hashmap,
-                node,
-                stacklevel=2,
+            LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
+                self.hashmap,
+                self.node,
+                dumps({}),
             )
 
     @property
@@ -1094,6 +1077,10 @@ class LazyJson(MutableMapping):
                 else:
                     data_str = dumps({})
                     lzj_is_new = True
+                    if not self._in_context and not self._no_sync:
+                        # need to push file to backend since will not get
+                        # done at end of context manager
+                        backend.hset(self.hashmap, self.node, data_str)
 
                 if isinstance(data_str, bytes):  # type: ignore[unreachable]
                     data_str = data_str.decode("utf-8")  # type: ignore[unreachable]
@@ -1127,7 +1114,6 @@ class LazyJson(MutableMapping):
                 if CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
                     file_backend = LAZY_JSON_BACKENDS["file"]()
                     file_backend.hset(self.hashmap, self.node, data_str)
-                    self._never_synced = False
 
                 # sync changes to all backends
                 for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
@@ -1135,7 +1121,6 @@ class LazyJson(MutableMapping):
                         continue
                     backend = LAZY_JSON_BACKENDS[backend_name]()
                     backend.hset(self.hashmap, self.node, data_str)
-                    self._never_synced = False
 
         if purge and not self._no_sync:
             # this evicts the json from memory and trades i/o for mem
