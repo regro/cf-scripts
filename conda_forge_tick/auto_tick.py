@@ -611,7 +611,7 @@ def run(
         logger.critical(
             "Failed to migrate %s: pr_info.bad is '%s'",
             context.feedstock_name,
-            (context.attrs.get("pr_info", {}) or {}).get("bad", None),
+            (context.attrs.get("pr_info", {}) or {}).get("bad", None),  # type: ignore[call-overload]
         )
         return False, False
 
