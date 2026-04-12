@@ -66,6 +66,9 @@ click.Group.command_class = TimedCommand
         "Turning off containers is a potential security issue."
     ),
 )
+@click.option(
+    "--log-level", default="info", type=str, help="The logging level as a string."
+)
 @pass_context
 @click.pass_context
 def main(
@@ -75,8 +78,9 @@ def main(
     dry_run: bool,
     online: bool,
     no_containers: bool,
+    log_level,
 ) -> None:
-    log_level = "debug" if debug else "info"
+    log_level = "debug" if debug else log_level
     setup_logging(log_level)
 
     ctx.debug = debug
@@ -114,7 +118,6 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, only migrate the schema of the node attrs.",
 )
-@click.option("--debug/--no-debug", default=False)
 @pass_context
 def make_graph(
     ctx: CliContext,
@@ -122,12 +125,8 @@ def make_graph(
     n_jobs: int,
     update_nodes_and_edges: bool,
     schema_migration_only: bool,
-    debug: bool,
 ) -> None:
     from . import make_graph
-
-    log_level = "debug" if debug else "info"
-    setup_logging(log_level)
 
     check_job_param_relative(job, n_jobs)
 
@@ -332,20 +331,14 @@ def make_migrators(
     ),
     type=str,
 )
-@click.option("--debug/--no-debug", default=False)
 @pass_context
 def react_to_event(
     ctx: CliContext,
     event: str,
     uid: str,
-    debug: bool,
 ) -> None:
     """React to an event."""
     from .events import react_to_event
-
-    log_level = "debug" if debug else "info"
-    setup_logging(log_level)
-    ctx.debug = debug
 
     react_to_event(ctx, event, uid)
 
