@@ -4126,29 +4126,29 @@ package:
   category: main
   optional: false
 - name: importlib_resources
-  version: 6.5.2
+  version: 7.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     zipp: '>=3.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-6.5.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-7.1.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c85c76dc67d75619a92f51dfbce06992
-    sha256: acc1d991837c0afb67c75b77fdc72b4bf022aac71fedd8b9ea45918ac9b08a80
+    md5: 0ba6225c279baf7ea9473a62ea0ec9ae
+    sha256: a563a51aa522998172838e867e6dedcf630bc45796e8612f5a1f6d73e9c8125a
   category: main
   optional: false
 - name: importlib_resources
-  version: 6.5.2
+  version: 7.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
+    python: '>=3.10'
     zipp: '>=3.1.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-6.5.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-7.1.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c85c76dc67d75619a92f51dfbce06992
-    sha256: acc1d991837c0afb67c75b77fdc72b4bf022aac71fedd8b9ea45918ac9b08a80
+    md5: 0ba6225c279baf7ea9473a62ea0ec9ae
+    sha256: a563a51aa522998172838e867e6dedcf630bc45796e8612f5a1f6d73e9c8125a
   category: main
   optional: false
 - name: iniconfig
@@ -6704,7 +6704,7 @@ package:
   category: main
   optional: false
 - name: mypy
-  version: 1.20.0
+  version: 1.20.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -6717,10 +6717,10 @@ package:
     python-librt: '>=0.8.0'
     python_abi: 3.12.*
     typing_extensions: '>=4.6.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.0-py312h4c3975b_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.1-py312h4c3975b_0.conda
   hash:
-    md5: a1f58c8babb356d64f70c380dde5df2b
-    sha256: bb9ab670f94099843167170b81b597921890ffb0f56cb2222c1e611213b09f7e
+    md5: 672833a9f4e00c5e4ddbfa53b2aad6ee
+    sha256: b9dc656d1f78e75ae07d57aefae6613ac94d55a4b33aabb35daa9451e624ef2f
   category: main
   optional: false
 - name: mypy
@@ -7283,31 +7283,31 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.66.0
+  version: 0.67.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-    openssl: '>=3.5.5,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.66.0-ha759004_0.conda
+    openssl: '>=3.5.6,<4.0a0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.67.0-ha759004_0.conda
   hash:
-    md5: 3b982a8cd2e028a81b3bf488ef1bbac0
-    sha256: d40b7791c4480ba7462db702fc7ff44d93b95b4a3f5a00a6b6208bc859849026
+    md5: da4cbb8ef4eaa78663d3ec08d1fb0c63
+    sha256: 043afc29f2d49e96037be28eb59c2c76e77187b3bdf79fabe18b923cf1355736
   category: main
   optional: false
 - name: pixi
-  version: 0.65.0
+  version: 0.67.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    libcxx: '>=16'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.65.0-ha7e4b49_0.conda
+    libcxx: '>=19'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.67.0-h2307240_0.conda
   hash:
-    md5: cde8d8d9a1bfeaae95aceb9388db75a8
-    sha256: 85df3fe8997accaf0bf9c4711d862cfa320902873a1fede6dc34bba790a1a1ce
+    md5: 26ac298888cab2265544c86741f215fa
+    sha256: 89f8cfc892f80054ba75a2ff2f5c314598d956ebad3b5dafd26fb9f4c829b6c1
   category: main
   optional: false
 - name: pixman
@@ -9295,7 +9295,7 @@ package:
   category: main
   optional: false
 - name: rich
-  version: 14.3.4
+  version: 15.0.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -9303,14 +9303,14 @@ package:
     pygments: '>=2.13.0,<3.0.0'
     python: ''
     typing_extensions: '>=4.0.0,<5.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.4-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-15.0.0-pyhcf101f3_0.conda
   hash:
-    md5: 2e6a922d07244f514863b7e10bf5c923
-    sha256: a941b5e002504e1c9b02ea02180d40186b67d03e8e7d668bf746393c266b3951
+    md5: 0242025a3c804966bf71aa04eee82f66
+    sha256: 3d6ba2c0fcdac3196ba2f0615b4104e532525ffa1335b50a2878be5ff488814a
   category: main
   optional: false
 - name: rich
-  version: 14.3.4
+  version: 15.0.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9318,10 +9318,10 @@ package:
     pygments: '>=2.13.0,<3.0.0'
     python: ''
     typing_extensions: '>=4.0.0,<5.0.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-14.3.4-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-15.0.0-pyhcf101f3_0.conda
   hash:
-    md5: 2e6a922d07244f514863b7e10bf5c923
-    sha256: a941b5e002504e1c9b02ea02180d40186b67d03e8e7d668bf746393c266b3951
+    md5: 0242025a3c804966bf71aa04eee82f66
+    sha256: 3d6ba2c0fcdac3196ba2f0615b4104e532525ffa1335b50a2878be5ff488814a
   category: main
   optional: false
 - name: rich-toolkit
