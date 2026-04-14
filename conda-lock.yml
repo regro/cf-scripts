@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.14.06.48.01
+  version: 2026.04.14.16.51.29
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.14.06.48.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.14.16.51.29-hd8ed1ab_0.conda
   hash:
-    md5: 0fc8dc32c997a67832c5dfb000c4068e
-    sha256: c7096c64e5e9704e325520daf4c4b05c48a559f76cd0f8f283f19c3d60fec988
+    md5: c1dfe067ee01cc6259e9c91504995915
+    sha256: eb2890e2986f214760b5a6d625a2bf8e2818c5781b1bf166b8ef34a010c68abf
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.14.06.48.01
+  version: 2026.04.14.16.51.29
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.14.06.48.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.14.16.51.29-hd8ed1ab_0.conda
   hash:
-    md5: 0fc8dc32c997a67832c5dfb000c4068e
-    sha256: c7096c64e5e9704e325520daf4c4b05c48a559f76cd0f8f283f19c3d60fec988
+    md5: c1dfe067ee01cc6259e9c91504995915
+    sha256: eb2890e2986f214760b5a6d625a2bf8e2818c5781b1bf166b8ef34a010c68abf
   category: main
   optional: false
 - name: conda-index
@@ -2469,27 +2469,27 @@ package:
   category: main
   optional: false
 - name: editables
-  version: '0.5'
+  version: '0.6'
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/editables-0.6-pyhcf101f3_0.conda
   hash:
-    md5: 2cf824fe702d88e641eec9f9f653e170
-    sha256: 8d4f908e670be360617d418c328213bc46e7100154c3742db085148141712f60
+    md5: 86b177231eecb011fe00e2117dbc3348
+    sha256: bb826ff403b8195467e7cd5f504bc14767b424dac27bb225508ca2c1852554b2
   category: main
   optional: false
 - name: editables
-  version: '0.5'
+  version: '0.6'
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/editables-0.5-pyhd8ed1ab_1.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/editables-0.6-pyhcf101f3_0.conda
   hash:
-    md5: 2cf824fe702d88e641eec9f9f653e170
-    sha256: 8d4f908e670be360617d418c328213bc46e7100154c3742db085148141712f60
+    md5: 86b177231eecb011fe00e2117dbc3348
+    sha256: bb826ff403b8195467e7cd5f504bc14767b424dac27bb225508ca2c1852554b2
   category: main
   optional: false
 - name: email-validator
