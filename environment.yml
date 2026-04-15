@@ -52,7 +52,7 @@ dependencies:
   - python-dateutil
   - python-graphviz
   - rattler-build >=0.58.3,<0.60
-  - rattler-build-conda-compat >=1.4.6,<2,!=1.4.7,!=1.4.8
+  - rattler-build-conda-compat >=1.4.13,<2
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2
