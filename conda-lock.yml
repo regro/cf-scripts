@@ -2824,27 +2824,27 @@ package:
   category: main
   optional: false
 - name: filelock
-  version: 3.25.2
+  version: 3.28.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.28.0-pyhd8ed1ab_0.conda
   hash:
-    md5: f58064cec97b12a7136ebb8a6f8a129b
-    sha256: dddea9ec53d5e179de82c24569d41198f98db93314f0adae6b15195085d5567f
+    md5: 60a871a0e893d6ec7083115beba05001
+    sha256: d1151d785c346bc24bc19b4ee10f5cfd0b1963530e9ab6f7e4f3789640d1154e
   category: main
   optional: false
 - name: filelock
-  version: 3.25.2
+  version: 3.28.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.25.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.28.0-pyhd8ed1ab_0.conda
   hash:
-    md5: f58064cec97b12a7136ebb8a6f8a129b
-    sha256: dddea9ec53d5e179de82c24569d41198f98db93314f0adae6b15195085d5567f
+    md5: 60a871a0e893d6ec7083115beba05001
+    sha256: d1151d785c346bc24bc19b4ee10f5cfd0b1963530e9ab6f7e4f3789640d1154e
   category: main
   optional: false
 - name: flask
@@ -7013,27 +7013,27 @@ package:
   category: main
   optional: false
 - name: packaging
-  version: '26.0'
+  version: '26.1'
   manager: conda
   platform: linux-64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.1-pyhc364b38_0.conda
   hash:
-    md5: b76541e68fea4d511b1ac46a28dcd2c6
-    sha256: c1fc0f953048f743385d31c468b4a678b3ad20caffdeaa94bed85ba63049fd58
+    md5: b8ae38639d323d808da535fb71e31be8
+    sha256: 171d977bc977fd80f2a05de3d4b7d571c4ec3cdea436ed364e5cd50547c50881
   category: main
   optional: false
 - name: packaging
-  version: '26.0'
+  version: '26.1'
   manager: conda
   platform: osx-arm64
   dependencies:
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/packaging-26.1-pyhc364b38_0.conda
   hash:
-    md5: b76541e68fea4d511b1ac46a28dcd2c6
-    sha256: c1fc0f953048f743385d31c468b4a678b3ad20caffdeaa94bed85ba63049fd58
+    md5: b8ae38639d323d808da535fb71e31be8
+    sha256: 171d977bc977fd80f2a05de3d4b7d571c4ec3cdea436ed364e5cd50547c50881
   category: main
   optional: false
 - name: pango
