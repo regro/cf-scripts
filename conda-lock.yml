@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.15.08.45.37
+  version: 2026.04.15.16.06.00
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.08.45.37-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.16.06.00-hd8ed1ab_0.conda
   hash:
-    md5: 23fccac01e6e9cad4c50e267389584d5
-    sha256: e5925b170c66c6817f645e090461e4d9735d45cdb9b396781d92725d578bb836
+    md5: 7fc9df8d8cbfcf541eea1241edf3ed8c
+    sha256: 368bbb18c63d60a3b41060cf0b1ba3bdd90b5880ecc9735be28b116047019f48
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.15.08.45.37
+  version: 2026.04.15.16.06.00
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.08.45.37-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.16.06.00-hd8ed1ab_0.conda
   hash:
-    md5: 23fccac01e6e9cad4c50e267389584d5
-    sha256: e5925b170c66c6817f645e090461e4d9735d45cdb9b396781d92725d578bb836
+    md5: 7fc9df8d8cbfcf541eea1241edf3ed8c
+    sha256: 368bbb18c63d60a3b41060cf0b1ba3bdd90b5880ecc9735be28b116047019f48
   category: main
   optional: false
 - name: conda-index
@@ -9129,57 +9129,57 @@ package:
   category: main
   optional: false
 - name: reproc
-  version: 14.2.5.post0
+  version: 14.2.7.post0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-  url: https://conda.anaconda.org/conda-forge/linux-64/reproc-14.2.5.post0-hb9d3cd8_0.conda
+    libgcc: '>=14'
+  url: https://conda.anaconda.org/conda-forge/linux-64/reproc-14.2.7.post0-hb03c661_0.conda
   hash:
-    md5: 69fbc0a9e42eb5fe6733d2d60d818822
-    sha256: a1973f41a6b956f1305f9aaefdf14b2f35a8c9615cfe5f143f1784ed9aa6bf47
+    md5: c29ecc627d4d8e2416b6cc67e2a85987
+    sha256: ee62a35f1e63791a7d62bfde35920feb225b7a42cbd0675db1d23791314a3c09
   category: main
   optional: false
 - name: reproc
-  version: 14.2.5.post0
+  version: 14.2.7.post0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/reproc-14.2.5.post0-h5505292_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/reproc-14.2.7.post0-h84a0fba_0.conda
   hash:
-    md5: f1d129089830365d9dac932c4dd8c675
-    sha256: a5f0dbfa8099a3d3c281ea21932b6359775fd8ce89acc53877a6ee06f50642bc
+    md5: 694cc9f1dd856bbcbe1637453ace52c1
+    sha256: 375f1a73e5f3033fa45e5ff063533a73d4d960a0f13ff1ba44460744bbb839d3
   category: main
   optional: false
 - name: reproc-cpp
-  version: 14.2.5.post0
+  version: 14.2.7.post0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=13'
-    libstdcxx: '>=13'
-    reproc: 14.2.5.post0
-  url: https://conda.anaconda.org/conda-forge/linux-64/reproc-cpp-14.2.5.post0-h5888daf_0.conda
+    libgcc: '>=14'
+    libstdcxx: '>=14'
+    reproc: 14.2.7.post0
+  url: https://conda.anaconda.org/conda-forge/linux-64/reproc-cpp-14.2.7.post0-hecca717_0.conda
   hash:
-    md5: 828302fca535f9cfeb598d5f7c204323
-    sha256: 568485837b905b1ea7bdb6e6496d914b83db57feda57f6050d5a694977478691
+    md5: 6671b0f9402a3bfbff38bde336d141ec
+    sha256: 6856d7ff1ad8eea8b90c3047dd8d21baefd9525e39e611310567c4f0c29c7fbf
   category: main
   optional: false
 - name: reproc-cpp
-  version: 14.2.5.post0
+  version: 14.2.7.post0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-    libcxx: '>=18'
-    reproc: 14.2.5.post0
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/reproc-cpp-14.2.5.post0-h286801f_0.conda
+    libcxx: '>=19'
+    reproc: 14.2.7.post0
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/reproc-cpp-14.2.7.post0-hf6b4638_0.conda
   hash:
-    md5: 11a3d09937d250fc4423bf28837d9363
-    sha256: f1b6aa9d9131ea159a5883bc5990b91b4b8f56eb52e0dc2b01aa9622e14edc81
+    md5: ace30d1612c60ef4d99208ecf34141fe
+    sha256: f5fb7797e71089210afb1264feff6d4932f5a6d5238fb729cee44b1f981bdcbb
   category: main
   optional: false
 - name: requests
