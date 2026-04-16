@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.15.16.06.00
+  version: 2026.04.16.08.17.00
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.16.06.00-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.16.08.17.00-hd8ed1ab_0.conda
   hash:
-    md5: 7fc9df8d8cbfcf541eea1241edf3ed8c
-    sha256: 368bbb18c63d60a3b41060cf0b1ba3bdd90b5880ecc9735be28b116047019f48
+    md5: e065ef36779ea7c70e0b97afd88b5caa
+    sha256: 3d342a1fbfa76cc2ebf9eeb646674a4058b9ec7abdd59908554a76c4d4cea346
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.15.16.06.00
+  version: 2026.04.16.08.17.00
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.15.16.06.00-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.16.08.17.00-hd8ed1ab_0.conda
   hash:
-    md5: 7fc9df8d8cbfcf541eea1241edf3ed8c
-    sha256: 368bbb18c63d60a3b41060cf0b1ba3bdd90b5880ecc9735be28b116047019f48
+    md5: e065ef36779ea7c70e0b97afd88b5caa
+    sha256: 3d342a1fbfa76cc2ebf9eeb646674a4058b9ec7abdd59908554a76c4d4cea346
   category: main
   optional: false
 - name: conda-index
@@ -5702,30 +5702,30 @@ package:
   category: main
   optional: false
 - name: libpng
-  version: 1.6.57
+  version: 1.6.58
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libzlib: '>=1.3.2,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.57-h421ea60_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.58-h421ea60_0.conda
   hash:
-    md5: 06f225e6d8c549ad6c0201679828a882
-    sha256: 06323fb0a831440f0b72a53013182e1d4bb219e3ea958bb37af98b25dc0cf518
+    md5: eba48a68a1a2b9d3c0d9511548db85db
+    sha256: 377cfe037f3eeb3b1bf3ad333f724a64d32f315ee1958581fc671891d63d3f89
   category: main
   optional: false
 - name: libpng
-  version: 1.6.57
+  version: 1.6.58
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libzlib: '>=1.3.2,<2.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.57-h132b30e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.58-h132b30e_0.conda
   hash:
-    md5: 1a28041d8d998688fd82e25b45582b21
-    sha256: 3f2b76a220844a7b2217688910d59c5fce075f54d0cee03da55a344e6be8f8a0
+    md5: 2259ae0949dbe20c0665850365109b27
+    sha256: 66eae34546df1f098a67064970c92aa14ae7a7505091889e00468294d2882c36
   category: main
   optional: false
 - name: librsvg
@@ -10640,30 +10640,30 @@ package:
   category: main
   optional: false
 - name: uv
-  version: 0.11.6
+  version: 0.11.7
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
     libstdcxx: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.11.6-h0f56927_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.11.7-h0f56927_0.conda
   hash:
-    md5: f78bab5fcaf462a4309c88c18def5574
-    sha256: b4e119c6776d5f752f7f10a1e4810dcbcfe0a6b32cc23689b0009f93af76bf6c
+    md5: c1c843d3c59957d6ab6161a93d89086d
+    sha256: 46b01d5a26aa9d0b304b3bd96e5882083254e7688c43687fef2d066bc97c02c5
   category: main
   optional: false
 - name: uv
-  version: 0.11.6
+  version: 0.11.7
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.11.6-h2a61971_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.11.7-h2a61971_0.conda
   hash:
-    md5: 8113c6d9c8790242a21c8c7525bc1e8f
-    sha256: c16152d7ebd6d65f1438f242e423517c1f17b7ea5552c56538edd5347f034ed0
+    md5: d360612d51cc29bf3531b4efbb336a25
+    sha256: e954882c0f83080df66751420ef2ad391894239ed98c4e872580c8f1da186d60
   category: main
   optional: false
 - name: uvicorn
