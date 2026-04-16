@@ -9005,7 +9005,7 @@ package:
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.12
+  version: 1.4.13
   manager: conda
   platform: linux-64
   dependencies:
@@ -9017,14 +9017,14 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.12-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.13-pyhd8ed1ab_0.conda
   hash:
-    md5: 32114daa089024a6e0e8482de7b93d3c
-    sha256: e653d1982031f0286ca1dab5f8b05957244e549714387712fe1f3519c7ccc66a
+    md5: 6d803d428433b3495ab4f36d542be1ae
+    sha256: 2e00e7dbd5a46b25dc47167f6f45d05736dd502193374f98f9bae39ee08e9250
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.12
+  version: 1.4.13
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9036,10 +9036,10 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.12-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.13-pyhd8ed1ab_0.conda
   hash:
-    md5: 32114daa089024a6e0e8482de7b93d3c
-    sha256: e653d1982031f0286ca1dab5f8b05957244e549714387712fe1f3519c7ccc66a
+    md5: 6d803d428433b3495ab4f36d542be1ae
+    sha256: 2e00e7dbd5a46b25dc47167f6f45d05736dd502193374f98f9bae39ee08e9250
   category: main
   optional: false
 - name: readline
