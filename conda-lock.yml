@@ -1729,10 +1729,10 @@ package:
     python: '>=3.9'
     requests: ''
     zstandard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_1.conda
   hash:
-    md5: 63b4145496b4e71345ee569c4fa6c450
-    sha256: 64e9684a38d97cc8eb7779c14d857452efe99b47e0fcc61b7b6924fa771489a2
+    md5: cbb288cc5b97ac2e4a2a6b51c13d153e
+    sha256: e8b52f911efce98ab0397786b82bda58a2e1bd1653e9786e1ffadf3bc433ea8b
   category: main
   optional: false
 - name: conda-oci-mirror
@@ -1747,10 +1747,10 @@ package:
     python: '>=3.9'
     requests: ''
     zstandard: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-oci-mirror-0.2.3-pyhd8ed1ab_1.conda
   hash:
-    md5: 63b4145496b4e71345ee569c4fa6c450
-    sha256: 64e9684a38d97cc8eb7779c14d857452efe99b47e0fcc61b7b6924fa771489a2
+    md5: cbb288cc5b97ac2e4a2a6b51c13d153e
+    sha256: e8b52f911efce98ab0397786b82bda58a2e1bd1653e9786e1ffadf3bc433ea8b
   category: main
   optional: false
 - name: conda-package-handling
@@ -2857,27 +2857,27 @@ package:
   category: main
   optional: false
 - name: filelock
-  version: 3.28.0
+  version: 3.29.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.28.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.29.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 60a871a0e893d6ec7083115beba05001
-    sha256: d1151d785c346bc24bc19b4ee10f5cfd0b1963530e9ab6f7e4f3789640d1154e
+    md5: 8fa8358d022a3a9bd101384a808044c6
+    sha256: 6b471a18372bbd52bdf32fc965f71de3bc1b5219418b8e6b3875a67a7b08c483
   category: main
   optional: false
 - name: filelock
-  version: 3.28.0
+  version: 3.29.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.28.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/filelock-3.29.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 60a871a0e893d6ec7083115beba05001
-    sha256: d1151d785c346bc24bc19b4ee10f5cfd0b1963530e9ab6f7e4f3789640d1154e
+    md5: 8fa8358d022a3a9bd101384a808044c6
+    sha256: 6b471a18372bbd52bdf32fc965f71de3bc1b5219418b8e6b3875a67a7b08c483
   category: main
   optional: false
 - name: flask
@@ -7902,7 +7902,7 @@ package:
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.13.1
+  version: 2.14.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7910,14 +7910,14 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.1-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.0-pyhd8ed1ab_0.conda
   hash:
-    md5: cc0da73801948100ae97383b8da12993
-    sha256: 343988d65c08477a87268d4fbeba59d0295514143965d2755ac4519b73155479
+    md5: 0552800b10a426db8f5068d6e5adcf54
+    sha256: ee52c2b651493bbebfe7c38548113c5c4ce0ada0c65ea6f30ac21d321fee5370
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.13.1
+  version: 2.14.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -7925,10 +7925,10 @@ package:
     python: '>=3.10'
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.13.1-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.0-pyhd8ed1ab_0.conda
   hash:
-    md5: cc0da73801948100ae97383b8da12993
-    sha256: 343988d65c08477a87268d4fbeba59d0295514143965d2755ac4519b73155479
+    md5: 0552800b10a426db8f5068d6e5adcf54
+    sha256: ee52c2b651493bbebfe7c38548113c5c4ce0ada0c65ea6f30ac21d321fee5370
   category: main
   optional: false
 - name: pygit2
