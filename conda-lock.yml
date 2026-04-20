@@ -895,27 +895,27 @@ package:
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.5
+  version: 7.0.6
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.5-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.6-pyhd8ed1ab_0.conda
   hash:
-    md5: a66a1542c3ed584ca4fdb23955d81e91
-    sha256: edfecb626da69607f926f51ad0d24942bfe9f7a29391d55d4ac62403e878605b
+    md5: 14e77b3ebe7b8e37f6254a59ee245184
+    sha256: f31f02b8bfa312bca79abbc24a0dd1930291cbdaca321b6d1c230687b175a9ff
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.5
+  version: 7.0.6
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.5-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.6-pyhd8ed1ab_0.conda
   hash:
-    md5: a66a1542c3ed584ca4fdb23955d81e91
-    sha256: edfecb626da69607f926f51ad0d24942bfe9f7a29391d55d4ac62403e878605b
+    md5: 14e77b3ebe7b8e37f6254a59ee245184
+    sha256: f31f02b8bfa312bca79abbc24a0dd1930291cbdaca321b6d1c230687b175a9ff
   category: main
   optional: false
 - name: cairo
