@@ -6733,7 +6733,7 @@ package:
   category: main
   optional: false
 - name: mypy
-  version: 1.20.1
+  version: 1.20.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -6746,10 +6746,10 @@ package:
     python-librt: '>=0.8.0'
     python_abi: 3.12.*
     typing_extensions: '>=4.6.0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.1-py312h4c3975b_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.2-py312h4c3975b_0.conda
   hash:
-    md5: 672833a9f4e00c5e4ddbfa53b2aad6ee
-    sha256: b9dc656d1f78e75ae07d57aefae6613ac94d55a4b33aabb35daa9451e624ef2f
+    md5: e3174d3f01d539ffd867a85639a8d9b5
+    sha256: 2c03499b0f267a29321ce198a86285449eca2bb685e883703ef564a2ce641802
   category: main
   optional: false
 - name: mypy
