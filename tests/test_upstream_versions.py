@@ -2013,6 +2013,39 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         assert gh.version_prefix == version_prefix
 
 
+@mock.patch("conda_forge_tick.update_sources.feedparser.parse")
+def test_github_release_tag_with_slash_respects_allowed_tag_globs(
+    feedparser_parse_mock: MagicMock,
+):
+    feedparser_parse_mock.return_value = {
+        "bozo": 0,
+        "entries": [
+            {
+                "link": "https://github.com/sass/dart-sass/releases/tag/sass_api%2F17.5.0",
+            },
+            {
+                "link": "https://github.com/sass/dart-sass/releases/tag/sass_api%2F17.4.0",
+            },
+        ],
+    }
+
+    node_attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "allowed_tag_globs": "sass_api/*",
+                },
+            },
+        },
+    }
+
+    gh = Github()
+    assert (
+        gh.get_version("https://github.com/sass/dart-sass/releases.atom", node_attrs)
+        == "17.5.0"
+    )
+
+
 @pytest.mark.parametrize(
     "url, feedstock_version",
     [
