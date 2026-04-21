@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.91
+  version: 1.42.92
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.91-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.92-pyhd8ed1ab_0.conda
   hash:
-    md5: f349c45de0cb6be0bd59731c42111d27
-    sha256: dda506c475ff8b0b6987a3d3711a229ce1b4874402dc4330092f6f2f108ccd63
+    md5: 4b7fae7eab4f3bc7a64f5eeb38330b76
+    sha256: c38a07a8fa74106680135e63ae593a861402578451b6bb1e93bb9996c9a2287e
   category: main
   optional: false
 - name: botocore
-  version: 1.42.91
+  version: 1.42.92
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.91-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.92-pyhd8ed1ab_0.conda
   hash:
-    md5: f349c45de0cb6be0bd59731c42111d27
-    sha256: dda506c475ff8b0b6987a3d3711a229ce1b4874402dc4330092f6f2f108ccd63
+    md5: 4b7fae7eab4f3bc7a64f5eeb38330b76
+    sha256: c38a07a8fa74106680135e63ae593a861402578451b6bb1e93bb9996c9a2287e
   category: main
   optional: false
 - name: brotli-python
@@ -8086,7 +8086,7 @@ package:
   category: main
   optional: false
 - name: pymongo
-  version: 4.16.0
+  version: 4.17.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -8096,14 +8096,14 @@ package:
     libstdcxx: '>=14'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.16.0-py312h1289d80_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.17.0-py312h1289d80_0.conda
   hash:
-    md5: 1b10774052fd891e846adf20bc02f839
-    sha256: c4e8f34bff400c94181e81d04ef54951cc862e97b6d10f7e7f4c3ea65da9a632
+    md5: 955dab0e5b7f1299628c6ca58c1a8d05
+    sha256: 9d5c726b2f6cf3aa0a384a4807789d1153e7e4696f01d3aaa9fd1bd978912342
   category: main
   optional: false
 - name: pymongo
-  version: 4.16.0
+  version: 4.17.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -8112,10 +8112,10 @@ package:
     libcxx: '>=19'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.16.0-py312h6d95f44_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.17.0-py312h6d95f44_0.conda
   hash:
-    md5: cffc3de03821ad7843d76309b308985c
-    sha256: 7086ac8bc22353c5158de087f09d515e7fab4e072076641a391e16dafcf447aa
+    md5: e63869f54134f160d5c00fab37d50a83
+    sha256: 475529a30e9e46c2d1a02dc343f8cece13722553e4c470fb2c9e3a4b6d4b6d5c
   category: main
   optional: false
 - name: pynacl
