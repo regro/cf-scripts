@@ -1850,7 +1850,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.60.0
+  version: 3.61.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -1872,8 +1872,8 @@ package:
     pycryptodome: ''
     pygit2: ''
     pygithub: '>=2,<3'
-    python: '>=3.10'
-    rattler-build-conda-compat: '>=1.4.5,<2.0.0a0'
+    python: '>=3.11'
+    rattler-build-conda-compat: '>=1.4.12,<2.0.0a0'
     requests: ''
     ruamel.yaml: '>=0.16'
     scrypt: ''
@@ -1881,14 +1881,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.60.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.0-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 8472139add8602b1a8959cfffdb3faba
-    sha256: 74506643dfc5d47e4eb222e45e09a80591da46bddcba9f4c9b7e31d81c5ef8fb
+    md5: 3251058ba7a00ee98413525d3a12eb73
+    sha256: eb717ca2a0a4db8f4d95b02201c9b10da88586e3ae2ee45023c5dbcb2c9dab4f
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.60.0
+  version: 3.61.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1910,8 +1910,8 @@ package:
     pycryptodome: ''
     pygit2: ''
     pygithub: '>=2,<3'
-    python: '>=3.10'
-    rattler-build-conda-compat: '>=1.4.5,<2.0.0a0'
+    python: '>=3.11'
+    rattler-build-conda-compat: '>=1.4.12,<2.0.0a0'
     requests: ''
     ruamel.yaml: '>=0.16'
     scrypt: ''
@@ -1919,10 +1919,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.60.0-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.0-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 8472139add8602b1a8959cfffdb3faba
-    sha256: 74506643dfc5d47e4eb222e45e09a80591da46bddcba9f4c9b7e31d81c5ef8fb
+    md5: 3251058ba7a00ee98413525d3a12eb73
+    sha256: eb717ca2a0a4db8f4d95b02201c9b10da88586e3ae2ee45023c5dbcb2c9dab4f
   category: main
   optional: false
 - name: conda-souschef
