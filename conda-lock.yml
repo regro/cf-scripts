@@ -1587,7 +1587,7 @@ package:
   category: main
   optional: false
 - name: conda-libmamba-solver
-  version: 26.3.0
+  version: 26.4.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -1597,14 +1597,14 @@ package:
     python: '>=3.10'
     requests: '>=2.28.0,<3'
     zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.3.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 8b308dc1a6639e3ec2d16d6efebf9e55
-    sha256: 67f294d63a21d01c1e8538a5aedd2e3b00f5607fd706275d935172f2ba2fce8d
+    md5: f7511a694e9a9768dba7064e76896d1c
+    sha256: ade09a9dd6da716215216c245ec4185e15d86a23fe5028a08a3cf373c7140cef
   category: main
   optional: false
 - name: conda-libmamba-solver
-  version: 26.3.0
+  version: 26.4.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1614,10 +1614,10 @@ package:
     python: '>=3.10'
     requests: '>=2.28.0,<3'
     zstandard: '>=0.15'
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.3.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-26.4.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 8b308dc1a6639e3ec2d16d6efebf9e55
-    sha256: 67f294d63a21d01c1e8538a5aedd2e3b00f5607fd706275d935172f2ba2fce8d
+    md5: f7511a694e9a9768dba7064e76896d1c
+    sha256: ade09a9dd6da716215216c245ec4185e15d86a23fe5028a08a3cf373c7140cef
   category: main
   optional: false
 - name: conda-lock
