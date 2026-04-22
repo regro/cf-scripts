@@ -507,7 +507,7 @@ class MigrationYaml(GraphMigrator):
             "\n"
             "<hr>"
         )
-            
+
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
                 "This PR has been triggered in an effort to close out the "
