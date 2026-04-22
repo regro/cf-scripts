@@ -4279,29 +4279,29 @@ package:
   category: main
   optional: false
 - name: jaraco.context
-  version: 6.1.1
+  version: 6.1.2
   manager: conda
   platform: linux-64
   dependencies:
     backports.tarfile: ''
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.2-pyhcf101f3_0.conda
   hash:
-    md5: 5ed60de12f1673398943262371667f79
-    sha256: 49c3e2e9aa4930734badfcbb31543406ed1b5531cb833f595cf57baf628dea7d
+    md5: b9d2b1ffa307961f6bb7d83c8ba8a8be
+    sha256: 108b3919db8ef81b5585b38a3fedbe9eeccdf8fa576c250a13559a1188f597cc
   category: main
   optional: false
 - name: jaraco.context
-  version: 6.1.1
+  version: 6.1.2
   manager: conda
   platform: osx-arm64
   dependencies:
     backports.tarfile: ''
     python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/jaraco.context-6.1.2-pyhcf101f3_0.conda
   hash:
-    md5: 5ed60de12f1673398943262371667f79
-    sha256: 49c3e2e9aa4930734badfcbb31543406ed1b5531cb833f595cf57baf628dea7d
+    md5: b9d2b1ffa307961f6bb7d83c8ba8a8be
+    sha256: 108b3919db8ef81b5585b38a3fedbe9eeccdf8fa576c250a13559a1188f597cc
   category: main
   optional: false
 - name: jaraco.functools
@@ -7439,7 +7439,7 @@ package:
   category: main
   optional: false
 - name: pre-commit
-  version: 4.5.1
+  version: 4.6.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7449,14 +7449,14 @@ package:
     python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.5.1-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.6.0-pyha770c72_0.conda
   hash:
-    md5: 7f3ac694319c7eaf81a0325d6405e974
-    sha256: 5b81b7516d4baf43d0c185896b245fa7384b25dc5615e7baa504b7fa4e07b706
+    md5: 7859736b4f8ebe6c8481bf48d91c9a1e
+    sha256: 716960bf0a9eb334458a26b3bdcb17b8d0786062138a4f48c7f335c8418c5d0b
   category: main
   optional: false
 - name: pre-commit
-  version: 4.5.1
+  version: 4.6.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -7466,10 +7466,10 @@ package:
     python: '>=3.10'
     pyyaml: '>=5.1'
     virtualenv: '>=20.10.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.5.1-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.6.0-pyha770c72_0.conda
   hash:
-    md5: 7f3ac694319c7eaf81a0325d6405e974
-    sha256: 5b81b7516d4baf43d0c185896b245fa7384b25dc5615e7baa504b7fa4e07b706
+    md5: 7859736b4f8ebe6c8481bf48d91c9a1e
+    sha256: 716960bf0a9eb334458a26b3bdcb17b8d0786062138a4f48c7f335c8418c5d0b
   category: main
   optional: false
 - name: progressbar2
