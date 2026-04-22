@@ -475,42 +475,55 @@ class MigrationYaml(GraphMigrator):
         body = super().pr_body(feedstock_ctx)
         name = self.report_name
         url = f"https://conda-forge.org/status/migration/?name={name}"
+        notes_and_instructions = (
+            "**IMPORTANT: If you close this PR, the bot will presume that "
+            "the feedstock has been rebuilt with this update and WILL NOT "
+            "MAKE ANOTHER PR. Please follow the instructions below for "
+            "handling this PR.**\n\n"
+            "Notes and instructions for handling this PR:\n"
+            "  - If your package IS COMPATIBLE with this update and...\n"
+            "      - the tests have passed, please merge this PR! \n"
+            "      - the tests have not passed, please make changes \n"
+            "        and/or rerun the tests so that they pass. Feel \n"
+            "        free to push to the bot's branch to \n"
+            "        update this PR if needed. Then merge the PR once \n"
+            "        the tests pass!\n"
+            "      - you find it easier to do the update in another PR, \n"
+            "        please do not close this PR until the other PR is merged.\n"
+            "  - If your package IS NOT YET COMPATIBLE with this update, \n"
+            "    please leave this PR open. The bot will detect conflicts \n"
+            "    and remake the PR as new versions are pushed. Once the package \n"
+            "    is at a compatible version, please merge the update PR for that \n"
+            "    version.\n"
+            "  - If your package WILL NEVER BE COMPATIBLE with this update, \n"
+            "    please convert this PR to draft.\n"
+            "  - If this PR HAS CONFLICTS and...\n"
+            "      - you do NOT want to resolve them yourself, add a \n"
+            "       `bot-rerun` label and the bot will do it for you. \n"
+            "        See the instructions below if you \n"
+            "        do not have permissions to add a label.\n"
+            "      - you do want to resolve them yourself, by all means \n"
+            "        go ahead (either in the UI or via the git CLI)!\n"
+            "\n"
+            "<hr>"
+        )
+            
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
                 "This PR has been triggered in an effort to close out the "
-                "migration for [**{name}**]({url}).\n\n"
-                "Notes and instructions for merging this PR:\n"
-                "1. Please merge the PR only after the tests have passed. \n"
-                "2. Feel free to push to the bot's branch to update this PR "
-                "if needed. \n\n"
-                "**Please note that if you close this PR we presume that "
-                "the feedstock has been rebuilt, so if you are going to "
-                "perform the rebuild yourself don't close this PR until "
-                "the your rebuild has been merged.**\n\n"
-                "<hr>"
-                "".format(
+                "migration for [**{name}**]({url}).\n\n".format(
                     name=name,
                     url=url,
                 )
-            )
+            ) + notes_and_instructions
         else:
             additional_body = (
                 "This PR has been triggered in an effort to update "
-                "[**{name}**]({url}).\n\n"
-                "Notes and instructions for merging this PR:\n"
-                "1. Please merge the PR only after the tests have passed. \n"
-                "2. Feel free to push to the bot's branch to update this PR "
-                "if needed. \n\n"
-                "**Please note that if you close this PR we presume that "
-                "the feedstock has been rebuilt, so if you are going to "
-                "perform the rebuild yourself don't close this PR until "
-                "the your rebuild has been merged.**\n\n"
-                "<hr>"
-                "".format(
+                "[**{name}**]({url}).\n\n".format(
                     name=name,
                     url=url,
                 )
-            )
+            ) + notes_and_instructions
 
         commit_body = "\n> ".join(
             self.commit_message(feedstock_ctx).splitlines()[1:],
