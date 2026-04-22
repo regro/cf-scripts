@@ -3358,31 +3358,31 @@ package:
   category: main
   optional: false
 - name: gitpython
-  version: 3.1.46
+  version: 3.1.47
   manager: conda
   platform: linux-64
   dependencies:
     gitdb: '>=4.0.1,<5'
     python: '>=3.10'
     typing_extensions: '>=3.10.0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.46-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.47-pyhd8ed1ab_0.conda
   hash:
-    md5: 74c0cfdd5359cd2a1f178a4c3d0bd3a5
-    sha256: 8043bcb4f59d17467c6c2f8259e7ded18775de5d62a8375a27718554d9440641
+    md5: 7ae7e7bac8a1543c8ceb25dc61605cbd
+    sha256: b9b2c350d70033a5cf623831f720ea51f1fa047e11b0fe7472c9871677eeafec
   category: main
   optional: false
 - name: gitpython
-  version: 3.1.46
+  version: 3.1.47
   manager: conda
   platform: osx-arm64
   dependencies:
     gitdb: '>=4.0.1,<5'
     python: '>=3.10'
     typing_extensions: '>=3.10.0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.46-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.47-pyhd8ed1ab_0.conda
   hash:
-    md5: 74c0cfdd5359cd2a1f178a4c3d0bd3a5
-    sha256: 8043bcb4f59d17467c6c2f8259e7ded18775de5d62a8375a27718554d9440641
+    md5: 7ae7e7bac8a1543c8ceb25dc61605cbd
+    sha256: b9b2c350d70033a5cf623831f720ea51f1fa047e11b0fe7472c9871677eeafec
   category: main
   optional: false
 - name: glib-tools
@@ -4846,15 +4846,15 @@ package:
   category: main
   optional: false
 - name: libcxx
-  version: 22.1.3
+  version: 22.1.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-22.1.3-h55c6f16_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-22.1.4-h55c6f16_0.conda
   hash:
-    md5: acbb3f547c4aae16b19e417db0c6e5ed
-    sha256: 34cc56c627b01928e49731bcfe92338e440ab6b5952feee8f1dd16570b8b8339
+    md5: 448a1af83a9205655ee1cf48d3875ca3
+    sha256: 25a0d02148a39b665d9c2957676faf62a4d2a58494d53b201151199a197db4b0
   category: main
   optional: false
 - name: libdeflate
@@ -6201,15 +6201,15 @@ package:
   category: main
   optional: false
 - name: llvm-openmp
-  version: 22.1.3
+  version: 22.1.4
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-22.1.3-hc7d1edf_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-22.1.4-hc7d1edf_0.conda
   hash:
-    md5: 086b00b77f5f0f7ef5c2a99855650df4
-    sha256: 71dcf9a9df103f57a0d5b0abc2594a15c2dd3afe52f07ac2d1c471552a61fb8d
+    md5: 46d04a647df7a4525e487d88068d19ef
+    sha256: a269273ccf48be6ac582bb958713ba8373262b9157a0fc76b7e5475e8a1d2a78
   category: main
   optional: false
 - name: llvm-tools
@@ -6753,7 +6753,7 @@ package:
   category: main
   optional: false
 - name: mypy
-  version: 1.20.1
+  version: 1.20.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -6765,10 +6765,10 @@ package:
     python-librt: '>=0.8.0'
     python_abi: 3.12.*
     typing_extensions: '>=4.6.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.1-py312hefc2c51_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.2-py312hefc2c51_0.conda
   hash:
-    md5: a84404f9fb0eeb402eec5ef06bc2522c
-    sha256: 66a5cae2d9107025d42f8fe013450c8fdd110afe1c8723420d1ca296445eb337
+    md5: 7b0f9713b276fe257a55a4a0087bafa7
+    sha256: 1e51597a605b2160bce7348cfa98ba50bb9d1f8a9c84c900ec439bde5c7da255
   category: main
   optional: false
 - name: mypy_extensions
