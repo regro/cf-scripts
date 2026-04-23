@@ -7312,7 +7312,7 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.67.0
+  version: 0.67.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -7320,23 +7320,23 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     openssl: '>=3.5.6,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.67.0-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.67.2-ha759004_0.conda
   hash:
-    md5: da4cbb8ef4eaa78663d3ec08d1fb0c63
-    sha256: 043afc29f2d49e96037be28eb59c2c76e77187b3bdf79fabe18b923cf1355736
+    md5: b394d2212f3dbd29c0d2fa89eddf01f3
+    sha256: 60c7e41db41a8757fa8c5d1a67e3d28d052616f6c9d0bb809fb24948337a8859
   category: main
   optional: false
 - name: pixi
-  version: 0.67.0
+  version: 0.67.2
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.67.0-h2307240_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.67.2-h2307240_0.conda
   hash:
-    md5: 26ac298888cab2265544c86741f215fa
-    sha256: 89f8cfc892f80054ba75a2ff2f5c314598d956ebad3b5dafd26fb9f4c829b6c1
+    md5: 22718e80bceec1e482d6ff11af36f70c
+    sha256: 69e69727ea0c93f274001043f49ce3eb04c588c45ee8772aca42d309f84fa16c
   category: main
   optional: false
 - name: pixman
@@ -9036,7 +9036,7 @@ package:
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.13
+  version: 1.4.14
   manager: conda
   platform: linux-64
   dependencies:
@@ -9048,14 +9048,14 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.13-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.14-pyhd8ed1ab_0.conda
   hash:
-    md5: 6d803d428433b3495ab4f36d542be1ae
-    sha256: 2e00e7dbd5a46b25dc47167f6f45d05736dd502193374f98f9bae39ee08e9250
+    md5: 7bc92efc4ae77caab0d324c41f99b521
+    sha256: 5578174b46442513090d70ccbbb4f2ec9b0e76324ddbeea6bb0c0ec39dab9862
   category: main
   optional: false
 - name: rattler-build-conda-compat
-  version: 1.4.13
+  version: 1.4.14
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9067,10 +9067,10 @@ package:
     ruamel.yaml: ''
     tomli: ''
     typing-extensions: '>=4.12.2,<5'
-  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.13-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.4.14-pyhd8ed1ab_0.conda
   hash:
-    md5: 6d803d428433b3495ab4f36d542be1ae
-    sha256: 2e00e7dbd5a46b25dc47167f6f45d05736dd502193374f98f9bae39ee08e9250
+    md5: 7bc92efc4ae77caab0d324c41f99b521
+    sha256: 5578174b46442513090d70ccbbb4f2ec9b0e76324ddbeea6bb0c0ec39dab9862
   category: main
   optional: false
 - name: readline
