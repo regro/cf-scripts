@@ -1083,27 +1083,27 @@ package:
   category: main
   optional: false
 - name: chardet
-  version: 5.2.0
+  version: 7.4.3
   manager: conda
   platform: linux-64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/chardet-7.4.3-pyhcf101f3_0.conda
   hash:
-    md5: 56bfd153e523d9b9d05e4cf3c1cfe01c
-    sha256: cfca3959d2bec9fcfec98350ecdd88b71dac6220d1002c257d65b40f6fbba87c
+    md5: 7dd72a4c857cd652a1e23c13099a15d2
+    sha256: d307dcdba7498fadeeeed616ad0fc9e1cfd6061f5d83f64fbd20be4968f1bfb9
   category: main
   optional: false
 - name: chardet
-  version: 5.2.0
+  version: 7.4.3
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=3.9'
-  url: https://conda.anaconda.org/conda-forge/noarch/chardet-5.2.0-pyhd8ed1ab_3.conda
+    python: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/chardet-7.4.3-pyhcf101f3_0.conda
   hash:
-    md5: 56bfd153e523d9b9d05e4cf3c1cfe01c
-    sha256: cfca3959d2bec9fcfec98350ecdd88b71dac6220d1002c257d65b40f6fbba87c
+    md5: 7dd72a4c857cd652a1e23c13099a15d2
+    sha256: d307dcdba7498fadeeeed616ad0fc9e1cfd6061f5d83f64fbd20be4968f1bfb9
   category: main
   optional: false
 - name: charset-normalizer
@@ -1850,7 +1850,7 @@ package:
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.61.1
+  version: 3.61.2
   manager: conda
   platform: linux-64
   dependencies:
@@ -1881,14 +1881,14 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 07488b14ec6fd16ea88e7b3b39453d60
-    sha256: 4443390deee4b878e4e1d00ef894c5888969b9b9d11bd21729d30cbc6ff26954
+    md5: 81e2ea6a713c9ab215bf6ab6ba769413
+    sha256: a456caa7f2a0a78df26b02e5a16ee4a016ad8352eeb02a1cd91ab744af8f6e2b
   category: main
   optional: false
 - name: conda-smithy
-  version: 3.61.1
+  version: 3.61.2
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1919,10 +1919,10 @@ package:
     tomli: '>=1.0.0'
     toolz: ''
     vsts-python-api: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.1-unix_pyh9ac5cc3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.61.2-unix_pyh9ac5cc3_0.conda
   hash:
-    md5: 07488b14ec6fd16ea88e7b3b39453d60
-    sha256: 4443390deee4b878e4e1d00ef894c5888969b9b9d11bd21729d30cbc6ff26954
+    md5: 81e2ea6a713c9ab215bf6ab6ba769413
+    sha256: a456caa7f2a0a78df26b02e5a16ee4a016ad8352eeb02a1cd91ab744af8f6e2b
   category: main
   optional: false
 - name: conda-souschef
@@ -9223,10 +9223,10 @@ package:
     idna: '>=2.5,<4'
     python: ''
     urllib3: '>=1.26,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.33.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.33.1-pyhcf101f3_1.conda
   hash:
-    md5: 10afbb4dbf06ff959ad25a92ccee6e59
-    sha256: c0249bc4bf4c0e8e06d0e7b4d117a5d593cc4ab2144d5006d6d47c83cb0af18e
+    md5: 9659f587a8ceacc21864260acd02fc67
+    sha256: 7f2c24dd3bd3c104a1d2c9a10ead5ed6758b0976b74f972cfe9c19884ccc4241
   category: main
   optional: false
 - name: requests
@@ -9239,10 +9239,10 @@ package:
     idna: '>=2.5,<4'
     python: ''
     urllib3: '>=1.26,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.33.1-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.33.1-pyhcf101f3_1.conda
   hash:
-    md5: 10afbb4dbf06ff959ad25a92ccee6e59
-    sha256: c0249bc4bf4c0e8e06d0e7b4d117a5d593cc4ab2144d5006d6d47c83cb0af18e
+    md5: 9659f587a8ceacc21864260acd02fc67
+    sha256: 7f2c24dd3bd3c104a1d2c9a10ead5ed6758b0976b74f972cfe9c19884ccc4241
   category: main
   optional: false
 - name: requests-mock
