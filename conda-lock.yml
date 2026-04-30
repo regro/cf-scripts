@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.29.21.54.40
+  version: 2026.04.30.15.52.02
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.29.21.54.40-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.30.15.52.02-hd8ed1ab_0.conda
   hash:
-    md5: bf644243fc8ad1bb8d75e85710b66564
-    sha256: 8b0569e5db3df52cfd026974ef8d92ff883fcb3d391e29eca35af46335e93101
+    md5: 357db14da08b8d397c76f6fe43b1b3ac
+    sha256: a72067b448d7793a75dc4f8b7a89f00c1585b3f47ac77ee45a4a191df338c1d7
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.29.21.54.40
+  version: 2026.04.30.15.52.02
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.29.21.54.40-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.30.15.52.02-hd8ed1ab_0.conda
   hash:
-    md5: bf644243fc8ad1bb8d75e85710b66564
-    sha256: 8b0569e5db3df52cfd026974ef8d92ff883fcb3d391e29eca35af46335e93101
+    md5: 357db14da08b8d397c76f6fe43b1b3ac
+    sha256: a72067b448d7793a75dc4f8b7a89f00c1585b3f47ac77ee45a4a191df338c1d7
   category: main
   optional: false
 - name: conda-index
@@ -3200,27 +3200,27 @@ package:
   category: main
   optional: false
 - name: fsspec
-  version: 2026.3.0
+  version: 2026.4.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2026.3.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2026.4.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c18d2ba7577cdc618a20d45f1e31d14b
-    sha256: b4a7aec32167502dd4a2d1fb1208c63760828d7111339aa5b305b2d776afa70f
+    md5: 2c11aa96ea85ced419de710c1c3a78ff
+    sha256: 079701b4ff3b317a1a158cabd48cf2b856b8b8d3ef44f152809d9acf20cc8e10
   category: main
   optional: false
 - name: fsspec
-  version: 2026.3.0
+  version: 2026.4.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2026.3.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fsspec-2026.4.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c18d2ba7577cdc618a20d45f1e31d14b
-    sha256: b4a7aec32167502dd4a2d1fb1208c63760828d7111339aa5b305b2d776afa70f
+    md5: 2c11aa96ea85ced419de710c1c3a78ff
+    sha256: 079701b4ff3b317a1a158cabd48cf2b856b8b8d3ef44f152809d9acf20cc8e10
   category: main
   optional: false
 - name: gdk-pixbuf
