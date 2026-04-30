@@ -13,6 +13,7 @@ from conda_forge_tick.migrators import DependencyUpdateMigrator, Version
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
     DepComparison,
+    _apply_env_dep_comparison,
     _merge_dep_comparisons_sec,
     _modify_package_name_from_github,
     _update_sec_deps,
@@ -161,6 +162,27 @@ def test_update_run_deps():
     print("\n" + recipe.dumps())
     assert updated_deps
     assert "python >={{ python_min }}" in recipe.dumps()
+
+
+def test_apply_env_dep_comparison_matches_package_token_for_update():
+    deps = ["python", "cuda-version >=12,<13", "numpy"]
+    comparison = {
+        "cf_minus_df": {"cuda-version"},
+        "df_minus_cf": {"cuda-version >=12"},
+    }
+
+    assert _apply_env_dep_comparison(deps, comparison) == [
+        "python",
+        "cuda-version >=12",
+        "numpy",
+    ]
+
+
+def test_apply_env_dep_comparison_skips_missing_package_remove():
+    deps = ["python", "numpy"]
+    comparison = {"cf_minus_df": {"cuda-version"}, "df_minus_cf": set()}
+
+    assert _apply_env_dep_comparison(deps, comparison) == deps
 
 
 def test_get_depfinder_comparison():

@@ -763,6 +763,26 @@ def is_expression_requirement(dep: str) -> bool:
     return dep.startswith(r"${{")
 
 
+def _find_env_dep_index(deps: list[str], dep: str) -> int | None:
+    """Find a dependency by exact text, falling back to package token.
+
+    Dependency comparisons are keyed by package token, but the comparison entry
+    can be less specific than the recipe line (for example ``cuda-version`` vs
+    ``cuda-version >=12,<13``). Prefer exact matches so formatting is preserved
+    where possible, then fall back to the same package-token match used when the
+    patches are created.
+    """
+    if dep in deps:
+        return deps.index(dep)
+
+    package = dep.split(" ", 1)[0]
+    for i, recipe_dep in enumerate(deps):
+        if recipe_dep.split(" ", 1)[0] == package:
+            return i
+
+    return None
+
+
 def _apply_env_dep_comparison(
     deps: list[str], env_dep_comparison: EnvDepComparison
 ) -> list[str]:
@@ -781,10 +801,14 @@ def _apply_env_dep_comparison(
             new_deps.append(patch.after)  # type: ignore[arg-type]
         # Remove old package.
         elif patch.after is None:
-            new_deps.remove(patch.before)
+            loc = _find_env_dep_index(new_deps, patch.before)
+            if loc is not None:
+                new_deps.pop(loc)
         # Update existing package.
         else:
-            new_deps[new_deps.index(patch.before)] = patch.after
+            loc = _find_env_dep_index(new_deps, patch.before)
+            if loc is not None:
+                new_deps[loc] = patch.after
     return new_deps
 
 
