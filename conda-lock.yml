@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.42.97
+  version: 1.43.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.97-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 68a071201246ba122a2fa1c2ad829eff
-    sha256: d4064e3eeb0280da6ffacaf45d90cddca23b58fac138bdc7c6ea430b5feb276e
+    md5: f47ed05030a1bed50f5fc9cea874ad1a
+    sha256: 27a202f3937b14812f5c8ba8304a5e2d0b2e1056e468cd7086721c2376bfea43
   category: main
   optional: false
 - name: botocore
-  version: 1.42.97
+  version: 1.43.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.97-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 68a071201246ba122a2fa1c2ad829eff
-    sha256: d4064e3eeb0280da6ffacaf45d90cddca23b58fac138bdc7c6ea430b5feb276e
+    md5: f47ed05030a1bed50f5fc9cea874ad1a
+    sha256: 27a202f3937b14812f5c8ba8304a5e2d0b2e1056e468cd7086721c2376bfea43
   category: main
   optional: false
 - name: brotli-python
@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.30.15.52.02
+  version: 2026.05.01.12.45.19
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.30.15.52.02-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.01.12.45.19-hd8ed1ab_0.conda
   hash:
-    md5: 357db14da08b8d397c76f6fe43b1b3ac
-    sha256: a72067b448d7793a75dc4f8b7a89f00c1585b3f47ac77ee45a4a191df338c1d7
+    md5: f5964127c6d2a21ba876b92c80cf5053
+    sha256: de956b131e1ccc5d8248e28bda31887bae16633e7ea86ed62ff5575a28d67b58
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.04.30.15.52.02
+  version: 2026.05.01.12.45.19
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.04.30.15.52.02-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.01.12.45.19-hd8ed1ab_0.conda
   hash:
-    md5: 357db14da08b8d397c76f6fe43b1b3ac
-    sha256: a72067b448d7793a75dc4f8b7a89f00c1585b3f47ac77ee45a4a191df338c1d7
+    md5: f5964127c6d2a21ba876b92c80cf5053
+    sha256: de956b131e1ccc5d8248e28bda31887bae16633e7ea86ed62ff5575a28d67b58
   category: main
   optional: false
 - name: conda-index
@@ -10369,7 +10369,7 @@ package:
   category: main
   optional: false
 - name: typer
-  version: 0.25.0
+  version: 0.25.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -10378,14 +10378,14 @@ package:
     python: ''
     rich: '>=13.8.0'
     shellingham: '>=1.3.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/typer-0.25.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/typer-0.25.1-pyhcf101f3_0.conda
   hash:
-    md5: 696c3e5b10d43030058b6e8b65a6a4a8
-    sha256: 0b887c1a6c6b840563fbaf2c78331e3b1019be68e1939abb517b19b051576d62
+    md5: ef114c2eb2ff19f6bf616c81f4710841
+    sha256: 18fc3a27bc995318d09142fe16d01ea454e76f377bf8f68db03b8b18f11085ed
   category: main
   optional: false
 - name: typer
-  version: 0.25.0
+  version: 0.25.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -10394,10 +10394,10 @@ package:
     python: ''
     rich: '>=13.8.0'
     shellingham: '>=1.3.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/typer-0.25.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/typer-0.25.1-pyhcf101f3_0.conda
   hash:
-    md5: 696c3e5b10d43030058b6e8b65a6a4a8
-    sha256: 0b887c1a6c6b840563fbaf2c78331e3b1019be68e1939abb517b19b051576d62
+    md5: ef114c2eb2ff19f6bf616c81f4710841
+    sha256: 18fc3a27bc995318d09142fe16d01ea454e76f377bf8f68db03b8b18f11085ed
   category: main
   optional: false
 - name: typing-extensions
