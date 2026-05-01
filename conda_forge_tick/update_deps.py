@@ -763,6 +763,22 @@ def is_expression_requirement(dep: str) -> bool:
     return dep.startswith(r"${{")
 
 
+def _dep_package_name(dep: str) -> str:
+    """Return the package-token part of a conda dependency string."""
+    return dep.split()[0]
+
+
+def _find_dep_index(deps: list[str], dep: str) -> int | None:
+    """Find a dependency by exact text first, then by package token."""
+    if dep in deps:
+        return deps.index(dep)
+    package = _dep_package_name(dep)
+    for i, existing_dep in enumerate(deps):
+        if _dep_package_name(existing_dep) == package:
+            return i
+    return None
+
+
 def _apply_env_dep_comparison(
     deps: list[str], env_dep_comparison: EnvDepComparison
 ) -> list[str]:
@@ -779,12 +795,18 @@ def _apply_env_dep_comparison(
         # Add new package.
         if patch.before is None:
             new_deps.append(patch.after)  # type: ignore[arg-type]
+            continue
+
+        dep_index = _find_dep_index(new_deps, patch.before)
+        if dep_index is None:
+            continue
+
         # Remove old package.
-        elif patch.after is None:
-            new_deps.remove(patch.before)
+        if patch.after is None:
+            new_deps.pop(dep_index)
         # Update existing package.
         else:
-            new_deps[new_deps.index(patch.before)] = patch.after
+            new_deps[dep_index] = patch.after
     return new_deps
 
 

@@ -13,6 +13,7 @@ from conda_forge_tick.migrators import DependencyUpdateMigrator, Version
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
     DepComparison,
+    _apply_env_dep_comparison,
     _merge_dep_comparisons_sec,
     _modify_package_name_from_github,
     _update_sec_deps,
@@ -178,6 +179,30 @@ def test_get_depfinder_comparison():
         print(d)
     assert d["run"] == {"df_minus_cf": {"pyyaml"}}
     assert "host" not in d
+
+
+def test_apply_env_dep_comparison_matches_dependency_by_package_name():
+    deps = [
+        "cuda-version >=12,<13",
+        "cuda-nvcc-impl >=12.0",
+        "python >=3.11",
+    ]
+    env_dep_comparison = {
+        "cf_minus_df": {"cuda-version", "cuda-nvcc-impl"},
+        "df_minus_cf": set(),
+    }
+
+    assert _apply_env_dep_comparison(deps, env_dep_comparison) == ["python >=3.11"]
+
+
+def test_apply_env_dep_comparison_ignores_missing_dependency_text():
+    deps = ["cuda-version >=12,<13", "python >=3.11"]
+    env_dep_comparison = {
+        "cf_minus_df": {"cuda-cudart-dev"},
+        "df_minus_cf": set(),
+    }
+
+    assert _apply_env_dep_comparison(deps, env_dep_comparison) == deps
 
 
 praw_recipe = """\
