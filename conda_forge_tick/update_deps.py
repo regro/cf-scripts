@@ -804,9 +804,10 @@ def _apply_env_dep_comparison(
         # Remove old package.
         if patch.after is None:
             new_deps.pop(dep_index)
+            continue
+
         # Update existing package.
-        else:
-            new_deps[dep_index] = patch.after
+        new_deps[dep_index] = patch.after
     return new_deps
 
 
