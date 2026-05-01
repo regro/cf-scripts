@@ -123,7 +123,7 @@ jobs:
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
 
       - name: build docker image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           context: .
@@ -132,7 +132,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
 
       - name: restore test durations
-        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7  # v5.0.4
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -178,7 +178,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-${{ matrix.group }}
@@ -186,7 +186,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-${{ matrix.group }}
@@ -294,7 +294,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: restore test durations
-        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7  # v5.0.4
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -333,7 +333,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations-mongodb
@@ -341,7 +341,7 @@ jobs:
           include-hidden-files: true
 
       - name: upload coverage
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: coverage-mongodb
@@ -408,7 +408,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: cache test durations
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           path: .test_durations
@@ -430,7 +430,7 @@ jobs:
           jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
         with:
           name: test-durations
