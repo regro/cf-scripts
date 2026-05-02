@@ -127,6 +127,7 @@ class PRedElementTypedDict(TypedDict, total=False):
 class CondaForgeYamlContents(TypedDict, total=False):
     bot: dict[str, typing.Any]
     provider: dict[str, str]
+    build_platform: dict[str, str]
 
 
 AttrsTypedDict = TypedDict(
