@@ -238,6 +238,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
     ignored_packages: set[str] = set()
     excluded_dependencies: set[str] = set()
+    arches: dict = {}
 
     @property
     def additional_keys(self):
@@ -394,6 +395,7 @@ class OSXArm(_CrossCompileRebuild):
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
     pkg_list_filename = "osx_arm64.txt"
+    arches = {"osx_arm64": "osx_64"}
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("name", "arm osx addition")
@@ -434,6 +436,7 @@ class WinArm64(_CrossCompileRebuild):
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}
     pkg_list_filename = "win_arm64.txt"
+    arches = {"win_arm64": "win_64"}
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("name", "support windows arm64 platform")
