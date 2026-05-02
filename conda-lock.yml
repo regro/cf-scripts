@@ -704,7 +704,7 @@ package:
   category: main
   optional: false
 - name: botocore
-  version: 1.43.0
+  version: 1.43.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -712,14 +712,14 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.1-pyhd8ed1ab_0.conda
   hash:
-    md5: f47ed05030a1bed50f5fc9cea874ad1a
-    sha256: 27a202f3937b14812f5c8ba8304a5e2d0b2e1056e468cd7086721c2376bfea43
+    md5: 8ba492426df1181d46e8ac43fca33897
+    sha256: cc1f38480d19b9d346ed0c16528753814ee2428f2595af86ea2971f6ad0614f4
   category: main
   optional: false
 - name: botocore
-  version: 1.43.0
+  version: 1.43.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -727,10 +727,10 @@ package:
     python: '>=3.10'
     python-dateutil: '>=2.1,<3.0.0'
     urllib3: '>=1.25.4,!=2.2.0,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.1-pyhd8ed1ab_0.conda
   hash:
-    md5: f47ed05030a1bed50f5fc9cea874ad1a
-    sha256: 27a202f3937b14812f5c8ba8304a5e2d0b2e1056e468cd7086721c2376bfea43
+    md5: 8ba492426df1181d46e8ac43fca33897
+    sha256: cc1f38480d19b9d346ed0c16528753814ee2428f2595af86ea2971f6ad0614f4
   category: main
   optional: false
 - name: brotli-python
@@ -895,27 +895,27 @@ package:
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.6
+  version: 7.1.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.6-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 14e77b3ebe7b8e37f6254a59ee245184
-    sha256: f31f02b8bfa312bca79abbc24a0dd1930291cbdaca321b6d1c230687b175a9ff
+    md5: cb915c679dd06cee308082ff800b4f94
+    sha256: 241e3c7a51c64ada49060e4591c5471c0481558dfc59a68863c177cf3cccefe8
   category: main
   optional: false
 - name: cachetools
-  version: 7.0.6
+  version: 7.1.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.0.6-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 14e77b3ebe7b8e37f6254a59ee245184
-    sha256: f31f02b8bfa312bca79abbc24a0dd1930291cbdaca321b6d1c230687b175a9ff
+    md5: cb915c679dd06cee308082ff800b4f94
+    sha256: 241e3c7a51c64ada49060e4591c5471c0481558dfc59a68863c177cf3cccefe8
   category: main
   optional: false
 - name: cairo
