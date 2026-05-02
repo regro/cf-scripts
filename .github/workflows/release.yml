@@ -1,0 +1,93 @@
+name: release
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - main
+
+env:
+  PY_COLORS: "1"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: regro/conda-forge-tick
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - name: free disk space
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: stop me if needed
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: compute next version
+        id: version
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          echo "recent version tags: "$(git tag --sort=committerdate | tail -4)
+          NEXT=$(python autotick-bot/compute_next_version.py)
+          echo "next version: ${NEXT}"
+          echo "NEXT=${NEXT}" >> "$GITHUB_OUTPUT"
+
+      - name: log into ghcr.io
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build docker metadata
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ steps.version.outputs.NEXT }}
+            type=raw,value=latest
+
+      - name: build and push image
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        if: ${{ ! env.CI_SKIP }}
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: tag and release
+        if: ${{ ! env.CI_SKIP }}
+        run: |
+          python autotick-bot/release.py "${{ steps.version.outputs.NEXT }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

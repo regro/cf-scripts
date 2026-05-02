@@ -3,14 +3,15 @@ import logging
 import os
 import tempfile
 import typing
-from typing import Any, Dict
+from typing import Any
 
 import requests
+from packaging.requirements import Requirement
 from ruamel.yaml import YAML
 
-from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
-from conda_forge_tick.migrators import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import settings
 from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
@@ -19,16 +20,19 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@functools.lru_cache()
-def pypi_conda_mapping() -> Dict[str, str]:
-    """Retrieves the most recent version of the pypi-conda name mapping dictionary.
+@functools.lru_cache
+def pypi_conda_mapping() -> dict[str, str]:
+    """Retrieve the most recent version of the pypi-conda name mapping dictionary.
 
-    Result is a dictionary {pypi_name: conda_name}
+    Returns
+    -------
+    Dict[str, str]
+        Format: {pypi_name: conda_name}
     """
     yaml = YAML()
     content = requests.get(
         os.path.join(
-            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            settings().graph_github_backend_raw_base_url,
             "mappings",
             "pypi",
             "grayskull_pypi_mapping.yaml",
@@ -45,8 +49,8 @@ class PipWheelMigrator(MiniMigrator):
 
     def _get_version(self, attrs: "AttrsTypedDict") -> str:
         return (
-            attrs.get("new_version", "")
-            or attrs.get("version_pr_info", {}).get("new_version", "")
+            attrs.get("new_version", "")  # type: ignore[return-value] # TODO: allowing the version to be bool is bad for type checking
+            or attrs.get("version_pr_info", {}).get("new_version", "")  # type: ignore
             or attrs.get(
                 "version",
                 "",
@@ -55,7 +59,7 @@ class PipWheelMigrator(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         run_reqs = attrs.get("requirements", {}).get("run", set())
-        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
+        source_url: str = attrs.get("url") or attrs.get("source", {}).get("url")  # type: ignore[assignment] # TODO: this assumes source.url exists
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         if not any(s in source_url for s in url_names):
             return True
@@ -71,12 +75,12 @@ class PipWheelMigrator(MiniMigrator):
             return True
 
         version: str = self._get_version(attrs)
-        logger.debug(f"Checking if PyPI has a wheel for {version}")
+        logger.debug("Checking if PyPI has a wheel for %s", version)
         wheel_url, _ = self.determine_wheel(source_url, version)
 
         if wheel_url is None:
             return True
-        return False
+        return False or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def determine_wheel(self, source_url: str, version: str):
         pkg = source_url.split("/")[6]
@@ -96,7 +100,7 @@ class PipWheelMigrator(MiniMigrator):
         return wheel_url, wheel_file
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
+        source_url: str = attrs.get("url") or attrs.get("source", {}).get("url")  # type: ignore[assignment] # TODO: this assumes source.url exists
         version = self._get_version(attrs)
         if not version:
             return None
@@ -112,13 +116,15 @@ class PipWheelMigrator(MiniMigrator):
             with open(wheel_file, "wb") as fp:
                 for chunk in resp.iter_content(chunk_size=2**16):
                     fp.write(chunk)
-            import pkg_resources
             import pkginfo
 
             wheel_metadata = pkginfo.get_metadata(wheel_file)
+            if wheel_metadata is None:
+                logger.warning("Could not parse metadata from wheel file.")
+                return None
             wheel_metadata.extractMetadata()
             for dep in wheel_metadata.requires_dist:
-                parsed_req = pkg_resources.Requirement.parse(dep)
+                parsed_req = Requirement(dep)
                 # ignore extras, and markers
                 # map pypi name to the conda name, with fallback to pypi name
                 conda_name = pypi_conda_mapping().get(parsed_req.name, parsed_req.name)

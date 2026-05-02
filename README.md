@@ -1,7 +1,8 @@
 # autotick-bot
 
 [![tests](https://github.com/regro/cf-scripts/actions/workflows/tests.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/tests.yml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/regro/cf-scripts/master.svg)](https://results.pre-commit.ci/latest/github/regro/cf-scripts/master)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/regro/cf-scripts/main.svg)](https://results.pre-commit.ci/latest/github/regro/cf-scripts/main)
+[![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
 [![bot-bot](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml)
 [![bot-keepalive](https://github.com/regro/cf-scripts/actions/workflows/bot-keepalive.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-keepalive.yml)
 [![bot-update-status-page](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml)
@@ -10,10 +11,11 @@
 [![bot-prs](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml)
 [![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
 [![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
+[![bot-update-nodes](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml)
 [![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 [![test-model](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml)
-[![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
+
 
 the actual bot in an actual place doing an actual thing
 
@@ -34,7 +36,7 @@ Check out the following pages for status information on the bot:
 
 ## Starting and Stopping the Worker
 
-In order to start the worker, make a commit to master with the file `please.go`
+In order to start the worker, make a commit to main with the file `please.go`
 in the `autotick-bot` subdirectory.
 
 If you want to stop the worker, rename the file to `please.stop`, and it will not restart
@@ -130,6 +132,10 @@ __migrator:
   # The bot will skip noarch feedstocks by default.
   include_noarch: false
 
+  # If `include_build` is set to true, the bot will include build requirements in the migration.
+  # The bot will skip build requirements by default, which prevents compiler migrations.
+  include_build: false
+
   # The pr_limit controls how many PRs that bot makes in a single run.
   # Typical values range from 5 (small/slow) to 30 (large/fast). If not given,
   # the bot will scale this limit automatically to make new migrations more responsive
@@ -143,15 +149,18 @@ __migrator:
   # from issuing PRs that will fail to build.
   check_solvable: true
 
-  # The max_solver_attempts controls how many times the bot will try to issue a PR (and
-  # fail due to unsolvable environments) before it deprioritizes the migration of the feedstock.
-  # Once all feedstocks without failed solver attempts have been tried, the bot will randomly
-  # retry the failed feedstocks.
-  max_solver_attempts: 3
+  # The `allowlist_file` field can be used to limit a migrator to a specific
+  # list of target packages and their dependencies. The target packages are
+  # listed in a simple text file format, one package per line. The file should
+  # be placed in the `migration_support` directory. This is useful for
+  # throtteling potentially large migrations, for example to avoid overloading
+  # the CI, to phase subsections of the ecosystem, or to lower risk. Examples
+  # include migrations for new architectures.
+  allowlist_file: boostallow.txt
 
   # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
   # this many tries.
-  force_pr_after_solver_attempts: 100
+  force_pr_after_solver_attempts: 10
 
   # If `override_cbc_keys` is set to a list, the bot will use this list of packages to
   # determine which feedstocks to migrate as opposed to the changed pins listed below.
@@ -182,7 +191,7 @@ __migrator:
   # natural version ordering. Each changed pin can be mapped to a list
   # that determines the ordering. The highest (e.g., item with highest list index)
   # version is kept for version migrations.
-  oridering:
+  ordering:
     pin1:
       - value1
       - value2
@@ -223,11 +232,33 @@ If your migrator needs special configuration, you should write a new factory fun
 - `CF_TICK_GRAPH_DATA_BACKENDS`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `CF_TICK_GRAPH_DATA_USE_FILE_CACHE`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `MONGODB_CONNECTION_STRING`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
+- `CF_FEEDSTOCK_OPS_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
 - `BOT_TOKEN`: a GitHub token for the bot user
+- `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
+- `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
+- `CF_TICK_USE_LOCAL_PINNINGS`: set to `true` to force the bot to always use the local copy of the pinnings file for rerenders, set during integration testing
+
+Additional environment variables are described in [the settings module](conda_forge_tick/settings.py).
+
+### Getting a Working Environment
+
+The bot has an abstract set of requirements stored in the `environment.yml` file in this repo.
+
+It's production environment is locked via `conda-lock`. The lockfile is stored in `cf-scripts`
+at [https://github.com/regro/cf-scripts/blob/main/conda-lock.yml](https://github.com/regro/cf-scripts/blob/main/conda-lock.yml).
+The production environment is relocked regularly using a GitHub Actions [job](https://github.com/regro/cf-scripts/actions/workflows/relock.yaml).
+
+There are two ways to get a working environment:
+
+1. Use the `environment.yml` file in the repo with `conda env`.
+2. Download the lockfile and use `conda-lock`. The best way to download the lockfile is via `wget` or `curl` or similar:
+
+   ```bash
+   wget https://raw.githubusercontent.com/regro/cf-scripts/main/conda-lock.yml
+   ```
 
 ### Running Tests
 
@@ -266,12 +297,17 @@ present in the current working directory by default, unless the `--online` flag 
 
 > [!TIP]
 > Use the `--online` flag when debugging the bot locally to avoid having to clone the whole
-> dependency graph.
+> dependency graph. With `--no-containers`, you disable the functionality of running sensitive tasks in a Docker
+> container, which may be helpful for debugging.
 
 The local debugging functionality is still work in progress and might not work for all commands.
 Currently, the following commands are supported and tested:
 
 - `update-upstream-versions`
+
+### Integration Tests
+
+See [tests_integration/README.md](tests_integration/README.md).
 
 ### Structure of the Bot's Jobs
 
@@ -282,6 +318,8 @@ The bot started mostly as a single script, in `xonsh`, that was run in a cron-li
 As `conda-forge` grew, the "single job + global data access" model became increasingly unmanageable. Thus, over time, the bot has been split into separate jobs that run in parallel. This gradual refactoring has maintained the bot's performance despite `conda-forge`'s extreme growth. The cost has been increased complexity, the need to more carefully manage data access/updates, and the loss of strong consistency between the different parts of the bot's data. As of 2024, the bot is a collection of cron jobs, run in parallel, combined with a carefully separated data model based on eventual consistency.
 
 #### Current Bot Jobs and Structure
+
+[**Current GitHub Runner Allocation**](docs/runner_allocation.md)
 
 In this section, we list the collection of jobs that comprise the bot. Each job touches a distinct part of the bot's data structure and is run in parallel with the other jobs. We have also specified the GitHub Actions workflow that runs each job. See those files for further details on which commands are run.
 
@@ -356,11 +394,11 @@ This is an important number to know when proposing a migration
 ### `conda-forge-tick` Container Image and Dockerfile
 
 The bot relies on a container image to run certain tasks. The image is built from the `Dockerfile` in the root of
-this repository and hosted via `ghcr.io`. The `latest` tag is used for production jobs and updated automatically
+this repository and hosted via `ghcr.io`. The `__version__` tag is used for production jobs and updated automatically
 when PRs are merged. The container is typically run via
 
 ```bash
-docker run --rm -t conda-forge-tick:latest python /opt/autotick-bot/docker/run_bot_task.py <task> <args>
+docker run --rm -t conda-forge-tick:<__version__> python /opt/autotick-bot/docker/run_bot_task.py <task> <args>
 ```
 
 See the [run_bot_task.py](docker/run_bot_task.py) script for more information.

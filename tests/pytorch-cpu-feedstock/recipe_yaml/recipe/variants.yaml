@@ -1,0 +1,11 @@
+blas_impl:
+  - if: x86 or x86_64
+    then: mkl
+mkl:
+  - 2020
+c_compiler_version:
+  - if: linux64
+    then: 7
+cxx_compiler_version:
+  - if: linux64
+    then: 7

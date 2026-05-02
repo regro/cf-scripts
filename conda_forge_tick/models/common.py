@@ -10,6 +10,7 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
+    PlainSerializer,
     UrlConstraints,
 )
 from pydantic_core import Url
@@ -25,12 +26,16 @@ class StrictBaseModel(BaseModel):
 
 
 class ValidatedBaseModel(BaseModel):
-    model_config = ConfigDict(validate_assignment=True, extra="allow")
+    model_config = ConfigDict(validate_assignment=True, extra="ignore")
 
 
 def before_validator_ensure_dict(value: Any) -> dict:
-    """
-    Ensure that a value is a dictionary. If it is not, raise a ValueError.
+    """Ensure that a value is a dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the value is not a dictionary.
     """
     if not isinstance(value, dict):
         raise ValueError(
@@ -52,9 +57,7 @@ class Set(StrictBaseModel, Generic[T]):
 
 
 def none_to_empty_list(value: T | None) -> T | list[Never]:
-    """
-    Convert `None` to an empty list. Everything else is kept as is.
-    """
+    """Convert `None` to an empty list. Everything else is kept as is."""
     if value is None:
         return []
     return value
@@ -68,16 +71,14 @@ Defining this type is already the first step to remove it.
 """
 
 
-def none_to_empty_dict(value: T | None) -> T | dict[Never]:
-    """
-    Convert `None` to an empty dict. Everything else is kept as is.
-    """
+def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
+    """Convert `None` to an empty dict. Everything else is kept as is."""
     if value is None:
         return {}
     return value
 
 
-NoneIsEmptyDict = Annotated[dict[T], BeforeValidator(none_to_empty_dict)]
+NoneIsEmptyDict = Annotated[dict[K, V], BeforeValidator(none_to_empty_dict)]
 """
 A generic dict type that converts `None` to an empty dict.
 This should not be needed if this proper data model is used in production.
@@ -86,9 +87,7 @@ Defining this type is already the first step to remove it.
 
 
 def convert_to_list(value: T) -> list[T]:
-    """
-    Convert a single value to a list.
-    """
+    """Convert a single value to a list."""
     return [value]
 
 
@@ -99,8 +98,12 @@ A generic list type that converts a single value to a list. Union with list[T] t
 
 
 def empty_string_to_none(value: Any) -> None:
-    """
-    Convert an empty string to `None`. None is kept as is.
+    """Convert an empty string to `None`. None is kept as is.
+
+    Raises
+    ------
+    ValueError
+        If the value is neither an empty string nor `None`.
     """
     if value is None or value == "":
         return None
@@ -116,8 +119,12 @@ This should not be needed if a proper data model is used in production.
 
 
 def split_string_newline(value: Any) -> list[str]:
-    """
-    Split a string by newlines.
+    """Split a string by newlines.
+
+    Raises
+    ------
+    ValueError
+        If the value is not a string.
     """
     if not isinstance(value, str):
         raise ValueError("value must be a string")
@@ -131,8 +138,12 @@ A generic list type that splits a string at newlines before validation.
 
 
 def false_to_none(value: Any) -> None:
-    """
-    Convert `False` to `None`. Keep `None` as is.
+    """Convert `False` to `None`. Keep `None` as is.
+
+    Raises
+    ------
+    ValueError
+        If the value is not `False` or `None`.
     """
     if value is False or value is None:
         return None
@@ -151,22 +162,15 @@ def parse_rfc_2822_date(value: str) -> datetime:
     return email.utils.parsedate_to_datetime(value)
 
 
-RFC2822Date = Annotated[datetime, BeforeValidator(parse_rfc_2822_date)]
+def serialize_rfc_2822_date(value: datetime) -> str:
+    return email.utils.format_datetime(value)
 
 
-def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
-    """
-    Convert `None` to an empty dictionary f, otherwise keep the value as is.
-    """
-    if value is None:
-        return {}
-    return value
-
-
-NoneIsEmptyDict = Annotated[dict[K, V], BeforeValidator(none_to_empty_dict)]
-"""
-A generic dict type that converts `None` to an empty dict.
-"""
+RFC2822Date = Annotated[
+    datetime,
+    BeforeValidator(parse_rfc_2822_date),
+    PlainSerializer(serialize_rfc_2822_date),
+]
 
 
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
@@ -189,17 +193,13 @@ A string that matches conda version numbers.
 
 
 class PrInfoLazyJsonReference(StrictBaseModel):
-    """
-    A lazy reference to a pr_info JSON object.
-    """
+    """A lazy reference to a pr_info JSON object."""
 
     json_reference: str = Field(pattern=r"pr_info/.*\.json$", alias="__lazy_json__")
 
 
 class VersionPrInfoLazyJsonReference(StrictBaseModel):
-    """
-    A lazy reference to a version_pr_info JSON object.
-    """
+    """A lazy reference to a version_pr_info JSON object."""
 
     json_reference: str = Field(
         pattern=r"version_pr_info/.*\.json$", alias="__lazy_json__"
@@ -207,8 +207,6 @@ class VersionPrInfoLazyJsonReference(StrictBaseModel):
 
 
 class PrJsonLazyJsonReference(StrictBaseModel):
-    """
-    A lazy reference to a pr_json JSON object.
-    """
+    """A lazy reference to a pr_json JSON object."""
 
     json_reference: str = Field(pattern=r"pr_json/.*\.json$", alias="__lazy_json__")

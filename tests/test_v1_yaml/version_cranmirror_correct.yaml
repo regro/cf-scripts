@@ -1,0 +1,68 @@
+context:
+  version: "0.3.3"
+  posix: ${{ 'm2-' if win else '' }}
+  native: ${{ 'm2w64-' if win else '' }}
+  cran_mirror: https://cran.r-project.org
+
+package:
+  name: r-taxa
+  version: ${{ version|replace("-", "_") }}
+
+source:
+  url:
+    - ${{ cran_mirror }}/src/contrib/taxa_${{ version }}.tar.gz
+    - ${{ cran_mirror }}/src/contrib/Archive/taxa/taxa_${{ version }}.tar.gz
+  sha256: 4822db83bfed738aec4456f54e3722f0a0aff38f9f3896e4640ca87f7b45a287
+
+build:
+  number: 0
+  noarch: generic
+
+requirements:
+  build:
+    - ${{posix}}zip
+  host:
+    - r-base
+    - r-r6
+    - r-crayon
+    - r-dplyr
+    - r-jsonlite
+    - r-knitr
+    - r-lazyeval
+    - r-magrittr
+    - r-rlang
+    - r-stringr
+    - r-taxize
+    - r-tibble
+    - r-tidyr
+  run:
+    - r-base
+    - r-r6
+    - r-crayon
+    - r-dplyr
+    - r-jsonlite
+    - r-knitr
+    - r-lazyeval
+    - r-magrittr
+    - r-rlang
+    - r-stringr
+    - r-taxize
+    - r-tibble
+    - r-tidyr
+
+tests:
+  - script:
+      - $R -e "library('taxa')"
+
+about:
+  homepage: https://github.com/ropensci/taxa
+  license: MIT
+  license_file: LICENSE
+  summary: |
+    Provides taxonomic classes for groupings of taxonomic names without data, and those
+    with data. Methods provided are "taxonomically aware", in that they know about ordering
+    of ranks, and methods that filter based on taxonomy also filter associated data.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r

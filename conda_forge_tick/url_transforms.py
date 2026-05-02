@@ -3,7 +3,7 @@ import re
 from itertools import permutations
 
 EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
-PYPI_URLS = ["https://pypi.io", "https://files.pythonhosted.org"]
+PYPI_SLUGS = ["/pypi.io/", "/pypi.org/", "/files.pythonhosted.org/"]
 
 
 def _ext_munger(url):
@@ -49,17 +49,12 @@ def _v_munger(url):
             yield url.replace(vhave, vrep)
 
 
-def _pypi_domain_munger(url):
-    for old_d, new_d in permutations(PYPI_URLS, 2):
-        yield url.replace(old_d, new_d, 1)
-
-
 def _pypi_name_munger(url):
     bn = os.path.basename(url)
     dn = os.path.dirname(url)
     dist_bn = os.path.basename(os.path.dirname(url))
     is_sdist = url.endswith(".tar.gz")
-    is_pypi = any(url.startswith(pypi) for pypi in PYPI_URLS)
+    is_pypi = any(pypi in url for pypi in PYPI_SLUGS)
     has_version = re.search(r"\{\{\s*version", bn)
     has_name = re.search(r"\{\{\s*name", bn)
 
@@ -85,48 +80,6 @@ def _pypi_name_munger(url):
             yield os.path.join(
                 dn, "%s-{{ version }}.tar.gz" % re.sub(pattern, "_", dist_bn_case)
             )
-
-
-def _pypi_munger(url):
-    names = [
-        [
-            "{{ name }}",
-            (
-                "{{ name.replace('_', '-') }}",
-                '{{ name.replace("_", "-") }}',
-                "{{ name.replace('_','-') }}",
-                '{{ name.replace("_","-") }}',
-                "{{ name|replace('_', '-') }}",
-                '{{ name|replace("_", "-") }}',
-                "{{ name|replace('_','-') }}",
-                '{{ name|replace("_","-") }}',
-            ),
-        ],
-        [
-            "{{ name }}",
-            (
-                "{{ name.replace('-', '_') }}",
-                '{{ name.replace("-", "_") }}',
-                "{{ name.replace('-','_') }}",
-                '{{ name.replace("-","_") }}',
-                "{{ name|replace('-', '_') }}",
-                '{{ name|replace("-", "_") }}',
-                "{{ name|replace('-','_') }}",
-                '{{ name|replace("-","_") }}',
-            ),
-        ],
-    ]
-    if "/pypi." in url or "/files.pythonhosted.org" in url:
-        burl, eurl = url.rsplit("/", 1)
-        for _names in names:
-            for vhave, vrep in permutations(_names, 2):
-                if isinstance(vhave, tuple):
-                    for _v in vhave:
-                        if _v in eurl:
-                            yield burl + "/" + eurl.replace(_v, vrep)
-                elif vhave in eurl:
-                    assert isinstance(vrep, tuple)
-                    yield burl + "/" + eurl.replace(vhave, vrep[0])
 
 
 def _github_munger(url):
@@ -172,8 +125,6 @@ def gen_transformed_urls(url):
             _jinja2_munger_factory("name"),
             _jinja2_munger_factory("version"),
             _jinja2_munger_factory("name[0]"),
-            _pypi_munger,
-            _pypi_domain_munger,
             _pypi_name_munger,
             _github_munger,
         ],

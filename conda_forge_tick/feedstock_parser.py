@@ -1,28 +1,45 @@
 import collections.abc
-import glob
 import hashlib
 import logging
 import os
 import re
+import subprocess
 import tempfile
 import typing
 import zipfile
 from collections import defaultdict
-from typing import Optional, Set, Union
+from pathlib import Path
+from typing import Union
 
 import requests
 import yaml
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
 from requests.models import Response
 
-if typing.TYPE_CHECKING:
-    from mypy_extensions import TestTypedDict
-    from .migrators_types import PackageName, RequirementsTypedDict
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict
-
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.utils import run_container_task
-
-from .utils import as_iterable, parse_meta_yaml
+from conda_forge_tick.migrators_types import (
+    PackageName,
+    RecipeTypedDict,
+    RequirementsTypedDict,
+    TestTypedDict,
+)
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import (
+    ENV_CONDA_FORGE_ORG,
+    ENV_GRAPH_GITHUB_BACKEND_REPO,
+    settings,
+)
+from conda_forge_tick.utils import (
+    as_iterable,
+    get_platform_arch_from_ci_support_filename,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+    sanitize_string,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +49,7 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # that would be available in a bootstrapping scenario
 # for these nodes, we only use the bootstrap requirements
 # to build graph edges
-BOOTSTRAP_MAPPINGS = {}
+BOOTSTRAP_MAPPINGS: dict = {}
 
 
 def _dedupe_list_ordered(list_with_dupes):
@@ -65,14 +82,14 @@ def _dedupe_meta_yaml(meta_yaml):
 
 
 def _get_requirements(
-    meta_yaml: "MetaYamlTypedDict",
+    meta_yaml: "RecipeTypedDict",
     outputs: bool = True,
     build: bool = True,
     host: bool = True,
     run: bool = True,
-    outputs_to_keep: Optional[Set["PackageName"]] = None,
-) -> "Set[PackageName]":
-    """Get the list of recipe requirements from a meta.yaml dict
+    outputs_to_keep: set["PackageName"] | None = None,
+) -> set[PackageName]:
+    """Get the list of recipe requirements from a meta.yaml dict.
 
     Parameters
     ----------
@@ -92,7 +109,7 @@ def _get_requirements(
     """
     kw = dict(build=build, host=host, run=run)
     if outputs_to_keep:
-        reqs = set()
+        reqs: set[PackageName] = set()
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
         for output in outputs_:
             if output.get("name") in outputs_to_keep:
@@ -107,12 +124,12 @@ def _get_requirements(
 
 
 def _parse_requirements(
-    req: Union[None, typing.List[str], "RequirementsTypedDict"],
+    req: Union[None, list[str], "RequirementsTypedDict"],
     build: bool = True,
     host: bool = True,
     run: bool = True,
-) -> typing.MutableSet["PackageName"]:
-    """Flatten a YAML requirements section into a list of names"""
+) -> set["PackageName"]:
+    """Flatten a YAML requirements section into a list of names."""
     if not req:  # handle None as empty
         return set()
     if isinstance(req, list):  # simple list goes to both host and run
@@ -140,7 +157,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
         metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
 
     for block in metas:
-        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        req: "RequirementsTypedDict" | list = block.get("requirements", {}) or {}  # type: ignore[assignment]
         if isinstance(req, list):
             requirements_dict["run"].update(set(req))
             continue
@@ -148,9 +165,23 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
             requirements_dict[section].update(
                 list(as_iterable(req.get(section, []) or [])),
             )
-        test: "TestTypedDict" = block.get("test", {})
-        requirements_dict["test"].update(test.get("requirements", []) or [])
-        requirements_dict["test"].update(test.get("requires", []) or [])
+
+        test_block: "TestTypedDict" = block.get("test", {}) or {}  # type: ignore[assignment]
+        requirements_dict["test"].update(test_block.get("requirements", []) or [])
+        requirements_dict["test"].update(test_block.get("requires", []) or [])
+
+        if "tests" in block:
+            for test in block.get("tests", []):
+                # only script tests have requirements
+                if "requirements" in test:
+                    run_reqs = test["requirements"].get("run", [])
+                    build_reqs = test["requirements"].get("build", [])
+                    requirements_dict["test"].update(run_reqs + build_reqs)
+                if "python" in test:
+                    # if pip_check is unset or True, we need pip
+                    if test.get("pip_check", True):
+                        requirements_dict["test"].add("pip")
+
         run_exports = (block.get("build", {}) or {}).get("run_exports", {})
         if isinstance(run_exports, dict) and run_exports.get("strong"):
             strong_exports = True
@@ -168,7 +199,7 @@ def _fetch_static_repo(name, dest):
     for branch in ["main", "master"]:
         try:
             r = requests.get(
-                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+                f"https://github.com/{settings().conda_forge_org}/{name}-feedstock/archive/{branch}.zip",
             )
             r.raise_for_status()
             found_branch = branch
@@ -178,7 +209,7 @@ def _fetch_static_repo(name, dest):
 
     if r.status_code != 200:
         logger.error(
-            f"Something odd happened when fetching feedstock {name}: {r.status_code}",
+            "Something odd happened when fetching feedstock %s: %d", name, r.status_code
         )
         return r
 
@@ -210,94 +241,158 @@ def _clean_req_nones(reqs):
 
 def populate_feedstock_attributes(
     name: str,
-    sub_graph: typing.MutableMapping,
-    meta_yaml: typing.Union[str, Response] = "",
-    conda_forge_yaml: typing.Union[str, Response] = "",
-    mark_not_archived=False,
-    feedstock_dir=None,
-) -> typing.MutableMapping:
-    """Parse the various configuration information into something usable
+    existing_node_attrs: typing.MutableMapping[str, typing.Any],
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
+    mark_not_archived: bool = False,
+    feedstock_dir: str | Path | None = None,
+) -> dict[str, typing.Any]:
+    """
+    Parse the various configuration information into the node_attrs of a feedstock.
 
-    Notes
-    -----
-    If the return is bad hand the response itself in so that it can be parsed
-    for meaning.
+    Parameters
+    ----------
+    name
+        The name of the feedstock.
+    existing_node_attrs
+        The existing node_attrs of the feedstock. Pass an empty dict if none.
+    meta_yaml
+        The meta.yaml file as a string.
+    recipe_yaml
+        The recipe.yaml file as a string.
+    conda_forge_yaml
+        The conda-forge.yaml file as a string.
+    mark_not_archived
+        If True, forcibly mark the feedstock as not archived in the node attrs,
+        even if it is archived.
+    feedstock_dir
+        The directory where the feedstock is located. If None, some information
+        will not be available.
+
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary with the new node_attrs of the feedstock, with only some
+        fields populated.
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided.
     """
     from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
 
-    sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
+    node_attrs = {key: value for key, value in existing_node_attrs.items()}
+
+    if isinstance(feedstock_dir, str):
+        feedstock_dir = Path(feedstock_dir)
+
+    if (meta_yaml is None and recipe_yaml is None) or (
+        meta_yaml is not None and recipe_yaml is not None
+    ):
+        raise ValueError("Either `meta_yaml` or `recipe_yaml` needs to be given.")
+
+    node_attrs.update(
+        {"feedstock_name": name, "parsing_error": False, "branch": "main"}
+    )
 
     if mark_not_archived:
-        sub_graph.update({"archived": False})
-
-    # handle all the raw strings
-    if isinstance(meta_yaml, Response):
-        sub_graph["parsing_error"] = f"make_graph: {meta_yaml.status_code}"
-        return sub_graph
+        node_attrs.update({"archived": False})
 
     # strip out old keys - this removes old platforms when one gets disabled
-    for key in list(sub_graph.keys()):
-        if key.endswith("meta_yaml") or key.endswith("requirements") or key == "req":
-            del sub_graph[key]
+    for key in list(node_attrs.keys()):
+        if (
+            key.endswith("meta_yaml")
+            or key.endswith("requirements")
+            or key == "req"
+            or key.startswith("ci_support_")
+        ):
+            del node_attrs[key]
 
-    sub_graph["raw_meta_yaml"] = meta_yaml
+    if isinstance(meta_yaml, str):
+        node_attrs["raw_meta_yaml"] = meta_yaml
+    elif isinstance(recipe_yaml, str):
+        node_attrs["raw_meta_yaml"] = recipe_yaml
 
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
-        sub_graph["conda-forge.yml"] = {
-            k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
-        }
+        try:
+            node_attrs["conda-forge.yml"] = {
+                k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
+            }
+        except Exception as e:
+            import traceback
+
+            trb = traceback.format_exc()
+            node_attrs["parsing_error"] = sanitize_string(
+                f"feedstock parsing error: cannot load conda-forge.yml: {e}\n{trb}"
+            )
+            return node_attrs
 
     if feedstock_dir is not None:
         logger.debug(
             "# of ci support files: %s",
-            len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))),
+            len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))),
         )
+
+    # these might get set below
+    saved_cbc_key = None
+    saved_cbc_value = None
 
     try:
         if (
             feedstock_dir is not None
-            and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
+            and len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))) > 0
         ):
-            recipe_dir = os.path.join(feedstock_dir, "recipe")
+            recipe_dir = feedstock_dir / "recipe"
             ci_support_files = sorted(
-                glob.glob(
-                    os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
-                ),
+                feedstock_dir.joinpath(".ci_support").glob("*.yaml")
             )
+
+            if ci_support_files:
+                saved_cbc_key = "ci_support_" + ci_support_files[0].name
+                with open(str(ci_support_files[0])) as fp:
+                    saved_cbc_value = fp.read()
+
             variant_yamls = []
-            plat_arch = []
+            plat_archs = []
             for cbc_path in ci_support_files:
                 logger.debug("parsing conda-build config: %s", cbc_path)
-                cbc_name = os.path.basename(cbc_path)
-                cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
-                plat = cbc_name_parts[0]
-                if len(cbc_name_parts) == 1:
-                    arch = "64"
-                else:
-                    if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
-                        arch = cbc_name_parts[1]
-                    else:
-                        arch = "64"
-                # some older cbc yaml files have things like "linux64"
-                for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
-                    if plat.endswith(_tt):
-                        plat = plat[: -len(_tt)]
-                        break
-                plat_arch.append((plat, arch))
+                plat, arch = get_platform_arch_from_ci_support_filename(cbc_path.name)
+                plat_archs.append((plat, arch))
 
-                variant_yamls.append(
-                    parse_meta_yaml(
-                        meta_yaml,
-                        platform=plat,
-                        arch=arch,
-                        cbc_path=cbc_path,
-                        orig_cbc_path=os.path.join(
-                            recipe_dir,
-                            "conda_build_config.yaml",
+                if isinstance(meta_yaml, str):
+                    variant_yamls.append(
+                        parse_meta_yaml(
+                            meta_yaml,
+                            platform=plat,
+                            arch=arch,
+                            cbc_path=cbc_path,
+                            orig_cbc_path=os.path.join(
+                                recipe_dir,
+                                "conda_build_config.yaml",
+                            ),
                         ),
-                    ),
-                )
+                    )
+                    variant_yamls[-1]["schema_version"] = 0
+                elif isinstance(recipe_yaml, str):
+                    platform_arch = (
+                        f"{plat}-{arch}"
+                        if isinstance(plat, str) and isinstance(arch, str)
+                        else None
+                    )
+                    variant_yamls.append(
+                        parse_recipe_yaml(
+                            recipe_yaml,
+                            platform_arch=platform_arch,
+                            cbc_path=cbc_path,
+                        ),
+                    )
+                    variant_yamls[-1]["schema_version"] = variant_yamls[-1].get(
+                        "schema_version", 1
+                    )
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
@@ -317,69 +412,82 @@ def populate_feedstock_attributes(
 
                 # collapse them down
                 logger.debug("collapsing reqs for %s", name)
-                final_cfgs = {}
-                for plat_arch, varyml in zip(plat_arch, variant_yamls):
+                final_cfgs: dict = {}
+                for plat_arch, varyml in zip(plat_archs, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
                     final_cfgs[plat_arch].append(varyml)
                 for k in final_cfgs:
                     ymls = final_cfgs[k]
                     final_cfgs[k] = _dedupe_meta_yaml(_convert_to_dict(ChainDB(*ymls)))
-                plat_arch = []
-                variant_yamls = []
+
+                plat_archs.clear()
+                variant_yamls.clear()
                 for k, v in final_cfgs.items():
-                    plat_arch.append(k)
+                    plat_archs.append(k)
                     variant_yamls.append(v)
         else:
             logger.debug("doing generic parsing")
-            plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
-            for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
+            plat_archs = [("win", "64"), ("osx", "64"), ("linux", "64")]
+            for k in set(node_attrs["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
-                    plat_arch.append(tuple(k.split("_")))
-            variant_yamls = [
-                parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
-                for plat, arch in plat_arch
-            ]
+                    plat_archs.append(tuple(k.split("_")))
+            if isinstance(meta_yaml, str):
+                variant_yamls = [
+                    parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
+                    for plat, arch in plat_archs
+                ]
+            elif isinstance(recipe_yaml, str):
+                raise NotImplementedError(
+                    "recipe_yaml generic parsing not implemented yet! Ensure the feedstock has .ci_support files."
+                )
     except Exception as e:
         import traceback
 
         trb = traceback.format_exc()
-        sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
+        node_attrs["parsing_error"] = sanitize_string(
+            f"feedstock parsing error: cannot rendering recipe: {e}\n{trb}"
+        )
         raise
 
-    logger.debug("platforms: %s", plat_arch)
-    sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
+    logger.debug("platforms: %s", plat_archs)
+    node_attrs["platforms"] = ["_".join(k) for k in plat_archs]
+
+    if saved_cbc_key:
+        node_attrs[saved_cbc_key] = saved_cbc_value
 
     # this makes certain that we have consistent ordering
-    sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
-    yaml_dict = ChainDB(*sorted_variant_yamls)
+    sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
+    yaml_dict = ChainDB(*sorted_variant_yamls)  # type: ignore[arg-type]
     if not yaml_dict:
-        logger.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["parsing_error"] = "make_graph: Could not parse"
-        return sub_graph
+        logger.error("Something odd happened when parsing recipe %s", name)
+        node_attrs["parsing_error"] = (
+            "feedstock parsing error: could not combine metadata dicts across platforms"
+        )
+        return node_attrs
 
-    sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
-    meta_yaml = sub_graph["meta_yaml"]
+    node_attrs["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
+    meta_yaml = node_attrs["meta_yaml"]
 
     # remove all plat-arch specific keys to remove old ones if a combination is disabled
-    for k in list(sub_graph.keys()):
+    for k in list(node_attrs.keys()):
         if k in ["raw_meta_yaml", "total_requirements"]:
             continue
         if k.endswith("_meta_yaml") or k.endswith("_requirements"):
-            sub_graph.pop(k)
+            node_attrs.pop(k)
 
-    for k, v in zip(plat_arch, variant_yamls):
+    for k, v in zip(plat_archs, variant_yamls):
         plat_arch_name = "_".join(k)
-        sub_graph[f"{plat_arch_name}_meta_yaml"] = v
-        _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
+        node_attrs[f"{plat_arch_name}_meta_yaml"] = v
+        _, node_attrs[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
             v,
             outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
         )
 
     (
-        sub_graph["total_requirements"],
-        sub_graph["requirements"],
-        sub_graph["strong_exports"],
+        node_attrs["total_requirements"],
+        node_attrs["requirements"],
+        node_attrs["strong_exports"],
     ) = _extract_requirements(
         meta_yaml,
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
@@ -394,65 +502,102 @@ def populate_feedstock_attributes(
             ),
         )
         # handle implicit meta packages
-        if "run" in sub_graph.get("meta_yaml", {}).get("requirements", {}):
+        if "run" in node_attrs.get("meta_yaml", {}).get("requirements", {}):
             outputs_names.add(meta_yaml["package"]["name"])
     # add in single package name
     else:
         outputs_names = {meta_yaml["package"]["name"]}
-    sub_graph["outputs_names"] = outputs_names
+    node_attrs["outputs_names"] = outputs_names
 
     # TODO: Write schema for dict
     # TODO: remove this
     req = _get_requirements(
-        yaml_dict,
+        yaml_dict,  # type: ignore[arg-type]
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
     )
-    sub_graph["req"] = req
+    node_attrs["req"] = req
 
     # set name and version
     keys = [("package", "name"), ("package", "version")]
     missing_keys = [k[1] for k in keys if k[1] not in yaml_dict.get(k[0], {})]
     for k in keys:
         if k[1] not in missing_keys:
-            sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
+            node_attrs[k[1]] = yaml_dict[k[0]][k[1]]
 
     # sometimes a version is not given at the top level, so we check outputs
     # we do not know which version to take, but hopefully they are all the same
     if (
-        "version" not in sub_graph
+        "version" not in node_attrs
         and "outputs" in yaml_dict
         and len(yaml_dict["outputs"]) > 0
         and "version" in yaml_dict["outputs"][0]
     ):
-        sub_graph["version"] = yaml_dict["outputs"][0]["version"]
+        node_attrs["version"] = yaml_dict["outputs"][0]["version"]
 
     # set the url and hash
-    sub_graph.pop("url", None)
-    sub_graph.pop("hash_type", None)
+    node_attrs.pop("url", None)
+    node_attrs.pop("hash_type", None)
 
     source = yaml_dict.get("source", [])
     if isinstance(source, collections.abc.Mapping):
         source = [source]
-    source_keys: Set[str] = set()
+    source_keys: set[str] = set()
     for s in source:
-        if not sub_graph.get("url"):
-            sub_graph["url"] = s.get("url")
+        if not node_attrs.get("url"):
+            node_attrs["url"] = s.get("url")
         source_keys |= s.keys()
 
     kl = list(sorted(source_keys & hashlib.algorithms_available, reverse=True))
     if kl:
-        sub_graph["hash_type"] = kl[0]
+        node_attrs["hash_type"] = kl[0]
 
-    return sub_graph
+    return node_attrs
+
+
+def _get_feedstock_commit_hash_and_timestamp(
+    name: str,
+) -> tuple[str | None, int | None]:
+    git_url = f"https://github.com/{settings().conda_forge_org}/{name}-feedstock"
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", git_url],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            with pushd(f"{name}-feedstock"):
+                res = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                sha = res.stdout.strip()
+
+                res = subprocess.run(
+                    ["git", "log", "-1", "--format=%ct"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                    text=True,
+                )
+                ts = int(res.stdout.strip())
+        except subprocess.CalledProcessError:
+            return None, None
+
+    return sha, ts
 
 
 def load_feedstock_local(
     name: str,
     sub_graph: typing.MutableMapping,
-    meta_yaml: Optional[str] = None,
-    conda_forge_yaml: Optional[str] = None,
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
     mark_not_archived: bool = False,
-):
+) -> dict[str, typing.Any]:
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
     conda_forge_yaml are not provided, they will be fetched from the feedstock.
 
@@ -462,8 +607,10 @@ def load_feedstock_local(
         Name of the feedstock
     sub_graph : MutableMapping
         The existing metadata if any
-    meta_yaml : Optional[str]
+    meta_yaml : str | None
         The string meta.yaml, overrides the file in the feedstock if provided
+    recipe_yaml: str | None
+        The string recipe.yaml, overrides the file in the feedstock if provided
     conda_forge_yaml : Optional[str]
         The string conda-forge.yaml, overrides the file in the feedstock if provided
     mark_not_archived : bool
@@ -473,42 +620,93 @@ def load_feedstock_local(
     -------
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
+
+    Raises
+    ------
+    ValueError
+        If both `meta_yaml` and `recipe_yaml` are provided.
+        If neither `meta_yaml` nor `recipe_yaml` are provided and no file is present in
+        the feedstock.
     """
+    new_sub_graph = {key: value for key, value in sub_graph.items()}
+
+    if meta_yaml is not None and recipe_yaml is not None:
+        raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
+
+    # we only update the feedstock hash if we are using the feedstock's
+    # contents for making the node attrs
+    if meta_yaml is None and recipe_yaml is None and conda_forge_yaml is None:
+        update_hash = True
+    else:
+        update_hash = False
+
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
         feedstock_dir = _fetch_static_repo(name, tmpdir)
 
-        if meta_yaml is None:
+        # If either `meta_yaml` or `recipe_yaml` is overridden, use that
+        # otherwise use "meta.yaml" file if it exists
+        # otherwise use "recipe.yaml" file if it exists
+        # if nothing is overridden and no file is present, error out
+        if meta_yaml is None and recipe_yaml is None:
             if isinstance(feedstock_dir, Response):
-                meta_yaml = feedstock_dir
+                new_sub_graph.update(
+                    {"feedstock_name": name, "parsing_error": False, "branch": "main"}
+                )
+
+                if mark_not_archived:
+                    new_sub_graph.update({"archived": False})
+
+                new_sub_graph["parsing_error"] = sanitize_string(
+                    f"make_graph: {feedstock_dir.status_code}"
+                )
+                return new_sub_graph
+
+            meta_yaml_path = Path(feedstock_dir).joinpath("recipe", "meta.yaml")
+            recipe_yaml_path = Path(feedstock_dir).joinpath("recipe", "recipe.yaml")
+            if meta_yaml_path.exists():
+                meta_yaml = meta_yaml_path.read_text()
+            elif recipe_yaml_path.exists():
+                recipe_yaml = recipe_yaml_path.read_text()
             else:
-                with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as fp:
-                    meta_yaml = fp.read()
+                raise ValueError(
+                    "Either `meta.yaml` or `recipe.yaml` need to be present in the feedstock"
+                )
 
         if conda_forge_yaml is None:
-            if isinstance(feedstock_dir, Response):
-                conda_forge_yaml = Response
-            else:
-                with open(os.path.join(feedstock_dir, "conda-forge.yml")) as fp:
-                    conda_forge_yaml = fp.read()
+            conda_forge_yaml_path = Path(feedstock_dir).joinpath("conda-forge.yml")
+            if conda_forge_yaml_path.exists():
+                conda_forge_yaml = conda_forge_yaml_path.read_text()
 
-        populate_feedstock_attributes(
+        if (
+            update_hash
+            or "feedstock_hash" not in new_sub_graph
+            or "feedstock_hash_ts" not in new_sub_graph
+        ):
+            # if we are using the feedstock's contents, then we update the hash
+            feedstock_hash, feedstock_timestamp = (
+                _get_feedstock_commit_hash_and_timestamp(name)
+            )
+            new_sub_graph["feedstock_hash"] = feedstock_hash
+            new_sub_graph["feedstock_hash_ts"] = feedstock_timestamp
+
+        return populate_feedstock_attributes(
             name,
-            sub_graph,
+            new_sub_graph,
             meta_yaml=meta_yaml,
+            recipe_yaml=recipe_yaml,
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
             feedstock_dir=feedstock_dir,
         )
 
-    return sub_graph
-
 
 def load_feedstock_containerized(
     name: str,
     sub_graph: typing.MutableMapping,
-    meta_yaml: Optional[str] = None,
-    conda_forge_yaml: Optional[str] = None,
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
     mark_not_archived: bool = False,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
@@ -522,9 +720,11 @@ def load_feedstock_containerized(
         Name of the feedstock
     sub_graph : MutableMapping
         The existing metadata if any
-    meta_yaml : Optional[str]
+    meta_yaml : str | None
         The string meta.yaml, overrides the file in the feedstock if provided
-    conda_forge_yaml : Optional[str]
+    recipe_yaml : str | None
+        The string recipe.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : str | None
         The string conda-forge.yaml, overrides the file in the feedstock if provided
     mark_not_archived : bool
         If True, forcibly mark the feedstock as not archived in the node attrs.
@@ -537,10 +737,20 @@ def load_feedstock_containerized(
     if "feedstock_name" not in sub_graph:
         sub_graph["feedstock_name"] = name
 
-    args = []
+    args = [
+        "conda-forge-tick-container",
+        "parse-feedstock",
+        "--existing-feedstock-node-attrs",
+        "-",
+    ]
+
+    args += get_default_log_level_args(logger)
 
     if meta_yaml is not None:
         args += ["--meta-yaml", meta_yaml]
+
+    if recipe_yaml is not None:
+        args += ["--recipe-yaml", recipe_yaml]
 
     if conda_forge_yaml is not None:
         args += ["--conda-forge-yaml", conda_forge_yaml]
@@ -552,15 +762,16 @@ def load_feedstock_containerized(
         dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
     )
 
-    data = run_container_task(
-        "parse-feedstock",
-        [
-            "--existing-feedstock-node-attrs",
-            "-",
-            *args,
-        ],
+    data = run_container_operation(
+        args,
         json_loads=loads,
         input=json_blob,
+        extra_container_args=[
+            "-e",
+            f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+            "-e",
+            f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+        ],
     )
 
     return data
@@ -569,10 +780,11 @@ def load_feedstock_containerized(
 def load_feedstock(
     name: str,
     sub_graph: typing.MutableMapping,
-    meta_yaml: Optional[str] = None,
-    conda_forge_yaml: Optional[str] = None,
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
     mark_not_archived: bool = False,
-    use_container: bool = True,
+    use_container: bool | None = None,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
     conda_forge_yaml are not provided, they will be fetched from the feedstock.
@@ -583,16 +795,18 @@ def load_feedstock(
         Name of the feedstock
     sub_graph : MutableMapping
         The existing metadata if any
-    meta_yaml : Optional[str]
+    meta_yaml : str | None
         The string meta.yaml, overrides the file in the feedstock if provided
-    conda_forge_yaml : Optional[str]
+    recipe_yaml : str | None
+        The string recipe.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : str | None
         The string conda-forge.yaml, overrides the file in the feedstock if provided
     mark_not_archived : bool
         If True, forcibly mark the feedstock as not archived in the node attrs.
     use_container : bool, optional
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -600,15 +814,12 @@ def load_feedstock(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return load_feedstock_containerized(
             name,
             sub_graph,
             meta_yaml=meta_yaml,
+            recipe_yaml=recipe_yaml,
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
@@ -617,6 +828,7 @@ def load_feedstock(
             name,
             sub_graph,
             meta_yaml=meta_yaml,
+            recipe_yaml=recipe_yaml,
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )

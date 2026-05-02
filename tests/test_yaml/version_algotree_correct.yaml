@@ -1,0 +1,45 @@
+{% set name = "algotree" %}
+{% set version = "0.7.3" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/AlgoTree-{{ version }}.tar.gz
+  sha256: 349eee21a57c5f40f157be218788f944a723047b35b7945a56058219b383287d
+
+build:
+  entry_points:
+    - jt=bin.jt:main
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 0
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools
+  run:
+    - python >=3.6
+
+test:
+  imports:
+    - AlgoTree
+  commands:
+    - pip check
+    - jt --help
+  requires:
+    - pip
+
+about:
+  home: https://github.com/queelius/AlgoTree
+  doc_url: https://queelius.github.io/AlgoTree/
+  summary: A algorithmic tookit for working with trees in Python
+  license: MIT
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - thewchan

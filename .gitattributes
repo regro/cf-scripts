@@ -1,1 +1,4 @@
+* text=auto
+
 .git_archival.txt  export-subst
+conda-lock.yml merge=binary linguist-generated=true

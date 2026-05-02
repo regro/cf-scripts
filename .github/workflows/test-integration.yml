@@ -1,0 +1,163 @@
+name: tests-integration
+on:
+  pull_request:
+    branches:
+      - main
+  merge_group: null
+  workflow_dispatch: null
+
+# Integration tests interact with GitHub resources in the integration test infrastructure and therefore
+# cannot run concurrently with other integration tests.
+concurrency:
+  group: cf-scripts-integration-tests
+  cancel-in-progress: false
+
+env:
+  CF_TICK_USE_LOCAL_PINNINGS: "true"
+
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+jobs:
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if we can skip the merge queue
+        id: merge-queue-ci-skipper
+        uses: cariad-tech/merge-queue-ci-skipper@cf80db21fc70244e36487acc531b3f1118889b0a
+        with:
+          secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: Get PR number
+        id: pr-number
+        # this appears to be busted now so using my own code based on the merge_group
+        # parts
+        # uses: bcgov/action-get-pr@35514fa1d4765547da319e967b509363598e8b46 # v0.1.0
+        run: |
+          if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
+            pr_num=$(echo "${MGHR}" | sed -n 's|.*/pr-\([0-9]\+\)-.*|\1|p')
+          else
+            pr_num=${PR_NUMBER_FOR_PR}
+          fi
+          echo ${pr_num}
+          echo "pr=${pr_num}" >> "$GITHUB_OUTPUT"
+        env:
+          MGHR: ${{ github.event.merge_group.head_ref }}
+          PR_NUMBER_FOR_PR: ${{ github.event.number }}
+
+      - name: Check if we should run rest of tests
+        id: should-run
+        run: |
+          if [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            pr_is_fork=false
+          else
+            pr_is_fork=$(gh pr view ${PR_NUMBER} --json headRepositoryOwner | jq '.headRepositoryOwner.login != "regro"')
+          fi
+
+          if [[ ${pr_is_fork} == "true" ]]; then
+            if [[ ${GITHUB_EVENT_NAME} == "merge_group" ]]; then
+              final_should_run=true
+            else
+              final_should_run=false
+            fi
+          elif [[ ${GITHUB_EVENT_NAME} == "workflow_dispatch" ]]; then
+            final_should_run=true
+          else
+            final_should_run=${MQ_CI_SKIP}
+          fi
+          echo "should-run=${final_should_run}" >> "$GITHUB_OUTPUT"
+
+          echo "pr number: ${PR_NUMBER}"
+          echo "pr is fork: ${pr_is_fork}"
+          echo "merge queue CI needs to run: ${MQ_CI_SKIP}"
+          echo "should run: ${final_should_run}"
+        env:
+          MQ_CI_SKIP: ${{ steps.merge-queue-ci-skipper.outputs.skip-check != 'true' }}
+          PR_NUMBER: ${{ steps.pr-number.outputs.pr }}
+          GH_TOKEN: ${{ github.token }}
+
+      - name: free disk space
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        with:
+          path: cf-scripts
+          submodules: 'true'
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        with:
+          context: cf-scripts
+          push: false
+          load: true
+          tags: conda-forge-tick:test
+
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: Run pip install
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        working-directory: cf-scripts
+        run: |
+          # put pinnings at old version for testing
+          micromamba install conda-forge-pinning==2025.02.25.13.14.53
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Run mitmproxy certificate setup wizard
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        working-directory: cf-scripts
+        run: |
+          # place a script in the mitmproxy directory that will be run by the setup wizard
+          # to trust the mitmproxy certificate
+          cat <<EOF > ./tests_integration/.mitmproxy/${{ env.MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT }}
+          #!/usr/bin/env bash
+          set -euo pipefail
+          sudo cp "\$1" /usr/local/share/ca-certificates/mitmproxy.crt
+          sudo update-ca-certificates
+          EOF
+
+          ./tests_integration/mitmproxy_setup_wizard.sh
+        env:
+          MITMPROXY_WIZARD_HEADLESS: true
+          MITMPROXY_WIZARD_HEADLESS_TRUST_SCRIPT: mitmproxy_trust_script.sh
+
+      - name: Set up git identity
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        run: |
+          git config --global user.name "regro-cf-autotick-bot-staging"
+          git config --global user.email "regro-cf-autotick-bot-staging@users.noreply.github.com"
+
+      - name: Run Integration Tests with pytest
+        if: ${{ steps.should-run.outputs.should-run == 'true' }}
+        working-directory: cf-scripts
+        run: |
+          pytest -s -v \
+          --dist=no \
+          tests_integration
+        env:
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
+      - name: Print Proxy Logs
+        run: cat /tmp/mitmproxy.log
+        if: ${{ steps.should-run.outputs.should-run == 'true' && ! cancelled() }}

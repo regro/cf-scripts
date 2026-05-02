@@ -1,23 +1,28 @@
 import logging
 import os
 import random
+import re
+from collections.abc import Mapping
 from concurrent.futures import Future
-from typing import Dict, Mapping
+from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
 
 import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
-from flaky import flaky
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson, load
+from conda_forge_tick.settings import settings, use_settings
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
     AbstractSource,
+    CratesIO,
     Github,
+    GithubReleases,
+    GitTags,
     PyPI,
     RawURL,
     next_version,
@@ -25,16 +30,19 @@ from conda_forge_tick.update_sources import (
 from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_process_pool,
     _update_upstream_versions_sequential,
+    all_version_sources,
     filter_nodes_for_job,
     get_latest_version,
-    ignore_version,
     include_node,
     main,
     update_upstream_versions,
 )
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.version_filters import is_version_ignored
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH_V1 = os.path.join(os.path.dirname(__file__), "test_v1_yaml")
+NODE_ATTRS_PATH = os.path.join(os.path.dirname(__file__), "test_node_attrs")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -342,48 +350,22 @@ latest_url_rawurl_test_list = [
 ]
 
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"key": "value"},
-        {"conda-forge.yml": {"key": "value"}},
-        {"conda-forge.yml": {"bot": {"key": "value"}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"key": "value"}}}},
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": []}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {
-                    "version_updates": {
-                        "exclude": ["12.3", "1.23", "1.2", "2.3", "1.2.3.4"],
-                    },
-                },
-            },
-        },
-    ],
-)
-def test_ignore_version_false(attrs):
-    assert ignore_version(attrs, "1.2.3") is False
+def test_is_version_ignored():
+    """Test is_version_ignored."""
+    attrs_no_filter = {"conda-forge.yml": {"bot": {"version_updates": {}}}}
+    assert is_version_ignored(attrs_no_filter, "1.2.3") is False
 
+    attrs_exclude = {
+        "conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}
+    }
+    assert is_version_ignored(attrs_exclude, "1.2.3") is True
+    assert is_version_ignored(attrs_exclude, "1.2.4") is False
 
-@pytest.mark.parametrize(
-    "attrs",
-    [
-        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}},
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["3.2.1", "1.2.3"]}},
-            },
-        },
-        {
-            "conda-forge.yml": {
-                "bot": {"version_updates": {"exclude": ["1.2.3", "3.2.1"]}},
-            },
-        },
-    ],
-)
-@pytest.mark.parametrize("version", ["1.2.3", "1.2-3"])
-def test_ignore_version_true(attrs, version):
-    assert ignore_version(attrs, version) is True
+    attrs_odd_even = {
+        "conda-forge.yml": {"bot": {"version_updates": {"even_odd_versions": True}}}
+    }
+    assert is_version_ignored(attrs_odd_even, "1.1.0") is True  # Odd minor
+    assert is_version_ignored(attrs_odd_even, "1.2.0") is False  # Even minor
 
 
 @pytest.mark.parametrize(
@@ -427,7 +409,6 @@ def test_latest_version_npm(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_rawurl_test_list,
 )
-@flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
@@ -446,13 +427,13 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
-        assert attempt["new_version"] is ver
+        assert attempt["new_version"] is None
     else:
         assert ver == attempt["new_version"]
 
 
 def test_latest_version_ca_policy_lcg(capfd, caplog):
-    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": None}
     out, err = capfd.readouterr()
     all_output = out + err
     for record in caplog.records:
@@ -484,8 +465,9 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
-    ) as ignore_version_mock:
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
+    ) as is_version_ignored_mock:
         result = get_latest_version(
             "crazy-package",
             attrs,
@@ -511,10 +493,10 @@ def test_latest_version_version_sources_no_error(caplog):
     source_b.get_url.assert_called_once_with(attrs)
     assert "Using URL https://source-b.com" in caplog.text
 
-    source_b.get_version.assert_called_once_with("https://source-b.com")
+    source_b.get_version.assert_called_once_with("https://source-b.com", attrs)
     assert "Found version 1.2.3 on Source b it Is" in caplog.text
 
-    ignore_version_mock.assert_called_once_with(attrs, "1.2.3")
+    is_version_ignored_mock.assert_called_once_with(attrs, "1.2.3")
 
     assert result == {"new_version": "1.2.3"}
 
@@ -533,7 +515,8 @@ def test_latest_version_skip_error_success(caplog):
     source_b.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=False,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -544,7 +527,7 @@ def test_latest_version_skip_error_success(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -575,7 +558,7 @@ def test_latest_version_error_and_no_new_version(caplog):
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
-        "An exception occurred while fetching crazy-package from source a:"
+        "An exception occurred while fetching crazy-package from source a"
         in caplog.text
     )
     assert "source a error" in caplog.text
@@ -586,7 +569,7 @@ def test_latest_version_error_and_no_new_version(caplog):
     assert "Cannot find version on any source, exceptions occurred" in caplog.text
 
 
-def test_latest_version_ignore_version(caplog):
+def test_latest_version_is_version_ignored(caplog):
     caplog.set_level(logging.DEBUG)
 
     source_a = Mock(AbstractSource)
@@ -595,7 +578,8 @@ def test_latest_version_ignore_version(caplog):
     source_a.get_version.return_value = "1.2.3"
 
     with patch(
-        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
+        "conda_forge_tick.update_upstream_versions.is_version_ignored",
+        return_value=True,
     ):
         result = get_latest_version(
             "crazy-package",
@@ -607,7 +591,7 @@ def test_latest_version_ignore_version(caplog):
     assert "Using URL https://source-a.com" in caplog.text
     assert "Ignoring version 1.2.3" in caplog.text
 
-    assert result == {"new_version": False}
+    assert result == {"new_version": None}
 
 
 def test_latest_version_no_sources_are_skipped(caplog):
@@ -960,7 +944,7 @@ def test_next_version_openssl(in_ver, ver_test):
     assert next_vers == ver_test
 
 
-sample_cutensor = """
+sample_cutensor = r"""
 {% set version = "1.5.0" %}
 {% set patch_version = "3" %}
 
@@ -1066,25 +1050,324 @@ extra:
     - mtjrider
 """  # noqa
 
+sample_nvjpeg2k = r"""
+{% set version = "0.8.1.40" %}
+{% set platform = "linux-x86_64" %}  # [linux64]
+{% set platform = "linux-ppc64le" %}  # [ppc64le]
+{% set platform = "linux-sbsa" %}  # [aarch64 and arm_variant_type == "sbsa"]
+{% set platform = "linux-aarch64" %}  # [aarch64 and arm_variant_type == "tegra"]
+{% set platform = "windows-x86_64" %}  # [win]
+{% set extension = "tar.xz" %}  # [not win]
+{% set extension = "zip" %}  # [win]
+{% set cuda_compiler_version = cuda_compiler_version | default("None") %}
+{% set soname = version.split(".")[0] %}
+
+{% set sha = "b028f3718f453a71736c01fb8dcbb0174336ea5d69e52fd12a756d6ff5ce785d" %}  # [linux64]
+{% set sha = "34e02b499e0b0ca1af9b2d69454f979d530762df6a46f736feb4da5cb3824cbd" %}  # [aarch64 and arm_variant_type == "sbsa"]
+{% set sha = "5d0e61f48dc99c3ac464ceef173c071d8fb6ee0e7e6a83b199291307d9970485" %}  # [aarch64 and arm_variant_type == "tegra"]
+{% set sha = "970308dd3837964455600ce68af2fc0ad5e2b4dc415891e8d255ad1191fc248d" %}  # [win]
+
+package:
+  name: nvjpeg2000
+  version: {{ version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/nvjpeg2000/redist/libnvjpeg_2k/{{ platform }}/libnvjpeg_2k-{{ platform }}-{{ version }}-archive.{{ extension }}
+  sha256: {{ sha }}
+
+build:
+  number: 4
+  skip: true  # [osx or ppc64le or cuda_compiler_version in (None, "None")]
+
+requirements:
+  build:
+    - cf-nvidia-tools 1.*  # [linux]
+
+outputs:
+
+  - name: libnvjpeg2k{{ soname }}
+    build:
+      ignore_run_exports:
+        - cuda-version
+        - cudatoolkit
+    files:
+      - lib/libnvjpeg2k.so.*            # [linux]
+      - Library\bin\nvjpeg2k*.dll       # [win]
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ compiler("cuda") }}
+        - {{ stdlib("c") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+      host:
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        # Any CUDA within the same major version
+        # https://docs.nvidia.com/cuda/nvjpeg2000/userguide.html#prerequisites
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -L $PREFIX/lib/libnvjpeg2k.so.{{ soname }}                            # [linux]
+        - test -f $PREFIX/lib/libnvjpeg2k.so.{{ version }}                           # [linux]
+        - if not exist %LIBRARY_BIN%\nvjpeg2k_{{ soname }}.dll exit 1                # [win]
+    about:
+      license: LicenseRef-NVIDIA-End-User-License-Agreement
+      summary: The nvjpeg2k runtime library.
+      description: >-
+        This is a runtime package only. Developers should install libnvjpeg2k-dev to build with nvjpeg2k.
+
+  - name: libnvjpeg2k-dev
+    build:
+      run_exports:
+        # FIXME: Pin to patch version until 1.0
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, max_pin="x.x.x") }}
+      ignore_run_exports:
+        - cuda-version
+    files:
+      - lib/libnvjpeg2k.so                                  # [linux]
+      # - lib/pkgconfig/nvjpeg*.pc                          # [linux]
+      - include/nvjpeg*                                     # [linux]
+      - Library\include\nvjpeg*                             # [win]
+      - Library\lib\nvjpeg*.lib                              # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, exact=True) }}
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        - {{ pin_subpackage("libnvjpeg2k" ~ soname, exact=True) }}
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -L $PREFIX/lib/libnvjpeg2k.so                                    # [linux]
+        # - test -f $PREFIX/lib/pkgconfig/nvjpeg*.pc                            # [linux]
+        - test -f $PREFIX/include/nvjpeg2k_version.h                            # [linux]
+        - test -f $PREFIX/include/nvjpeg2k.h                                    # [linux]
+        - if not exist %LIBRARY_INC%\nvjpeg2k_version.h exit 1                  # [win]
+        - if not exist %LIBRARY_INC%\nvjpeg2k.h exit 1                          # [win]
+        - if not exist %LIBRARY_LIB%\nvjpeg2k.lib exit 1                        # [win]
+
+  - name: libnvjpeg2k-static
+    build:
+      skip: true  # [not linux]
+      ignore_run_exports:
+        - cuda-version
+    files:
+      - lib/libnvjpeg2k_static.a
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvjpeg2k-dev", exact=True) }}
+        - cuda-version {{ cuda_compiler_version }}
+      run:
+        - {{ pin_subpackage("libnvjpeg2k-dev", exact=True) }}
+        - {{ pin_compatible("cuda-version", min_pin="x", max_pin="x") }}
+        - arm-variant * {{ arm_variant_type }}  # [aarch64]
+    test:
+      commands:
+        - test -f $PREFIX/lib/libnvjpeg2k_static.a
+    about:
+      license: LicenseRef-NVIDIA-End-User-License-Agreement
+      summary: The nvjpeg2k static library.
+      description: >-
+        This is a static-linking package only. Developers should install libnvjpeg2k-dev to link dynamically with nvjpeg2k.
+
+about:
+  home: https://docs.nvidia.com/cuda/nvjpeg2000/
+  license_file: LICENSE
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  license_url: https://docs.nvidia.com/cuda/eula/index.html
+  summary: The nvJPEG2000 development package.
+  description: >-
+    The nvJPEG2000 library accelerates the decoding and encoding of JPEG2000 images on NVIDIA GPUs. The library is built on the CUDA platform and is supported on Pascal+ GPU architectures.
+
+  doc_url: https://docs.nvidia.com/cuda/nvjpeg2000/
+
+extra:
+  feedstock-name: libnvjpeg2k
+  recipe-maintainers:
+    - conda-forge/cuda
+"""  # noqa
+
+sample_nvpl = """
+{% set version = "0.4.1.1" %}
+{% set soversion = ".".join(version.split(".")[:3]) %}
+{% set somajor = version.split(".")[0] %}
+{% set arm_variant_type = arm_variant_type|default("sbsa") %}
+
+package:
+  name: libnvpl-blas-split
+  version: {{ version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/nvpl/redist/nvpl_blas/linux-sbsa/nvpl_blas-linux-sbsa-{{ version }}-archive.tar.xz
+  sha256: 57704e2e211999c899bca26346b946b881b609554914245131b390410f7b93e8
+
+build:
+  number: 1
+  # nvpl is only for ARM architecture
+  skip: true  # [not aarch64]
+  script:
+    - cp -rv include $PREFIX
+    - cp -rv lib $PREFIX
+    - check-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*  # [linux]
+
+requirements:
+  build:
+    - cf-nvidia-tools 1.*  # [linux]
+
+outputs:
+
+  - name: libnvpl-blas-dev
+    build:
+      run_exports:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor) }}
+    files:
+      - include/nvpl_blas*
+      - include/nvpl_blas*/**
+      - lib/cmake/nvpl_blas*/**
+      - lib/libnvpl_blas*.so
+    requirements:
+      host:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor, exact=True) }}
+        - _nvpl_dev_mutex
+        - libnvpl-common-dev
+      run:
+        - _nvpl_dev_mutex
+        - {{ pin_compatible("libnvpl-common-dev", max_pin="x.x.x") }}
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor, exact=True) }}
+      run_constrained:
+        - arm-variant * {{ arm_variant_type }}
+    test:
+      files:
+        - test
+      requires:   # [build_platform == target_platform]
+        - {{ compiler("c") }}  # [build_platform == target_platform]
+        - {{ compiler("cxx") }}  # [build_platform == target_platform]
+        - {{ stdlib("c") }}  # [build_platform == target_platform]
+        - cmake   # [build_platform == target_platform]
+        - ninja  # [build_platform == target_platform]
+      commands:
+        - cmake ${CMAKE_ARGS} -GNinja test  # [build_platform == target_platform]
+        - cmake --build .  # [build_platform == target_platform]
+        - test -f $PREFIX/include/nvpl_blas.h
+        - test -f $PREFIX/lib/cmake/nvpl_blas/nvpl_blas-config.cmake
+        - test -f $PREFIX/lib/libnvpl_blas_core.so
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so
+
+  - name: libnvpl-blas{{ somajor }}
+    build:
+      run_exports:
+        - {{ pin_subpackage("libnvpl-blas" ~ somajor) }}
+    files:
+      - lib/libnvpl_blas*.so.*
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ stdlib("c") }}
+        - arm-variant * {{ arm_variant_type }}
+      run_constrained:
+        - arm-variant * {{ arm_variant_type }}
+    test:
+      commands:
+        - test -f $PREFIX/lib/libnvpl_blas_core.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_core.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_gomp.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_ilp64_seq.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_gomp.so.{{ soversion }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so.{{ somajor }}
+        - test -f $PREFIX/lib/libnvpl_blas_lp64_seq.so.{{ soversion }}
+
+about:
+  home: https://developer.nvidia.com/nvpl
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  license_file: LICENSE
+  license_url: https://docs.nvidia.com/nvpl/license.html
+  summary: >-
+    The NVIDIA Performance Libraries (NVPL) are a collection of high performance mathematical libraries optimized for the NVIDIA Grace Armv9.0 architecture.
+  description: >-
+    The NVIDIA Performance Libraries (NVPL) are a collection of high performance mathematical libraries optimized for the NVIDIA Grace Armv9.0 architecture.
+
+    These CPU-only libraries have no dependencies on CUDA or CTK, and are drop in replacements for standard C and Fortran mathematical APIs allowing HPC applications to achieve maximum performance on the Grace platform.
+  doc_url: https://docs.nvidia.com/nvpl/
+
+extra:
+  feedstock-name: libnvpl-blas
+  recipe-maintainers:
+    - conda-forge/cuda
+"""  # noqa
+
 
 latest_url_nvidia_test_list = [
+    (
+        "libnvjpeg2k-split",
+        sample_nvjpeg2k,
+        "0.8.1.40",
+        None,
+        NVIDIA(),
+        {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libnvjpeg_2k",
+                        "compute_subdir": "nvjpeg2000",
+                    }
+                }
+            }
+        },
+    ),
     (
         "cutensor",
         sample_cutensor,
         "1.4.0.3",
-        "1.5.0.3",
+        None,
         NVIDIA(),
         {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "json_name": "libcutensor",
+                    }
+                }
+            }
+        },
+    ),
+    (
+        "libnvpl-blas",
+        sample_nvpl,
+        "0.4.1.1",
+        None,
+        NVIDIA(),
+        {},
+        {
+            "bot": {
+                "version_updates": {
+                    "nvidia": {
+                        "compute_subdir": "nvpl",
+                        "json_name": "nvpl_blas",
+                    }
+                }
+            }
+        },
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "name, inp, curr_ver, ver, source, urls",
+    "name, inp, curr_ver, ver, source, urls, conda_forge",
     latest_url_nvidia_test_list,
 )
-@pytest.mark.xfail
-def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
+def test_latest_version_nvidia(
+    name, inp, curr_ver, ver, source, urls, conda_forge, tmpdir
+):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
@@ -1094,6 +1377,7 @@ def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "version": curr_ver,
                 "raw_meta_yaml": inp,
                 "meta_yaml": parse_meta_yaml(inp),
+                "conda-forge.yml": conda_forge,
             },
         )
     attempt = get_latest_version(name, pmy, [source])
@@ -1170,7 +1454,7 @@ def test_include_node_parsing_error(caplog):
 
 def test_include_node_no_payload():
     package_name = "testpackage"
-    payload_attrs: Dict = {}
+    payload_attrs: dict = {}
 
     assert include_node(package_name, payload_attrs)
 
@@ -1253,12 +1537,15 @@ def test_update_upstream_versions_no_packages_to_update(
 default_sources = (
     "PyPI",
     "CRAN",
+    "CratesIO",
     "NPM",
-    "ROSDistro",
-    "RawURL",
     "Github",
-    "IncrementAlphaRawURL",
+    "GithubReleases",
     "NVIDIA",
+    "ROSDistro",
+    "GitTags",
+    "RawURL",
+    "IncrementAlphaRawURL",
 )
 
 
@@ -1283,9 +1570,6 @@ def test_update_upstream_versions_run_sequential(
         ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
     ]
 
-    # swaps the packages
-    random.seed(1)
-
     def custom_include_node(name: str, _: Mapping) -> bool:
         return name in ("testpackage", "testpackage2")
 
@@ -1303,10 +1587,11 @@ def test_update_upstream_versions_run_sequential(
     )
 
     update_sequential_mock.assert_called_once()
-    assert update_sequential_mock.call_args.args[0] == [
+    for pkg in [
         ("testpackage2", {"dummy": "1.2.4"}),
         ("testpackage", {"dummy": "1.2.3"}),
-    ]
+    ]:
+        assert pkg in update_sequential_mock.call_args.args[0]
     assert (
         tuple(source.name for source in update_sequential_mock.call_args.args[1])
         == default_sources
@@ -1352,10 +1637,22 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
+@pytest.fixture
+def version_update_frac_always():
+    new_settings = settings()
+
+    new_settings.frac_update_upstream_versions = True
+    with use_settings(new_settings):
+        yield
+
+
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1392,7 +1689,10 @@ class BrokenException(Exception):
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1426,7 +1726,10 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
-    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    get_latest_version_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1473,10 +1776,15 @@ def test_update_upstream_versions_sequential(
     assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    deploy_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1491,8 +1799,8 @@ def test_update_upstream_versions_process_pool(
         ("testpackage2", {"version": "1.2.4"}),
     ]
 
-    future_1: Future[Dict[str, str]] = Future()
-    future_2: Future[Dict[str, str]] = Future()
+    future_1: Future[dict[str, str]] = Future()
+    future_2: Future[dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.side_effect = [future_1, future_2]
@@ -1533,10 +1841,15 @@ def test_update_upstream_versions_process_pool(
     assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    deploy_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1550,7 +1863,7 @@ def test_update_upstream_versions_process_pool_exception(
         ("testpackage", {"version": "2.2.3"}),
     ]
 
-    future: Future[Dict[str, str]] = Future()
+    future: Future[dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.return_value = future
@@ -1576,10 +1889,15 @@ def test_update_upstream_versions_process_pool_exception(
     assert "source a error" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.deploy")
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(
-    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+    lazy_json_mock: MagicMock,
+    executor_mock: MagicMock,
+    deploy_mock: MagicMock,
+    version_update_frac_always,
+    caplog,
 ):
     caplog.set_level(logging.DEBUG)
     source_a = Mock(AbstractSource)
@@ -1593,7 +1911,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
         ("testpackage", {"version": "2.2.3"}),
     ]
 
-    future: Future[Dict[str, str]] = Future()
+    future: Future[dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.return_value = future
@@ -1676,7 +1994,6 @@ def test_main(
         ("https://github.com/archs/sources.tar.gz", "1.2.3", None),
     ],
 )
-@flaky
 def test_github_version_prefix(url, version, version_prefix, tmpdir):
     gh = Github()
     meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
@@ -1694,3 +2011,518 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         assert gh.version_prefix is None
     else:
         assert gh.version_prefix == version_prefix
+
+
+@mock.patch("conda_forge_tick.update_sources.feedparser.parse")
+def test_github_release_tag_with_slash_respects_allowed_tag_globs(
+    feedparser_parse_mock: MagicMock,
+):
+    feedparser_parse_mock.return_value = {
+        "bozo": 0,
+        "entries": [
+            {
+                "link": "https://github.com/sass/dart-sass/releases/tag/sass_api%2F17.5.0",
+            },
+            {
+                "link": "https://github.com/sass/dart-sass/releases/tag/sass_api%2F17.4.0",
+            },
+        ],
+    }
+
+    node_attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "allowed_tag_globs": "sass_api/*",
+                },
+            },
+        },
+    }
+
+    gh = Github()
+    assert (
+        gh.get_version("https://github.com/sass/dart-sass/releases.atom", node_attrs)
+        == "17.5.0"
+    )
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version",
+    [
+        ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
+    ],
+)
+def test_github_releases(tmpdir, url, feedstock_version):
+    meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+    assert VersionOrder(ghr.get_version(url, meta_yaml)) > VersionOrder(
+        feedstock_version
+    )
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version, regex",
+    [
+        (
+            "https://github.com/minio/minio/archive/RELEASE.2025-01-20T14-49-07Z.tar.gz",
+            "2025-01-20T14-49-07Z",
+            r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z",
+        )
+    ],
+)
+def test_github_releases_unusual_version(
+    tmp_path: Path, url: str, feedstock_version: str, regex: str
+):
+    """Tests that the GitHubReleases source can handle unusual version strings such as timestamps."""
+    meta_yaml = LazyJson(str(tmp_path / "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+
+    version = ghr.get_version(url, meta_yaml)
+
+    assert isinstance(version, str)
+    assert re.match(regex, version)
+
+
+def test_latest_version_cratesio(tmpdir):
+    name = "wbg-rand"
+    recipe_path = os.path.join(YAML_PATH, "version_wbg-rand.yaml")
+    curr_ver = "0.4.0"
+    ver = "0.4.1"
+    source = CratesIO()
+
+    with open(recipe_path) as fd:
+        inp = fd.read()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        yml = parse_meta_yaml(inp)
+        _pmy.update(yml["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": yml,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+    if ver is None:
+        assert attempt["new_version"] is not False
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]
+
+
+@pytest.mark.parametrize(
+    "yaml_path",
+    [
+        pytest.param(YAML_PATH, id="meta.yaml"),
+        pytest.param(YAML_PATH_V1, id="recipe.yaml"),
+    ],
+)
+def test_latest_version_gittags(tmpdir, yaml_path):
+    name = "libtirpc"
+    recipe_path = os.path.join(yaml_path, "libtirpc-gittags.yaml")
+    curr_ver = "1.3.6"
+    new_ver = "1.3.7"
+    source = GitTags()
+
+    with open(recipe_path) as fd:
+        inp = fd.read()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        yml = (
+            parse_recipe_yaml(inp, use_container=False)
+            if yaml_path == YAML_PATH_V1
+            else parse_meta_yaml(inp, use_container=False)
+        )
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": yml,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+    assert new_ver == attempt["new_version"]
+
+
+def test_latest_version_pypi_files_pythonhost_url(tmpdir):
+    curr_url = "https://files.pythonhosted.org/packages/45/33/4f88384403c3974c82f0296615c6e5f5114ca3d8fd920fa3196e4d619cb0/atlas_schema-0.3.0.tar.gz"
+    curr_ver = "0.3.0"
+    name = "atlas-schema"
+    ver = "0.4.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_pypi_canonical_url(tmpdir):
+    curr_url = "https://pypi.org/packages/source/o/opencosmo/opencosmo-0.8.1.tar.gz"
+    curr_ver = "0.8.1"
+    name = "opencosmo"
+    ver = "0.9.0"
+    source = PyPI()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "url": curr_url,
+                "feedstock_name": name,
+                "version": curr_ver,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+
+    print("curr|lower bound|found:", curr_ver, ver, attempt["new_version"])
+
+    assert VersionOrder(ver) <= VersionOrder(attempt["new_version"])
+
+
+def test_latest_version_stackvana_v1(tmpdir):
+    tmp_node_attrs = os.path.join(str(tmpdir), "cf-scripts-test.json")
+    with open(os.path.join(NODE_ATTRS_PATH, "stackvana-core.json")) as fp:
+        na = load(fp)
+    pmy = LazyJson(tmp_node_attrs)
+    with pmy as _pmy:
+        _pmy.update(na)
+    attempt = get_latest_version(
+        "stackvana-core", pmy, all_version_sources(), use_container=False
+    )
+
+    print("found:", attempt["new_version"])
+    assert "new_version" in attempt and attempt["new_version"] is not None
+
+
+def test_latest_version_fenics_cbc_parse(tmpdir):
+    raw_meta_yaml = """\
+{% set version = "2019.0.0" %}
+
+
+package:
+  name: fenics-pkgs
+  version: {{ version }}
+
+source:
+  - url: https://bitbucket.org/fenics-project/dolfin/downloads/dolfin-{{ version }}.post0.tar.gz
+    sha256: 61abdcde13684ba2a3ba4afb7ea6c7907aa0896a46439d3af7e8848483d4392f
+    patches:
+      - boost.patch
+      - linuxboost.patch  # [linux]
+      - find-petsc-slepc.patch
+      - hdf5-1.12.patch
+      - fix-xdmf.patch
+      - python-cmake-args.patch
+      - boost-1.86.patch
+      - numpy-2.0.patch
+      - unpin-pybind.patch
+      - c++14.patch
+
+build:
+  number: 62
+  skip: true  # [win]
+  # this doesn't actually affect the build hashes
+  # so duplicate where the build hash should actually change
+  force_use_keys:
+    - python
+    - mpi
+
+outputs:
+  - name: fenics-libdolfin
+    build:
+      script: ${RECIPE_DIR}/build-libdolfin.sh
+      skip: true  # [win]
+      ignore_run_exports_from:
+        - python
+        - numpy
+        - cross-python_{{ target_platform }}
+      {% set mpi_prefix = "mpi_" + mpi %}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+        - cmake >=3.9
+        - make
+        - pkg-config
+        - {{ mpi }}  # [mpi == 'openmpi' and build_platform != target_platform]
+        # python needed for ufc discovery via ffc
+        - python                                 # [build_platform != target_platform]
+        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+        - numpy  # [build_platform != target_platform]
+        - fenics-ffc =={{ version }}  # [build_platform != target_platform]
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - eigen
+        - parmetis
+        - libptscotch  # [target_platform != "osx-arm64"]
+        - suitesparse
+        - zlib
+        - {{ mpi }}
+        - petsc
+        - slepc
+        - python
+        - numpy
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        # only need library dependencies that _lack_ run_exports here
+        - eigen
+        - parmetis
+    test:
+      commands:
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}
+        - test -f ${PREFIX}/lib/libdolfin.{{ version }}${SHLIB_EXT}  # [osx]
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}.{{ version }}  # [linux]
+
+  - name: fenics-dolfin
+    build:
+      script: ${RECIPE_DIR}/build-dolfin.sh
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+        - cmake >=3.9
+        - make
+        - pkg-config
+        - python                                 # [build_platform != target_platform]
+        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+        - pybind11                               # [build_platform != target_platform]
+        - {{ mpi }}  # [mpi == 'openmpi' and build_platform != target_platform]
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - python
+        - pip
+        - setuptools
+        - pkgconfig
+        - zlib
+        - {{ mpi }}
+        - mpi4py
+        - petsc4py
+        - slepc4py
+        - numpy
+        - pybind11
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        - {{ compiler('cxx') }}
+        # gxx provides default 'c++' executable on linux
+        - gxx  # [linux]
+        - python
+        # dolfin depends on the boost headers for its own headers, see
+        # https://bitbucket.org/fenics-project/dolfin/src/master/dolfin/parameter/Parameters.h#lines-24
+        - libboost-headers
+        - setuptools
+        - zlib
+        - {{ pin_compatible('mpi4py', max_pin='x') }}
+        - petsc4py
+        - slepc4py
+        - pkgconfig  # Python pkgconfig package
+        - pybind11
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+
+    test:
+      commands:
+        - pip check
+        - bash ${RECIPE_DIR}/parent/test-dolfin.sh
+      source_files:
+        - python/test
+
+      requires:
+        - pip
+        - nose
+        - pytest
+        - git
+        - decorator
+
+  - name: fenics
+    build:
+      skip: true  # [win]
+      script: "echo 1"
+      force_use_keys:
+        - mpi
+        - python
+    requirements:
+      build: []
+      host: []
+      run:
+        - python
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - {{ pin_subpackage("fenics-dolfin", exact=True) }}
+    test:
+      commands:
+        - bash ${RECIPE_DIR}/parent/test-fenics.sh
+
+about:
+  home: http://www.fenicsproject.org
+  license: LGPL-3.0-or-later
+  license_family: LGPL
+  license_file:
+    - COPYING
+    - COPYING.LESSER
+  summary: 'FEniCS is a collection of free software for automated, efficient solution of differential equations'
+
+  description: |
+    FEniCS is a collection of free software for automated, efficient solution of differential equations
+    (<http://fenicsproject.org>). It provides C++ and Python interfaces, and creates efficient solvers via
+    expression of finite variational statements in a domain-specific language that are transformed and
+    just-in-time compiled into efficient implementations.
+  doc_url: https://fenics.readthedocs.io/
+  dev_url: https://bitbucket.org/fenics-project/
+
+extra:
+  feedstock-name: fenics
+  recipe-maintainers:
+    - garth-wells
+    - johannesring
+    - mikaem
+    - minrk
+    - jan-janssen
+    - sblauth
+"""
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(
+            {
+                "conda-forge.yml": {"bot": {"version_updates": {"use_curl": True}}},
+                "feedstock_name": "fenics",
+                "version": "2019.0.0",
+                "raw_meta_yaml": raw_meta_yaml,
+                "meta_yaml": {"schema_version": 0},
+                "ci_support_linux_64_mpimpichpython3.10.____cpython.yaml": """\
+c_compiler:
+- gcc
+c_compiler_version:
+- '14'
+c_stdlib:
+- sysroot
+c_stdlib_version:
+- '2.17'
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- gxx
+cxx_compiler_version:
+- '14'
+docker_image:
+- quay.io/condaforge/linux-anvil-x86_64:alma9
+hdf5:
+- 1.14.6
+libblas:
+- 3.9.* *netlib
+libboost_devel:
+- '1.88'
+libboost_headers:
+- '1.88'
+libcblas:
+- 3.9.* *netlib
+libptscotch:
+- 7.0.11
+mpi:
+- mpich
+mpich:
+- '4'
+numpy:
+- '2'
+openmpi:
+- '5'
+petsc:
+- '3.24'
+petsc4py:
+- '3.24'
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.10.* *_cpython
+slepc:
+- '3.24'
+slepc4py:
+- '3.24'
+suitesparse:
+- '7'
+target_platform:
+- linux-64
+zip_keys:
+- - c_compiler_version
+  - cxx_compiler_version
+zlib:
+- '1'
+""",
+            },
+        )
+
+    attempt = get_latest_version("fenics", pmy, [RawURL()], use_container=False)
+
+    print("result:", attempt, flush=True)
+    assert "new_version" in attempt
+    assert attempt["new_version"] is not None
+    assert VersionOrder(attempt["new_version"]) > VersionOrder("2019.0.0")

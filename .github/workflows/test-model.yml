@@ -1,13 +1,9 @@
 name: test-model
 
 on:
-  push:
-    branches:
-      - master
-  pull_request: null
   workflow_dispatch:
   schedule:
-    - cron: "10 8 * * *" # every hour
+    - cron: "10 8 * * *" # daily at 8:10 UTC
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,20 +21,30 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
+      - name: free disk space
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: configure conda, install code, and clone cf-graph
+        if: ${{ ! env.CI_SKIP }}
         run: |
           pip install --no-deps --no-build-isolation -e .
           git clone --depth=1 https://github.com/regro/cf-graph-countyfair.git cf-graph
 
       - name: conda info and env
+        if: ${{ ! env.CI_SKIP }}
         run: |
           echo "=================================================================="
           echo "=================================================================="
@@ -50,8 +56,11 @@ jobs:
           conda list
 
       - name: run pytest (model)
+        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-graph
+          # for pull requests, a failed model test should not be a failed check
+          # this is a hack around the absence of https://github.com/orgs/community/discussions/15452
           pytest \
             --durations 10 \
-            ../tests/model
+            ../tests_model ${{ github.event_name == 'pull_request' && '|| [ $? = 1 ]' || '' }}

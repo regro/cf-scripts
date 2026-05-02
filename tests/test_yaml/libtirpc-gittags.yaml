@@ -1,0 +1,38 @@
+{% set name = "libtirpc" %}
+{% set version = "1.3.6" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: git://linux-nfs.org/~steved/libtirpc
+  git_rev: libtirpc-{{ "-".join(version.split(".")) }}
+
+build:
+  number: 0
+  skip: true  # [not linux]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ stdlib("c") }}
+    - make
+
+test:
+  commands:
+    - test -f $PREFIX/lib/libtirpc$SHLIB_EXT
+about:
+  home: http://git.linux-nfs.org/?p=steved/libtirpc.git;a=summary
+  summary: 'Libtirpc is a Transport-Independent RPC library for Linux'
+  description: |
+    The libtirpc package contains libraries that support programs that use the
+    Remote Procedure Call (RPC) API. It replaces the RPC, but not the NIS library
+    entries that used to be in glibc.
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: COPYING
+
+extra:
+  recipe-maintainers:
+    - cphyc

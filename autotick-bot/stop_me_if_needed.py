@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         go = False
 
 if not go:
-    print("I could not find the file 'please.go' on master! Stopping!")
+    print("I could not find the file 'please.go' on main! Stopping!")
     subprocess.run(
         'echo "CI_SKIP=1" >> $GITHUB_ENV',
         shell=True,

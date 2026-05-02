@@ -89,7 +89,7 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     hash : str or None
         The hash, possibly None if the operation timed out or the url does
         not exist.
-    """
+    """  # noqa: DOC501
     _hash = None
 
     try:
@@ -120,6 +120,7 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
             raise e
 
     if isinstance(_hash, tuple):
+        # TODO: What is this? (remove noqa from above)
         raise eval(_hash[0])
 
     return _hash

@@ -9,8 +9,8 @@ MPIS = ["mpich", "openmpi"]
 
 def _parse_cbc_mpi(lines):
     in_prab = False
-    prab_indent = None
-    mpi_indent = None
+    prab_indent: int | None = None
+    mpi_indent: int | None = None
     new_lines = []
     for _line in lines:
         if _line.endswith("\n"):
@@ -42,7 +42,7 @@ def _parse_cbc_mpi(lines):
                     if mpi_indent is not None:
                         continue
 
-                if curr_indent <= prab_indent:
+                if prab_indent is not None and curr_indent <= prab_indent:
                     in_prab = False
                     prab_indent = None
 
@@ -74,6 +74,8 @@ def _parse_cbc_mpi(lines):
 
 
 class MPIPinRunAsBuildCleanup(MiniMigrator):
+    allowed_schema_versions = {0, 1}
+
     def filter(self, attrs, not_bad_str_start=""):
         host_req = (attrs.get("requirements", {}) or {}).get("host", set()) or set()
 

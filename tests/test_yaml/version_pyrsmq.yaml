@@ -1,0 +1,43 @@
+{% set name = "PyRSMQ" %}
+{% set version = "0.5.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 68ba774ba544cd976622c9375c69e21b89a6fbb41221dbebb706733846d557a6
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  host:
+    - pip
+    - python >=3.6
+    - setuptools
+  run:
+    - python >=3.6
+    - redis-py
+
+test:
+  imports:
+    - rsmq
+    - rsmq.cmd
+    - tests
+
+about:
+  home: https://mlasevich.github.io/PyRSMQ/
+  license: Apache-2.0
+  license_family: APACHE
+  license_file: LICENSE
+  summary: Python Implementation of Redis SMQ
+  dev_url: https://github.com/mlasevich/PyRSMQ
+
+extra:
+  recipe-maintainers:
+    - lincrosenbach
+    - kfasolin

@@ -1,7 +1,5 @@
 import logging
-import os
 import time
-from typing import Optional
 
 import click
 from click import Context, IntRange
@@ -68,6 +66,9 @@ click.Group.command_class = TimedCommand
         "Turning off containers is a potential security issue."
     ),
 )
+@click.option(
+    "--log-level", default="info", type=str, help="The logging level as a string."
+)
 @pass_context
 @click.pass_context
 def main(
@@ -77,15 +78,13 @@ def main(
     dry_run: bool,
     online: bool,
     no_containers: bool,
+    log_level: str,
 ) -> None:
-    log_level = "debug" if debug else "info"
+    log_level = "debug" if debug else log_level
     setup_logging(log_level)
 
     ctx.debug = debug
     ctx.dry_run = dry_run
-
-    if ctx.debug:
-        os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
     if online:
         logger.info("Running in online mode")
@@ -94,7 +93,9 @@ def main(
         )
     if no_containers:
         logger.info("Running without containers")
-        click_context.with_resource(override_env("CF_TICK_IN_CONTAINER", "true"))
+        click_context.with_resource(
+            override_env("CF_FEEDSTOCK_OPS_IN_CONTAINER", "true")
+        )
 
 
 @main.command(name="gather-all-feedstocks")
@@ -112,16 +113,29 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, update the nodes and edges in the graph. Otherwise, only update the node attrs.",
 )
+@click.option(
+    "--schema-migration-only",
+    is_flag=True,
+    help="If given, only migrate the schema of the node attrs.",
+)
 @pass_context
 def make_graph(
-    ctx: CliContext, job: int, n_jobs: int, update_nodes_and_edges: bool
+    ctx: CliContext,
+    job: int,
+    n_jobs: int,
+    update_nodes_and_edges: bool,
+    schema_migration_only: bool,
 ) -> None:
     from . import make_graph
 
     check_job_param_relative(job, n_jobs)
 
     make_graph.main(
-        ctx, job=job, n_jobs=n_jobs, update_nodes_and_edges=update_nodes_and_edges
+        ctx,
+        job=job,
+        n_jobs=n_jobs,
+        update_nodes_and_edges=update_nodes_and_edges,
+        schema_migration_only=schema_migration_only,
     )
 
 
@@ -134,7 +148,7 @@ def make_graph(
 )
 @pass_context
 def update_upstream_versions(
-    ctx: CliContext, job: int, n_jobs: int, package: Optional[str]
+    ctx: CliContext, job: int, n_jobs: int, package: str | None
 ) -> None:
     """
     Update the upstream versions of feedstocks in the graph.
@@ -148,6 +162,14 @@ def update_upstream_versions(
     update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, package=package)
 
 
+@main.command(name="prep-auto-tick")
+@pass_context
+def prep_auto_tick(ctx: CliContext) -> None:
+    from . import auto_tick
+
+    auto_tick.main_prep(ctx)
+
+
 @main.command(name="auto-tick")
 @pass_context
 def auto_tick(ctx: CliContext) -> None:
@@ -157,22 +179,33 @@ def auto_tick(ctx: CliContext) -> None:
 
 
 @main.command(name="make-status-report")
-def make_status_report() -> None:
+@click.option(
+    "--migrators",
+    multiple=True,
+    help="Only generate status report for specific migrators (by name or report_name). Can be specified multiple times.",
+)
+def make_status_report(migrators: tuple[str, ...]) -> None:
     from . import status_report
 
-    status_report.main()
+    migrator_filter = list(migrators) if migrators else None
+    status_report.main(migrator_filter=migrator_filter)
 
 
 @main.command(name="update-prs")
 @job_option
 @n_jobs_option
+@click.option(
+    "--feedstock",
+    default=None,
+    help="Only update PRs for this specific feedstock (must end with '-feedstock' suffix)",
+)
 @pass_context
-def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
+def update_prs(ctx: CliContext, job: int, n_jobs: int, feedstock: str | None) -> None:
     from . import update_prs
 
     check_job_param_relative(job, n_jobs)
 
-    update_prs.main(ctx, job=job, n_jobs=n_jobs)
+    update_prs.main(ctx, job=job, n_jobs=n_jobs, feedstock=feedstock)
 
 
 @main.command(name="make-mappings")
@@ -183,11 +216,49 @@ def make_mappings() -> None:
 
 
 @main.command(name="deploy-to-github")
+@click.option(
+    "--no-pull",
+    is_flag=True,
+    help="Do not pull the changes to the local repo after deployment.",
+)
+@click.option(
+    "--git-only",
+    is_flag=True,
+    help="If given, only deploy graph data to GitHub via the git command line.",
+)
+@click.option(
+    "--dirs-to-ignore",
+    default=None,
+    help=(
+        "Comma-separated list of directories to ignore. If given, directories will "
+        "not be deployed."
+    ),
+)
+@click.option(
+    "--dirs-to-deploy",
+    default=None,
+    help=(
+        "Comma-separated list of directories to deplot. If given, all other "
+        "directories will be ignored."
+    ),
+)
 @pass_context
-def deploy_to_github(ctx: CliContext) -> None:
+def deploy_to_github(
+    ctx: CliContext,
+    git_only: bool,
+    dirs_to_ignore: str,
+    dirs_to_deploy: str,
+    no_pull: bool,
+) -> None:
     from . import deploy
 
-    deploy.deploy(ctx)
+    deploy.deploy(
+        dry_run=ctx.dry_run,
+        git_only=git_only,
+        dirs_to_ignore=[] if dirs_to_ignore is None else dirs_to_ignore.split(","),
+        dirs_to_deploy=[] if dirs_to_deploy is None else dirs_to_deploy.split(","),
+        no_pull=no_pull,
+    )
 
 
 @main.command(name="backup-lazy-json")
@@ -227,9 +298,7 @@ def make_import_to_package_mapping(
     ctx: CliContext,
     max_artifacts: int,
 ) -> None:
-    """
-    Make the import to package mapping.
-    """
+    """Make the import to package mapping."""
     from . import import_to_pkg
 
     import_to_pkg.main(ctx, max_artifacts)
@@ -240,12 +309,47 @@ def make_import_to_package_mapping(
 def make_migrators(
     ctx: CliContext,
 ) -> None:
-    """
-    Make the migrators.
-    """
+    """Make the migrators."""
     from . import make_migrators as _make_migrators
 
     _make_migrators.main(ctx)
+
+
+@main.command(name="react-to-event")
+@click.option(
+    "--event",
+    required=True,
+    help="The event to react to.",
+    type=click.Choice(["pr", "push"]),
+)
+@click.option(
+    "--uid",
+    required=True,
+    help=(
+        "The unique identifier of the event. It is the PR "
+        "id for PR events or the feedstock name for push events"
+    ),
+    type=str,
+)
+@pass_context
+def react_to_event(
+    ctx: CliContext,
+    event: str,
+    uid: str,
+) -> None:
+    """React to an event."""
+    from .events import react_to_event
+
+    react_to_event(ctx, event, uid)
+
+
+@main.command(name="clean-disk-space")
+@click.option("--ci-service", required=True, type=click.Choice(["github-actions"]))
+def clean_disk_space(ci_service) -> None:
+    """Clean up disk space on CI services."""
+    from .os_utils import clean_disk_space
+
+    clean_disk_space(ci_service)
 
 
 if __name__ == "__main__":

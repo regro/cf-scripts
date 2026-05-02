@@ -1,0 +1,453 @@
+name: tests-reusable
+
+on:
+  workflow_call:
+    inputs:
+      lockfile:
+        description: "The lockfile to use"
+        required: false
+        default: "conda-lock.yml"
+        type: string
+      lockfile-is-artifact:
+        description: "Whether the lockfile is an artifact"
+        required: false
+        default: false
+        type: boolean
+      skip:
+        description: Skip the tests.
+        required: false
+        default: 'false'
+        type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+      BOT_TOKEN:
+        required: true
+
+env:
+  PY_COLORS: "1"
+  IMAGE_NAME: conda-forge-tick
+
+jobs:
+  tests:
+    name: tests
+    runs-on: "ubuntu-latest"
+    permissions:
+      actions: write  # for deleting cache entries
+      contents: read
+    strategy:
+      # continue running the tests even if one of the groups fails
+      fail-fast: false
+      matrix:
+        # if change the number of groups here, also change it next to --splits below
+        group: [1, 2]
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+    env:
+      NUM_SPLITS: 2
+
+    steps:
+      - name: free disk space
+        if: ${{ inputs.skip != 'true' }}
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          repository: "regro/cf-scripts"
+
+      - name: prep the lockfile
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
+        run: |
+          mkdir input-lockfile
+          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+
+      - name: download lockfile if it is an artifact
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.lockfile }}
+          path: input-lockfile
+
+      - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
+        run: |
+          mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
+          rm -rf input-lockfile
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: configure conda and install code
+        if: ${{ inputs.skip != 'true' &&  !env.CI_SKIP }}
+        run: |
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Set up git
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+      - name: test versions
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+
+          pip uninstall conda-forge-tick --yes
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
+
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+
+      - name: build docker image
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:test
+
+      - name: restore test durations
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
+
+      - name: post-process test durations
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          if [[ -f .test_durations ]]; then
+            cp .test_durations .test_durations.${{ matrix.group }}
+          fi
+          ls -lah .test_durations*
+          echo " "
+          cat .test_durations*
+
+      - name: run pytest
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          export TEST_BOT_TOKEN_VAL=unpassword
+          pytest \
+            -v \
+            -n 3 \
+            --splits ${NUM_SPLITS} --group ${{ matrix.group }} \
+            --store-durations \
+            --durations-path=.test_durations.${{ matrix.group }} \
+            --splitting-algorithm least_duration \
+            --clean-durations \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --durations=10 \
+            --retries=5 \
+            --retry-delay=10 \
+            -m "not mongodb" \
+            tests
+        env:
+          RUN_URL: ""
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: upload test durations
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          name: test-durations-${{ matrix.group }}
+          path: .test_durations.${{ matrix.group }}
+          include-hidden-files: true
+
+      - name: upload coverage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          name: coverage-${{ matrix.group }}
+          path: .coverage
+          include-hidden-files: true
+
+  tests-mongodb:
+    name: tests-mongodb
+    runs-on: "ubuntu-latest"
+    permissions:
+      actions: write  # for deleting cache entries
+      contents: read
+    strategy:
+      # continue running the tests even if one of the groups fails
+      fail-fast: false
+      matrix:
+        # if change the number of groups here, also change it next to --splits below
+        group: [1]
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - name: free disk space
+        if: ${{ inputs.skip != 'true' }}
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          repository: "regro/cf-scripts"
+
+      - name: prep the lockfile
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
+        run: |
+          mkdir input-lockfile
+          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+
+      - name: download lockfile if it is an artifact
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.lockfile }}
+          path: input-lockfile
+
+      - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
+        run: |
+          mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
+          rm -rf input-lockfile
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: configure conda and install code
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: Set up git
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+      - name: test versions
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+
+          pip uninstall conda-forge-tick --yes
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
+
+      - name: start MongoDB
+        uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # v1.12.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          mongodb-version: "latest"
+
+      - name: test mongodb is OK
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: restore test durations
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
+
+      - name: run pytest
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          export TEST_BOT_TOKEN_VAL=unpassword
+          # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
+          # MONGODB_CONNECTION_STRING sensitive environment variable
+          if [[ -f .test_durations ]]; then
+            cp .test_durations .test_durations.${{ matrix.group }}
+          fi
+          pytest \
+            -v \
+            --splits 1 --group ${{ matrix.group }} \
+            --store-durations \
+            --durations-path=.test_durations.mongodb \
+            --splitting-algorithm least_duration \
+            --clean-durations \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --durations=10 \
+            -m "mongodb" \
+            tests
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          RUN_URL: ""
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: upload test durations
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          name: test-durations-mongodb
+          path: .test_durations.mongodb
+          include-hidden-files: true
+
+      - name: upload coverage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          name: coverage-mongodb
+          path: .coverage
+          include-hidden-files: true
+
+  test-coverage-and-durations:
+    name: test-coverage-and-durations
+    needs:
+      - tests
+      - tests-mongodb
+    runs-on: ubuntu-slim
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          repository: "regro/cf-scripts"
+
+      - name: prep the lockfile
+        if:  ${{ inputs.skip != 'true' && !inputs.lockfile-is-artifact }}
+        run: |
+          mkdir input-lockfile
+          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+
+      - name: download lockfile if it is an artifact
+        if: ${{ inputs.skip != 'true' && inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.lockfile }}
+          path: input-lockfile
+
+      - name: move lockfile to repo
+        if: ${{ inputs.skip != 'true' }}
+        run: |
+          mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
+          rm -rf input-lockfile
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
+        if: ${{ inputs.skip != 'true' }}
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: download coverage artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          pattern: coverage-*
+
+      - name: combine coverage
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          coverage combine coverage-*/.coverage*
+          coverage xml
+
+      - name: upload codecov
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5.1.8
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: cache test durations
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
+
+      - name: download test duration artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          pattern: test-durations-*
+
+      - name: combine test durations
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        run: |
+          # see https://stackoverflow.com/a/71416016/1745538
+          jq 'reduce inputs as $i (.; . + $i)' test-durations-*/.test_durations.* > .test_durations
+
+      - name: upload test durations
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ inputs.skip != 'true' && !env.CI_SKIP }}
+        with:
+          name: test-durations
+          path: .test_durations
+          include-hidden-files: true
+
+  # this little bit follows the same pattern from conda-build
+  status:
+    needs:
+      - tests
+      - tests-mongodb
+      - test-coverage-and-durations
+    if: '!cancelled()'
+
+    runs-on: ubuntu-slim
+    steps:
+      - name: determine success
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
+        with:
+          jobs: ${{ toJSON(needs) }}

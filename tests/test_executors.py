@@ -8,10 +8,23 @@ from conda_forge_tick.executors import executor
 
 
 def _square_with_lock(x):
-    from conda_forge_tick.executors import DRLOCK, PRLOCK, TRLOCK
+    from conda_forge_tick.executors import (
+        GIT_LOCK_DASK,
+        GIT_LOCK_PROCESS,
+        GIT_LOCK_THREAD,
+    )
 
-    with TRLOCK, PRLOCK, DRLOCK:
-        with TRLOCK, PRLOCK, DRLOCK:
+    with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
+        with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
+            time.sleep(0.01)
+            return x * x
+
+
+def _square_with_lock_git_operation(x):
+    from conda_forge_tick.executors import lock_git_operation
+
+    with lock_git_operation():
+        with lock_git_operation():
             time.sleep(0.01)
             return x * x
 
@@ -47,6 +60,10 @@ def test_executor(kind):
 
 
 @pytest.mark.parametrize(
+    "locked_square_function",
+    [_square_with_lock, _square_with_lock_git_operation],
+)
+@pytest.mark.parametrize(
     "kind",
     [
         "thread",
@@ -56,7 +73,7 @@ def test_executor(kind):
         "dask-thread",
     ],
 )
-def test_executor_locking(kind):
+def test_executor_locking(kind, locked_square_function):
     seed = 10
     rng = np.random.RandomState(seed=seed)
     nums = rng.uniform(size=100)
@@ -74,7 +91,7 @@ def test_executor_locking(kind):
     par_tot = 0
     t0lock = time.time()
     with executor(kind, max_workers=4) as exe:
-        futs = [exe.submit(_square_with_lock, num) for num in nums]
+        futs = [exe.submit(locked_square_function, num) for num in nums]
         for fut in as_completed(futs):
             par_tot += fut.result()
     t0lock = time.time() - t0lock

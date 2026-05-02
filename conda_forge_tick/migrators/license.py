@@ -6,7 +6,7 @@ import tempfile
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.recipe_parser import CondaMetaYAML
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def replace_in_file(pattern, new, fname, leading_whitespace=True):
-    """Replaces a given pattern in a file. If leading whitespace is True,
+    """Replace a given pattern in a file. If leading whitespace is True,
     whitespace at the beginning of a line will be captured and preserved.
     Otherwise, the pattern itself must contain all leading whitespace.
 
@@ -80,7 +80,7 @@ def replace_in_file(pattern, new, fname, leading_whitespace=True):
 
 def _to_spdx(lic):
     """
-    we are munging this stuff from conda-build
+    We are munging this stuff from conda-build.
 
     d_license = {'agpl3': ['AGPL-3', 'AGPL (>= 3)', 'AGPL',
                            'GNU Affero General Public License'],
@@ -179,12 +179,12 @@ def _munge_licenses(lparts):
 
 
 def _scrape_license_string(pkg):
-    d = {}
+    d: dict[str, str | list[str] | None] = {}
 
     if pkg.startswith("r-"):
         pkg = pkg[2:]
 
-    logger.info("LICENSE running cran skeleton for pkg %s" % pkg)
+    logger.info("LICENSE running cran skeleton for pkg %s", pkg)
 
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
@@ -218,7 +218,7 @@ def _scrape_license_string(pkg):
     d["license_file"] = [
         lf for lf in cmeta.meta.get("about", {}).get("license_file", [])
     ]
-    if len(d["license_file"]) == 0:
+    if len(d["license_file"]) == 0:  # type: ignore[arg-type] # this is not a typed dict
         d["license_file"] = None
 
     if "cran_license" in d:
@@ -242,7 +242,7 @@ def _scrape_license_string(pkg):
 def _do_r_license_munging(pkg, recipe_dir):
     try:
         d = _scrape_license_string(pkg)
-        logger.info("LICENSE R package license data: %s" % d)
+        logger.info("LICENSE R package license data: %s", d)
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             cmeta = CondaMetaYAML(fp.read())
@@ -259,7 +259,7 @@ def _do_r_license_munging(pkg, recipe_dir):
             cmeta.dump(fp)
 
     except Exception as e:
-        logger.info("LICENSE R license ERROR: %s" % repr(e))
+        logger.info("LICENSE R license ERROR: %s", repr(e))
         pass
 
 
@@ -293,7 +293,9 @@ class LicenseMigrator(MiniMigrator):
             or any(n in license_fam for n in NEEDED_FAMILIES)
             or _is_r(attrs)
         ) and "license_file" not in attrs.get("meta_yaml", {}).get("about", {}):
-            return False
+            return False or skip_migrator_due_to_schema(
+                attrs, self.allowed_schema_versions
+            )
         return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
@@ -303,8 +305,8 @@ class LicenseMigrator(MiniMigrator):
             or attrs.get("name", "").startswith("r-")
         ) and "r-base" in attrs["raw_meta_yaml"]:
             if attrs.get("feedstock_name", None) is not None:
-                if attrs.get("feedstock_name", None).endswith("-feedstock"):
-                    name = attrs.get("feedstock_name")[: -len("-feedstock")]
+                if attrs.get("feedstock_name", None).endswith("-feedstock"):  # type: ignore[union-attr] # this is not a typed dict
+                    name = attrs.get("feedstock_name")[: -len("-feedstock")]  # type: ignore[arg-type,index] # this is not a typed dict
                 else:
                     name = attrs.get("feedstock_name")
             else:

@@ -1,0 +1,40 @@
+context:
+  name: dagster_spark
+  version: 0.6.5
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: "https://pypi.io/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz"
+  sha256: 4b7bf11c1436a277b757afaeb79e07562720d4339e8293d6d5d4849d5f4c1549
+
+build:
+  number: 100
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+  run:
+    - python
+    - dagster ${{ version }}.*
+
+tests:
+  - python:
+      imports:
+        - dagster_spark
+
+about:
+  homepage: "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-spark"
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: "Package for Spark Dagster framework components."
+
+extra:
+  recipe-maintainers:
+    - conda-forge/dagster

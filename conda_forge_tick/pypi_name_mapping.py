@@ -1,20 +1,21 @@
 """
-Builds and maintains mapping of pypi-names to conda-forge names
+Builds and maintains mapping of pypi-names to conda-forge names.
 
 1: Packages should be build from a `https://pypi.io/packages/` source
 2: Packages MUST have a test: imports section importing it
 """
 
 import functools
-import json
 import math
 import os
 import pathlib
 import traceback
 from collections import Counter, defaultdict
+from collections.abc import Collection
 from os.path import commonprefix
-from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
+from typing import Any, Literal, TypedDict
 
+import orjson
 import requests
 import yaml
 from packaging.utils import NormalizedName as PypiName
@@ -23,12 +24,12 @@ from packaging.utils import canonicalize_name as canonicalize_pypi_name
 from .import_to_pkg import IMPORT_TO_PKG_DIR_CLOBBERING
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
-    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_all_keys_for_hashmap,
     loads,
 )
+from .settings import settings
 from .utils import as_iterable, load_existing_graph
 
 
@@ -39,7 +40,7 @@ class Mapping(TypedDict):
     mapping_source: str
 
 
-def load_node_meta_yaml(node: str) -> Optional[Dict[str, str]]:
+def load_node_meta_yaml(node: str) -> dict[str, str] | None:
     node_attr = LazyJson(f"node_attrs/{node}.json")
     if node_attr.get("archived", False):
         return None
@@ -48,8 +49,8 @@ def load_node_meta_yaml(node: str) -> Optional[Dict[str, str]]:
 
 
 def extract_pypi_name_from_metadata_extras(
-    meta_yaml: Dict[str, Any],
-) -> Optional[PypiName]:
+    meta_yaml: dict[str, Any],
+) -> PypiName | None:
     raw = meta_yaml.get("extra", {}).get("mappings", {}).get("python", {}).get("pypi")
     if raw is not None:
         return canonicalize_pypi_name(raw)
@@ -57,8 +58,8 @@ def extract_pypi_name_from_metadata_extras(
 
 
 def extract_pypi_name_from_metadata_source_url(
-    meta_yaml: Dict[str, Any],
-) -> Optional[PypiName]:
+    meta_yaml: dict[str, Any],
+) -> PypiName | None:
     if "source" in meta_yaml:
         if "url" in meta_yaml["source"]:
             src_urls = meta_yaml["source"]["url"]
@@ -74,8 +75,8 @@ def extract_pypi_name_from_metadata_source_url(
 
 
 def extract_import_name_from_metadata_extras(
-    meta_yaml: Dict[str, Any],
-) -> Optional[str]:
+    meta_yaml: dict[str, Any],
+) -> str | None:
     return (
         meta_yaml.get("extra", {})
         .get("mappings", {})
@@ -84,7 +85,7 @@ def extract_import_name_from_metadata_extras(
     )
 
 
-_KNOWN_NAMESPACE_PACKAGES: List[str] = [
+_KNOWN_NAMESPACE_PACKAGES: list[str] = [
     "azure",
     "backports",
     "bob",
@@ -98,16 +99,16 @@ _KNOWN_NAMESPACE_PACKAGES: List[str] = [
     "zope",
 ]
 
-KNOWN_NAMESPACE_PACKAGES: Set[Tuple[str, ...]] = {
+KNOWN_NAMESPACE_PACKAGES: set[tuple[str, ...]] = {
     tuple(imp.split(".")) for imp in _KNOWN_NAMESPACE_PACKAGES
 }
 
 
 def _imports_to_canonical_import(
-    split_imports: Set[Tuple[str, ...]],
+    split_imports: set[tuple[str, ...]],
     parent_prefix=(),
-) -> Union[Tuple[str, ...], Literal[""]]:
-    """Extract the canonical import name from a list of imports
+) -> tuple[str, ...] | Literal[""]:
+    """Extract the canonical import name from a list of imports.
 
     We have two rules.
 
@@ -120,7 +121,7 @@ def _imports_to_canonical_import(
     3. Otherwise return the commonprefix
 
     """
-    prefix: Union[Tuple[str, ...], Literal[""]] = commonprefix(list(split_imports))  # type: ignore
+    prefix: tuple[str, ...] | Literal[""] = commonprefix(list(split_imports))  # type: ignore
     c = Counter(len(imp) for imp in split_imports)
     if (
         len(prefix) == 1
@@ -139,19 +140,19 @@ def _imports_to_canonical_import(
     return prefix
 
 
-def imports_to_canonical_import(imports: Set[str]) -> str:
+def imports_to_canonical_import(imports: set[str]) -> str:
     import_tuple = _imports_to_canonical_import(
         {tuple(imp.split(".")) for imp in imports},
     )
     return ".".join(import_tuple)
 
 
-def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional[str]:
+def extract_import_name_from_test_imports(meta_yaml: dict[str, Any]) -> str | None:
     imports = set(meta_yaml.get("test", {}).get("imports", []) or [])
     return imports_to_canonical_import(imports)
 
 
-def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Optional[Mapping]:
+def extract_single_pypi_information(meta_yaml: dict[str, Any]) -> Mapping | None:
     pypi_name = extract_pypi_name_from_metadata_extras(
         meta_yaml,
     ) or extract_pypi_name_from_metadata_source_url(meta_yaml)
@@ -170,8 +171,8 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Optional[Mappi
     return None
 
 
-def extract_pypi_information() -> List[Mapping]:
-    package_mappings: List[Mapping] = []
+def extract_pypi_information() -> list[Mapping]:
+    package_mappings: list[Mapping] = []
     nodes = get_all_keys_for_hashmap("node_attrs")
     for node in nodes:
         meta_yaml = load_node_meta_yaml(node)
@@ -187,14 +188,15 @@ def extract_pypi_information() -> List[Mapping]:
 
 
 def convert_to_grayskull_style_yaml(
-    best_imports: Dict[str, Mapping],
-) -> Dict[PypiName, Mapping]:
+    best_imports: dict[str, Mapping],
+) -> dict[PypiName, Mapping]:
     """Convert our list style mapping to the pypi-centric version
-    required by grayskull by reindexing on the PyPI name"""
+    required by grayskull by reindexing on the PyPI name.
+    """
     package_mappings = best_imports.values()
     sorted_mappings = sorted(package_mappings, key=lambda mapping: mapping["pypi_name"])
 
-    grayskull_fmt: Dict[PypiName, Mapping] = {}
+    grayskull_fmt: dict[PypiName, Mapping] = {}
     for mapping in sorted_mappings:
         pypi_name = mapping["pypi_name"]
         if pypi_name not in grayskull_fmt:
@@ -213,10 +215,10 @@ def convert_to_grayskull_style_yaml(
 
 
 def add_missing_pypi_names(
-    pypi_mapping: Dict[PypiName, Mapping],
-    mappings: List[Mapping],
-    overrides: List[Mapping],
-) -> Dict[PypiName, Mapping]:
+    pypi_mapping: dict[PypiName, Mapping],
+    mappings: list[Mapping],
+    overrides: list[Mapping],
+) -> dict[PypiName, Mapping]:
     """Add missing PyPI names to the Grayskull mapping.
 
     The `convert_to_grayskull_style_yaml` function reindexes from the import name
@@ -224,8 +226,8 @@ def add_missing_pypi_names(
     only the winner is represented in the resulting Grayskull mapping. This function
     adds the missing PyPI names back in.
     """
-    unsorted_mapping: Dict[PypiName, Mapping] = pypi_mapping.copy()
-    missing_mappings_by_pypi_name: Dict[PypiName, List[Mapping]] = defaultdict(list)
+    unsorted_mapping: dict[PypiName, Mapping] = pypi_mapping.copy()
+    missing_mappings_by_pypi_name: dict[PypiName, list[Mapping]] = defaultdict(list)
     for mapping in mappings:
         pypi_name = mapping["pypi_name"]
         if pypi_name not in unsorted_mapping:
@@ -240,10 +242,15 @@ def add_missing_pypi_names(
     return dict(sorted(unsorted_mapping.items()))
 
 
-def resolve_collisions(collisions: List[Mapping]) -> Mapping:
+def resolve_collisions(collisions: list[Mapping]) -> Mapping:
     """Given a list of colliding mappings, try to resolve the collision
     by picking out the unique mapping whose source is from the static mappings file.
     If there is a problem, then make a guess, print a warning, and continue.
+
+    Raises
+    ------
+    ValueError
+        If there are no collisions to resolve.
     """
     if len(collisions) == 0:
         raise ValueError("No collisions to resolve!")
@@ -270,7 +277,7 @@ def resolve_collisions(collisions: List[Mapping]) -> Mapping:
         return statics[-1]
 
 
-def load_static_mappings() -> List[Mapping]:
+def load_static_mappings() -> list[Mapping]:
     path = pathlib.Path(__file__).parent / "pypi_name_mapping_static.yaml"
     with path.open("r") as fp:
         mapping = yaml.safe_load(fp)
@@ -293,12 +300,12 @@ def chop(x: float) -> float:
 
 
 def determine_best_matches_for_pypi_import(
-    mapping: List[Mapping],
-) -> Tuple[Dict[str, Mapping], List[Dict]]:
-    map_by_import_name: Dict[str, List[Mapping]] = defaultdict(list)
-    map_by_conda_name: Dict[str, Mapping] = dict()
-    final_map: Dict[str, Mapping] = {}
-    ordered_import_names: List[Dict] = []
+    mapping: list[Mapping],
+) -> tuple[dict[str, Mapping], list[dict]]:
+    map_by_import_name: dict[str, list[Mapping]] = defaultdict(list)
+    map_by_conda_name: dict[str, Mapping] = dict()
+    final_map: dict[str, Mapping] = {}
+    ordered_import_names: list[dict] = []
 
     for m in mapping:
         # print(m)
@@ -310,6 +317,7 @@ def determine_best_matches_for_pypi_import(
     gx = load_existing_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
+    clobberers: Collection
     try:
         if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(
             IMPORT_TO_PKG_DIR_CLOBBERING
@@ -320,7 +328,7 @@ def determine_best_matches_for_pypi_import(
             clobberers = loads(
                 requests.get(
                     os.path.join(
-                        CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                        settings().graph_github_backend_raw_base_url,
                         IMPORT_TO_PKG_DIR_CLOBBERING,
                     )
                 ).text,
@@ -347,8 +355,10 @@ def determine_best_matches_for_pypi_import(
     }
 
     def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
-        """A higher score means less preferred"""
-        mapping_src = map_by_conda_name.get(conda_name, {}).get(
+        """Get the score.
+        A higher score means less preferred.
+        """
+        mapping_src = map_by_conda_name.get(conda_name, {}).get(  # type: ignore[call-overload]
             "mapping_source",
             "other",
         )
@@ -367,7 +377,7 @@ def determine_best_matches_for_pypi_import(
         )
 
     def score(pkg_name):
-        """Base the score on
+        """Score a package name.
 
         Packages that are hubs are preferred.
         In the event of ties, fall back to the one with the lower authority score
@@ -413,36 +423,44 @@ def determine_best_matches_for_pypi_import(
 
 def main() -> None:
     # Statically defined mappings from pypi_name_mapping_static.yaml
-    static_packager_mappings: List[Mapping] = load_static_mappings()
+    static_package_mappings: list[Mapping] = load_static_mappings()
 
     # Mappings extracted from the graph
-    pypi_package_mappings: List[Mapping] = extract_pypi_information()
+    pypi_package_mappings: list[Mapping] = extract_pypi_information()
 
     # best_imports is indexed by import_name.
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
-        mapping=pypi_package_mappings + static_packager_mappings,
+        mapping=pypi_package_mappings + static_package_mappings,
     )
 
     grayskull_style_from_imports = convert_to_grayskull_style_yaml(best_imports)
     grayskull_style = add_missing_pypi_names(
         grayskull_style_from_imports,
         pypi_package_mappings,
-        static_packager_mappings,
+        static_package_mappings,
     )
 
     dirname = pathlib.Path(".") / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+
+    def json_dump(obj, fp):
+        fp.write(
+            orjson.dumps(obj, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2).decode(
+                "utf-8"
+            )
+        )
+
     # import pdb; pdb.set_trace()
-    for dumper, suffix in ((yaml_dump, "yaml"), (json.dump, "json")):
+    for dumper, suffix in ((yaml_dump, "yaml"), (json_dump, "json")):
         with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
             dumper(grayskull_style, fp)
 
         with (dirname / f"name_mapping.{suffix}").open("w") as fp:
             dumper(
                 sorted(
-                    static_packager_mappings + pypi_package_mappings,
+                    static_package_mappings + pypi_package_mappings,
                     key=lambda pkg: pkg["conda_name"],
                 ),
                 fp,

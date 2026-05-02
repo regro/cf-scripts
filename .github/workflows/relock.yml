@@ -2,8 +2,9 @@ name: relock
 
 on:
   workflow_dispatch: null
+  issue_comment: null
   schedule:
-    - cron: '15 */3 * * *'
+    - cron: '30 * * * *'
 
 concurrency: relock
 
@@ -11,49 +12,34 @@ jobs:
   relock:
     name: relock
     runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
-
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
+      - name: free disk space
+        uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      - name: relock
-        id: relock
+      - name: stop me if needed
         run: |
-          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
-          {
-            echo 'SUMMARY<<EOF'
-            cat summary.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-          rm summary.txt
+          python autotick-bot/stop_me_if_needed.py
 
-      - name: Open PR
-        id: pr
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e # v6
+      - uses: conda-incubator/relock-conda@a2bc3539342497f43c9f13d322b24d8f17276f6e # v28
+        if: ${{ ! env.CI_SKIP }}
         with:
-          commit-message: relock w/ conda-lock
-          title: relock w/ conda-lock
-          body: "This pull request relocks the dependencies with conda-lock.
-
-
-            ${{ steps.relock.outputs.SUMMARY }}"
-          branch: relock-deps
-          delete-branch: true
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          committer: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          labels: dependencies
-
-      - name: automerge
-        if: ${{ steps.pr.outputs.pull-request-number != '' }}
-        run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          automerge: true
+          skip-if-pr-exists: true
+          git-user-name: regro-cf-autotick-bot
+          merge-as-admin-packages: 'conda-forge-pinning'

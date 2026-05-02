@@ -1,0 +1,83 @@
+{% if polars_variant == "polars-lts-cpu" %}
+  {% set name = "polars-lts-cpu" %}
+{% elif polars_variant == "polars-u64-idx" %}
+  {% set name = "polars-u64-idx" %}
+{% else %}
+  {% set name = "polars" %}
+{% endif %}
+{% set version = "1.1.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name | replace("-", "_") }}-{{ version }}.tar.gz
+    sha256: 75fe824243006ada0f2dd30c8aba0ec03595d9087b29c3ca8f106ef1a975b9cb  # [polars_variant == "polars"]
+    sha256: a9add68d6cf992f8d8bb79c5b8bd73549af504108b8774c5e5d2fc6c751ea48c  # [polars_variant == "polars-lts-cpu"]
+    sha256: ecbfe1bab9367270399490780dd1700d824a9255fd509d22497095029c19ae6b  # [polars_variant == "polars-u64-idx"]
+
+
+build:
+  number: 0
+  skip: true  # [win and python_impl=="pypy"]
+
+requirements:
+  build:
+    - python                              # [build_platform != target_platform]
+    # there is no cross-python for linux-64 -> win-64
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform and not target_platform == "win-64"]
+    - crossenv                            # [build_platform != target_platform]
+    - maturin >=1.3.2,<2                  # [build_platform != target_platform]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}               # [win]
+    # clang_win-64 already adds all required run_exports for the windows build
+    - {{ stdlib("c") }}  # [not (build_platform == "linux-64" and target_platform == "win-64")]
+    - {{ compiler('rust') }}
+    - posix                               # [build_platform == "win-64"]
+    - cmake
+    - make                                # [unix]
+    - cargo-feature                       # [build_platform != target_platform and target_platform == "win-64"]
+    - cargo-bundle-licenses
+  host:
+    - python
+    - pip
+    - maturin >=1.3.2,<2
+  run:
+    - python
+    - numpy >=1.16.0
+    - backports.zoneinfo                   # [py<39]
+    - typing_extensions >=4.0.0            # [py<311]
+    - packaging                            # [py>=310]
+
+test:
+  imports:
+    - polars
+  commands:
+    - pip check
+    - python -c "from polars import DataFrame"
+  requires:
+    - pip
+
+about:
+  home: https://github.com/pola-rs/polars
+  license: MIT
+  license_family: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Polars is a blazingly fast DataFrames library implemented in Rust using Apache Arrow(2) as memory model.
+  doc_url: https://pola-rs.github.io/polars-book/user-guide/index.html
+  dev_url: https://github.com/pola-rs/polars
+
+extra:
+  recipe-maintainers:
+    - borchero
+    - Maxyme
+    - timkpaine
+    - ritchie46
+    - sugatoray
+    - xhochy
+    - dhirschfeld
+    - pavelzw
+    - '0xbe7a'

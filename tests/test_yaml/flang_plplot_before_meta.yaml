@@ -1,0 +1,60 @@
+{% set name = "plplot" %}
+{% set version = "1.9.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # url: http://downloads.sourceforge.net/sourceforge/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  # sha256: b92de4d8f626a9b20c84fc94f4f6a9976edd76e33fb1eae44f6804bdcc628c7b
+  # patches:
+  #   - plgridd.c-rename.patch  # [win]
+
+build:
+  number: 0
+  run_exports:
+    - {{ pin_subpackage(name, max_pin='x') }}
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ stdlib("c") }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}  # [unix]
+    - {{ compiler('m2w64_fortran') }}  # [win]
+    - clang  # [win]
+    - cmake
+    - ninja
+    - pkg-config
+  host:
+    - tk
+    - cairo <1.18  # [win]
+    - cairo        # [not win]
+    - pango
+    - zlib
+    - glib
+  run:
+    - tk
+
+test:
+  requires:
+    - pkg-config
+  commands:
+    - pkg-config --exact-version {{ version }} {{ name }}
+    - pkg-config --exact-version {{ version }} {{ name }}-tcl
+    - pkg-config --exact-version {{ version }} {{ name }}-fortran
+    - pkg-config --exact-version {{ version }} {{ name }}-c++
+
+about:
+  home: http://plplot.sourceforge.net
+  license: LGPL-2.0-or-later
+  license_file: Copyright
+  summary: A cross-platform software package for creating scientific plots
+
+extra:
+  recipe-maintainers:
+    - awvwgk

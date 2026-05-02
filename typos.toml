@@ -1,0 +1,19 @@
+[files]
+extend-exclude = [
+    ".git/**",
+    ".pixi/**",
+    "**/*.yaml",
+    "tests/test_parse_munged_run_export.py",
+    "conda-lock.yml",
+    "tests_integration/mitmproxy_setup_wizard.sh",
+]
+ignore-hidden = false
+
+[default]
+extend-ignore-re = [
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+]
+
+[default.extend-identifiers]
+rever = "rever"
+Rever = "Rever"

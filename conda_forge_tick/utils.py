@@ -3,31 +3,50 @@ import copy
 import datetime
 import io
 import itertools
-import json
 import logging
 import os
 import pprint
+import re
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
+from pathlib import Path
+from typing import (
+    Any,
+    ContextManager,
+    cast,
+)
 
+import dateparser
 import jinja2
 import jinja2.sandbox
 import networkx as nx
+import orjson
 import ruamel.yaml
+from conda.models.version import VersionOrder
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from rattler_build_conda_compat.outputs import flatten_staging_inheritance
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
+from .migrators_types import AttrsTypedDict
+from .recipe_parser import CondaMetaYAML
+from .settings import ENV_CONDA_FORGE_ORG, ENV_GRAPH_GITHUB_BACKEND_REPO, settings
 
 if typing.TYPE_CHECKING:
-    from mypy_extensions import TypedDict
+    from typing import TypedDict
 
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict
+from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +82,7 @@ CB_CONFIG = dict(
 )
 
 
-def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
+def _munge_dict_repr(dct: dict[Any, Any]) -> str:
     from urllib.parse import quote_plus
 
     return "__quote_plus__" + quote_plus(repr(dct)) + "__quote_plus__"
@@ -93,7 +112,7 @@ DEFAULT_GRAPH_FILENAME = "graph.json"
 DEFAULT_CONTAINER_TMPFS_SIZE_MB = 6000
 
 
-def parse_munged_run_export(p: str) -> Dict:
+def parse_munged_run_export(p: str) -> dict:
     from urllib.parse import unquote_plus
 
     # get rid of comments
@@ -110,184 +129,14 @@ def parse_munged_run_export(p: str) -> Dict:
             p = p[: -len("__quote_plus__")]
         p = unquote_plus(p)
 
-    return cast(Dict, yaml_safe_load(p))
+    return cast(dict, yaml_safe_load(p))
 
 
-def get_default_container_name():
-    """Get the default container name for the bot.
-
-    If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
-    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
-    """
-    if os.environ.get("CF_TICK_PYTEST", "false") == "true":
-        cname = "conda-forge-tick:test"
-    else:
-        cname = "ghcr.io/regro/conda-forge-tick:master"
-
-    return cname
-
-
-class ContainerRuntimeError(RuntimeError):
-    """An error raised when running a container fails."""
-
-    def __init__(self, *, error, name, cmd, returncode, traceback=None):
-        self.name = name
-        self.cmd = cmd
-        self.returncode = returncode
-        self.traceback = traceback
-        super().__init__(error)
-
-
-def get_default_container_run_args(
-    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
-):
-    """Get the default arguments for running a container.
-
-    Parameters
-    ----------
-    tmpfs_size_mb : int, optional
-        The size of the tmpfs in MB, by default 10.
-
-    Returns
-    -------
-    list
-        The command to run a container.
-    """
-    tmpfs_size_bytes = tmpfs_size_mb * 1000 * 1000
-    return [
-        "docker",
-        "run",
-        "-e",
-        "CF_TICK_IN_CONTAINER=true",
-        "--security-opt=no-new-privileges",
-        "--read-only",
-        "--cap-drop=all",
-        "--mount",
-        f"type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size={tmpfs_size_bytes}",
-        "-m",
-        "6000m",
-        "--cpus",
-        "1",
-        "--ulimit",
-        "nofile=1024:1024",
-        "--ulimit",
-        "nproc=2048:2048",
-        "--rm",
-        "-i",
-    ]
-
-
-def run_container_task(
-    name: str,
-    args: Iterable[str],
-    json_loads: Optional[Callable] = json.loads,
-    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
-    input: Optional[str] = None,
-    mount_dir: Optional[str] = None,
-    mount_readonly: bool = True,
-):
-    """Run a bot task in a container.
-
-    Parameters
-    ----------
-    name
-        The name of the task.
-    args
-        The arguments to pass to the container.
-    json_loads
-        The function to use to load JSON to a string, by default `json.loads`.
-    tmpfs_size_mb
-        The size of the tmpfs in MB, by default 10.
-    input
-        The input to pass to the container, by default None.
-    mount_dir
-        The directory to mount to the container at `/cf_tick_dir`, by default None.
-    mount_readonly
-        Whether to mount the directory as read-only, by default True.
-
-    Returns
-    -------
-    data : dict-like
-        The result of the task.
-    """
-    if mount_dir is not None:
-        mount_dir = os.path.abspath(mount_dir)
-        mnt_args = ["--mount", f"type=bind,source={mount_dir},destination=/cf_tick_dir"]
-        if mount_readonly:
-            mnt_args[-1] += ",readonly"
-    else:
-        mnt_args = []
-
-    log_level_str = str(logging.getLevelName(logger.getEffectiveLevel())).lower()
-    logger.debug("computed effective logging level: %s", log_level_str)
-
-    cmd = [
-        *get_default_container_run_args(tmpfs_size_mb=tmpfs_size_mb),
-        *mnt_args,
-        get_default_container_name(),
-        "/opt/conda/envs/cf-scripts/bin/python",
-        "-u",
-        "/opt/autotick-bot/docker/run_bot_task.py",
-        name,
-        *args,
-        "--log-level",
-        log_level_str,
-    ]
-    res = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        text=True,
-        input=input,
-    )
-    # we handle this ourselves to customize the error message
-    if res.returncode != 0:
-        raise ContainerRuntimeError(
-            error=f"Error running {name} in container - return code {res.returncode}:"
-            f"\ncmd: {pprint.pformat(cmd)}"
-            f"\noutput: {pprint.pformat(res.stdout)}",
-            name=name,
-            cmd=pprint.pformat(cmd),
-            returncode=res.returncode,
-        )
-
-    try:
-        ret = json_loads(res.stdout)
-    except json.JSONDecodeError:
-        raise ContainerRuntimeError(
-            error=f"Error running {name} in container - JSON could not parse stdout:"
-            f"\ncmd: {pprint.pformat(cmd)}"
-            f"\noutput: {pprint.pformat(res.stdout)}",
-            name=name,
-            cmd=pprint.pformat(cmd),
-            returncode=res.returncode,
-        )
-
-    if "error" in ret:
-        ret_str = (
-            ret["error"]
-            .split("(", maxsplit=1)[1]
-            .rsplit(")", maxsplit=1)[0]
-            .encode("raw_unicode_escape")
-            .decode("unicode_escape")
-        )
-        raise ContainerRuntimeError(
-            error=f"Error running {name} in container - error {ret['error'].split('(')[0]} raised:\n{ret_str}",
-            name=name,
-            cmd=pprint.pformat(cmd),
-            returncode=res.returncode,
-            traceback=ret["traceback"]
-            .encode("raw_unicode_escape")
-            .decode("unicode_escape"),
-        )
-
-    return ret["data"]
-
-
-REPRINTED_LINES = {}
+REPRINTED_LINES: dict[str, set[str]] = {}
 
 
 @contextlib.contextmanager
-def filter_reprinted_lines(key):
+def filter_reprinted_lines(key: str):
     global REPRINTED_LINES
     if key not in REPRINTED_LINES:
         REPRINTED_LINES[key] = set()
@@ -335,12 +184,12 @@ def fold_log_lines(title):
 
 
 def yaml_safe_load(stream):
-    """Load a yaml doc safely"""
+    """Load a yaml doc safely."""
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
 
 
 def yaml_safe_dump(data, stream=None):
-    """Dump a yaml object"""
+    """Dump a yaml object."""
     yaml = ruamel.yaml.YAML(typ="safe", pure=True)
     yaml.default_flow_style = False
     return yaml.dump(data, stream=stream)
@@ -360,7 +209,6 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         The text of the meta.yaml with Jinja2 variables replaced.
 
     """
-
     cfg = dict(**kwargs)
 
     env = jinja2.sandbox.SandboxedEnvironment(undefined=NullUndefined)
@@ -380,6 +228,598 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         raise
 
 
+def parse_recipe_yaml(
+    text: str,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: Path | str | None = None,
+    use_container: bool | None = None,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    cbc_path : Path | str, optional
+        The value of or path to global pinning file.
+    use_container
+        Whether to use a container to run the parsing.
+        If None, the function will use a container if the environment
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    if should_use_container(use_container=use_container):
+        return parse_recipe_yaml_containerized(
+            text,
+            for_pinning=for_pinning,
+            platform_arch=platform_arch,
+            cbc_path=cbc_path,
+        )
+    else:
+        return parse_recipe_yaml_local(
+            text,
+            for_pinning=for_pinning,
+            platform_arch=platform_arch,
+            cbc_path=cbc_path,
+        )
+
+
+def parse_recipe_yaml_containerized(
+    text: str,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: Path | str | None = None,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    **This function runs the parsing in a container.**
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    cbc_path : Path | str, optional
+        The value of or path to global pinning file.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+
+    def _run(_args, _mount_dir):
+        return run_container_operation(
+            _args,
+            input=text,
+            mount_readonly=True,
+            mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
+        )
+
+    args = [
+        "conda-forge-tick-container",
+        "parse-recipe-yaml",
+    ]
+
+    args += get_default_log_level_args(logger)
+
+    if platform_arch is not None:
+        args += ["--platform-arch", platform_arch]
+
+    if for_pinning:
+        args += ["--for-pinning"]
+
+    if cbc_path is not None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chmod(tmpdir, 0o755)
+
+            tmp_cbc_path = os.path.join(tmpdir, "cbc_path.yaml")
+            if os.path.exists(cbc_path):
+                with open(cbc_path) as fp_r:
+                    cbc_data = fp_r.read()
+            else:
+                cbc_data = str(cbc_path)
+
+            with open(tmp_cbc_path, "w") as fp:
+                fp.write(cbc_data)
+
+            args += ["--cbc-path", "/cf_feedstock_ops_dir/cbc_path.yaml"]
+
+            data = _run(args, tmpdir)
+    else:
+        data = _run(args, None)
+
+    return data
+
+
+def _flatten_requirement_pin_dicts(
+    recipes: list["RecipeTypedDict"],
+) -> list["RecipeTypedDict"]:
+    """
+    Flatten out any "pin" dictionaries.
+
+    The `${{ pin_subpackage(foo) }}` and `${{ pin_compatible(foo) }}` functions
+    are converted into dictionaries. However, we want to extract the name only.
+    """
+
+    def flatten_pin(s: str | Mapping[str, Any]) -> str:
+        if isinstance(s, Mapping):
+            if "pin_subpackage" in s:
+                return s["pin_subpackage"]["name"]
+            elif "pin_compatible" in s:
+                return s["pin_compatible"]["name"]
+            raise ValueError(f"Unknown pinning dict: {s}")
+        return s
+
+    def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
+        return [flatten_pin(s) for s in list]
+
+    def flatten_requirements(output: MutableMapping[str, Any]) -> None:
+        if "requirements" in output:
+            requirements = output["requirements"]
+            for key in ["build", "host", "run"]:
+                if key in requirements:
+                    requirements[key] = flatten_requirement_list(requirements[key])
+            if "run_exports" in requirements:
+                if isinstance(requirements["run_exports"], list):
+                    requirements["run_exports"] = flatten_requirement_list(
+                        requirements["run_exports"]
+                    )
+                else:
+                    for key in requirements["run_exports"]:
+                        requirements["run_exports"][key] = flatten_requirement_list(
+                            requirements["run_exports"][key]
+                        )
+
+    for recipe in recipes:
+        if "requirements" in recipe:
+            flatten_requirements(recipe)  # type: ignore[arg-type]
+
+        if "outputs" in recipe:
+            for output in recipe["outputs"]:
+                flatten_requirements(output)  # type: ignore[arg-type]
+
+        if "tests" in recipe:
+            # script tests can have `run` and `build` requirements
+            for test in recipe["tests"]:  # type: ignore[typeddict-item]
+                if "requirements" in test:
+                    flatten_requirements(test)
+
+    return recipes
+
+
+def parse_recipe_yaml_local(
+    text: str,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: Path | str | None = None,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    cbc_path : Path | str, optional
+        The value of or path to global pinning file.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+
+    Raises
+    ------
+    RuntimeError
+        If the recipe YAML rendering fails or no output recipes are found.
+    """
+    rendered_recipes = _render_recipe_yaml(
+        text, cbc_path=cbc_path, platform_arch=platform_arch
+    )
+    if not rendered_recipes:
+        raise RuntimeError("Failed to render recipe YAML! No output recipes found!")
+
+    if for_pinning:
+        rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
+    else:
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)  # type: ignore
+    parsed_recipes = _parse_recipes(rendered_recipes)
+    return parsed_recipes
+
+
+def replace_compiler_with_stub(text: str) -> str:
+    """
+    Replace compiler function calls with a stub function call to match the conda-build
+    output.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    str
+    """
+    # replaces ${{ compiler('c') | any | other filters }} with 'c_compiler_stub'
+    # should work even with jinja filters like ${{ compiler('c') | replace('==', '>=') }}
+    # the whole template string is replaced with the stub
+    pattern = r"""\$\{\{.*compiler\(\s*(["'])([^["']+)\1\s*\).*\}\}"""
+    text = re.sub(pattern, lambda m: f"{m.group(2)}_compiler_stub", text)
+
+    pattern = r"""\$\{\{.*stdlib\(\s*(["'])([^["']+)\1\s*\).*\}\}"""
+    text = re.sub(pattern, lambda m: f"{m.group(2)}_stdlib_stub", text)
+
+    return text
+
+
+def _render_recipe_yaml(
+    text: str,
+    platform_arch: str | None = None,
+    cbc_path: str | Path | None = None,
+) -> list[dict[str, Any]]:
+    """
+    Render the given recipe YAML text using the `rattler-build` command-line tool.
+
+    Parameters
+    ----------
+    text : str
+        The recipe YAML text to render.
+    platform_arch : str, optional
+        The platform-arch (e.g., 'linux-64').
+    cbc_path : str | Path, optional
+        The value of or path to global pinning file.
+
+    Returns
+    -------
+    dict[str, Any]
+        The rendered recipe as a dictionary.
+
+    Raises
+    ------
+    RuntimeError
+        If no output recipes are found.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        if cbc_path is not None and not os.path.exists(str(cbc_path)):
+            _cbc_path = os.path.join(tmpdir, "conda_build_config.yaml")
+            with open(_cbc_path, "w") as fp:
+                fp.write(str(cbc_path))
+
+            variant_config_flags = ["--variant-config", _cbc_path]
+        else:
+            variant_config_flags = (
+                [] if cbc_path is None else ["--variant-config", str(cbc_path)]
+            )
+        target_platform_flags = (
+            []
+            if platform_arch is None or variant_config_flags
+            else ["--target-platform", platform_arch]
+        )
+
+        stubbed_text = replace_compiler_with_stub(text)
+        # rattler-build --render-only drops staging outputs and does not
+        # propagate their build/host requirements into inheriting outputs,
+        # so flatten them first to keep the dep graph complete for pinning
+        # and arch migrations.
+        prepared_text = flatten_staging_inheritance(stubbed_text)
+
+        res = subprocess.run(
+            ["rattler-build", "build", "--render-only"]
+            + variant_config_flags
+            + target_platform_flags,
+            capture_output=True,
+            text=True,
+            input=prepared_text,
+            check=False,
+        )
+        if res.stdout:
+            outputs = [output["recipe"] for output in orjson.loads(res.stdout)]
+        else:
+            outputs = []
+
+        if res.returncode != 0 or len(outputs) == 0:
+            logger.critical(
+                "error parsing recipe.yaml:\n%s\n%s", res.stdout, res.stderr
+            )
+            res.check_returncode()
+
+        if len(outputs) == 0:
+            raise RuntimeError(
+                f"Failed to render recipe YAML! No output recipes found!\n{res.stdout}\n{res.stderr}"
+            )
+        return outputs
+
+
+def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def replace_name_key(d: dict[str, Any]) -> Any:
+        for key, value in d.items():
+            if isinstance(value, dict):
+                if key in ["pin_subpackage", "pin_compatible"] and "name" in value:
+                    # Create a new dictionary with 'package_name' first
+                    new_value = {"package_name": value.pop("name")}
+                    new_value.update(value)
+                    d[key] = {"name": _munge_dict_repr(new_value)}
+                else:
+                    replace_name_key(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        replace_name_key(item)
+        return d
+
+    return [replace_name_key(recipe) for recipe in recipes]
+
+
+def _parse_recipes(
+    validated_recipes: list[dict[str, Any]],
+) -> "RecipeTypedDict":
+    """Parse validated recipes and transform them to fit `RecipeTypedDict`.
+
+    Parameters
+    ----------
+    validated_recipes : list[dict[str, Any]]
+        The recipes validated and rendered by `rattler-build`
+
+    Returns
+    -------
+    RecipeTypedDict
+        A dict conforming to conda-build's rendered output
+    """
+    # some heuristics to find the "top-level" name and version
+    # we use these in the following order
+    # 1. Does the output name match the "name" field in the context block
+    #    if present?
+    # 2. Does the output version match the "version" field in the
+    #    context block if present?
+    # 3. Does the output name match the feedstock-name in the extra
+    #    field if present?
+    if len(validated_recipes) > 1:
+        if "name" in validated_recipes[0].get("context", {}):
+            sval = validated_recipes[0]["context"]["name"]
+            skey = "name"
+        elif "version" in validated_recipes[0].get("context", {}):
+            sval = str(validated_recipes[0]["context"]["version"])
+            skey = "version"
+        elif "feedstock-name" in validated_recipes[0].get("extra", {}):
+            sval = validated_recipes[0]["extra"]["feedstock-name"]
+            skey = "name"
+        else:
+            sval = None
+            skey = None
+
+        if sval is not None and skey is not None:
+            sind = None
+            for ind, recipe in enumerate(validated_recipes):
+                if recipe.get("package", {}).get(skey, "") == sval:
+                    sind = ind
+                    break
+            if sind is not None:
+                first = validated_recipes.pop(sind)
+                validated_recipes = [first] + validated_recipes
+
+    first = validated_recipes[0]
+    about = first["about"]
+    build = first["build"]
+    requirements = first["requirements"]
+    package = first["package"]
+    source = first.get("source")
+
+    about_data = (
+        None
+        if about is None
+        else {
+            "description": about.get("description"),
+            "dev_url": about.get("repository"),
+            "doc_url": about.get("documentation"),
+            "home": about.get("homepage"),
+            "license": about.get("license"),
+            "license_family": about.get("license"),
+            "license_file": about.get("license_file", [None])[0],
+            "summary": about.get("summary"),
+        }
+    )
+
+    _parse_recipe_yaml_requirements(requirements)
+
+    build_data = (
+        None
+        if build is None or requirements is None
+        else {
+            "noarch": build.get("noarch"),
+            "number": str(build.get("number")),
+            "script": build.get("script"),
+            "run_exports": requirements.get("run_exports"),
+        }
+    )
+    package_data = (
+        None
+        if package is None
+        else {"name": package.get("name"), "version": package.get("version")}
+    )
+    if isinstance(source, list) and len(source) > 0:
+        source_data = {
+            "fn": source[0].get("file_name"),
+            "patches": source[0].get("patches"),
+            "sha256": source[0].get("sha256"),
+            "url": source[0].get("url"),
+            "git_url": source[0].get("git"),
+            "git_rev": source[0].get("tag"),
+        }
+
+    requirements_data = (
+        None
+        if requirements is None
+        else {
+            "build": requirements.get("build"),
+            "host": requirements.get("host"),
+            "run": requirements.get("run"),
+        }
+    )
+    output_data = []
+    for recipe in validated_recipes:
+        package_output = recipe.get("package")
+        requirements_output = recipe.get("requirements")
+
+        run_exports_output = (
+            None
+            if requirements_output is None
+            else requirements_output.get("run_exports")
+        )
+        requirements_output_data = (
+            None
+            if requirements_output is None
+            else {
+                "build": requirements_output.get("build", []),
+                "host": requirements_output.get("host", []),
+                "run": requirements_output.get("run", []),
+            }
+        )
+        build_output_data = (
+            None
+            if run_exports_output is None
+            else {
+                "strong": run_exports_output.get("strong", []),
+                "weak": run_exports_output.get("weak", []),
+            }
+        )
+        output_data.append(
+            {
+                "name": None if package_output is None else package_output.get("name"),
+                "version": None
+                if package_output is None
+                else package_output.get("version"),
+                "requirements": requirements_output_data,
+                "build": build_output_data,
+                "tests": recipe.get("tests", []),
+            }
+        )
+
+    parsed_recipes = {
+        "about": about_data,
+        "build": build_data,
+        "package": package_data,
+        "requirements": requirements_data,
+        "source": source_data,
+        "outputs": output_data,
+        "extra": first.get("extra"),
+    }
+
+    return _remove_none_values(parsed_recipes)
+
+
+def _parse_recipe_yaml_requirements(requirements) -> None:
+    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`.
+
+    When rendering the recipe by rattler build,
+    `requirements["run_exports"]["weak"]` gives a list looking like:
+    [
+        {
+          "pin_subpackage": {
+            "name": "slepc",
+            "lower_bound": "x.x.x.x.x.x",
+            "upper_bound": "x.x"
+          }
+        },
+        "numpy"
+    ]
+    `run_exports["weak"]` of RecipeTypedDict looks like:
+    [
+        "slepc",
+        "numpy"
+    ]
+
+    The same applies to "strong".
+
+    This function takes care of this transformation
+
+        requirements : dict
+        The requirements section of the recipe rendered by rattler-build.
+        This parameter will be modified by this function.
+    """
+    if "run_exports" not in requirements:
+        return
+
+    run_exports = requirements["run_exports"]
+    for strength in ["strong", "weak"]:
+        original = run_exports.get(strength)
+        if isinstance(original, list):
+            result = []
+            for entry in original:
+                if isinstance(entry, str):
+                    result.append(entry)
+                elif isinstance(entry, dict):
+                    for key in ["pin_subpackage", "pin_compatible"]:
+                        if key in entry and "name" in entry[key]:
+                            result.append(entry[key]["name"])
+            run_exports[strength] = result
+
+
+def _remove_none_values(d):
+    """Recursively remove dictionary entries with None values."""
+    if not isinstance(d, dict):
+        return d
+    return {k: _remove_none_values(v) for k, v in d.items() if v is not None}
+
+
+def get_recipe_schema_version(feedstock_attrs: Mapping[str, Any]) -> int:
+    """
+    Get the recipe schema version from the feedstock attributes.
+
+    Parameters
+    ----------
+    feedstock_attrs : Mapping[str, Any]
+        The feedstock attributes.
+
+    Returns
+    -------
+    int
+        The recipe version. If it does not exist in the feedstock attributes,
+        it defaults to 0.
+
+    Raises
+    ------
+    ValueError
+        If the recipe version is not an integer, i.e. the attributes are invalid.
+    """
+    version = get_keys_default(
+        feedstock_attrs,
+        ["meta_yaml", "schema_version"],
+        {},
+        0,
+    )
+
+    if not isinstance(version, int):
+        raise ValueError("Recipe version is not an integer")
+
+    return version
+
+
 def parse_meta_yaml(
     text: str,
     for_pinning=False,
@@ -388,8 +828,8 @@ def parse_meta_yaml(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-    use_container: bool = True,
-):
+    use_container: bool | None = None,
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -412,7 +852,7 @@ def parse_meta_yaml(
     use_container
         Whether to use a container to run the parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -421,11 +861,7 @@ def parse_meta_yaml(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return parse_meta_yaml_containerized(
             text,
             for_pinning=for_pinning,
@@ -455,7 +891,7 @@ def parse_meta_yaml_containerized(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-):
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     **This function runs the parsing in a container.**
@@ -484,7 +920,12 @@ def parse_meta_yaml_containerized(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    args = []
+    args = [
+        "conda-forge-tick-container",
+        "parse-meta-yaml",
+    ]
+
+    args += get_default_log_level_args(logger)
 
     if platform is not None:
         args += ["--platform", platform]
@@ -499,12 +940,17 @@ def parse_meta_yaml_containerized(
         args += ["--for-pinning"]
 
     def _run(_args, _mount_dir):
-        return run_container_task(
-            "parse-meta-yaml",
+        return run_container_operation(
             _args,
             input=text,
             mount_readonly=True,
             mount_dir=_mount_dir,
+            extra_container_args=[
+                "-e",
+                f"{ENV_CONDA_FORGE_ORG}={settings().conda_forge_org}",
+                "-e",
+                f"{ENV_GRAPH_GITHUB_BACKEND_REPO}={settings().graph_github_backend_repo}",
+            ],
         )
 
     if (cbc_path is not None and os.path.exists(cbc_path)) or (
@@ -517,13 +963,13 @@ def parse_meta_yaml_containerized(
                 with open(os.path.join(tmpdir, "cbc_path.yaml"), "w") as fp:
                     with open(cbc_path) as fp_r:
                         fp.write(fp_r.read())
-                args += ["--cbc-path", "/cf_tick_dir/cbc_path.yaml"]
+                args += ["--cbc-path", "/cf_feedstock_ops_dir/cbc_path.yaml"]
 
             if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
                 with open(os.path.join(tmpdir, "orig_cbc_path.yaml"), "w") as fp:
                     with open(orig_cbc_path) as fp_r:
                         fp.write(fp_r.read())
-                args += ["--orig-cbc-path", "/cf_tick_dir/orig_cbc_path.yaml"]
+                args += ["--orig-cbc-path", "/cf_feedstock_ops_dir/orig_cbc_path.yaml"]
 
             data = _run(args, tmpdir)
     else:
@@ -540,7 +986,7 @@ def parse_meta_yaml_local(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -566,6 +1012,11 @@ def parse_meta_yaml_local(
     dict :
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
+
+    Raises
+    ------
+    RuntimeError
+        If parsing fails.
     """
 
     def _run(*, use_orig_cbc_path):
@@ -577,15 +1028,19 @@ def parse_meta_yaml_local(
                 module=r"conda_build\.environ",
             )
 
-            class NumpyFilter(logging.Filter):
+            class RenderingFilter(logging.Filter):
                 def filter(self, record):
-                    if record.msg.startswith("No numpy version specified"):
+                    if (
+                        record.msg.startswith("No numpy version specified")
+                        or record.msg.startswith("Setting build platform")
+                        or record.msg.startswith("Setting build arch")
+                    ):
                         return False
                     return True
 
-            np_filter = NumpyFilter()
+            rendering_filter = RenderingFilter()
             try:
-                logging.getLogger("conda_build.metadata").addFilter(np_filter)
+                logging.getLogger("conda_build.metadata").addFilter(rendering_filter)
 
                 return _parse_meta_yaml_impl(
                     text,
@@ -597,17 +1052,17 @@ def parse_meta_yaml_local(
                     orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
                 )
             finally:
-                logging.getLogger("conda_build.metadata").removeFilter(np_filter)
+                logging.getLogger("conda_build.metadata").removeFilter(rendering_filter)
 
     try:
         return _run(use_orig_cbc_path=True)
     except (SystemExit, Exception):
-        logger.debug("parsing w/ conda_build_config.yaml failed! " "trying without...")
+        logger.debug("parsing w/ conda_build_config.yaml failed! trying without...")
         try:
             return _run(use_orig_cbc_path=False)
         except (SystemExit, Exception) as e:
             raise RuntimeError(
-                "cond build error: %s\n%s"
+                "conda build error: %s\n%s"
                 % (
                     repr(e),
                     traceback.format_exc(),
@@ -623,7 +1078,7 @@ def _parse_meta_yaml_impl(
     cbc_path=None,
     log_debug=False,
     orig_cbc_path=None,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     import conda_build.api
     import conda_build.environ
     from conda_build.config import Config
@@ -647,12 +1102,10 @@ def _parse_meta_yaml_impl(
 
             def _run_parsing():
                 logger.debug(
-                    "parsing for platform %s with cbc %s and arch %s"
-                    % (
-                        platform,
-                        cbc_path,
-                        arch,
-                    ),
+                    "parsing for platform %s with cbc %s and arch %s",
+                    platform,
+                    cbc_path,
+                    arch,
                 )
                 config = conda_build.config.get_or_merge_config(
                     None,
@@ -746,13 +1199,13 @@ def _parse_meta_yaml_impl(
         raise
 
 
-class UniversalSet(Set):
+class UniversalSet(set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other: Set) -> Set:
+    def __and__(self, other: set) -> set:  # type: ignore[override]
         return other
 
-    def __rand__(self, other: Set) -> Set:
+    def __rand__(self, other: set) -> set:
         return other
 
     def __contains__(self, item: Any) -> bool:
@@ -765,7 +1218,7 @@ class UniversalSet(Set):
         raise StopIteration
 
     def __len__(self) -> int:
-        return float("inf")
+        return float("inf")  # type: ignore[return-value]
 
 
 class NullUndefined(jinja2.Undefined):
@@ -813,9 +1266,9 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
-    nld = nx.node_link_data(gx)
+    nld = nx.node_link_data(gx, edges="links")
     links = nld["links"]
-    links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+    links2 = sorted(links, key=lambda x: f"{x['source']}{x['target']}")
     nld["links"] = links2
 
     lzj = LazyJson(filename)
@@ -839,8 +1292,15 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     If empty JSON is encountered, a ValueError is raised.
     If you expect the graph to be possibly empty JSON (i.e. not initialized), use load_graph.
 
-    :return: the graph
-    :raises ValueError if the file contains empty JSON (or did not exist before)
+    Returns
+    -------
+    nx.DiGraph
+        The graph loaded from the file.
+
+    Raises
+    ------
+    ValueError
+        If the file contains empty JSON.
     """
     gx = load_graph(filename)
     if gx is None:
@@ -848,18 +1308,21 @@ def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     return gx
 
 
-def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
-    """
-    Load the graph from a file using the lazy json backend.
+def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph | None:
+    """Load the graph from a file using the lazy json backend.
     If the file does not exist, it is initialized with empty JSON.
     If you expect the graph to be non-empty JSON, use load_existing_graph.
 
-    :return: the graph, or None if the file is empty JSON (or
-    :raises FileNotFoundError if the file does not exist
+    Returns
+    -------
+    nx.DiGraph or None
+        The graph, or None if the file is empty JSON
     """
-    dta = copy.deepcopy(LazyJson(filename).data)
+    lzj = LazyJson(filename)
+    with lzj:
+        dta = copy.deepcopy(lzj.data)
     if dta:
-        return nx.node_link_graph(dta)
+        return nx.node_link_graph(dta, edges="links")
     else:
         return None
 
@@ -869,38 +1332,37 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
 if typing.TYPE_CHECKING:
 
     class JsonFriendly(TypedDict, total=False):
-        keys: typing.List[str]
+        keys: list[str]
         data: dict
         PR: dict
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
+def frozen_to_json_friendly(fz: None, pr: LazyJson | None = None) -> None:
     pass
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
+def frozen_to_json_friendly(fz: Any, pr: LazyJson | None = None) -> "JsonFriendly":
     pass
 
 
 @typing.no_type_check
-def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
+def frozen_to_json_friendly(fz, pr: LazyJson | None = None):
     if fz is None:
         return None
-    keys = sorted(list(fz.keys()))
-    d = {"keys": keys, "data": dict(fz)}
+    d = {"data": dict(fz)}
     if pr:
         d["PR"] = pr
     return d
 
 
 @typing.overload
-def as_iterable(x: dict) -> Tuple[dict]: ...
+def as_iterable(x: dict) -> tuple[dict]: ...
 
 
 @typing.overload
-def as_iterable(x: str) -> Tuple[str]: ...
+def as_iterable(x: str) -> tuple[str]: ...
 
 
 @typing.overload
@@ -908,21 +1370,24 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]: ...
 
 
 @typing.overload
-def as_iterable(x: T) -> Tuple[T]: ...
+def as_iterable(x: Any) -> Iterable: ...
 
 
 @typing.no_type_check
-def as_iterable(iterable_or_scalar):
-    """Utility for converting an object to an iterable.
+def as_iterable(iterable_or_scalar: Any) -> Iterable:
+    """Convert an object into an iterable.
+
     Parameters
     ----------
     iterable_or_scalar : anything
+
     Returns
     -------
     l : iterable
         If `obj` was None, return the empty tuple.
         If `obj` was not iterable returns a 1-tuple containing `obj`.
         Otherwise return `obj`
+
     Notes
     -----
     Although both string types and dictionaries are iterable in Python, we are
@@ -930,7 +1395,7 @@ def as_iterable(iterable_or_scalar):
     returns (dict, ) and as_iterable(string) returns (string, )
 
     Examples
-    ---------
+    --------
     >>> as_iterable(1)
     (1,)
     >>> as_iterable([1, 2, 3])
@@ -940,7 +1405,6 @@ def as_iterable(iterable_or_scalar):
     >>> as_iterable({'a': 1})
     ({'a': 1}, )
     """
-
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):
@@ -964,11 +1428,35 @@ def sanitize_string(instr: str) -> str:
     return instr
 
 
-def get_keys_default(dlike, keys, default, final_default):
+def get_keys_default(
+    dlike: AttrsTypedDict | Mapping | LazyJson,
+    keys: list | tuple,
+    default: Any,
+    final_default: Any,
+) -> Any:
+    """Get a value at a key path from a dict-like object w/ defaults.
+
+    Parameters
+    ----------
+    dlike : dict | LazyJson
+        A dict-like object.
+    keys : list | tuple
+        A list-like set of keys specify the value to get from the dict.
+    default : Any
+        The default value for intermediate keys.
+    final_default : Any
+        The default value for the final key.
+
+    Returns
+    -------
+    value : Any
+        The value of the final key in `keys` or `final_default` if
+        no value is found.
+    """
     defaults = [default] * (len(keys) - 1) + [final_default]
     val = dlike
     for k, _d in zip(keys, defaults):
-        val = val.get(k, _d) or _d
+        val = val.get(k, _d) or _d  # type: ignore[assignment]
     return val
 
 
@@ -976,15 +1464,20 @@ def get_bot_run_url():
     return os.environ.get("RUN_URL", "")
 
 
-def get_migrator_name(migrator):
-    """Get the canonical name of a migrator."""
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
+def get_migrator_report_name_from_pr_data(migration):
+    """Get the canonical name of a migration from the PR data."""
+    if "version" in migration["data"]:
+        return migration["data"]["version"]
+    elif "name" in migration["data"]:
+        return migration["data"]["name"].lower().replace(" ", "")
+    elif "migrator_name" in migration["data"]:
+        return migration["data"]["migrator_name"].lower()
     else:
-        migrator_name = migrator.__class__.__name__.lower()
-
-    return migrator_name
+        logger.warning(
+            "Could not extract migrator report name for migration: %s",
+            migration["data"],
+        )
+        return None
 
 
 @contextlib.contextmanager
@@ -1004,56 +1497,211 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
-def print_subprocess_output_strip_token(
-    completed_process: subprocess.CompletedProcess, token: str
-) -> None:
-    """
-    Use this function to print the outputs (stdout and stderr) of a subprocess.CompletedProcess object
-    that may contain sensitive information. The token will be replaced with a string
-    of asterisks of the same length.
+def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
+    """Run a command and hide the token in the output.
 
-    This function assumes that you have called subprocess.run() with the arguments text=True, stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE.
+    Prints the outputs (stdout and stderr) of the subprocess.CompletedProcess object.
+    The token or tokens will be replaced with a string of asterisks of the same length.
 
     If stdout or stderr is None, it will not be printed.
 
-    See run_command_hiding_token() for a convenience method that combines running a command and printing the output.
+    Parameters
+    ----------
+    args
+        The command to run.
+    token
+        The token to hide in the output.
+    kwargs
+        additional arguments for subprocess.run
 
-    :param completed_process: The subprocess.CompletedProcess object to print the outputs of. You have probably
-        obtained this object by calling subprocess.run().
-    :param token: The token to replace with asterisks.
+    Returns
+    -------
+    int
+        The return code of the command.
 
-    :raises ValueError: If the completed_process object does not contain str in stdout or stderr.
+    Raises
+    ------
+    ValueError
+        If the kwargs contain 'text', 'stdout', or 'stderr'.
     """
-    out, err = completed_process.stdout, completed_process.stderr
+    if kwargs.keys() & {"text", "stdout", "stderr"}:
+        raise ValueError("text, stdout, and stderr are not allowed in kwargs")
+
+    p = subprocess.run(args, text=True, capture_output=True, **kwargs)
+
+    out, err = p.stdout, p.stderr
 
     for captured, out_dev in [(out, sys.stdout), (err, sys.stderr)]:
         if captured is None:
             continue
 
-        if not isinstance(captured, str):
-            raise ValueError(
-                f"Expected stdout and stderr to be str, but got {type(captured)}. Run subprocess.run() with "
-                "text=True."
-            )
-
         captured = captured.replace(token, "*" * len(token))
         print(captured, file=out_dev, end="")
         out_dev.flush()
 
-
-def run_command_hiding_token(args: list[str], token: str) -> int:
-    """
-    Run a command and hide the token in the output.
-
-    This is a convenience method for print_subprocess_output_strip_token() if you don't need full control
-    over subprocess.run().
-
-    :param args: The command to run.
-    :param token: The token to hide in the output.
-    :return: The return code of the command.
-    """
-    p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print_subprocess_output_strip_token(p, token)
-
     return p.returncode
+
+
+def _is_comment_or_empty(line):
+    return line.strip() == "" or line.strip().startswith("#")
+
+
+def extract_section_from_yaml_text(
+    yaml_text: str,
+    section_name: str,
+    exclude_requirements: bool = False,
+) -> list[str]:
+    """Extract a section from YAML as text.
+
+    Parameters
+    ----------
+    yaml_text : str
+        The raw YAML text.
+    section_name : str
+        The section name to extract.
+    exclude_requirements : bool, optional
+        If True, exclude any sections in a `requirements` block. Set to
+        True if you want to extract the `build` section but not the `requirements.build`
+        section. Default is False.
+
+    Returns
+    -------
+    list[str]
+        A list of strings for the extracted sections.
+    """
+    # normalize the indents etc.
+    try:
+        yaml_text = CondaMetaYAML(yaml_text).dumps()
+    except Exception as e:
+        logger.debug(
+            "Failed to normalize the YAML text due to error %s. We will try to parse anyways!",
+            repr(e),
+        )
+        pass
+
+    lines = yaml_text.splitlines()
+
+    in_requirements = False
+    requirements_indent = None
+    section_indent = None
+    section_start = None
+    found_sections = []
+
+    for loc, line in enumerate(lines):
+        if (
+            section_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= section_indent
+        ):
+            if (not exclude_requirements) or (
+                exclude_requirements and not in_requirements
+            ):
+                found_sections.append("\n".join(lines[section_start:loc]))
+            section_indent = None
+            section_start = None
+
+        if line.lstrip().startswith(f"{section_name}:"):
+            section_indent = len(line) - len(line.lstrip())
+            section_start = loc
+
+        # blocks for detecting if we are in requirements
+        # these blocks have to come after the blocks above since a section can end
+        # with the 'requirements:' line and that is OK.
+        if (
+            requirements_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= requirements_indent
+        ):
+            in_requirements = False
+            requirements_indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            requirements_indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+    if section_start is not None:
+        if (not exclude_requirements) or (exclude_requirements and not in_requirements):
+            found_sections.append("\n".join(lines[section_start:]))
+
+    return found_sections
+
+
+def version_follows_conda_spec(version: str | bool) -> bool:
+    if isinstance(version, str):
+        try:
+            VersionOrder(version.replace("-", "."))
+        except Exception:
+            return False
+        else:
+            return True
+    else:
+        return False
+
+
+def pr_can_be_archived(
+    pr: dict | LazyJson, now: int | float | None = None, archive_empty_prs: bool = False
+) -> bool:
+    """
+    Return true if a PR can be archived.
+
+    A PR can be archived if it has been closed for at least the amount of time
+    in settings().pull_request_reopen_window.
+
+    Parameters
+    ----------
+    pr : dict | LazyJson
+        The PR json.
+    now : int | float | None
+        The current unix timestamp. If None, a call to time.time is made.
+    archive_empty_prs : bool
+        If True, PRs that have no data in the json blob are considered eligible to
+        be archived.
+
+    Returns
+    -------
+    bool
+    """
+    if now is None:
+        now = time.time()
+
+    if not isinstance(pr, LazyJson):
+        pr_ctx: ContextManager[dict] | LazyJson = contextlib.nullcontext(pr)
+    else:
+        pr_ctx = pr
+
+    with pr_ctx as pr:
+        pr_lm = pr.get("Last-Modified", None)
+        if pr_lm is not None:
+            pr_lm = dateparser.parse(pr_lm)
+
+        if isinstance(pr, LazyJson):
+            pr_empty = pr.data == {}
+        else:
+            pr_empty = pr == {}
+
+        if (
+            pr_lm is None
+            or now - pr_lm.timestamp() > settings().pull_request_reopen_window
+        ) and (pr.get("state", None) == "closed" or (archive_empty_prs and pr_empty)):
+            return True
+        else:
+            return False
+
+
+def get_platform_arch_from_ci_support_filename(ci_support_filename):
+    """Extract the platform and architecture as `(plat, arch)` from the ".ci_support" filename."""
+    cbc_name_parts = ci_support_filename.replace(".yaml", "").split("_")
+    plat = cbc_name_parts[0]
+    if len(cbc_name_parts) == 1:
+        arch = "64"
+    else:
+        if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
+            arch = cbc_name_parts[1]
+        else:
+            arch = "64"
+    # some older cbc yaml files have things like "linux64"
+    for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
+        if plat.endswith(_tt):
+            plat = plat[: -len(_tt)]
+            break
+    return (plat, arch)

@@ -1,19 +1,31 @@
-"""
-Functions to find the longest paths between nodes in a graph.
+"""Functions to find the longest paths between nodes in a graph."""
 
-"""
-
+from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Iterable, Sequence
 from copy import deepcopy
-from typing import DefaultDict, Dict, Iterable, List, Sequence, Set, TypeVar
+from typing import (
+    Any,
+    DefaultDict,
+    Protocol,
+    TypeVar,
+)
 
 import networkx as nx
 from networkx.classes.digraph import DiGraph
 
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        pass
+
+
 T = TypeVar("T")
+CT = TypeVar("CT", bound=Comparable)
 
 
-def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:
+def cyclic_topological_sort(graph: DiGraph, sources: Iterable[CT]) -> Sequence[CT]:
     """Return a list of nodes in a graph with cycles in topological order.
 
     Performs a topological sort of `graph` starting from the node `source`.
@@ -25,7 +37,7 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
     ----------
     graph : networkx.classes.digraph.DiGraph
         A directed graph.
-    source : iterable
+    sources : iterable
         The names of the source nodes
 
     Returns
@@ -34,15 +46,14 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
         The nodes of `graph` in topological sort order.
 
     """
-
     g2 = deepcopy(graph)
-    order: List[T] = []
+    order: list[CT] = []
     for source in sorted(sources):
         _visit(g2, source, order)
     return list(reversed(order))
 
 
-def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
+def _visit(graph: DiGraph, node: T, order: list[T]) -> None:
     if graph.nodes[node].get("visited", False):
         return
     graph.nodes[node]["visited"] = True
@@ -51,7 +62,7 @@ def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
     order.append(node)
 
 
-def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
+def get_longest_paths(graph: DiGraph, source: str) -> dict[str, float]:
     """Get the length of the longest path to each node from a source node.
 
     Parameters
@@ -68,7 +79,6 @@ def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
         values are the lengths of the longest path from `source`.
 
     """
-
     dist = {node: -float("inf") for node in graph}
     dist[source] = 0
     visited = []
@@ -83,7 +93,7 @@ def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
     return dist
 
 
-def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
+def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, set[str]]:
     """Get the nodes in each level of a topological sort of a graph starting
     from a specified source node.
 
@@ -101,7 +111,6 @@ def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
         nodes in `graph` with longest path length equal to the key.
 
     """
-
     g2 = deepcopy(graph)
     desc = nx.algorithms.descendants(graph, source)
     for node in graph.nodes:
@@ -109,7 +118,7 @@ def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)
-    levels: DefaultDict[float, Set[str]] = defaultdict(set)
+    levels: DefaultDict[float, set[str]] = defaultdict(set)
     for k, v in dist.items():
         levels[v].add(k)
     return levels

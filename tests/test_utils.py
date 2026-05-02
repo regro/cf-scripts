@@ -1,19 +1,24 @@
 import contextlib
+import tempfile
+import textwrap
 from io import StringIO
-from subprocess import CompletedProcess
 from unittest import mock
 from unittest.mock import MagicMock, mock_open
 
 import pytest
 
+from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     DEFAULT_GRAPH_FILENAME,
     _munge_dict_repr,
+    extract_section_from_yaml_text,
     get_keys_default,
+    get_recipe_schema_version,
     load_existing_graph,
     load_graph,
     parse_munged_run_export,
-    print_subprocess_output_strip_token,
+    replace_compiler_with_stub,
     run_command_hiding_token,
 )
 
@@ -92,23 +97,25 @@ def test_get_keys_default_none():
 
 
 def test_load_graph():
-    with mock.patch("builtins.open", mock_open(read_data=DEMO_GRAPH)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(DEMO_GRAPH)
+
         gx = load_graph()
 
         assert gx is not None
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
-
 
 def test_load_graph_empty_graph():
-    with mock.patch("builtins.open", mock_open(read_data=EMPTY_JSON)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(EMPTY_JSON)
+
         gx = load_graph()
 
         assert gx is None
-
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
 @mock.patch("os.path.exists")
@@ -122,20 +129,22 @@ def test_load_graph_file_does_not_exist(exists_mock: MagicMock):
 
 
 def test_load_existing_graph():
-    with mock.patch("builtins.open", mock_open(read_data=DEMO_GRAPH)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(DEMO_GRAPH)
+
         gx = load_existing_graph()
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
-
 
 def test_load_existing_graph_empty_graph():
-    with mock.patch("builtins.open", mock_open(read_data=EMPTY_JSON)) as mock_file:
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with open(LazyJson(DEFAULT_GRAPH_FILENAME).sharded_path, "w") as fp:
+            fp.write(EMPTY_JSON)
+
         with pytest.raises(ValueError, match="empty JSON"):
             load_existing_graph()
-
-    mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
 @mock.patch("os.path.exists")
@@ -155,102 +164,33 @@ def test_munge_dict_repr():
     assert parse_munged_run_export(_munge_dict_repr(d)) == d
 
 
-def test_print_subprocess_output_strip_token_all_none():
-    stdout = StringIO()
-    stderr = StringIO()
+@pytest.mark.parametrize("version", [0, 1])
+def test_get_recipe_schema_version_valid(version: int):
+    attrs = {
+        "meta_yaml": {
+            "schema_version": version,
+        }
+        if version is not None
+        else {},
+    }
 
-    p = CompletedProcess(args=[], returncode=0, stdout=None, stderr=None)
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == ""
-    assert stderr.getvalue() == ""
-
-
-def test_print_subprocess_output_strip_token_stdout_only():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(args=[], returncode=0, stdout="stdout", stderr=None)
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == "stdout"
-    assert stderr.getvalue() == ""
+    assert get_recipe_schema_version(attrs) == version
 
 
-def test_print_subprocess_output_strip_token_stderr_only():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(args=[], returncode=0, stdout=None, stderr="stderr")
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == ""
-    assert stderr.getvalue() == "stderr"
+def test_get_recipe_schema_version_missing_keys_1():
+    attrs = {"meta_yaml": {}}
+    assert get_recipe_schema_version(attrs) == 0
 
 
-def test_print_subprocess_output_strip_token_both():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(
-        args=[], returncode=0, stdout="stdTOKEN.out", stderr="stdTOKEN.err"
-    )
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == "std*****.out"
-    assert stderr.getvalue() == "std*****.err"
+def test_get_recipe_schema_version_missing_keys_2():
+    attrs = {}
+    assert get_recipe_schema_version(attrs) == 0
 
 
-def test_print_subprocess_output_strip_token_no_token():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(args=[], returncode=0, stdout="stdout", stderr="stderr")
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == "stdout"
-    assert stderr.getvalue() == "stderr"
-
-
-def test_print_subprocess_output_strip_token_multiple_occurrences():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(
-        args=[], returncode=1, stdout="stdTOKEN-TOKEN.out", stderr="stdTOKEN-TOKEN.err"
-    )
-
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == "std*****-*****.out"
-    assert stderr.getvalue() == "std*****-*****.err"
-
-
-def test_print_subprocess_output_strip_token_bytes_in_stdout():
-    stdout = StringIO()
-    stderr = StringIO()
-
-    p = CompletedProcess(
-        args=[], returncode=1, stdout=b"stdTOKEN-TOKEN.out", stderr=b""
-    )
-
-    with pytest.raises(ValueError, match="Expected stdout and stderr to be str"):
-        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-            print_subprocess_output_strip_token(p, "TOKEN")
-
-    assert stdout.getvalue() == ""
-    assert stderr.getvalue() == ""
+def test_get_recipe_schema_version_invalid():
+    attrs = {"meta_yaml": {"schema_version": "invalid"}}
+    with pytest.raises(ValueError, match="Recipe version is not an integer"):
+        get_recipe_schema_version(attrs)
 
 
 def test_run_command_hiding_token():
@@ -277,3 +217,253 @@ def test_run_command_hiding_token_stderr():
 
     assert stdout.getvalue() == ""
     assert stderr.getvalue() == "std*****.err"
+
+
+@pytest.mark.parametrize(
+    "meta_yaml,section_name,result,exclude_requirements",
+    [
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+                host:
+                  - python 3.8
+                  - numpy
+                """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+              - python 3.8
+              - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "host",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        host:
+                          - python 3.8
+                          - numpy
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            False,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              build:
+                - blah
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+            ],
+            True,
+        ),
+        (
+            textwrap.dedent(
+                """
+            package:
+              name: foo
+              version: 1.0.0
+            build:
+              number: 1
+              string: h1234_0
+            requirements:
+              build:
+                - blah
+              host:
+                - python 3.8
+                - numpy
+              run:
+                - python 3.8
+                - numpy
+            """
+            ),
+            "build",
+            [
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          number: 1
+                          string: h1234_0
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "",
+                ),
+                textwrap.indent(
+                    textwrap.dedent(
+                        """
+                        build:
+                          - blah
+                        """
+                    )[1:-1],
+                    # ^ remove newlines at start and end from dedented string
+                    # since dedent normalizes only-whitespace lines to newlines
+                    "  ",
+                ),
+            ],
+            False,
+        ),
+    ],
+)
+def test_extract_section_from_yaml_text(
+    meta_yaml, section_name, result, exclude_requirements
+):
+    extracted_sections = extract_section_from_yaml_text(
+        meta_yaml, section_name, exclude_requirements=exclude_requirements
+    )
+    assert extracted_sections == result
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("${{ compiler('c') }}", "c_compiler_stub"),
+        ('${{   compiler( "fortran" )  }}', "fortran_compiler_stub"),
+        ('${{stdlib("cxx")}}', "cxx_stdlib_stub"),
+        (
+            '${{ variable | default(compiler("c")) }}',
+            "c_compiler_stub",
+        ),
+        (
+            '${{ compiler("fortran") | replace("x", "y") }}',
+            "fortran_compiler_stub",
+        ),
+        ('# compiler("fortran")', '# compiler("fortran")'),
+    ],
+)
+def test_replace_compiler_stub(text, expected):
+    assert replace_compiler_with_stub(text) == expected

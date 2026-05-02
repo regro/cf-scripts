@@ -1,0 +1,47 @@
+zip_keys:
+  -
+    - python
+    - numpy
+    - python_impl
+    - is_python_min
+
+
+pin_run_as_build:
+  libblst:
+    max_pin: x.x
+  netcdf-cxx4:
+    max_pin: x.x
+  vlfeat:
+    max_pin: x.x.x
+
+# Pinning packages
+numpy:
+  # part of a zip_keys: python, python_impl, numpy
+  - 1.22
+  - 1.22
+  - 1.23
+  - 1.26
+python:
+  # part of a zip_keys: python, python_impl, numpy, is_python_min
+  - 3.9.* *_cpython
+  - 3.10.* *_cpython
+  - 3.11.* *_cpython
+  - 3.12.* *_cpython
+python_impl:
+  # part of a zip_keys: python, python_impl, numpy, is_python_min
+  - cpython
+  - cpython
+  - cpython
+  - cpython
+python_min:
+  # minimum supported python version per CFEP-25
+  # bump to next minor version when we drop python versions
+  - '3.9'
+is_python_min:
+  - true
+  - false
+  - false
+  - false
+
+aws_c_io:
+  - 0.15.3

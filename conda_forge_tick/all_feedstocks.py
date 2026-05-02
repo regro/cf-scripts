@@ -1,19 +1,18 @@
 import logging
-from typing import List
 
 import tqdm
 
 from conda_forge_tick.git_utils import github_client
 
 from .lazy_json_backends import dump, load
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
 
 def get_all_feedstocks_from_github():
     gh = github_client()
-
-    org = gh.get_organization("conda-forge")
+    org = gh.get_organization(settings().conda_forge_org)
     archived = set()
     not_archived = set()
     default_branches = {}
@@ -41,7 +40,7 @@ def get_all_feedstocks_from_github():
     }
 
 
-def get_all_feedstocks(cached: bool = False) -> List[str]:
+def get_all_feedstocks(cached: bool = False) -> list[str]:
     if cached:
         logger.info("reading cached feedstocks")
         with open("all_feedstocks.json") as f:
@@ -52,7 +51,7 @@ def get_all_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
-def get_archived_feedstocks(cached: bool = False) -> List[str]:
+def get_archived_feedstocks(cached: bool = False) -> list[str]:
     if cached:
         logger.info("reading cached archived feedstocks")
         with open("all_feedstocks.json") as f:

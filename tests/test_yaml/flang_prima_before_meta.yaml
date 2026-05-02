@@ -1,0 +1,52 @@
+{% set version = "1.9.0" %}
+
+package:
+  name: prima
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # url: https://github.com/libprima/prima/archive/refs/tags/v{{ version }}.tar.gz
+  # sha256: b2cc3547e5601de494267d501f7a8ad2b42482d189c647e312c41917d81ed8e7
+  # patches:
+  #   - stop.patch  # [win]
+
+build:
+  number: 1
+  run_exports:
+    - {{ pin_subpackage('prima', max_pin='x.x') }}
+
+requirements:
+  build:
+    - cmake
+    - ninja
+    - {{ compiler("c") }}               # [unix]
+    - {{ stdlib("c") }}                 # [unix]
+    - {{ compiler("fortran") }}         # [unix]
+    # flang does not support F2018, use gfortran
+    - {{ compiler("m2w64_c") }}         # [win]
+    - {{ stdlib("m2w64_c") }}           # [win]
+    - {{ compiler("m2w64_fortran") }}   # [win]
+  run:
+    - m2w64-gcc-libgfortran  # [win]
+
+test:
+  commands:
+    - test -f ${PREFIX}/include/prima/prima.h  # [unix]
+    - test -f ${PREFIX}/lib/libprimac${SHLIB_EXT}  # [unix]
+    - if not exist %PREFIX%\\Library\\include\\prima\\prima.h exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\libprimac.dll.a exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\bin\\libprimac.dll exit 1  # [win]
+
+about:
+  home: https://github.com/libprima/prima
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENCE.txt
+  summary: package for solving general nonlinear optimization problems without using derivatives
+
+extra:
+  recipe-maintainers:
+    - jschueller

@@ -23,10 +23,10 @@ build:
 
 requirements:
   build:
-    - "{{ compiler('c') }}"
+    - {{ compiler('c') }}
     - {{ stdlib("c") }}
-    - "{{ compiler('cxx') }}"
-    - "{{ compiler('fortran') }}"  # [not win]
+    - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}  # [not win]
     - cmake >=3.26.4
     - ninja                       # [win]
     - autoconf                    # [not win]

@@ -1,0 +1,44 @@
+{% set name = "semi-ate-apps-common" %}
+{% set version = "1.0.12" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/semi-ate-apps-common-{{ version }}.tar.gz
+  sha256: 5a7fae7dd6667f10239a848ad95ce22cf8d7c554f106084d519ef2f60c00a1ab
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - python >=3.8
+  run:
+    - aiomqtt
+    - python >=3.8
+    - semi-ate-common
+    - semi-ate-stdf
+
+test:
+  imports:
+    - ate_apps_common
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://pypi.org/project/semi-ate-apps-common/
+  summary: Shared helpers used by the different ate-apps, i.e. master-app, control-app, etc.)
+  license: GPL-2.0-only
+  license_file: ate_apps_common/LICENSE.txt
+
+extra:
+  recipe-maintainers:
+    - nerohmot

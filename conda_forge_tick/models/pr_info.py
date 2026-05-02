@@ -9,7 +9,6 @@ from conda_forge_tick.models.common import (
     NoneIsEmptyDict,
     PrJsonLazyJsonReference,
     StrictBaseModel,
-    before_validator_ensure_dict,
 )
 from conda_forge_tick.models.pr_json import PullRequestDataValid, PullRequestInfoSpecial
 
@@ -46,13 +45,12 @@ After that, this type can be removed.
 
 
 class MigratorName(StrEnum):
-    """
-    Each value here corresponds to a subclass of migrators.core.Migrator in the codebase.
-    """
+    """Each value here corresponds to a subclass of migrators.core.Migrator in the codebase."""
 
     VERSION = "Version"
     ARCH_REBUILD = "ArchRebuild"
     OSX_ARM = "OSXArm"
+    WIN_ARM64 = "WinArm64"
     MIGRATION_YAML = "MigrationYaml"
     REBUILD = "Rebuild"
     BLAS_REBUILD = "BlasRebuild"
@@ -65,6 +63,7 @@ class MigratorName(StrEnum):
     """
     Only operates on the conda-forge-pinning feedstock and updates the pinning version of packages.
     """
+    NOARCH_PYTHON_MIN_MIGRATOR = "NoarchPythonMinMigrator"
 
     JS = "JS"
     """
@@ -89,11 +88,11 @@ class MigratorName(StrEnum):
     This migrator is no longer present in the codebase but still appears in the graph.
     """
 
+    ADD_NVIDIA_TOOLS = "AddNVIDIATools"
+
 
 class MigrationPullRequestData(StrictBaseModel):
-    """
-    Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code.
-    """
+    """Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code."""
 
     bot_rerun: bool | datetime
     """
@@ -104,8 +103,9 @@ class MigrationPullRequestData(StrictBaseModel):
 
     migrator_name: MigratorName
     """
-    The name of the migrator that created the PR. As opposed to `pre_pr_migrator_status` and `pre_pr_migrator_attempts`
-    below, the names of migrators appear here with spaces and not necessarily in lowercase.
+    The name of the migrator that created the PR. As opposed to `pre_pr_migrator_status`, `pre_pr_migrator_attempt_ts`,
+    and `pre_pr_migrator_attempts` below, the names of migrators appear here with spaces and not necessarily in
+    lowercase.
     """
 
     migrator_version: int
@@ -195,42 +195,9 @@ class MigrationPullRequest(StrictBaseModel):
 
     data: MigrationPullRequestData
 
-    # noinspection PyNestedDecorators
-    @model_validator(mode="before")
-    @classmethod
-    def validate_keys(cls, input_data: Any) -> Any:
-        """
-        The current implementation uses a field "keys" which is a list of all keys present in the
-        MigrationPullRequestData object, duplicating them. This list is redundant and should be removed.
-        The consistency of this field is validated here, after which it is removed.
-        """
-        input_data = before_validator_ensure_dict(input_data)
-
-        if "keys" not in input_data:
-            raise ValueError("The keys field is missing.")
-        if "data" not in input_data:
-            raise ValueError("The data field is missing.")
-
-        keys = input_data.pop("keys")
-        if not isinstance(keys, list):
-            raise ValueError("The keys field must be a list.")
-
-        data = input_data["data"]
-        if not isinstance(data, dict):
-            raise ValueError("The data field must be a dictionary.")
-
-        if set(keys) != set(data.keys()):
-            raise ValueError(
-                "The keys field must exactly contain all keys of the data field."
-            )
-
-        return input_data
-
 
 class ExceptionInfo(StrictBaseModel):
-    """
-    Information about an exception that occurred while performing migrations.
-    """
+    """Information about an exception that occurred while performing migrations."""
 
     exception: str
     """
@@ -307,11 +274,25 @@ class PrInfoValid(StrictBaseModel):
     If a migration is eventually successful, the corresponding key is removed from the dictionary.
     """
 
+    pre_pr_migrator_attempt_ts: NoneIsEmptyDict[str, int] = {}
+    """
+    A dictionary (migration name -> timestamp) of the timestamp as `int(time.time())` of most recent
+    attempt to make the migration PR.
+
+    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
+
+    If a migration is eventually successful, the corresponding key is removed from the dictionary.
+    """
+
     @model_validator(mode="after")
     def check_pre_pr_migrations(self) -> Self:
         if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempts.keys():
             raise ValueError(
                 "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempts must match."
+            )
+        if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempt_ts.keys():
+            raise ValueError(
+                "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempt_ts must match."
             )
         return self
 

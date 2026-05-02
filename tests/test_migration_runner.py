@@ -2,6 +2,7 @@ import os
 import pprint
 import subprocess
 
+import networkx as nx
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
 from conda_forge_tick.migration_runner import run_migration_local
@@ -19,7 +20,9 @@ class _MigrationYaml(NoFilter, MigrationYaml):
     pass
 
 
-yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi")
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
 yaml_rebuild.cycles = []
 
 
@@ -65,7 +68,8 @@ def test_migration_runner_run_migration_local_yaml_rebuild(tmpdir):
     assert migration_data["commit_message"] == "Rebuild for hi"
     assert migration_data["pr_title"] == "Rebuild for hi"
     assert migration_data["pr_body"].startswith(
-        "This PR has been triggered in an effort to update **hi**."
+        "This PR has been triggered in an effort to update "
+        "[**hi**](https://conda-forge.org/status/migration/?name=hi)."
     )
 
     with open(os.path.join(tmpdir, "recipe/meta.yaml")) as f:

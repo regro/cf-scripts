@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=45",
-    "setuptools_scm>=7",
+    "setuptools_scm>=8",
     "tomli>=1.0.0; python_version < '3.11'",
 ]
 build-backend = "setuptools.build_meta"
@@ -15,39 +15,33 @@ description = "Flagship repo for cf-regro-autotick-bot"
 dynamic = ["version"]
 license = {file = "License"}
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.urls]
 home = "https://github.com/regro/cf-scripts"
 
 [project.scripts]
 conda-forge-tick = "conda_forge_tick.cli:main"
+conda-forge-tick-container = "conda_forge_tick.container_cli:cli"
 
 [tool.setuptools]
 include-package-data = true
 zip-safe = false
 packages = {find = {exclude=["tests*", "scripts*", "docs*", "autotick-bot*", "planning*"]}}
-package-data = {conda_forge_tick = ["*.xsh", "*.yaml"]}
+package-data = {conda_forge_tick = ["*.xsh", "*.yaml", "*.json"]}
 package-dir = {conda_forge_tick = "conda_forge_tick"}
 
 [tool.setuptools_scm]
 write_to = "conda_forge_tick/_version.py"
 write_to_template = "__version__ = '{version}'\n"
 
-[tool.pytest_env]
-CF_TICK_PYTEST = "true"
-
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
 [tool.ruff]
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W"]
+select = ["E", "F", "I", "W", "LOG", "G", "D2", "D3", "D4", "DOC202", "DOC403", "DOC5"]
+ignore = ["E501", "D205"]
+pydocstyle.convention = "numpy"
 preview = true
 
 [tool.ruff.lint.pycodestyle]

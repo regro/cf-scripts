@@ -1,0 +1,48 @@
+c_compiler:
+- gcc
+c_compiler_version:
+- '7'
+cdt_name:
+- cos6
+channel_sources:
+- conda-forge,defaults
+channel_targets:
+- conda-forge main
+cuda_compiler:
+- nvcc
+cuda_compiler_version:
+- '10.2'
+cudnn:
+- 7.6.5
+cxx_compiler:
+- gxx
+cxx_compiler_version:
+- '7'
+docker_image:
+- quay.io/condaforge/linux-anvil-cuda:10.2
+mkl:
+- '2020'
+nccl:
+- 2.7.8.1
+numpy:
+- '1.19'
+pin_run_as_build:
+  cudnn:
+    min_pin: x.x
+    max_pin: x
+  mkl:
+    max_pin: x
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.9.* *_cpython
+target_platform:
+- linux-64
+zip_keys:
+- - c_compiler_version
+  - cxx_compiler_version
+- - cuda_compiler_version
+  - docker_image
+- - python
+  - numpy

@@ -1,23 +1,25 @@
 import hashlib
 import logging
 import os
-import random
 import re
+import secrets
 import time
-import typing
 from collections import defaultdict
+from collections.abc import Iterable
 from concurrent.futures import as_completed
-from typing import Iterable, List
 
 import networkx as nx
 import psutil
 import tqdm
 
 from conda_forge_tick.feedstock_parser import load_feedstock
+from conda_forge_tick.git_utils import is_tracked_by_git
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
+    LazyJsonStub,
     get_lazy_json_backends,
+    get_sharded_path,
     lazy_json_override_backends,
     lazy_json_transaction,
 )
@@ -25,7 +27,13 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
-from .utils import as_iterable, dump_graph, load_graph
+from .settings import settings
+from .utils import (
+    as_iterable,
+    dump_graph,
+    load_existing_graph,
+    sanitize_string,
+)
 
 # from conda_forge_tick.profiler import profiling
 
@@ -33,9 +41,7 @@ from .utils import as_iterable, dump_graph, load_graph
 logger = logging.getLogger(__name__)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
-random.seed(os.urandom(64))
-
-RANDOM_FRAC_TO_UPDATE = 1.5
+RNG = secrets.SystemRandom()
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -60,7 +66,7 @@ def _get_names_for_job(names, job, n_jobs):
 
 def get_deps_from_outputs_lut(
     req_section: Iterable,
-    outputs_lut: typing.Dict[str, set],
+    outputs_lut: dict[str, set],
 ) -> set:
     deps = set()
     for req in req_section:
@@ -82,25 +88,86 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
+def make_feedstock_required_lazy_json_refs(name, _in_vpri=None, _in_pri=None):
+    lzj_vpri = (
+        _in_vpri if _in_vpri is not None else LazyJson(f"version_pr_info/{name}.json")
+    )
+    with lzj_vpri as vpri:
+        for key in [
+            "new_version_attempts",
+            "new_version_errors",
+            "new_version_attempt_ts",
+        ]:
+            if key not in vpri:
+                vpri[key] = {}
+
+    lzj_pri = _in_pri if _in_pri is not None else LazyJson(f"pr_info/{name}.json")
+    with lzj_pri as pri:
+        for key in [
+            "pre_pr_migrator_status",
+            "pre_pr_migrator_attempts",
+            "pre_pr_migrator_attempt_ts",
+        ]:
+            if key not in pri:
+                pri[key] = {}
+
+
+def _add_required_lazy_json_refs(attrs, name):
+    for sub_lzj in ["version_pr_info", "pr_info"]:
+        if sub_lzj not in attrs:
+            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
+
+    make_feedstock_required_lazy_json_refs(
+        name,
+        _in_vpri=attrs["version_pr_info"],
+        _in_pri=attrs["pr_info"],
+    )
+
+
+def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:
+    try:
+        data = load_feedstock(name, attrs.data, mark_not_archived=mark_not_archived)
+        if "parsing_error" not in data:
+            data["parsing_error"] = False
+        attrs.clear()
+        attrs.update(data)
+    except Exception as e:
+        import traceback
+
+        trb = traceback.format_exc()
+        attrs["parsing_error"] = sanitize_string(f"feedstock parsing error: {e}\n{trb}")
+    finally:
+        _add_required_lazy_json_refs(attrs, name)
+
+    return attrs
+
+
 def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        data = load_feedstock(name, sub_graph.data, mark_not_archived=mark_not_archived)
-        sub_graph.clear()
-        sub_graph.update(data)
+        try_load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
     return lzj
 
 
 def _migrate_schema(name, sub_graph):
     # schema migrations and fixes go here
-    if "version_pr_info" not in sub_graph:
+    with lazy_json_transaction():
+        _add_required_lazy_json_refs(sub_graph, name)
+
+    if "last_updated" in sub_graph:
         with lazy_json_transaction():
-            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+            sub_graph.pop("last_updated")
+
+    vpri_move_keys = [
+        "new_version_attempts",
+        "new_version_errors",
+        "new_version_attempt_ts",
+    ]
+    if any(key in sub_graph for key in vpri_move_keys):
+        with lazy_json_transaction():
             with sub_graph["version_pr_info"] as vpri:
-                for key in ["new_version_attempts", "new_version_errors"]:
-                    if key not in vpri:
-                        vpri[key] = {}
+                for key in vpri_move_keys:
                     if key in sub_graph:
                         vpri[key].update(sub_graph.pop(key))
 
@@ -109,23 +176,37 @@ def _migrate_schema(name, sub_graph):
             with sub_graph["version_pr_info"] as vpri:
                 vpri["new_version"] = sub_graph.pop("new_version")
 
-    if "pr_info" not in sub_graph:
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    pre_key_att_ts = "pre_pr_migrator_attempt_ts"
+    pri_move_keys = [pre_key, pre_key_att, pre_key_att_ts]
+    if any(key in sub_graph for key in pri_move_keys):
         with lazy_json_transaction():
-            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
             with sub_graph["pr_info"] as pri:
-                pre_key = "pre_pr_migrator_status"
-                pre_key_att = "pre_pr_migrator_attempts"
-
-                for key in [pre_key, pre_key_att]:
-                    if key not in pri:
-                        pri[key] = {}
+                for key in pri_move_keys:
                     if key in sub_graph:
                         pri[key].update(sub_graph.pop(key))
 
-                # populate migrator attempts if they are not there
-                for mn in pri[pre_key]:
-                    if mn not in pri[pre_key_att]:
-                        pri[pre_key_att][mn] = 1
+    with lazy_json_transaction():
+        with sub_graph["pr_info"] as pri:
+            for mn in pri[pre_key].keys():
+                if mn not in pri[pre_key_att]:
+                    pri[pre_key_att][mn] = 1
+                if mn not in pri[pre_key_att_ts]:
+                    # set the attempt to one hour ago per try
+                    pri[pre_key_att_ts][mn] = int(
+                        int(time.time()) - pri[pre_key_att][mn] * 3600.0
+                    )
+
+        with sub_graph["version_pr_info"] as vpri:
+            for mn in vpri["new_version_errors"].keys():
+                if mn not in vpri["new_version_attempts"]:
+                    vpri["new_version_attempts"][mn] = 1
+                if mn not in vpri["new_version_attempt_ts"]:
+                    # set the attempt to one hour ago per try
+                    vpri["new_version_attempt_ts"][mn] = int(
+                        int(time.time()) - vpri["new_version_attempts"][mn] * 3600.0
+                    )
 
     keys_to_move = [
         "PRed",
@@ -143,11 +224,12 @@ def _migrate_schema(name, sub_graph):
                             pri["bad"] = False
 
     if "parsing_error" not in sub_graph:
-        sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
+        with lazy_json_transaction():
+            sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
 
 def _build_graph_process_pool(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
 ) -> None:
     # we use threads here since all of the work is done in a container anyways
@@ -155,14 +237,14 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
+            if RNG.random() <= settings().frac_make_graph
         }
         logger.info("submitted all nodes")
 
         n_tot = len(futures)
         n_left = len(futures)
         start = time.time()
-        eta = -1
+        eta = -1.0
         for f in as_completed(futures):
             n_left -= 1
             if n_left % 10 == 0:
@@ -172,36 +254,46 @@ def _build_graph_process_pool(
                 f.result()
                 if n_left % 100 == 0:
                     logger.info(
-                        f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: finished {name}"
+                        "nodes left %5d - eta %5ds: finished %s", n_left, int(eta), name
                     )
             except Exception as e:
                 logger.error(
-                    f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: error adding {name} to the graph",
+                    "nodes left %5d - eta %5ds: error adding %s to the graph",
+                    n_left,
+                    int(eta),
+                    name,
                     exc_info=e,
                 )
 
 
 def _build_graph_sequential(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
+        if RNG.random() > settings().frac_make_graph:
+            logger.debug("skipping %s due to random fraction to update", name)
             continue
 
         try:
             get_attrs(name, mark_not_archived=mark_not_archived)
         except Exception as e:
-            logger.error(f"Error updating node {name}", exc_info=e)
+            logger.error("Error updating node %s", name, exc_info=e)
 
 
-def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+def _get_all_deps_for_node(attrs, outputs_lut):
     # replace output package names with feedstock names via LUT
     deps = set()
     for req_section in attrs.get("requirements", {}).values():
         deps.update(
             get_deps_from_outputs_lut(req_section, outputs_lut),
         )
+
+    return deps
+
+
+def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+    deps = _get_all_deps_for_node(attrs, outputs_lut)
 
     # handle strong run exports
     # TODO: do this per platform
@@ -214,21 +306,8 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
     return deps
 
 
-def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
+def _create_edges(gx: nx.DiGraph, all_feedstocks: set[str]) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
-
-    # make the outputs look up table so we can link properly
-    # and add this as an attr so we can use later
-    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
-
-    # collect all of the strong run exports
-    # we add the compiler stubs so that we know when host and run
-    # envs will have compiler-related packages in them
-    strong_exports = {
-        node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
-    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
@@ -238,17 +317,27 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
-            deps = _add_run_exports_per_node(
-                attrs, gx.graph["outputs_lut"], strong_exports
-            )
+            deps = _get_all_deps_for_node(attrs, gx.graph["outputs_lut"])
 
         for dep in deps:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
-                lzj = LazyJson(f"node_attrs/{dep}.json")
+                if dep in all_feedstocks and not os.path.exists(
+                    get_sharded_path(f"node_attrs/{dep}.json")
+                ):
+                    # we use the stub here to ensure we do not create a new node
+                    # for an actual feedstock by leaving a file on disk or syncing the json
+                    lzj = LazyJsonStub(f"node_attrs/{dep}.json")  # type: ignore[assignment]
+                else:
+                    lzj = LazyJson(f"node_attrs/{dep}.json")  # type: ignore[assignment]
                 with lzj as _attrs:
-                    _attrs.update(feedstock_name=dep, bad=False, archived=True)
+                    _attrs.update(
+                        feedstock_name=dep,
+                        bad=False,
+                        archived=True,
+                        parsing_error=False,
+                    )
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
@@ -256,37 +345,39 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def _add_run_exports(nodes_to_update):
-    gx = load_graph()
+def _add_graph_metadata(gx: nx.DiGraph):
+    logger.info("adding graph metadata")
 
-    new_names = [name for name in nodes_to_update if name not in gx.nodes]
-    for name in nodes_to_update:
-        sub_graph = {
-            "payload": LazyJson(f"node_attrs/{name}.json"),
-        }
-        if name in new_names:
-            gx.add_node(name, **sub_graph)
-        else:
-            gx.nodes[name].update(**sub_graph)
+    logger.info("making outputs LUT")
+    # make the outputs look up table so we can link properly
+    # and add this as an attr so we can use later
+    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
-    outputs_lut = make_outputs_lut_from_graph(gx)
-
+    logger.info("making strong run exports")
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
     # envs will have compiler-related packages in them
-    strong_exports = {
+    gx.graph["strong_exports"] = {
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
+
+def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
+    logger.info("adding run exports")
+
     for node in nodes_to_update:
+        if node not in gx.nodes:
+            continue
         with gx.nodes[node]["payload"] as attrs:
-            _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
+            _add_run_exports_per_node(
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
+            )
 
 
 def _update_graph_nodes(
-    names: List[str],
+    names: list[str],
     mark_not_archived=False,
     debug=False,
 ) -> nx.DiGraph:
@@ -297,12 +388,7 @@ def _update_graph_nodes(
         mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
-
-    logger.info("adding run exports")
-    _add_run_exports(names)
-    logger.info("done adding run exports")
-
-    logger.info(f"memory usage: {psutil.virtual_memory()}")
+    logger.info("memory usage: %s", psutil.virtual_memory())
 
 
 def _update_nodes_with_archived(names):
@@ -317,8 +403,31 @@ def _migrate_schemas(nodes):
             _migrate_schema(node, sub_graph)
 
 
+def _should_be_stub_node(name):
+    # a node is a stub if its json data does not exist or
+    # the json data is an empty dict and the file is not tracked by git
+    pth = get_sharded_path(f"node_attrs/{name}.json")
+
+    if not os.path.exists(pth):
+        return True
+
+    # is empty JSON blob and not tracked by git
+    with open(pth) as fp:
+        data = fp.read()
+    if data.strip() == "{}" and not is_tracked_by_git(pth):
+        # remove the file here so it is not pushed later
+        os.remove(pth)
+        return True
+
+    return False
+
+
 def main(
-    ctx: CliContext, job: int = 1, n_jobs: int = 1, update_nodes_and_edges: bool = False
+    ctx: CliContext,
+    job: int = 1,
+    n_jobs: int = 1,
+    update_nodes_and_edges: bool = False,
+    schema_migration_only: bool = False,
 ) -> None:
     logger.info("getting all nodes")
     names = get_all_feedstocks(cached=True)
@@ -331,47 +440,65 @@ def main(
     tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
     names_for_this_job = _get_names_for_job(names, job, n_jobs)
     archived_names_for_this_job = _get_names_for_job(archived_names, job, n_jobs)
-    logger.info(f"total # of nodes across all backends: {len(tot_names)}")
-    logger.info(f"active nodes: {len(names)}")
-    logger.info(f"archived nodes: {len(archived_names)}")
+    logger.info("total # of nodes across all backends: %d", len(tot_names))
+    logger.info("active nodes: %d", len(names))
+    logger.info("archived nodes: %d", len(archived_names))
+
+    gx = load_existing_graph()
 
     if update_nodes_and_edges:
-        gx = load_graph()
+        logger.info("making graph payloads")
 
-        new_names = [name for name in names if name not in gx.nodes]
-        with lazy_json_override_backends(
-            ["file"],
-            hashmaps_to_sync=["node_attrs"],
-            keys_to_sync=set(tot_names_for_this_job),
-        ):
-            for name in names:
+        new_names = {name for name in names if name not in gx.nodes}
+        for name in names:
+            if _should_be_stub_node(name):
+                # we use the stub here to ensure we do not create an empty node
+                # by leaving a file on disk or syncing the json
                 sub_graph = {
-                    "payload": LazyJson(f"node_attrs/{name}.json"),
+                    "payload": LazyJsonStub(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
                 }
-                if name in new_names:
-                    gx.add_node(name, **sub_graph)
-                else:
-                    gx.nodes[name].update(**sub_graph)
+            else:
+                sub_graph = {
+                    "payload": LazyJson(f"node_attrs/{name}.json"),  # type: ignore[dict-item]
+                }
 
-            gx = _create_edges(gx)
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
+                gx.nodes[name].update(**sub_graph)
 
-            _migrate_schemas(tot_names)
+        _add_graph_metadata(gx)
 
+        gx = _create_edges(gx, tot_names)
+
+        logger.info("dumping graph")
         dump_graph(gx)
     else:
+        new_names = {name for name in names if name not in gx.nodes}
+
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
             keys_to_sync=set(tot_names_for_this_job),
         ):
-            _update_graph_nodes(
-                names_for_this_job,
-                mark_not_archived=True,
-                debug=ctx.debug,
-            )
+            if schema_migration_only:
+                # we skip new nodes since their data may not be pulled down locally
+                # we will get them eventually once the make graph job has run
+                _migrate_schemas(
+                    [
+                        nm
+                        for nm in tot_names_for_this_job
+                        if os.path.exists(get_sharded_path(f"node_attrs/{nm}.json"))
+                    ]
+                )
+            else:
+                _update_graph_nodes(
+                    names_for_this_job,
+                    mark_not_archived=True,
+                    debug=ctx.debug,
+                )
+                _add_run_exports(gx, names_for_this_job)
 
-            _update_nodes_with_archived(
-                archived_names_for_this_job,
-            )
-
-            _migrate_schemas(tot_names_for_this_job)
+                _update_nodes_with_archived(
+                    archived_names_for_this_job,
+                )

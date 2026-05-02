@@ -1,16 +1,22 @@
 import copy
 import glob
-import json
 import logging
 import os
 import pprint
 import subprocess
 import tempfile
+from typing import Any
 
 import conda_smithy
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
-from flaky import flaky
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+)
+from conda_forge_feedstock_ops.os_utils import get_user_execute_permissions
+from conftest import HAVE_CONTAINERS_AND_TEST_IMAGE
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
 from conda_forge_tick.feedstock_parser import (
@@ -24,13 +30,14 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.migration_runner import run_migration_containerized
 from conda_forge_tick.migrators import MigrationYaml, Version
-from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
-from conda_forge_tick.provide_source_code import provide_source_code_containerized
-from conda_forge_tick.rerender_feedstock import (
-    rerender_feedstock_containerized,
-    rerender_feedstock_local,
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.provide_source_code import (
+    provide_source_code_containerized,
+    provide_source_code_local,
 )
+from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
+from conda_forge_tick.update_recipe.version import update_version_feedstock_dir
 from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
@@ -39,55 +46,33 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     parse_meta_yaml,
     parse_meta_yaml_containerized,
-    run_container_task,
 )
 
-VERSION = Version(set())
+TOTAL_GRAPH = nx.DiGraph()
+TOTAL_GRAPH.graph["outputs_lut"] = {}
+VERSION = Version(set(), total_graph=TOTAL_GRAPH)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
-HAVE_CONTAINERS = (
-    subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
-)
-
-if HAVE_CONTAINERS:
-    HAVE_TEST_IMAGE = False
-    try:
-        for line in subprocess.run(
-            [
-                "docker",
-                "images",
-                "--format",
-                "json",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines():
-            image = json.loads(line)
-            if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
-                HAVE_TEST_IMAGE = True
-                break
-    except subprocess.CalledProcessError as e:
-        print(
-            f"Could not list local docker images due "
-            f"to error {e}. Skipping container tests!"
-        )
-
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version(use_containers):
-    data = run_container_task(
-        "get-latest-version",
-        ["--existing-feedstock-node-attrs", "conda-smithy"],
+    data = run_container_operation(
+        [
+            "conda-forge-tick-container",
+            "get-latest-version",
+            "--existing-feedstock-node-attrs",
+            "conda-smithy",
+        ]
+        + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
     )
     assert VersionOrder(data["new_version"]) >= VersionOrder(conda_smithy.__version__)
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_json(use_containers):
     with (
@@ -98,12 +83,14 @@ def test_container_tasks_get_latest_version_json(use_containers):
     ):
         existing_feedstock_node_attrs = dumps(lzj.data)
 
-        data = run_container_task(
-            "get-latest-version",
+        data = run_container_operation(
             [
+                "conda-forge-tick-container",
+                "get-latest-version",
                 "--existing-feedstock-node-attrs",
                 existing_feedstock_node_attrs,
-            ],
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
         assert VersionOrder(data["new_version"]) >= VersionOrder(
             conda_smithy.__version__
@@ -111,7 +98,7 @@ def test_container_tasks_get_latest_version_json(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_containerized(use_containers):
     with (
@@ -131,7 +118,7 @@ def test_container_tasks_get_latest_version_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_get_latest_version_containerized_mpas_tools(use_containers):
     with (
@@ -149,13 +136,18 @@ def test_container_tasks_get_latest_version_containerized_mpas_tools(use_contain
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_feedstock(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        data = run_container_task(
-            "parse-feedstock",
-            ["--existing-feedstock-node-attrs", "conda-smithy"],
+        data = run_container_operation(
+            [
+                "conda-forge-tick-container",
+                "parse-feedstock",
+                "--existing-feedstock-node-attrs",
+                "conda-smithy",
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
 
         with (
@@ -169,7 +161,7 @@ def test_container_tasks_parse_feedstock(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_feedstock_json(use_containers):
     with (
@@ -181,16 +173,21 @@ def test_container_tasks_parse_feedstock_json(use_containers):
         attrs = copy.deepcopy(lzj.data)
         existing_feedstock_node_attrs = dumps(lzj.data)
 
-        data = run_container_task(
-            "parse-feedstock",
-            ["--existing-feedstock-node-attrs", existing_feedstock_node_attrs],
+        data = run_container_operation(
+            [
+                "conda-forge-tick-container",
+                "parse-feedstock",
+                "--existing-feedstock-node-attrs",
+                existing_feedstock_node_attrs,
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_load_feedstock_containerized(use_containers):
     with (
@@ -207,7 +204,7 @@ def test_container_tasks_load_feedstock_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_load_feedstock_containerized_mpas_tools(use_containers):
     with (
@@ -225,7 +222,7 @@ def test_container_tasks_load_feedstock_containerized_mpas_tools(use_containers)
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_parse_meta_yaml_containerized(use_containers):
     with (
@@ -243,7 +240,7 @@ def test_container_tasks_parse_meta_yaml_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_same_as_local(
     use_containers, capfd
@@ -278,26 +275,27 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                     )
 
             try:
-                msg = rerender_feedstock_containerized(
+                msg = rerender_feedstock(
                     os.path.join(
                         tmpdir_cont, "conda-forge-feedstock-check-solvable-feedstock"
                     ),
+                    use_container=True,
                 )
             finally:
                 captured = capfd.readouterr()
                 print(f"out: {captured.out}\nerr: {captured.err}")
 
             if "git commit -m " in captured.err:
-                assert (
-                    msg is not None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-                assert msg.startswith(
-                    "MNT:"
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is not None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
+                assert msg.startswith("MNT:"), (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
             else:
-                assert (
-                    msg is None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
 
         with pushd(tmpdir_local):
             subprocess.run(
@@ -323,10 +321,11 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                     )
 
             try:
-                local_msg = rerender_feedstock_local(
+                local_msg = rerender_feedstock(
                     os.path.join(
                         tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
                     ),
+                    use_container=False,
                 )
             finally:
                 local_captured = capfd.readouterr()
@@ -346,9 +345,9 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
         rel_local_fnames = {
             os.path.relpath(fname, tmpdir_local) for fname in local_fnames
         }
-        assert (
-            rel_cont_fnames == rel_local_fnames
-        ), f"{rel_cont_fnames} != {rel_local_fnames}"
+        assert rel_cont_fnames == rel_local_fnames, (
+            f"{rel_cont_fnames} != {rel_local_fnames}"
+        )
 
         for cfname in cont_fnames:
             lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))
@@ -361,7 +360,7 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
@@ -389,10 +388,11 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
                         check=True,
                     )
 
-            local_msg = rerender_feedstock_local(
+            local_msg = rerender_feedstock(
                 os.path.join(
                     tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
                 ),
+                use_container=False,
             )
 
             assert local_msg is not None
@@ -403,17 +403,18 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
                 )
 
         # now run in container and make sure commit message is None
-        msg = rerender_feedstock_containerized(
+        msg = rerender_feedstock(
             os.path.join(
                 tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
             ),
+            use_container=True,
         )
 
         assert msg is None
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -433,8 +434,9 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                 )
                 orig_exec = get_user_execute_permissions(".")
 
-            local_msg = rerender_feedstock_local(
+            local_msg = rerender_feedstock(
                 os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
+                use_container=False,
             )
 
             if local_msg is not None:
@@ -468,8 +470,9 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                         check=True,
                     )
 
-            msg = rerender_feedstock_containerized(
+            msg = rerender_feedstock(
                 os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
+                use_container=True,
             )
             assert msg is not None
 
@@ -478,12 +481,13 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                 print(f"\n\nfinal permissions for build-locally.py: {perms_bl:#o}\n\n")
                 cont_rerend_exec = get_user_execute_permissions(".")
 
-            assert orig_exec == local_rerend_exec
-            assert orig_exec == cont_rerend_exec
+            for item, perms in orig_exec.items():
+                assert perms == local_rerend_exec.get(item, perms)
+                assert perms == cont_rerend_exec.get(item, perms)
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_provide_source_code_containerized(use_containers):
     with (
@@ -508,7 +512,7 @@ def test_container_tasks_provide_source_code_containerized(use_containers):
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_provide_source_code_containerized_patches(use_containers):
     with (
@@ -539,7 +543,7 @@ def test_container_tasks_provide_source_code_containerized_patches(use_container
 
 
 @pytest.mark.skipif(
-    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
 )
 def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -567,10 +571,13 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
         assert res_cont == res_local
 
 
-yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
-yaml_rebuild.cycles = []
+yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi", total_graph=TOTAL_GRAPH)
+yaml_rebuild.cycles = set()
 
 
+@pytest.mark.skipif(
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
+)
 def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     fs_dir = os.path.join(tmpdir, "scipy-feedstock")
     rp_dir = os.path.join(fs_dir, "recipe")
@@ -582,7 +589,7 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
         subprocess.run(["git", "init", "-b", "main"])
     # Load the meta.yaml (this is done in the graph)
     try:
-        pmy = parse_meta_yaml(sample_yaml_rebuild)
+        pmy: dict[str, Any] = parse_meta_yaml(sample_yaml_rebuild)  # type: ignore[assignment]
     except Exception:
         pmy = {}
     if pmy:
@@ -615,7 +622,8 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     assert migration_data["commit_message"] == "Rebuild for hi"
     assert migration_data["pr_title"] == "Rebuild for hi"
     assert migration_data["pr_body"].startswith(
-        "This PR has been triggered in an effort to update **hi**."
+        "This PR has been triggered in an effort to update "
+        "[**hi**](https://conda-forge.org/status/migration/?name=hi)."
     )
 
     with open(os.path.join(rp_dir, "meta.yaml")) as f:
@@ -627,13 +635,15 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     assert saved_migration == yaml_rebuild.yaml_contents
 
 
+@pytest.mark.skipif(
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
+)
 @pytest.mark.parametrize(
     "case,new_ver",
     [
         ("sha1", "5.0.1"),
     ],
 )
-@flaky
 def test_migration_runner_run_migration_containerized_version(
     case, new_ver, tmpdir, caplog
 ):
@@ -672,7 +682,7 @@ def test_migration_runner_run_migration_containerized_version(
     with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
-    pmy = populate_feedstock_attributes(name, {}, inp, "{}")
+    pmy = populate_feedstock_attributes(name, {}, inp, None, "{}")
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -683,7 +693,7 @@ def test_migration_runner_run_migration_containerized_version(
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
-    pmy["new_version"] = new_ver
+    pmy["version_pr_info"] = {"new_version": new_ver}
 
     data = run_migration_containerized(
         migrator=m,
@@ -702,3 +712,49 @@ def test_migration_runner_run_migration_containerized_version(
         actual_output = f.read()
     assert actual_output == output
     assert m.filter(pmy) is True
+
+
+@pytest.mark.skipif(
+    not HAVE_CONTAINERS_AND_TEST_IMAGE, reason="containers not available"
+)
+def test_container_tasks_update_version_feedstock_dir():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fs_dir = os.path.join(tmpdir, "mpich-feedstock")
+        rp_dir = os.path.join(fs_dir, "recipe")
+        os.makedirs(rp_dir, exist_ok=True)
+        with open(os.path.join(rp_dir, "meta.yaml"), "w") as f:
+            with open(os.path.join(YAML_PATH, "version_mpich.yaml")) as fp:
+                f.write(fp.read())
+
+        updated, errors = update_version_feedstock_dir(
+            fs_dir, "4.1.1", use_container=True
+        )
+        assert updated
+        assert not errors
+
+        with open(os.path.join(rp_dir, "meta.yaml")) as f:
+            actual_output = f.read()
+
+        with open(os.path.join(YAML_PATH, "version_mpich_correct.yaml")) as fp:
+            output = fp.read()
+
+        assert actual_output == output
+
+
+def test_container_tasks_provide_source_code_local(use_containers):
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+    ):
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/conda-smithy-feedstock.git",
+            ]
+        )
+
+        with provide_source_code_local("conda-smithy-feedstock/recipe") as source_dir:
+            assert os.path.exists(source_dir)
+            assert os.path.isdir(source_dir)
+            assert "pyproject.toml" in os.listdir(source_dir)

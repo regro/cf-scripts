@@ -23,7 +23,7 @@ CF_TICK_GRAPH_DATA_BACKUP_BACKEND = os.environ.get(
 
 
 def make_lazy_json_backup(verbose=False):
-    ts = str(int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp()))
+    ts = str(int(datetime.datetime.now(tz=datetime.UTC).timestamp()))
     slink = f"cf_graph_{ts}"
     try:
         subprocess.run(
@@ -85,11 +85,11 @@ def prune_timestamps(
     one_week = datetime.timedelta(weeks=1)
     one_month = datetime.timedelta(weeks=4)
 
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
 
     tot = 0
     for ts in sorted(timestamps)[::-1]:
-        dt = datetime.datetime.fromtimestamp(int(ts), tz=datetime.timezone.utc)
+        dt = datetime.datetime.fromtimestamp(int(ts), tz=datetime.UTC)
         for i in range(nhours):
             key = f"h{i}"
             dt_high = now - i * one_hour

@@ -1,0 +1,64 @@
+{% set name = "pysyntect" %}
+{% set version = "0.3.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: ffcb227dc57bffe6e194842944f8d16e49d77d6affd08c8c213d0e2d4e956c43
+
+build:
+  number: 0
+  # the distributed binaries are already relocatable
+  binary_relocation: false
+  missing_dso_whitelist:
+    - /usr/lib/libresolv.9.dylib  # [osx]
+
+requirements:
+  build:
+    - posix  # [win]
+    # - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ stdlib("c") }}
+    - clang
+    - llvm
+    - rust
+    - llvmdev
+    - llvm-tools
+    - libclang
+    - maturin
+    - toml
+    - pip
+  host:
+    - python
+    - pip
+  run:
+    - python
+
+test:
+  # Some packages might need a `test/commands` key to check CLI.
+  # List all the packages/modules that `run_test.py` imports.
+  imports:
+    - syntect
+
+about:
+  home: https://github.com/spyder-ide/pysyntect
+  license: MIT AND Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND MPL-2.0 AND Zlib AND Unlicense
+  license_family: MIT
+  license_file: LICENSE
+  summary: Python bindings for the syntect Rust library
+
+  # The remaining entries in this section are optional, but recommended.
+  description: |
+    Python bindings for the Syntect library. Pysyntect provides a lightweight,
+    fast engine to compute syntax highlighting using Sublime Text syntax
+    definitions and TextMate theme definitions, which are shared by
+    many editors.
+  dev_url: https://github.com/spyder-ide/pysyntect
+
+extra:
+  recipe-maintainers:
+    - andfoy
+    - ccordoba12

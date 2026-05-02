@@ -3,96 +3,32 @@ name: tests
 on:
   push:
     branches:
-      - master
+      - main
   pull_request: null
-
-env:
-  PY_COLORS: "1"
-  IMAGE_NAME: conda-forge-tick
+  merge_group: null
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: tests
-    runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
-
+  check:
+    name: Check if we can skip the merge queue
+    outputs:
+      skip-check: ${{ steps.merge-queue-ci-skipper.outputs.skip-check }}
+    runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
-
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - name: Check if we can skip the merge queue
+        id: merge-queue-ci-skipper
+        uses: cariad-tech/merge-queue-ci-skipper@cf80db21fc70244e36487acc531b3f1118889b0a
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+            secret: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - name: configure conda and install code
-        run: |
-          export GIT_FULL_HASH=`git rev-parse HEAD`
-          export RUN_URL=""
-          pip install --no-deps --no-build-isolation -e .
-
-      - name: test versions
-        run: |
-          pip uninstall conda-forge-tick --yes
-          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
-
-          rm -rf dist/*
-          python setup.py sdist
-          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
-          cd ..
-          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
-          cd -
-          pip uninstall conda-forge-tick --yes
-
-          rm -rf dist/*
-          python -m build --sdist . --outdir dist
-          pip install --no-deps --no-build-isolation dist/*.tar.gz
-          cd ..
-          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
-          cd -
-          pip uninstall conda-forge-tick --yes
-
-          python -m pip install -v --no-deps --no-build-isolation -e .
-
-      - name: Start MongoDB
-        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a # e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
-        with:
-          mongodb-version: "latest"
-
-      - name: test mongodb is OK
-        run: |
-          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
-        env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
-
-      - name: build docker image
-        run: |
-          docker build -t ${{ env.IMAGE_NAME }}:test .
-
-      - name: run pytest
-        run: |
-          export TEST_BOT_TOKEN_VAL=unpassword
-          export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
-          pytest \
-            -v \
-            --cov=conda_forge_tick \
-            --cov=tests \
-            --cov-config=.coveragerc \
-            --cov-report=term-missing \
-            --cov-report=xml \
-            --durations=10 \
-            --ignore=tests/model \
-            tests
-        env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
-
-      - name: upload codecov
-        uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c # v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+  tests:
+    needs: check
+    uses: ./.github/workflows/tests-reusable.yml
+    with:
+      skip: ${{ needs.check.outputs.skip-check }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}

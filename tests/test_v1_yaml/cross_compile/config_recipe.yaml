@@ -1,0 +1,39 @@
+schema_version: 1
+
+context:
+  version: 4.4.1
+
+package:
+  name: readline
+  version: ${{ version }}
+
+source:
+  url: https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-${{ version }}.tar.gz
+  sha256: 750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334
+
+build:
+  number: 2
+  skip: win
+
+requirements:
+  build:
+    - pkg-config
+    - ${{ compiler('c') }}
+    - make
+    - cmake
+  host:
+    - ncurses
+  run:
+    - ncurses
+  run_exports:
+    - ${{ pin_subpackage('readline') }}
+
+about:
+  license: GPL-3.0-only
+  license_file: COPYING
+  summary: library for editing command lines as they are typed in
+  homepage: https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+
+extra:
+  recipe-maintainers:
+    - croth1

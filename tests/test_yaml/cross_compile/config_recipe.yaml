@@ -1,0 +1,37 @@
+{% set version = "4.4.1" %}
+
+package:
+  name: readline
+  version: {{ version }}
+
+source:
+  url: https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-{{ version }}.tar.gz
+  sha256: 750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334
+
+build:
+  skip: true  # [win]
+  number: 2
+  run_exports:
+    # change soname at major ver: https://abi-laboratory.pro/tracker/timeline/readline/
+    - {{ pin_subpackage('readline') }}
+
+requirements:
+  build:
+    - pkg-config
+    - {{ compiler('c') }}
+    - make
+    - cmake
+  host:
+    - ncurses
+  run:
+    - ncurses
+
+about:
+  home: https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+  license: GPL-3.0-only
+  license_file: COPYING
+  summary: library for editing command lines as they are typed in
+
+extra:
+  recipe-maintainers:
+    - croth1

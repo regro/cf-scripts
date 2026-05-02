@@ -1,0 +1,66 @@
+schema_version: 1
+
+context:
+  version: 1.19.0
+
+package:
+  name: numpy
+  version: ${{ version }}
+
+source:
+  url: https://github.com/numpy/numpy/releases/download/v${{ version }}/numpy-${{ version }}.tar.gz
+  sha256: 153cf8b0176e57a611931981acfe093d2f7fef623b48f91176efa199798a6b90
+
+build:
+  number: 0
+  python:
+    entry_points:
+      - if: win
+        then: f2py = numpy.f2py.f2py2e:main
+
+requirements:
+  host:
+    - python
+    - pip
+    - cython
+    - libblas
+    - libcblas
+    - liblapack
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - numpy
+        - numpy.linalg.lapack_lite
+      pip_check: false
+  - requirements:
+      run:
+        - pytest
+        - hypothesis
+    script:
+      - f2py -h
+      - if: unix
+        then: export OPENBLAS_NUM_THREADS=1
+      - if: win
+        then: set OPENBLAS_NUM_THREADS=1
+      - conda inspect linkages
+      - conda inspect objects
+      - conda inspect cars
+
+about:
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Array processing for numbers, strings, records, and objects.
+  homepage: http://numpy.scipy.org/
+  repository: https://github.com/numpy/numpy
+  documentation: https://docs.scipy.org/doc/numpy/reference/
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
