@@ -3520,7 +3520,7 @@ package:
   category: main
   optional: false
 - name: grayskull
-  version: 3.1.0
+  version: 3.1.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -3539,16 +3539,15 @@ package:
     ruamel.yaml.jinja2: ''
     setuptools: '>=30.3.0'
     stdlib-list: ''
-    tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.1-pyhc364b38_0.conda
   hash:
-    md5: 5c072ac946664bfa47d8cd5cddd6a890
-    sha256: 3432a23eec0d6ad7d26c4928fef2e014caea51e89e962c5d8652510ca589d102
+    md5: 0e7873aa5c4bb20851965053909b6134
+    sha256: 88329b02e3f7cdb200e0e01a919fe8400a1fc906a768f050385fc9f8b8c27f87
   category: main
   optional: false
 - name: grayskull
-  version: 3.1.0
+  version: 3.1.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -3567,12 +3566,11 @@ package:
     ruamel.yaml.jinja2: ''
     setuptools: '>=30.3.0'
     stdlib-list: ''
-    tomli: ''
     tomli-w: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/grayskull-3.1.1-pyhc364b38_0.conda
   hash:
-    md5: 5c072ac946664bfa47d8cd5cddd6a890
-    sha256: 3432a23eec0d6ad7d26c4928fef2e014caea51e89e962c5d8652510ca589d102
+    md5: 0e7873aa5c4bb20851965053909b6134
+    sha256: 88329b02e3f7cdb200e0e01a919fe8400a1fc906a768f050385fc9f8b8c27f87
   category: main
   optional: false
 - name: gtk3
