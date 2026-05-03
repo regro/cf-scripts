@@ -1525,25 +1525,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.02.00.12.01
+  version: 2026.05.03.10.41.10
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.02.00.12.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.03.10.41.10-hd8ed1ab_0.conda
   hash:
-    md5: e7b32b81581983aba4f8254119754a39
-    sha256: 70b4a3a9ce666f79e61ecbe03db441260952c1473475198d564048dc682b0e0d
+    md5: 774f5e2921491417567a43700dbea940
+    sha256: d0d91f8a7a8585fed14466485b763e2572bdc8cb7ba267507fc88a5206a7282f
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.02.00.12.01
+  version: 2026.05.03.10.41.10
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.02.00.12.01-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.03.10.41.10-hd8ed1ab_0.conda
   hash:
-    md5: e7b32b81581983aba4f8254119754a39
-    sha256: 70b4a3a9ce666f79e61ecbe03db441260952c1473475198d564048dc682b0e0d
+    md5: 774f5e2921491417567a43700dbea940
+    sha256: d0d91f8a7a8585fed14466485b763e2572bdc8cb7ba267507fc88a5206a7282f
   category: main
   optional: false
 - name: conda-index
@@ -10908,27 +10908,27 @@ package:
   category: main
   optional: false
 - name: wcwidth
-  version: 0.6.0
+  version: 0.7.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.6.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c3197f8c0d5b955c904616b716aca093
-    sha256: e298b508b2473c4227206800dfb14c39e4b14fd79d4636132e9e1e4244cdf4aa
+    md5: eb9538b8e55069434a18547f43b96059
+    sha256: 1ee2d8384972ecbf8630ce8a3ea9d16858358ad3e8566675295e66996d5352da
   category: main
   optional: false
 - name: wcwidth
-  version: 0.6.0
+  version: 0.7.0
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.6.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: c3197f8c0d5b955c904616b716aca093
-    sha256: e298b508b2473c4227206800dfb14c39e4b14fd79d4636132e9e1e4244cdf4aa
+    md5: eb9538b8e55069434a18547f43b96059
+    sha256: 1ee2d8384972ecbf8630ce8a3ea9d16858358ad3e8566675295e66996d5352da
   category: main
   optional: false
 - name: websockets
