@@ -895,27 +895,27 @@ package:
   category: main
   optional: false
 - name: cachetools
-  version: 7.1.0
+  version: 7.1.1
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.1-pyhd8ed1ab_0.conda
   hash:
-    md5: cb915c679dd06cee308082ff800b4f94
-    sha256: 241e3c7a51c64ada49060e4591c5471c0481558dfc59a68863c177cf3cccefe8
+    md5: bf63d5c36d9cfee27b7929aff260140b
+    sha256: 8bef408e31ffebe136237882290e4e9d27fd8bcea113cede8d568ef2c1c50337
   category: main
   optional: false
 - name: cachetools
-  version: 7.1.0
+  version: 7.1.1
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.0-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/cachetools-7.1.1-pyhd8ed1ab_0.conda
   hash:
-    md5: cb915c679dd06cee308082ff800b4f94
-    sha256: 241e3c7a51c64ada49060e4591c5471c0481558dfc59a68863c177cf3cccefe8
+    md5: bf63d5c36d9cfee27b7929aff260140b
+    sha256: 8bef408e31ffebe136237882290e4e9d27fd8bcea113cede8d568ef2c1c50337
   category: main
   optional: false
 - name: cairo
@@ -4973,28 +4973,28 @@ package:
   category: main
   optional: false
 - name: libexpat
-  version: 2.7.5
+  version: 2.8.0
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.7.5-hecca717_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.8.0-hecca717_0.conda
   hash:
-    md5: 49f570f3bc4c874a06ea69b7225753af
-    sha256: e8c2b57f6aacabdf2f1b0924bd4831ce5071ba080baa4a9e8c0d720588b6794c
+    md5: a3b390520c563d78cc58974de95a03e5
+    sha256: ea33c40977ea7a2c3658c522230058395bc2ee0d89d99f0711390b6a1ee80d12
   category: main
   optional: false
 - name: libexpat
-  version: 2.7.5
+  version: 2.8.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.7.5-hf6b4638_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.8.0-hf6b4638_0.conda
   hash:
-    md5: a32123f93e168eaa4080d87b0fb5da8a
-    sha256: 06780dec91dd25770c8cf01e158e1062fbf7c576b1406427475ce69a8af75b7e
+    md5: 65466e82c09e888ca7560c11a97d5450
+    sha256: f4b1cafc59afaede8fa0a2d9cf376840f1c553001acd72f6ead18bbc8ac8c49c
   category: main
   optional: false
 - name: libffi
