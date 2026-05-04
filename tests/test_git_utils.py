@@ -1768,7 +1768,7 @@ def test_trim_pr_json_keys():
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
-        "base": {"repo": {"namee": "None", "name": "foo"}},
+        "base": {"repo": {"name": "None", "name": "foo"}},
     }
 
     pr_json = trim_pr_json_keys(pr_json)
@@ -1787,7 +1787,7 @@ def test_trim_pr_json_keys_src():
         "id": 435,
         "random": "string",
         "head": {"reff": "foo"},
-        "base": {"repo": {"namee": "None", "name": "foo"}},
+        "base": {"repo": {"name": "None", "name": "foo"}},
     }
 
     pr_json = trim_pr_json_keys({"r": None}, src_pr_json=src_pr_json)
