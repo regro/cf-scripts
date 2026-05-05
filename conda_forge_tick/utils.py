@@ -35,6 +35,7 @@ from conda_forge_feedstock_ops.container_utils import (
     run_container_operation,
     should_use_container,
 )
+from rattler_build_conda_compat.outputs import flatten_staging_inheritance
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
@@ -521,7 +522,12 @@ def _render_recipe_yaml(
             else ["--target-platform", platform_arch]
         )
 
-        prepared_text = replace_compiler_with_stub(text)
+        stubbed_text = replace_compiler_with_stub(text)
+        # rattler-build --render-only drops staging outputs and does not
+        # propagate their build/host requirements into inheriting outputs,
+        # so flatten them first to keep the dep graph complete for pinning
+        # and arch migrations.
+        prepared_text = flatten_staging_inheritance(stubbed_text)
 
         res = subprocess.run(
             ["rattler-build", "build", "--render-only"]
@@ -1312,7 +1318,9 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph | None:
     nx.DiGraph or None
         The graph, or None if the file is empty JSON
     """
-    dta = copy.deepcopy(LazyJson(filename).data)
+    lzj = LazyJson(filename)
+    with lzj:
+        dta = copy.deepcopy(lzj.data)
     if dta:
         return nx.node_link_graph(dta, edges="links")
     else:

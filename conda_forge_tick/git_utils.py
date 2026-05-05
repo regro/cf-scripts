@@ -1969,3 +1969,20 @@ def reset_and_restore_file(pth: str):
     subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
     subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
     subprocess.run(["git", "clean", "-f", "--", pth], capture_output=True, text=True)
+
+
+@lock_git_operation()
+def is_tracked_by_git(pth: str):
+    """Return True if the current working directory is a git repo and the `pth` is
+    tracked by git.
+    """
+    # command suggested by AI and then tested by hand
+    ret = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", pth],
+        capture_output=True,
+        text=True,
+    )
+    if ret.returncode == 0:
+        return True
+    else:
+        return False

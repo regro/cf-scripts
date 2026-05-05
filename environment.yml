@@ -19,7 +19,7 @@ dependencies:
   - conda-libmamba-solver
   - conda-forge-metadata >=0.12.0
   - conda-package-handling
-  - conda-smithy >=3.54.2
+  - conda-smithy >=3.61.2
   - conda-build >=3.24.0
   - conda-recipe-manager >=0.6.1
   - curl
@@ -31,7 +31,7 @@ dependencies:
   - frozendict
   - git <2.50
   - github3.py
-  - grayskull >=3.1.0
+  - grayskull >=3.1.1
   - jinja2
   - lockfile
   - mamba >=0.23
@@ -52,7 +52,7 @@ dependencies:
   - python-dateutil
   - python-graphviz
   - rattler-build >=0.58.3,<0.60
-  - rattler-build-conda-compat >=1.4.6,<2,!=1.4.7,!=1.4.8
+  - rattler-build-conda-compat >=1.4.13,<2
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2

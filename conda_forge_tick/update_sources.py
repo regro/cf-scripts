@@ -211,10 +211,15 @@ class VersionFromFeed(AbstractSource, abc.ABC):
         vers = []
 
         for entry in data["entries"]:
-            ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
+            ver = urllib.parse.unquote(entry["link"].split("/")[-1])
 
             if is_tag_ignored(node_attrs, ver):
                 continue
+
+            # Strip scope prefix (e.g. "sass_api/" from "sass_api/17.5.0") so
+            # subsequent dev-version checks only operate on the version part.
+            if "/" in ver:
+                ver = ver.rsplit("/", 1)[1]
 
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):

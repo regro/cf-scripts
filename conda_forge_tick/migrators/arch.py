@@ -154,6 +154,22 @@ class ArchRebuild(GraphMigrator):
         )
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
 
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+        for arch in self.arches:
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
+            )
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
+
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
@@ -222,6 +238,7 @@ class _CrossCompileRebuild(GraphMigrator):
 
     ignored_packages: set[str] = set()
     excluded_dependencies: set[str] = set()
+    arches: dict = {}
 
     @property
     def additional_keys(self):
@@ -318,6 +335,22 @@ class _CrossCompileRebuild(GraphMigrator):
         )
         assert not self.check_solvable, "We don't want to check solvability!"
 
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+        for arch in self.arches:
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
+            )
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
+
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> MigrationUidTypedDict | Literal[False]:
@@ -362,6 +395,7 @@ class OSXArm(_CrossCompileRebuild):
     migrator_version = 1
     build_platform = {"osx_arm64": "osx_64"}
     pkg_list_filename = "osx_arm64.txt"
+    arches = {"osx_arm64": "osx_64"}
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("name", "arm osx addition")
@@ -402,6 +436,7 @@ class WinArm64(_CrossCompileRebuild):
     migrator_version = 1
     build_platform = {"win_arm64": "win_64"}
     pkg_list_filename = "win_arm64.txt"
+    arches = {"win_arm64": "win_64"}
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("name", "support windows arm64 platform")

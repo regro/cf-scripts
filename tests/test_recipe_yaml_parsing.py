@@ -200,3 +200,66 @@ def test_populate_feedstock_attributes(recipe_name):
         assert isinstance(value, set)
         for el in value:
             assert isinstance(el, str)
+
+
+def test_populate_feedstock_attributes_staging_outputs():
+    """Build/host deps declared in a staging output must appear in the
+    parsed feedstock attributes, otherwise pinning migrations won't
+    know that this feedstock needs to be rebuilt.
+    """
+    recipe_text = """\
+outputs:
+  - staging:
+      name: shared-build
+    source:
+      url: https://example.com/foo-1.0.tar.gz
+      sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+    requirements:
+      build:
+        - cxx_compiler_stub
+      host:
+        - cudnn 9.*
+        - python
+  - package:
+      name: foo
+      version: "1.0"
+    inherit: shared-build
+    requirements:
+      host:
+        - numpy
+      run:
+        - python
+        - numpy
+about:
+  license: MIT
+  summary: test
+"""
+
+    with TemporaryDirectory() as tmpdir:
+        os.makedirs(Path(tmpdir) / "recipe", exist_ok=True)
+        os.makedirs(Path(tmpdir) / ".ci_support", exist_ok=True)
+        (Path(tmpdir) / "recipe" / "recipe.yaml").write_text(recipe_text)
+        (Path(tmpdir) / ".ci_support" / "linux_64_.yaml").write_text("""\
+target_platform:
+  - linux-64
+""")
+        node_attrs = populate_feedstock_attributes(
+            "foo",
+            {},
+            recipe_yaml=recipe_text,
+            feedstock_dir=tmpdir,
+        )
+
+    build_reqs = node_attrs["total_requirements"]["build"]
+    assert "cxx_compiler_stub" in build_reqs
+
+    host_reqs = node_attrs["total_requirements"]["host"]
+    # from staging
+    assert "cudnn 9.*" in host_reqs
+    assert "python" in host_reqs
+    # from the package output itself
+    assert "numpy" in host_reqs
+
+    run_reqs = node_attrs["total_requirements"]["run"]
+    assert "python" in run_reqs
+    assert "numpy" in run_reqs
