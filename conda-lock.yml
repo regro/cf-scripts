@@ -1810,7 +1810,7 @@ package:
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.10.2
+  version: 0.10.3
   manager: conda
   platform: linux-64
   dependencies:
@@ -1823,14 +1823,14 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.3-pyhd8ed1ab_0.conda
   hash:
-    md5: 984ad124cdf17741903f0502531a07cb
-    sha256: eb4fe27b4c7f8de98c7fd01f7d8ea269fb69a0f4e20214792a73f2bada480bb8
+    md5: 5e83250b7bc5ed9d417416c6580bdecd
+    sha256: 011a732ec1a9a359b95386867bb3b331e9b2909470166e398badbdcddaf1872e
   category: main
   optional: false
 - name: conda-recipe-manager
-  version: 0.10.2
+  version: 0.10.3
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -1843,10 +1843,10 @@ package:
     python: '>=3.11'
     pyyaml: ''
     requests: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-recipe-manager-0.10.3-pyhd8ed1ab_0.conda
   hash:
-    md5: 984ad124cdf17741903f0502531a07cb
-    sha256: eb4fe27b4c7f8de98c7fd01f7d8ea269fb69a0f4e20214792a73f2bada480bb8
+    md5: 5e83250b7bc5ed9d417416c6580bdecd
+    sha256: 011a732ec1a9a359b95386867bb3b331e9b2909470166e398badbdcddaf1872e
   category: main
   optional: false
 - name: conda-smithy
@@ -3358,31 +3358,31 @@ package:
   category: main
   optional: false
 - name: gitpython
-  version: 3.1.49
+  version: 3.1.50
   manager: conda
   platform: linux-64
   dependencies:
     gitdb: '>=4.0.1,<5'
     python: '>=3.10'
     typing_extensions: '>=3.10.0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.49-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.50-pyhd8ed1ab_0.conda
   hash:
-    md5: f575ca84b698ffa53273b38bbd51009f
-    sha256: a2ad0529ecfe8de0b48c43b2860c18d5f75aa0b062b9e717644bb22390a5caaa
+    md5: 98958318a01373a615f119b1040b3027
+    sha256: 718c9d0cc287ffda978996c4105ddd2863dd7bad7fb5794cdd365bd809ef2fa5
   category: main
   optional: false
 - name: gitpython
-  version: 3.1.49
+  version: 3.1.50
   manager: conda
   platform: osx-arm64
   dependencies:
     gitdb: '>=4.0.1,<5'
     python: '>=3.10'
     typing_extensions: '>=3.10.0.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.49-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.50-pyhd8ed1ab_0.conda
   hash:
-    md5: f575ca84b698ffa53273b38bbd51009f
-    sha256: a2ad0529ecfe8de0b48c43b2860c18d5f75aa0b062b9e717644bb22390a5caaa
+    md5: 98958318a01373a615f119b1040b3027
+    sha256: 718c9d0cc287ffda978996c4105ddd2863dd7bad7fb5794cdd365bd809ef2fa5
   category: main
   optional: false
 - name: glib-tools
