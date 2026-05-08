@@ -4849,10 +4849,10 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-22.1.5-h55c6f16_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-22.1.5-h55c6f16_1.conda
   hash:
-    md5: d0a2e921c5a89df73118cff1afed5213
-    sha256: 76c3d3c702593b6ef57dc2f99c082193a99835526634b844f4a78ae3aecdb6c8
+    md5: ff484b683fecf1e875dfc7aa01d19796
+    sha256: dddd01bd6b338221342a89530a1caffe6051a70cc8f8b1d8bb591d5447a3c603
   category: main
   optional: false
 - name: libdeflate
@@ -7310,7 +7310,7 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.67.2
+  version: 0.68.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -7318,23 +7318,23 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     openssl: '>=3.5.6,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.67.2-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.68.0-ha759004_0.conda
   hash:
-    md5: b394d2212f3dbd29c0d2fa89eddf01f3
-    sha256: 60c7e41db41a8757fa8c5d1a67e3d28d052616f6c9d0bb809fb24948337a8859
+    md5: 7a7ab327980227f74fabc0cc668c9511
+    sha256: a5330d01a3cdc73e680635dc28f807b2294a6792cbb936c4e02568980df90e4e
   category: main
   optional: false
 - name: pixi
-  version: 0.67.2
+  version: 0.68.0
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.67.2-h2307240_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.68.0-h2307240_0.conda
   hash:
-    md5: 22718e80bceec1e482d6ff11af36f70c
-    sha256: 69e69727ea0c93f274001043f49ce3eb04c588c45ee8772aca42d309f84fa16c
+    md5: e0bce92a6e892181a23225a683e317a1
+    sha256: 1e9f08b6ee7ba6a7d106756bb2d6d5c2e2a11d79f81958414ebeb16d29dbfe24
   category: main
   optional: false
 - name: pixman
@@ -7900,7 +7900,7 @@ package:
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.14.0
+  version: 2.14.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -7908,14 +7908,14 @@ package:
     python: ''
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.1-pyhcf101f3_0.conda
   hash:
-    md5: 0e2c1984a82047fbcca08f993a4c5a8e
-    sha256: b80cf1257e218fe784b2ddf2989ca8098a948d133f908dbbf162a8e8e155faa8
+    md5: 3b05fc4bb3e31efd3498136b3221c18f
+    sha256: a4ad48b01e5e2640561011d8d48ac038fec66670f24e22c370097747bd9200d2
   category: main
   optional: false
 - name: pydantic-settings
-  version: 2.14.0
+  version: 2.14.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -7923,10 +7923,10 @@ package:
     python: ''
     python-dotenv: '>=0.21.0'
     typing-inspection: '>=0.4.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.0-pyhcf101f3_1.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.14.1-pyhcf101f3_0.conda
   hash:
-    md5: 0e2c1984a82047fbcca08f993a4c5a8e
-    sha256: b80cf1257e218fe784b2ddf2989ca8098a948d133f908dbbf162a8e8e155faa8
+    md5: 3b05fc4bb3e31efd3498136b3221c18f
+    sha256: a4ad48b01e5e2640561011d8d48ac038fec66670f24e22c370097747bd9200d2
   category: main
   optional: false
 - name: pygit2
@@ -10319,27 +10319,27 @@ package:
   category: main
   optional: false
 - name: trove-classifiers
-  version: 2026.4.28.13
+  version: 2026.5.7.17
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2026.4.28.13-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2026.5.7.17-pyhd8ed1ab_0.conda
   hash:
-    md5: 3eea6839d5b20aa81c00a3c3e0fc3504
-    sha256: d8f62a784845800fc6b196b7b996757844238ab30438bc8db2ebc32b1132bb0d
+    md5: 58ad6f35e45eca7db0fd5da95aafc693
+    sha256: b06931edfab2f6bde64fae1e7323216b74389b5a27242bf2b54b401246efb04d
   category: main
   optional: false
 - name: trove-classifiers
-  version: 2026.4.28.13
+  version: 2026.5.7.17
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2026.4.28.13-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2026.5.7.17-pyhd8ed1ab_0.conda
   hash:
-    md5: 3eea6839d5b20aa81c00a3c3e0fc3504
-    sha256: d8f62a784845800fc6b196b7b996757844238ab30438bc8db2ebc32b1132bb0d
+    md5: 58ad6f35e45eca7db0fd5da95aafc693
+    sha256: b06931edfab2f6bde64fae1e7323216b74389b5a27242bf2b54b401246efb04d
   category: main
   optional: false
 - name: truststore
@@ -10578,7 +10578,7 @@ package:
   category: main
   optional: false
 - name: urllib3
-  version: 2.6.3
+  version: 2.7.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -10587,14 +10587,14 @@ package:
     h2: '>=4,<5'
     pysocks: '>=1.5.6,<2.0,!=1.5.7'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.6.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 9272daa869e03efe68833e3dc7a02130
-    sha256: af641ca7ab0c64525a96fd9ad3081b0f5bcf5d1cbb091afb3f6ed5a9eee6111a
+    md5: cbb88288f74dbe6ada1c6c7d0a97223e
+    sha256: feff959a816f7988a0893201aa9727bbb7ee1e9cec2c4f0428269b489eb93fb4
   category: main
   optional: false
 - name: urllib3
-  version: 2.6.3
+  version: 2.7.0
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -10603,10 +10603,10 @@ package:
     h2: '>=4,<5'
     pysocks: '>=1.5.6,<2.0,!=1.5.7'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.6.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 9272daa869e03efe68833e3dc7a02130
-    sha256: af641ca7ab0c64525a96fd9ad3081b0f5bcf5d1cbb091afb3f6ed5a9eee6111a
+    md5: cbb88288f74dbe6ada1c6c7d0a97223e
+    sha256: feff959a816f7988a0893201aa9727bbb7ee1e9cec2c4f0428269b489eb93fb4
   category: main
   optional: false
 - name: urwid
