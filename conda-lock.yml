@@ -6891,7 +6891,7 @@ package:
   category: main
   optional: false
 - name: numpy
-  version: 2.4.3
+  version: 2.4.4
   manager: conda
   platform: linux-64
   dependencies:
@@ -6903,14 +6903,14 @@ package:
     libstdcxx: '>=14'
     python: ''
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.4.3-py312h33ff503_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.4.4-py312h33ff503_0.conda
   hash:
-    md5: 5930ee8a175a242b4f001b1e9e72024f
-    sha256: 1aab7ba963affa572956b1bd8d239df52a9c7bc799c560f98bc658ab70224e10
+    md5: 98f04b59a222970c45c78208aeac8df8
+    sha256: 77f301d5e31c91935aaeebf7d1f408dbd927e04d43a5991de52d26f92b2267f2
   category: main
   optional: false
 - name: numpy
-  version: 2.4.3
+  version: 2.4.4
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -6919,12 +6919,12 @@ package:
     libcblas: '>=3.9.0,<4.0a0'
     libcxx: '>=19'
     liblapack: '>=3.9.0,<4.0a0'
-    python: 3.12.*
+    python: ''
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.3-py312h84a4f5f_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.4-py312ha003a3f_0.conda
   hash:
-    md5: 0a8a2049321d82aeaae02f07045d970e
-    sha256: 8116c570ca5b423b46d968be799eae7494b30fe7d65e4080fc891f35a01ea0d4
+    md5: 47a61f04473bcc6121d449ee7f67f799
+    sha256: 817fd3c66965a3d9750bd420af52a12e85dfc769a1fe1162170680f4cd58d873
   category: main
   optional: false
 - name: oauthlib
@@ -7310,7 +7310,7 @@ package:
   category: main
   optional: false
 - name: pixi
-  version: 0.68.0
+  version: 0.68.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -7318,23 +7318,23 @@ package:
     libgcc: '>=14'
     libstdcxx: '>=14'
     openssl: '>=3.5.6,<4.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.68.0-ha759004_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/pixi-0.68.1-ha759004_0.conda
   hash:
-    md5: 7a7ab327980227f74fabc0cc668c9511
-    sha256: a5330d01a3cdc73e680635dc28f807b2294a6792cbb936c4e02568980df90e4e
+    md5: d23974f009c89ec233c1cd580e7e9356
+    sha256: a7a7ef45c4759d44dc9157bcfb289ddc9f2647a4bd7b0317c7de714e1f585247
   category: main
   optional: false
 - name: pixi
-  version: 0.68.0
+  version: 0.68.1
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     libcxx: '>=19'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.68.0-h2307240_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/pixi-0.68.1-h2307240_0.conda
   hash:
-    md5: e0bce92a6e892181a23225a683e317a1
-    sha256: 1e9f08b6ee7ba6a7d106756bb2d6d5c2e2a11d79f81958414ebeb16d29dbfe24
+    md5: 5d8353b53a763111531145591d94e2ef
+    sha256: 7253bcd7c1ffd7cf75ec44889ee36d8589f27c33d01316f28f96fe6c962831f8
   category: main
   optional: false
 - name: pixman
