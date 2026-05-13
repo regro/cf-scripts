@@ -7013,7 +7013,7 @@ package:
   category: main
   optional: false
 - name: orjson
-  version: 3.11.8
+  version: 3.11.9
   manager: conda
   platform: linux-64
   dependencies:
@@ -7021,24 +7021,24 @@ package:
     libgcc: '>=14'
     python: ''
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.8-py312h94568fe_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.11.9-py312h94568fe_0.conda
   hash:
-    md5: 9daef1877f49539e02e278338d63a269
-    sha256: dda732a2bb2b4007576adf682cd90175e6680aae6ec0592fac9c552fb22e1395
+    md5: 40efeb66cfe1036a72decef4676cb10f
+    sha256: aa61f42a974fa75f3366594a242d8b3ed23861e99693ee5274d3ed21d93d86b2
   category: main
   optional: false
 - name: orjson
-  version: 3.11.8
+  version: 3.11.9
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     python: 3.12.*
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.8-py312h29c43dd_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.11.9-py312h29c43dd_0.conda
   hash:
-    md5: e1b81d3e4178daea003f096dcfceeeca
-    sha256: 0c7a2cde82824012151a127ad5cf28855016eb8d2d70a436bd5c0eb810cbc90b
+    md5: b61bf3b2f8e80afc0004d132f122a3df
+    sha256: 9a65726a770bf5418159543b053be16c968638eb01f4f27a76d1a35c47632d56
   category: main
   optional: false
 - name: packaging
