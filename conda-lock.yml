@@ -9212,7 +9212,7 @@ package:
   category: main
   optional: false
 - name: requests
-  version: 2.34.0
+  version: 2.34.1
   manager: conda
   platform: linux-64
   dependencies:
@@ -9221,14 +9221,14 @@ package:
     idna: '>=2.5,<4'
     python: ''
     urllib3: '>=1.26,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.34.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.34.1-pyhcf101f3_0.conda
   hash:
-    md5: a5985537dab1ba7034b5ff4ea22e2fa9
-    sha256: 4487fdb341537e2df47159ed8e546add99080974c52d5b2dc2a710910619115a
+    md5: 18a1731937516054803c047e1b39dc04
+    sha256: 22ffa6f214829b9fb2daac5b25886cca73bd8de1fb9523791ce39478d60a58f7
   category: main
   optional: false
 - name: requests
-  version: 2.34.0
+  version: 2.34.1
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9237,10 +9237,10 @@ package:
     idna: '>=2.5,<4'
     python: ''
     urllib3: '>=1.26,<3'
-  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.34.0-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/requests-2.34.1-pyhcf101f3_0.conda
   hash:
-    md5: a5985537dab1ba7034b5ff4ea22e2fa9
-    sha256: 4487fdb341537e2df47159ed8e546add99080974c52d5b2dc2a710910619115a
+    md5: 18a1731937516054803c047e1b39dc04
+    sha256: 22ffa6f214829b9fb2daac5b25886cca73bd8de1fb9523791ce39478d60a58f7
   category: main
   optional: false
 - name: requests-mock
@@ -9354,7 +9354,7 @@ package:
   category: main
   optional: false
 - name: rich-toolkit
-  version: 0.19.8
+  version: 0.19.9
   manager: conda
   platform: linux-64
   dependencies:
@@ -9362,14 +9362,14 @@ package:
     python: ''
     rich: '>=13.7.1'
     typing_extensions: '>=4.12.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-toolkit-0.19.8-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-toolkit-0.19.9-pyhcf101f3_0.conda
   hash:
-    md5: f0cf995180cae89debd8616781653b21
-    sha256: 0ac5ef4656bc0e2ef02ac8075a47fa6cd03903df23aa190316f4bac30f0a5d30
+    md5: 59df2940cd72d5da3b25783055c1cb9a
+    sha256: 21b2c378ee8d62a5a18771c3b97037a0bbe57b8b42b4456ad4c883f3b48481ec
   category: main
   optional: false
 - name: rich-toolkit
-  version: 0.19.8
+  version: 0.19.9
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -9377,10 +9377,10 @@ package:
     python: ''
     rich: '>=13.7.1'
     typing_extensions: '>=4.12.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/rich-toolkit-0.19.8-pyhcf101f3_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/rich-toolkit-0.19.9-pyhcf101f3_0.conda
   hash:
-    md5: f0cf995180cae89debd8616781653b21
-    sha256: 0ac5ef4656bc0e2ef02ac8075a47fa6cd03903df23aa190316f4bac30f0a5d30
+    md5: 59df2940cd72d5da3b25783055c1cb9a
+    sha256: 21b2c378ee8d62a5a18771c3b97037a0bbe57b8b42b4456ad4c883f3b48481ec
   category: main
   optional: false
 - name: ripgrep
