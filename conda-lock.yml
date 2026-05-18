@@ -1631,25 +1631,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.18.12.29.16
+  version: 2026.05.18.21.58.56
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.18.12.29.16-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.18.21.58.56-hd8ed1ab_0.conda
   hash:
-    md5: 55e25c5ef788515a625fe1af85aaa316
-    sha256: 1853bac5bfaae8ff88b647a3184bd94d3f994b86b2d0bca2ab06e3e4c11c3c72
+    md5: 4db46ff74d0fe9d0eb99efacaece09fc
+    sha256: b6288fd65b22111ff28d40c5960de570d5c6ebb04edb81788bb91005d435255c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.18.12.29.16
+  version: 2026.05.18.21.58.56
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.18.12.29.16-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.18.21.58.56-hd8ed1ab_0.conda
   hash:
-    md5: 55e25c5ef788515a625fe1af85aaa316
-    sha256: 1853bac5bfaae8ff88b647a3184bd94d3f994b86b2d0bca2ab06e3e4c11c3c72
+    md5: 4db46ff74d0fe9d0eb99efacaece09fc
+    sha256: b6288fd65b22111ff28d40c5960de570d5c6ebb04edb81788bb91005d435255c
   category: main
   optional: false
 - name: conda-index
@@ -6185,16 +6185,16 @@ package:
   category: main
   optional: false
 - name: libuuid
-  version: '2.42'
+  version: 2.42.1
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.42-h5347b49_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.42.1-h5347b49_0.conda
   hash:
-    md5: 38ffe67b78c9d4de527be8315e5ada2c
-    sha256: bc1b08c92626c91500fd9f26f2c797f3eb153b627d53e9c13cd167f1e12b2829
+    md5: 7d0a66598195ef00b6efc55aefc7453b
+    sha256: 3f0edf1280e2f6684a986f821eaa3e123d2694a00b31b96ca0d4a4c12c129231
   category: main
   optional: false
 - name: libuv
