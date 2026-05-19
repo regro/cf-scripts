@@ -1631,25 +1631,25 @@ package:
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.19.01.35.31
+  version: 2026.05.19.07.41.24
   manager: conda
   platform: linux-64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.19.01.35.31-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.19.07.41.24-hd8ed1ab_0.conda
   hash:
-    md5: b26cfbf1e22538c429c6b5fa80557ef0
-    sha256: 0c2f452c14163696be778a8e53c2bc033972092ec2bd767e9521ab78c4c49e15
+    md5: f255fc0cccde63ede379884c541e5535
+    sha256: c1ee3974056050fe09d023dca2512c555d0eab2453d774a3434367254dbfa14c
   category: main
   optional: false
 - name: conda-forge-pinning
-  version: 2026.05.19.01.35.31
+  version: 2026.05.19.07.41.24
   manager: conda
   platform: osx-arm64
   dependencies: {}
-  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.19.01.35.31-hd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2026.05.19.07.41.24-hd8ed1ab_0.conda
   hash:
-    md5: b26cfbf1e22538c429c6b5fa80557ef0
-    sha256: 0c2f452c14163696be778a8e53c2bc033972092ec2bd767e9521ab78c4c49e15
+    md5: f255fc0cccde63ede379884c541e5535
+    sha256: c1ee3974056050fe09d023dca2512c555d0eab2453d774a3434367254dbfa14c
   category: main
   optional: false
 - name: conda-index
@@ -5993,10 +5993,10 @@ package:
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc: '>=14'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libsodium-1.0.22-h280c20c_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libsodium-1.0.22-h280c20c_1.conda
   hash:
-    md5: 49ba357b8786a90dab799a43ad83bc8d
-    sha256: e1ba06dead33d4afe11207cfaf9f80faa6430da5b76d20093a1898a7de75417c
+    md5: 965e4d531b588b2e42f66fd8e48b056c
+    sha256: b677bbf1c339d894757c3dcfbb2f88649e499e4991d70ae09a1466da9a6c92d6
   category: main
   optional: false
 - name: libsodium
@@ -6005,10 +6005,10 @@ package:
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsodium-1.0.22-h1a92334_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libsodium-1.0.22-h1a92334_1.conda
   hash:
-    md5: 7b146c2a56fb1b0bce2b305f16d6fb5e
-    sha256: 3691751a062580e3462b70354b62178e0146f5dc614face813d5c287c3b112c3
+    md5: 9ed5ab909c449bdcae72322e44875a18
+    sha256: 202be45db5726757a8ea1f374f85aacc18c504f5ff15b2558496dff4c8779c48
   category: main
   optional: false
 - name: libsolv
@@ -7069,7 +7069,7 @@ package:
   category: main
   optional: false
 - name: numpy
-  version: 2.4.5
+  version: 2.4.6
   manager: conda
   platform: linux-64
   dependencies:
@@ -7081,14 +7081,14 @@ package:
     libstdcxx: '>=14'
     python: ''
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.4.5-py312h33ff503_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.4.6-py312h33ff503_0.conda
   hash:
-    md5: 059e433fa6cba7a53dbb81ede5ceb21b
-    sha256: 10e1c82ebbb2b3908ae7b2c5b7d03abdb4381c06baf072ac4bf7ebabacfcef6b
+    md5: 6e31d55ee1110fda83b4f4045f4d73ff
+    sha256: dfcbeadb3e7ad0da7a55a0525884ca34c19584154e13cc4159396b305d1bd445
   category: main
   optional: false
 - name: numpy
-  version: 2.4.5
+  version: 2.4.6
   manager: conda
   platform: osx-arm64
   dependencies:
@@ -7099,10 +7099,10 @@ package:
     liblapack: '>=3.9.0,<4.0a0'
     python: ''
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.5-py312ha003a3f_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.4.6-py312ha003a3f_0.conda
   hash:
-    md5: 4768de4bf00d4f187a5b93ff10de33ba
-    sha256: 389f93005af589a8aca7d46454fb41963d58cbd7c389e2bb9c6b505e2b43052e
+    md5: 9f554fdfa902971390975b489e678c03
+    sha256: b09e03dace335a6f303352fc4e167243e04d7026d55008546fa643d224fb0bad
   category: main
   optional: false
 - name: oauthlib
